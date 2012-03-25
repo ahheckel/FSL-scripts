@@ -1,0 +1,468 @@
+#!/bin/bash
+
+# function declarations
+function getline()
+{
+ local i="0"
+ local line=""
+
+ cat $2 | while [ $i -lt 3 ]
+ do
+   read line
+   if [ $i = $1 ]; then
+    echo $line 
+   fi
+   i=$[$i+1]
+ done
+}
+
+function concat_bvecs()
+{
+ local file_pttrn=$1
+ local dest=$2
+ local concat0=""
+ local concat1=""
+ local concat2=""
+ local bvec_txt=""
+ local bvecs0=""
+ local bvecs1=""
+ local bvecs2=""
+
+ for bvec_txt in `ls ${file_pttrn}` ; do
+  echo "  `basename $bvec_txt`"  
+	bvecs0=`getline 0 $bvec_txt`
+	bvecs1=`getline 1 $bvec_txt`
+	bvecs2=`getline 2 $bvec_txt`
+	concat0=$concat0" "$bvecs0
+	concat1=$concat1" "$bvecs1
+	concat2=$concat2" "$bvecs2
+ done 
+
+ echo $concat0 > ${dest}
+ echo $concat1 >> ${dest}
+ echo $concat2 >> ${dest}
+  
+ wc ${dest}
+}
+
+function concat_bvals()
+{
+  local file_pttrn=$1
+  local dest=$2
+  local concat=""
+  local bval_txt=""
+  local bvals=""
+
+  for bval_txt in `ls ${file_pttrn}` ; do
+  echo "  `basename $bval_txt`"
+	bvals=`cat $bval_txt`
+	concat=$concat" "$bvals
+  done  
+
+  echo $concat > ${dest}
+  wc ${dest}
+}
+
+function findIndex() 
+{
+  local i=0;
+  local bvals=`cat $1`
+  local b0val=$2
+
+  for b in $bvals ; do
+   if test $b -eq $b0val -a $i -gt -1 ; then # take first B0 image ? (!)
+     echo "$i"
+     break
+   fi
+   i=$[$i+1]
+  done
+}
+
+function getClusterJobID() 
+{
+  local user=`whoami | cut -c 1-10`
+  qstat | grep $user | sort | tail -n 1 | awk '{print $1}'
+}
+
+function isClusterBusy() 
+{ 
+  if [ "x$SGE_ROOT" = "x" ] ; then echo "0"; return; fi # is cluster environment present ?
+  local user=`whoami | cut -c 1-10`
+  local n_total=`qstat | grep $user | wc -l`
+  local n_dr=`qstat | grep $user| awk '{print $5}' | grep dr | wc -l`
+  local n_dt=`qstat | grep $user| awk '{print $5}' | grep dt | wc -l` 
+  echo "$n_total - $n_dr - $n_dt" | bc -l # ignore zombie jobs
+}
+
+function waitIfBusy() 
+{
+  if [ `isClusterBusy` -gt 0 ] ; then
+    echo -n "waiting..."
+    while [ `isClusterBusy` -gt 0 ] ; do echo -n '.' ; sleep 10 ; done
+    echo "done."
+  fi
+}
+
+function getBetThres() 
+{
+  local line=""
+  local thres=""
+  local bet_txt=$1
+  local subj=$2
+  local sess=$3
+  
+  if [ ! -f $bet_txt ] ; then read -p "ERROR: BET info file $bet_txt not found for subject ${subj} and session ${sess}. You will need to create that file..." >&2 ; fi
+  
+  if [ "$sess" = "." ] ; then sess="" ; fi # no multisession design ?
+   
+  line=`cat $bet_txt | awk '{print $1}' | grep -n ${subj}${sess} | cut -d : -f1`  
+  if [ -z $line ] ; then
+    line=`cat $bet_txt | awk '{print $1}' | grep -n ${subj} | cut -d : -f1`
+    echo "WARNING: BET info file ${bet_txt}: no entry found for string '${subj}${sess}'; trying to list FI entry for string '${subj}' instead..." >&2
+  fi  
+  if [ -z $line ] ; then read -p "ERROR: BET info file ${bet_txt}: no entry found for string '${subj}'. Press Control-C to abort..." >&2 ; fi
+
+  thres=`cat $bet_txt | awk '{print $2}' | sed -n ${line}p `
+  
+  if [ "$thres" = "na" ] ; 
+    then echo "n.a." # not available
+  elif [ "$thres" = "mod" ] ; 
+    then echo "mod" # externally modified
+  else 
+    echo "$thres"
+  fi 
+}
+
+function getBetCoG() 
+{
+  local line=""
+  local bet_txt=$1
+  local subj=$2
+  local sess=$3
+  
+  if [ ! -f $bet_txt ] ; then read -p "ERROR: BET info file $bet_txt not found for subject ${subj} and session ${sess}. You will need to create that file..." >&2 ; fi
+
+  if [ "$sess" = "." ] ; then sess="" ; fi # no multisession design ?
+
+  line=`cat $bet_txt | awk '{print $1}' | grep -n ${subj}${sess} | cut -d : -f1`
+  if [ -z $line ] ; then
+    echo "WARNING: BET info file ${bet_txt}: no entry found for string '${subj}${sess}'; trying to list CoG entry for string '${subj}' instead..." >&2
+    line=`cat $bet_txt | awk '{print $1}' | grep -n ${subj} | cut -d : -f1`
+  fi
+  if [ -z $line ] ; then read -p "ERROR: BET info file ${bet_txt}: no entry found for string '${subj}'. Press Control-C to abort..." >&2 ; fi
+  
+  x=$(cat $bet_txt | awk '{print $3}' | sed -n ${line}p  )
+  y=$(cat $bet_txt | awk '{print $4}' | sed -n ${line}p  )
+  z=$(cat $bet_txt | awk '{print $5}' | sed -n ${line}p  )
+  
+  if [ "$x" = "na" -o "$y" = "na" -o "$z" = "na" ] ; 
+    then echo "n.a." # not available
+  elif [ "$x" = "mod" -o "$y" = "mod" -o "$z" = "mod" ] ; 
+    then echo "mod" # externally modified
+  else 
+    echo "$x $y $z"
+  fi
+}
+
+function getBetCoGOpt()
+{
+  local CoG="$1"
+  
+  if [ "$CoG" = "n.a." ] ; then echo "" ; else echo "-c $CoG" ; fi
+}
+
+function getBetFIOpt()
+{
+  local FI="$1"
+  
+  if [ "$FI" = "n.a." ] ; then echo "" ; else echo "-f $FI" ; fi
+}
+
+function countVols()
+{
+  local file_pattern=$1
+  local summand0=0
+  local summand1=0
+  local n_total=0
+
+  for file in `ls $file_pattern` ; do
+    summand1=`fslinfo  $file | grep ^dim4 | awk '{print $2}'`
+    n_total=`echo "$summand0 + $summand1" | bc`
+    summand0=$n_total;
+  done
+  echo "$n_total"
+}
+
+function gatherFilesAcrossSessions()
+{
+  local subjpath=$1
+  local sessions_txt=$2
+  local file_pattern=$3
+  local total=""
+  local n=""
+
+  
+  for sess in `cat ${subjpath}/${sessions_txt}` ; do
+    n=`ls ${subjpath}/${sess}/${file_pattern}`
+    total=$total" "$n
+  done
+  echo $total
+}
+
+function applyStandardSpaceMaskToT1()
+{
+  local t1="$1" # native t1
+  local t1Brain="$2" # betted brain
+  local t1Masked="$3" # name of standard space masked t1
+  local dest_folder=`dirname $3` # destination folder
+
+  flirt -in ${t1Brain} -ref $FSLDIR/data/standard/MNI152_T1_1mm_brain -out ${dest_folder}/flirted_t1_brain -dof 12 -omat ${dest_folder}/t1_to_MNI
+  convert_xfm -omat ${dest_folder}/MNI_to_t1 -inverse ${dest_folder}/t1_to_MNI
+  flirt -in  $FSLDIR/data/standard/MNI152_T1_1mm_first_brain_mask -out ${dest_folder}/t1_mask -ref $t1 -applyxfm -init ${dest_folder}/MNI_to_t1
+  fslmaths ${dest_folder}/t1_mask -thr 0 -bin  ${dest_folder}/t1_mask -odt char
+  fslmaths ${dest_folder}/t1_mask -mul -1 -add 1 -bin ${dest_folder}/t1_mask_inv
+  fslmaths ${dest_folder}/t1_mask_inv -ero -bin ${dest_folder}/t1_mask_inv_ero
+  fslmaths ${dest_folder}/t1_mask_inv_ero -ero -bin ${dest_folder}/t1_mask_inv_ero2
+  fslmaths ${dest_folder}/t1_mask_inv_ero2 -ero -bin ${dest_folder}/t1_mask_inv_ero3
+  fslmaths ${dest_folder}/t1_mask_inv_ero3 -mul -1 -add 1 -bin ${dest_folder}/t1_mask_ero
+  fslmaths $t1 -mas ${dest_folder}/t1_mask_ero ${t1Masked}
+}
+
+function row2col()
+{
+  local dat=`cat $1`
+  for i in $dat ; do echo $i ; done
+}
+
+function minmaxavg()
+{
+  awk 'NR == 1 { max=$1; min=$1; sum=0 }
+  { if ($1>max) max=$1; if ($1<min) min=$1; sum+=$1;}
+  END {printf "%d:%d:%f\n", min, max, sum/NR}'
+}
+
+function getMin()
+{
+  minmaxavg | cut -d ":" -f 1 
+}
+
+function getMax()
+{
+  minmaxavg | cut -d ":" -f 2 
+}
+
+function getAvg()
+{
+  minmaxavg | cut -d ":" -f 3
+}
+
+function subj_sess() # remove '.' replacement in filename if no multiple sessions
+{
+  echo "${subj}_${sess}" | sed  's/'$subj'_\./'$subj'/'
+}
+
+function subjsess() # remove '.' replacement in filename if no multiple sessions
+{
+  echo "${subj}${sess}" | sed  's/'$subj'\./'$subj'/'
+}
+
+function transpose()
+{
+  local matrix_txt="$1"
+  
+  awk -F " " '{
+  for (f = 1; f <= NF; f++)
+  a[NR, f] = $f
+  }
+  NF > nf { nf = NF }
+  END {
+  for (f = 1; f <= nf; f++)
+  for (r = 1; r <= NR; r++)
+  printf a[r, f] (r==NR ? RS : FS)
+  }' "$matrix_txt"
+}
+
+function getIdx() 
+{
+  local i=0;
+  local vals=`cat $1`
+  local target=$2
+
+  for val in $vals ; do
+    if test $val -eq $target ; then
+      echo "$i"
+    fi
+    i=$[$i+1]
+  done
+}
+
+function readLinesInFile()
+{
+  local input="$1"
+  local p0="$2" # begin line-number (start with 0)
+  local p1="$3" # end line-number
+  local n=0 # counter
+  
+  while read line
+  do
+    if [ $n -ge "$p0" -a $n -lt "$p1" ] ; then
+      echo $line
+    fi
+    n=$(( $n + 1 ))
+  done < "$input"
+}
+
+function average()
+{  
+  awk '
+  FNR==NR {
+  for(i=1; i<=NF; i++)
+  _[FNR,i]=$i
+  next
+  }
+  {
+  for(i=1; i<=NF; i++)
+  printf("%.7f%s", ($i+_[FNR,i])/2, (i==NF) ? "\n" : FS);
+  }' $1 $2
+}
+
+function getB0Index()
+{ 
+  if [ "x$1" = "x" -o "x$2" = "x" ] ; then echo "usage:  $0 <bval file(s)> <dest dir>" ; fi
+  
+  local bval_pttrn=$1
+  local dest=$2
+  local min=""
+  local b0img=""
+    
+  concat_bvals "$bval_pttrn" bvals_concat.tmp > /dev/null
+  
+  min=`row2col bvals_concat.tmp | getMin` # find minimum value (usually representing the "B0" image)
+  b0img=`findIndex bvals_concat.tmp $min`
+  rm bvals_concat.tmp
+  
+  echo "$b0img" > $dest  
+  echo "$b0img $min"
+}
+
+function checkConsistency()
+{
+  if [ "x$1" = "x" -o "x$2" = "x" -o "x$3" = "x" ] ; then echo "usage:  $0 <diff files> <bval file> <bvec file>" ; fi
+  
+  local diff_pttrn="$1"
+  local bval_file="$2"
+  local bvec_file="$3"
+  local nvol=""
+  local n_bvals=""
+  local n_bvecs=""
+  
+  # number of entries in bvals- and bvecs files consistent ?
+  nvol=`countVols "$diff_pttrn"` # check pattern (!)
+  n_bvals=`cat $bval_file | wc -w` ; n_bvecs=`cat $bvec_file | wc -w`
+  if [ $n_bvals = $nvol -a  $n_bvecs = `echo "3*$n_bvals" | bc` ] ; then
+    echo "  number of entries in bvals- and bvecs files are consistent ($nvol entries)."
+  else
+    echo "  ERROR : number of entries in bvals- and bvecs files are NOT consistent - press Control-C to abort..."
+    exit
+  fi  
+}
+
+function ec_parallel()
+{
+  if [ "x$1" = "x" -o "x$2" = "x" -o "x$3" = "x" ] ; then echo "usage:  ec_parallel <path to inputfile> <path to outputfile> <temp-directory>" ; fi
+  
+  local input="$1"
+  local dest=`basename $2`
+  local destdir=`dirname $2`
+  local ref=$3
+  local tmpdir="$4"
+  local wd=`pwd`
+  local nvol=""
+  local number=""
+  local vol=""
+  local ecs=""
+  local eclogs=""
+
+  # copy 4D diff. file to tempdir
+  imcp "$input" $tmpdir
+
+  # change to temp dir
+  cd $tmpdir
+
+  # cleanup
+  rm -f vol????.nii.gz tmp_ec_out_????_tmp????.nii.gz ec_tasks[0123] ec_tasks[0123].[oe]*
+
+  # prepare...
+  fslsplit `basename $input`
+  fslroi `basename $input` tmp_ref $ref 1
+
+  # create taskfiles for fsl_sub
+  nvol=`fslinfo $(basename $input) | grep ^dim4 | awk '{print $2}'`
+  nvol=`echo "$nvol - 1" | bc`
+
+  for i in `seq 0 $nvol` ; do
+    number=`printf "%04i" $i`
+    vol=vol${number}
+    echo "fslmerge -t tmp_out_${number} tmp_ref $vol" >> ec_tasks0
+  done
+
+  for i in `seq 0 $nvol` ; do
+    number=`printf "%04i" $i`
+    rm -f tmp_ec_out_${number}.ecclog 
+    echo "eddy_correct tmp_out_${number} tmp_ec_out_${number} 0" >> ec_tasks1
+  done
+
+  for i in `seq 0 $nvol` ; do
+    number=`printf "%04i" $i`
+    echo "fslroi tmp_ec_out_${number} ec_${number} 1 1" >> ec_tasks2
+  done
+
+  for i in `seq 0 $nvol` ; do
+    ecs=$ecs" "ec_${number}  
+  done
+  echo "fslmerge -t $dest "$ecs"" >> ec_tasks3
+
+  # execute tasks
+  fsl_sub -t ec_tasks0
+  waitIfBusy
+  fsl_sub -t ec_tasks1
+  waitIfBusy
+  fsl_sub -t ec_tasks2
+  waitIfBusy
+  fsl_sub -t ec_tasks3
+  waitIfBusy
+
+  # create ecclog file
+  for i in `seq 0 $nvol` ; do
+    number=`printf "%04i" $i`
+    tail -n 8 tmp_ec_out_${number}.ecclog > ec_out_${number}.ecclog
+    sed -i "s|processing tmp_ec_out_${number}_tmp0000|processing `remove_ext $dest`_tmp${number}|g" ec_out_${number}.ecclog
+    sed -i "s|processing tmp_ec_out_${number}_tmp0001|processing `remove_ext $dest`_tmp${number}|g" ec_out_${number}.ecclog
+    eclogs=$eclogs" "ec_out_${number}.ecclog 
+  done
+  cat $eclogs > `remove_ext $dest`.ecclog
+
+  # cleanup...
+  imrm tmp_ref
+  for i in `seq 0 $nvol` ; do
+    number=`printf "%04i" $i`  
+    imrm tmp_out_${number}  
+    imrm tmp_ec_out_${number}
+    imrm ec_${number}
+    imrm vol${number}
+    imrm `basename $input`
+    rm -f tmp_ec_out_${number}.ecclog 
+    rm -f ec_out_${number}.ecclog 
+  done
+
+  # move final files to dest. directory
+  immv $dest $destdir
+  mv `remove_ext $dest`.ecclog $destdir
+
+  # concatenate log. files
+  cat ec_tasks[0123].e* > $destdir/ec_parallel.error
+  rm -f ec_tasks[0123].[oe]*
+  
+  # change dir.
+  cd $wd
+}

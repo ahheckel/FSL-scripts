@@ -1,0 +1,8 @@
+ToDo:
+
+install tbss_x ($FSL_DIR/bin)
+update imagemagick (compile)
+install topup (centos 4, not 5) ($FSL_DIR/bin ; b02b0.cnf -> $FSL_DIR/etc/flirtsch/)
+install MNI_T1_4mm ($FSL_DIR/data/standard/)
+(update trac-all) ($FREESURFER_HOME/bin)
+

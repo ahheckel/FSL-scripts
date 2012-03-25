@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# unset SGE_ROOT, if no cluster
+#SGE_ROOT="" # (!)
+
+# set paths
+rootdir=`pwd` # (!)
+subjdir=$rootdir/subj 
+tbssdir=$rootdir/tbss 
+vbmdir=$rootdir/vbm 
+logdir=$rootdir/logs 
+tmpdir=$rootdir/tmp
+FS_subjdir=$subjdir/FS_subj
+FS_sessdir=$subjdir/FS_sess
+export SUBJECTS_DIR=$FS_subjdir
+
+# enable processing streams
+FDT_EC_WITHIN_SESSIONS=0
+FDT_EC_ACROSS_SESSIONS=0
+USE_EC_PARALLEL=1
+FDT_STG1=1 # FDT merging
+FDT_STG2=1 # FDT eddy-correct & extract B0 ec-reference image
+FDT_STG3=1 # FDT betting B0 reference image (with variable FI thresholds)
+FDT_STG4=1 # FDT re-distributing to sessions
+FDT_STG5=1 # FDT estimate tensor model
+FIELDMAP_STG1=0 # FIELDMAP prepare
+FIELDMAP_STG2=0 # FIELDMAP create
+VBM_STG1=0 # VBM prepare T1
+VBM_STG2=0 # VBM initial skull strip
+VBM_STG3=0 # VBM apply standard space mask (SSM)
+VBM_STG4=0 # VBM final skull strip - bet
+VBM_STG5=0 # VBM final skull strip - watershed
+TOPUP_STG1=0 # TOPUP prepare
+TOPUP_STG2=0 # TOPUP low-B images: create index and extract
+TOPUP_STG3=0 # TOPUP merge B0 images
+RECON_STG1=0 # RECON-ALL prepare (copy and convert T1 nifti)
+RECON_STG2=1 # RECON-ALL execute
+TRACULA_STG1=0 # TRACULA prepare
+TRACULA_STG1_USE_EC=0 # use FSL-fdt's ec-corrected diff. files
+TRACULA_STG2=0 # TRACULA execute -prep
+TRACULA_STG3=0 # TRACULA execute -bedp
+
+
+# set fieldmap related vars
+deltaTEphase=0.00246
+PI=$(echo "scale=10; 4*a(1)" | bc -l) # define pi
+
+# set file patterns in preprocessing
+pttrn_diffs="*_ep_b0_ep_b*.nii"
+pttrn_bvals="*_ep_b0_bvals"
+pttrn_bvecs="*_ep_b0_bvecs"
+pttrn_fmaps="*_fm2d2r*.nii" 
+pttrn_strucs="*_tfl3d1_ns.nii" 
+
+# set file patterns in tbss processing
+pttrn_FA="*_dti_FA.nii.gz" 
+
+# set file patterns in vbm processing
+pttrn_vbmBrain="*_t1_betted_masked_brain.nii.gz" 
+pttrn_vbmStruc="*_t1_struc.nii.gz"
+

@@ -1,0 +1,61 @@
+#!/bin/bash
+
+# unset SGE_ROOT, if no cluster
+#SGE_ROOT=""
+
+# set paths
+rootdir=`pwd` # (!)
+subjdir=$rootdir/subj 
+tbssdir=$rootdir/tbss 
+vbmdir=$rootdir/vbm 
+logdir=$rootdir/logs 
+tmpdir=$rootdir/tmp
+FS_subjdir=$subjdir/FS_subj
+FS_sessdir=$subjdir/FS_sess
+export SUBJECTS_DIR=$FS_subjdir
+
+# enable processing streams
+FDT_EC_WITHIN_SESSIONS=1
+FDT_EC_ACROSS_SESSIONS=0
+USE_EC_PARALLEL=1
+FDT_STG1=0 # FDT merging
+FDT_STG2=1 # FDT eddy-correct & extract B0 ec-reference image
+FDT_STG3=1 # FDT betting B0 reference image (with variable FI thresholds)
+FDT_STG4=1 # FDT re-distributing to sessions
+FDT_STG5=1 # FDT estimate tensor model
+FIELDMAP_STG1=1 # FIELDMAP prepare
+FIELDMAP_STG2=1 # FIELDMAP create
+VBM_STG1=1 # VBM prepare T1
+VBM_STG2=1 # VBM initial skull strip
+VBM_STG3=1 # VBM apply standard space mask (SSM)
+VBM_STG4=1 # VBM final skull strip - bet
+VBM_STG5=1 # VBM final skull strip - watershed
+TOPUP_STG1=1 # TOPUP prepare
+TOPUP_STG2=1 # TOPUP low-B images: create index and extract
+TOPUP_STG3=1 # TOPUP merge B0 images
+RECON_STG1=0 # RECON-ALL prepare (copy and convert T1 nifti)
+RECON_STG2=0 # RECON-ALL execute
+TRACULA_STG1=0 # TRACULA prepare
+TRACULA_STG1_USE_EC=0 # use FSL-fdt's ec-corrected diff. files
+TRACULA_STG2=0 # TRACULA execute -prep
+TRACULA_STG3=0 # TRACULA execute -bedp
+
+# set fieldmap related vars
+deltaTEphase=0.00246
+PI=$(echo "scale=10; 4*a(1)" | bc -l) # define pi
+
+# set file patterns
+pttrn_diffs="*_ep2ddiff_pat3_esp0_75ms_18*.nii" # (!)
+pttrn_bvals=`remove_ext $pttrn_diffs`_bvals
+pttrn_bvecs=`remove_ext $pttrn_diffs`_bvecs
+pttrn_fmaps="*_gre_field_mapping.nii " # (!)
+pttrn_strucs="*T1_MPRAGE_tra_256_1_0mm_nopat.nii" # (!)
+pttrn_FA="*_dti_FA.nii.gz"
+
+# set file patterns for TOPUP
+pttrn_diffsplus="*_ep2ddiff_pat3_esp0_75ms_*+.nii" # (!)
+pttrn_diffsminus="*_ep2ddiff_pat3_esp0_75ms_*-.nii" # (!)
+pttrn_bvalsplus=`remove_ext $pttrn_diffsplus`_bvals
+pttrn_bvalsminus=`remove_ext $pttrn_diffsminus`_bvals
+pttrn_bvecsplus=`remove_ext $pttrn_diffsplus`_bvecs
+pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs

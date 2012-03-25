@@ -1,0 +1,11 @@
+you should replace the  bedpostx_seychelles commands in trac-all, if you want to run it on SGE:
+
+
+#-----------------
+
+# set cmd = (bedpostx_seychelles $dtdir/dmri) # commented out by HKL
+set cmd = (bedpostx $dtdir/dmri) # added by HKL
+
+#------------------
+
+-HKL
