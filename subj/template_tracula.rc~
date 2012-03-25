@@ -1,0 +1,65 @@
+#
+# Set locations of diffusion DICOMs, diffusion output, FreeSurfer recons
+#
+# This file contains commands that will be run by trac-all before an analysis.
+# It is used to set all parameters needed for the analysis.
+#
+# Remove a parameter from your dmrirc file if you want to use the default value.
+# Parameters that don't have default values must be specified.
+#
+# Any other commands that you might want to run before an analysis can be added
+# to this file.
+#
+# Original Author: Anastasia Yendiki
+# CVS Revision Info:
+#    $Author: ayendiki $
+#    $Date: 2010/12/15 08:36:00 $
+#    $Revision: 1.1 $
+#
+# Copyright (C) 2010
+# The General Hospital Corporation (Boston, MA).
+# All rights reserved.
+#
+# Distribution, usage and copying of this software is covered under the
+# terms found in the License Agreement file named 'COPYING' found in the
+# FreeSurfer source code root directory, and duplicated here:
+# https://surfer.nmr.mgh.harvard.edu/fswiki/FreeSurferOpenSourceLicense
+#
+# General inquiries: freesurfer@nmr.mgh.harvard.edu
+#
+# FreeSurfer SUBJECTS_DIR
+setenv SUBJECTS_DIR X
+# Output directory where trac-all results will be saved
+set dtroot = X
+# Subject IDs
+set subjlist = (X)
+set runlist = (1)
+# Input diffusion DICOMs (file names relative to dcmroot)
+set dcmroot = X
+set dcmlist = (X)
+set bvalfile = X
+set bvecfile = X
+set nb0 = X
+set doeddy = 1
+set dorotbvecs = 1
+set thrbet = 0.3
+set doregflt = 1
+set doregbbr = 1
+set doregmni = 1
+set mnitemp = $FSLDIR/data/standard/MNI152_T1_1mm_brain.nii.gz
+set trainfile = $TUTORIAL_DATA/diffusion_tutorial/subj,train,difftutorial23.txt
+# Paths to reconstruct
+# Default: All paths
+set pathlist = (lh.cst_AS rh.cst_AS \
+        lh.ilf_AS rh.ilf_AS \
+        lh.unc_AS rh.unc_AS \
+        fmajor_PP fminor_PP \
+        lh.atr_PP rh.atr_PP \
+        lh.cab_PP rh.cab_PP \
+        lh.ccg_PP rh.ccg_PP \
+        lh.slfp_PP rh.slfp_PP \
+        lh.slft_PP rh.slft_PP)
+
+# Number of path control points
+# Default: 5
+set ncpts = 5
