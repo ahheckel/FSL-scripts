@@ -220,27 +220,27 @@ cd $subjdir
 
 if [ $SCRATCH -eq 1 ]; then
 echo "----- BEGIN SCRATCH -----"
-BOLD_ESTIMATE_NUISANCE=uw_mc_bold_hpfInf_s0_stc0.nii.gz
+BOLD_ESTIMATE_NUISANCE=bold.nii
 confounds="tc_WB_mask tc_WM_mask tc_CSF_mask mc.par"
 
 for subj in `cat subjects` ; do
   for sess in `cat ${subj}/sessions_func` ; do
       
-    featdir=$subjdir/$subj/$sess/bold/$(dirname `readlink $subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE`)
+    #featdir=$subjdir/$subj/$sess/bold/$(dirname `readlink $subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE`)
     fldr=$subjdir/$subj/$sess/bold/filt/$(remove_ext $BOLD_ESTIMATE_NUISANCE)
 
     if [ ! -e $subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE ] ; then 
       echo "'$subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE' not found - exiting..." ; exit
     fi
-    if [ ! -e $featdir/mc/prefiltered_func_data_mcf.par ] ; then
-      echo "motion parameter file '$featdir/mc/prefiltered_func_data_mcf.par' not found - exiting..." ; exit
-    fi
+    #if [ ! -e $featdir/mc/prefiltered_func_data_mcf.par ] ; then
+     # echo "motion parameter file '$featdir/mc/prefiltered_func_data_mcf.par' not found - exiting..." ; exit
+    #fi
 
     echo "BOLD : subj $subj , sess $sess : creating directory '$fldr'"
     mkdir -p $fldr
     
-    echo "BOLD : subj $subj , sess $sess : copying motion parameter file..."
-    cp -v $featdir/mc/prefiltered_func_data_mcf.par $fldr/mc.par
+    #echo "BOLD : subj $subj , sess $sess : copying motion parameter file..."
+    #cp -v $featdir/mc/prefiltered_func_data_mcf.par $fldr/mc.par
     
     echo "BOLD : subj $subj , sess $sess : linking bold 4D..."
     ln -sfv ../../$BOLD_ESTIMATE_NUISANCE $fldr/bold.nii.gz
@@ -251,23 +251,23 @@ for subj in `cat subjects` ; do
     if [ ! -e  $subjdir/$subj/$sess_t1/vbm/${t1}.nii.gz ] ; then echo "BOLD : $subj , $sess : '$subj/$sess/vbm/${t1}.nii.gz' does not exist - exiting..." ; exit ; fi
     ln -sfv ../../../../$sess_t1/vbm/${t1}.nii.gz $fldr
     
-    npts=`countVols $fldr/bold.nii.gz` ; mid_pos=$(echo "$npts / 2" | bc | cut -d . -f 1) # equals: floor($npts / 2)
+    npts=`countVols $fldr/bold.nii.gz` ; mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
     echo "BOLD : subj $subj , sess $sess : executing extraction of confounds from '$fldr/bold' (using pos. $mid_pos / $npts as reference for anatomical alignment)..."
-    echo "$studydir/misc/scripts/extractConfoundsFromT1.sh $fldr/bold $fldr/albold $mid_pos $fldr/$t1" | tee $fldr/filt.cmd
+    echo "$studydir/misc/scripts/extractConfoundsFromNativeFuncs.sh $fldr/bold $fldr/albold $mid_pos $fldr/$t1" | tee $fldr/filt.cmd
     fsl_sub -t $fldr/filt.cmd
     
   done
 done
 
-for subj in `cat subjects` ; do
-  for sess in `cat ${subj}/sessions_func` ; do
-    echo "BOLD : subj $subj , sess $sess : creating confounds matrix [${confounds}]."
-    fldr=$subjdir/$subj/$sess/bold/filt/$(remove_ext $BOLD_ESTIMATE_NUISANCE)
-    cd $fldr
-    paste -d "  " ${confounds} > confounds
-    cd $subjdir
-  done
-done
+#for subj in `cat subjects` ; do
+  #for sess in `cat ${subj}/sessions_func` ; do
+    #echo "BOLD : subj $subj , sess $sess : creating confounds matrix [${confounds}]."
+    #fldr=$subjdir/$subj/$sess/bold/filt/$(remove_ext $BOLD_ESTIMATE_NUISANCE)
+    #cd $fldr
+    #paste -d "  " ${confounds} > confounds
+    #cd $subjdir
+  #done
+#done
 
 
 exit  
@@ -1715,7 +1715,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       
       # preparing alternative example func
       if [ $BOLD_BET_EXFUNC -eq 1 ] ; then
-        mid_pos=$(echo "$npts / 2" | bc | cut -d . -f 1) # equals: floor($npts / 2)
+        mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
         echo "BOLD : subj $subj , sess $sess : betting bold at pos. $mid_pos / $npts and using as example_func..."
         altExFunc=$fldr/betted_bold
         fslroi $fldr/$bold_lnk $altExFunc $mid_pos 1
@@ -2587,7 +2587,7 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
         fi        
         
         # are DWIs already concatenated ?
-        if [ -f $subj/$sess/fdt/diff_merged.nii.gz ] ; then
+        if [ -e $subj/$sess/fdt/diff_merged.nii.gz ] ; then
           ln -sfv ../../$subj/$sess/fdt/diff_merged.nii.gz $fldr/diff_merged.nii.gz
         else
           echo "TRACULA : subj $subj , sess $sess : no pre-existing 4D file found - merging diffusion files..."
