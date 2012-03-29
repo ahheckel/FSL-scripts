@@ -36,6 +36,12 @@ fi
 
 # ----- CHECKS -----
 
+# are all progs installed ?
+progs="$FSL_DIR/bin/tbss_x $FSL_DIR/bin/swap_voxelwise $FSL_DIR/bin/swap_subjectwise $FREESURFER_HOME/bin/trac-all $FSL_DIR/etc/flirtsch/b02b0.cnf $FSL_DIR/bin/topup $FSL_DIR/bin/applytopup"
+for prog in $progs ; do
+  if [ ! -e $prog ] ; then echo "ERROR : '$prog' is not installed. Exiting." ; exit ; fi
+done
+
 # is sh linked to bash ?
 if [ ! -z $(which sh) ] ; then
   if [ $(basename $(readlink `which sh`)) != "bash" ] ; then read -p "WARNING : 'sh' is linked to $(readlink `which sh`), but should be linked to 'bash' for fsl compatibility. Press key to continue or abort with CTRL-C." ; fi

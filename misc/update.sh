@@ -8,6 +8,9 @@ cp -iv fsl/tbss_x/tbss_x $FSL_DIR/bin/tbss_x
 cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
 cp -iv fsl/topup/b02b0.cnf $FSL_DIR/etc/flirtsch/b02b0.cnf
 cp -iv fsl/MNI_T1_4mm_brain.nii.gz $FSL_DIR/data/standard/
+cp -iv fsl/avg152T1_white_bin.nii.gz $FSL_DIR/data/standard/
+cp -iv fsl/avg152T1_csf_bin.nii.gz $FSL_DIR/data/standard/
+
 
 if [ $1 -eq 64 ] ; then
 

@@ -44,7 +44,7 @@ pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
 # enable 1st level processing streams ##################################
 ########################################################################
 
-SCRATCH=1                  # execute scratchpad and exit
+SCRATCH=0                  # execute scratchpad and exit
 
 FIELDMAP_STG1=0            # FIELDMAP prepare
 FIELDMAP_STG2=0            # FIELDMAP create
@@ -246,7 +246,7 @@ VBM_Z_TRANSFORM=1                                 # z-transform grey matter 4D
 VBM_RANDOMISE_NPERM=1000                          # number of permutations (!)
 VBM_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked (!)
 
-# MELODIC
+# MELODIC (GUI)
 MELODIC_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS                  # subjects to be included in the ICA analysis
 MELODIC_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC             # sessions to be included in the ICA analysis
 MELODIC_INPUT_FILE="uw_mc_bold_hpfInf_s0.nii.gz"               # filename of input file (in 'bold' subdirectory)
