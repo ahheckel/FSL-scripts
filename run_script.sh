@@ -172,10 +172,19 @@ echo "***CHECK*** (sleeping 2 seconds)..."
 sleep 2
 
 # dos2unix bval/bvec textfiles (just in case...)
-echo "Ensuring UNIX line endings in bval-/bvec textfiles ('$pttrn_bvecs' and '$pttrn_bvals')..."
+echo "Ensuring UNIX line endings in bval-/bvec textfiles..."
 for subj in `cat $subjdir/subjects` ; do
   for sess in `cat $subjdir/$subj/sessions_struc` ; do
-    ls $subjdir/$subj/$sess/$pttrn_bvals $subjdir/$subj/$sess/$pttrn_bvecs | xargs dos2unix -q
+    dwi_txtfiles=""
+    if [ x${pttrn_bvalsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvalsplus ; fi
+    if [ x${pttrn_bvalsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvalsminus ; fi
+    if [ x${pttrn_bvecsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvecsplus ; fi
+    if [ x${pttrn_bvecsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvecsminus ; fi
+    if [ x${pttrn_bvals} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvals ; fi
+    if [ x${pttrn_bvecs} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvecs ; fi
+    dwi_txtfiles=$(echo $dwi_txtfiles| row2col | sort | uniq)
+    for i in $dwi_txtfiles ; do echo "    $i" ; done
+    ls $dwi_txtfiles | xargs dos2unix -q
   done
 done
 
@@ -227,7 +236,7 @@ cd $subjdir
 if [ $SCRATCH -eq 1 ]; then
 echo "----- BEGIN SCRATCH -----"
 BOLD_ESTIMATE_NUISANCE=bold.nii
-confounds="tc_WB_mask tc_WM_mask tc_CSF_mask mc.par"
+confounds="GB CSF WM MC"
 
 for subj in `cat subjects` ; do
   for sess in `cat ${subj}/sessions_func` ; do
@@ -275,6 +284,44 @@ done
   #done
 #done
 
+for subj in `cat subjects` ; do
+  for sess in `cat ${subj}/sessions_func` ; do
+    
+    fldr=$subjdir/$subj/$sess/bold/filt/$(remove_ext $BOLD_ESTIMATE_NUISANCE)
+   
+    # gather confounds
+    conf_list=""
+    for confound in $confounds ; do
+      if [ $confound = "CSF" ] ; then 
+        conf_list=$conf_list" "$fldr/tc_CSF_mask
+      fi
+      if [ $confound = "WB" ] ; then 
+        conf_list=$conf_list" "$fldr/tc_WB_mask 	
+      fi
+      if [ $confound = "WM" ] ; then 
+        conf_list=$conf_list" "$fldr/tc_WM_mask 
+      fi
+      if [ $confound = "MotionPar" ] ; then 
+        conf_list=$conf_list" "$fldr/mc.par 
+      fi
+    done
+
+    echo "BOLD : subj $subj , sess $sess : creating confounds matrix including: $conf_list"
+
+    # do confounds exist ?
+    for file in $conf_list ; do
+      if [ ! -e $file ] ; then
+      echo "ERROR: $file not found." ; errflag=1
+      fi
+    done
+    if [ $errflag -eq 1 ] ; then exit ; fi
+
+    # forge confounds matrix
+    suffix=$(echo $confounds | sed "s|" "|_|g")
+    paste -d "  " $conf_list > $fldr/confound_$suffix
+    
+  done
+done
 
 exit  
 fi
