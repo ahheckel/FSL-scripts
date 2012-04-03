@@ -44,7 +44,7 @@ pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
 # enable 1st level processing streams ##################################
 ########################################################################
 
-SCRATCH=1                  # execute scratchpad and exit
+SCRATCH=0                  # execute scratchpad and exit
 
 FIELDMAP_STG1=0            # FIELDMAP prepare
 FIELDMAP_STG2=0            # FIELDMAP create
@@ -70,9 +70,9 @@ VBM_STG3=0                 # VBM apply standard space mask (SSM)
 VBM_STG4=0                 # VBM final skull strip - bet
 VBM_STG5=0                 # VBM final skull strip - watershed
 
-BOLD_STG1=0                # BOLD (ICA) prepare FEAT configuration file for motion correction and unwarping, etc.
-BOLD_STG2=0                # BOLD (ICA) execute FEAT configuration file
-BOLD_STG3=0                # BOLD write MNI-registered volumes
+BOLD_STG1=1                # BOLD (ICA) prepare FEAT configuration file for motion correction and unwarping, etc.
+BOLD_STG2=1                # BOLD (ICA) execute FEAT configuration file
+BOLD_STG3=1                # BOLD write MNI-registered volumes
 
 BIASMAP_STG1=0             # create bias map
 BIASMAP_STG2=0             # apply bias map
@@ -200,6 +200,7 @@ BOLD_UNWARP=1                                               # enable unwarping
 BOLD_SIGNLOSS_THRES=10 	                                    # signal loss threshold (%) (default: 10)
 BOLD_REGISTER_TO_STRUC_DOF=6                                # degrees of freedom when registering bold -> T1
 BOLD_REGISTER_TO_MNI=1                                      # enable MNI registration
+BOLD_MNI_RESAMPLE_INTERP="spline"                           # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
 BOLD_MNI_RESAMPLE_RESOLUTIONS="2"                           # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
 BOLD_PTTRN_HIGHRES_BRAIN="*_t1_betted_masked_brain.nii.gz"  # pattern of t1 skull-stripped image
 BOLD_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                # pattern of t1 non-skull-stripped image

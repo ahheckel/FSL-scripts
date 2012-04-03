@@ -183,8 +183,7 @@ for subj in `cat $subjdir/subjects` ; do
     if [ x${pttrn_bvals} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvals ; fi
     if [ x${pttrn_bvecs} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvecs ; fi
     dwi_txtfiles=$(echo $dwi_txtfiles| row2col | sort | uniq)
-    for i in $dwi_txtfiles ; do echo "    $i" ; done
-    ls $dwi_txtfiles | xargs dos2unix -q
+    for i in $dwi_txtfiles ; do echo "    $i" ; dos2unix -q $i ; done
   done
 done
 
@@ -1963,6 +1962,8 @@ if [ $BOLD_STG3 -eq 1 ] ; then
             # check feat-dir.
             if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
             
+            if [ "x${BOLD_MNI_RESAMPLE_INTERP}" != "x" ] ; then interp="${BOLD_MNI_RESAMPLE_INTERP}" ; else interp="trilinear" ; fi
+            
             # execute...
             for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do
               _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'
@@ -1973,7 +1974,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
               echo "featregapply $featdir ; \
               flirt -ref $featdir/reg/standard -in $featdir/reg/standard -out $featdir/reg_standard/standard_$_mni_res -applyisoxfm $mni_res ; \
               applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=$featdir/reg/highres --out=$featdir/reg_standard/highres_$_mni_res --warp=$featdir/reg/highres2standard_warp  --interp=sinc ; \
-              applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=$featdir/filtered_func_data --out=$featdir/reg_standard/$out_file --warp=$featdir/reg/highres2standard_warp --premat=$featdir/reg/example_func2highres.mat --interp=trilinear ; \
+              applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=$featdir/filtered_func_data --out=$featdir/reg_standard/$out_file --warp=$featdir/reg/highres2standard_warp --premat=$featdir/reg/example_func2highres.mat --interp=$interp; \
               fslmaths $featdir/reg_standard/$out_file -Tstd -bin $featdir/reg_standard/mask_$_mni_res -odt char" > $featdir/mni_write_res${_mni_res}.cmd
               fsl_sub -l $logdir -N bold_write_MNI_res${_mni_res}_$(subjsess) -t $featdir/mni_write_res${_mni_res}.cmd
               
