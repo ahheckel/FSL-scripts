@@ -243,7 +243,7 @@ for subj in `cat subjects` ; do
     #featdir=$subjdir/$subj/$sess/bold/$(dirname `readlink $subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE`)
     fldr=$subjdir/$subj/$sess/bold/filt/$(remove_ext $BOLD_ESTIMATE_NUISANCE)
 
-    if [ ! -e $subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE ] ; then 
+    if [ ! -f $subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE ] ; then 
       echo "'$subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE' not found - exiting..." ; exit
     fi
     #if [ ! -e $featdir/mc/prefiltered_func_data_mcf.par ] ; then
@@ -262,7 +262,7 @@ for subj in `cat subjects` ; do
     echo "BOLD : subj $subj , sess $sess : linking T1..."
     sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
     t1=$(remove_ext `basename $(ls $subjdir/$subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_BRAIN)`)
-    if [ ! -e  $subjdir/$subj/$sess_t1/vbm/${t1}.nii.gz ] ; then echo "BOLD : $subj , $sess : '$subj/$sess/vbm/${t1}.nii.gz' does not exist - exiting..." ; exit ; fi
+    if [ ! -f  $subjdir/$subj/$sess_t1/vbm/${t1}.nii.gz ] ; then echo "BOLD : $subj , $sess : '$subj/$sess/vbm/${t1}.nii.gz' does not exist - exiting..." ; exit ; fi
     ln -sfv ../../../../$sess_t1/vbm/${t1}.nii.gz $fldr
     
     npts=`countVols $fldr/bold.nii.gz` ; mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
@@ -309,7 +309,7 @@ for subj in `cat subjects` ; do
 
     # do confounds exist ?
     for file in $conf_list ; do
-      if [ ! -e $file ] ; then
+      if [ ! -f $file ] ; then
       echo "ERROR: $file not found." ; errflag=1
       fi
     done
@@ -945,7 +945,7 @@ if [ $FDT_STG2 -eq 1 ] ; then
       
       # cleanup previous runs...
       rm -f $fldr/ec_diff_merged_*.nii.gz # removing temporary files from prev. run
-      if [ -e $fldr/ec_diff_merged.ecclog  ] ; then    
+      if [ -f $fldr/ec_diff_merged.ecclog  ] ; then    
         echo "FDT : subj $subj , sess $sess : WARNING : eddy_correct logfile from a previous run detected... deleting it."
         rm $fldr/ec_diff_merged.ecclog # (!)
       fi
@@ -1047,7 +1047,7 @@ if [ $FDT_STG3 -eq 1 ] ; then
         sed -i "s|set fmri(reginitial_highres_yn) .*|set fmri(reginitial_highres_yn) 0|g" $conffile # unset registration to initial highres
         sed -i "s|set fmri(reghighres_yn) .*|set fmri(reghighres_yn) 0|g" $conffile # unset registration to highres
         sed -i "s|set fmri(regstandard_yn) .*|set fmri(regstandard_yn) 0|g" $conffile # unset registration to standard space
-        sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 1|g" $conffile # overwrite on re-run
+        sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 0|g" $conffile # overwrite on re-run
         if [ $FDT_UNWARP_NO_BROWSER -eq 1 ] ; then
           sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 0|g" $conffile
         else 
@@ -1717,6 +1717,16 @@ waitIfBusy
 if [ $BOLD_STG1 -eq 1 ] ; then
   echo "----- BEGIN BOLD_STG1 -----"
   n=0 ; _npts=0 ; npts=0 # variables for counting and comparing number of volumes in the 4Ds
+  
+  # set prefix for feat-dir name
+  if [ "x${BOLD_FEATDIR_PREFIX}" = "x" ] ; then BOLD_FEATDIR_PREFIX="" ; fi
+          
+  # carry out substitutions
+  if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
+  if [ "x${BOLD_MNI_SMOOTH_LAST}" = "x" ] ; then BOLD_MNI_SMOOTH_LAST=0 ; fi
+  if [ $BOLD_MNI_SMOOTH_LAST -eq 1 ] ; then _BOLD_SMOOTHING_KRNLS=0 ; else _BOLD_SMOOTHING_KRNLS="$BOLD_SMOOTHING_KRNLS" ; fi
+  if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
+  
   for subj in `cat subjects` ; do
     if [ -z $pttrn_bolds ] ; then echo "BOLD : ERROR : no search pattern for BOLD filenames given - breaking loop..." ; break ; fi
     for sess in `cat ${subj}/sessions_func` ; do
@@ -1730,6 +1740,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       bold_bn=`basename $(ls $subjdir/$subj/$sess/$pttrn_bolds | tail -n 1)`
       bold_ext=`echo ${bold_bn#*.}`
       bold_lnk=bold.${bold_ext}
+      if [ -L $fldr/bold.nii -o -L $fldr/bold.nii.gz ] ; then rm -f $fldr/bold.nii $fldr/bold.nii.gz ; fi # delete link if already present
       echo "BOLD : subj $subj , sess $sess : creating link '$bold_lnk' to '$bold_bn'"
       ln -sf ../$bold_bn $fldr/$bold_lnk
       
@@ -1774,18 +1785,15 @@ if [ $BOLD_STG1 -eq 1 ] ; then
         fslmaths $altExFunc $altExFunc -odt float
         bet $altExFunc $altExFunc -f 0.3
       fi
-      
-      # carry out substitutions
-      if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
-      if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
+
       for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-        for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+        for sm_krnl in $_BOLD_SMOOTHING_KRNLS ; do
           for uw_dir in -y +y 0 ; do
             for stc_val in $BOLD_SLICETIMING_VALUES ; do
             
               # set feat-file's name
               _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
-              conffile=$fldr/preprocBOLD_hpf${_hpf_cut}_s${_sm_krnl}_uw${uw_dir}_stc${stc_val}.fsf             
+              conffile=$fldr/${BOLD_FEATDIR_PREFIX}_hpf${_hpf_cut}_s${_sm_krnl}_uw${uw_dir}_stc${stc_val}.fsf        
                        
               echo "BOLD : subj $subj , sess $sess : FEAT pre-processing - creating config file $conffile"
               cp template_preprocBOLD.fsf $conffile
@@ -1804,7 +1812,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
               sed -i "s|set fmri(analysis) .*|set fmri(analysis) 1|g" $conffile # do only pre-stats        
               sed -i "s|set fmri(mc) .*|set fmri(mc) 1|g" $conffile # enable motion correction
               sed -i "s|set fmri(reginitial_highres_yn) .*|set fmri(reginitial_highres_yn) 0|g" $conffile # unset registration to initial highres
-              sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 1|g" $conffile # overwrite on re-run
+              sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 0|g" $conffile # overwrite on re-run
               
               # set slice timing correction method
               sed -i "s|set fmri(st) .*|set fmri(st) $stc_val|g" $conffile
@@ -1884,6 +1892,16 @@ waitIfBusy
 # BOLD execute FEAT
 if [ $BOLD_STG2 -eq 1 ] ; then
   echo "----- BEGIN BOLD_STG2 -----"
+  
+  # set prefix for feat-dir name
+  if [ "x${BOLD_FEATDIR_PREFIX}" = "x" ] ; then BOLD_FEATDIR_PREFIX="" ; fi
+  
+  # carry out substitutions
+  if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
+  if [ "x${BOLD_MNI_SMOOTH_LAST}" = "x" ] ; then BOLD_MNI_SMOOTH_LAST=0 ; fi
+  if [ $BOLD_MNI_SMOOTH_LAST -eq 1 ] ; then _BOLD_SMOOTHING_KRNLS=0 ; else _BOLD_SMOOTHING_KRNLS="$BOLD_SMOOTHING_KRNLS" ; fi
+  if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
+  
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_func` ; do
     
@@ -1897,15 +1915,15 @@ if [ $BOLD_STG2 -eq 1 ] ; then
       else 
         uw_dir=0
       fi
-
+      
       # cleanup previous run, execute FEAT and link to processed file
       # NOTE: feat self-submits to the cluster and should in fact not be used in conjunction with fsl_sub (but it seems to work anyway) (!)
       for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-        for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+        for sm_krnl in $_BOLD_SMOOTHING_KRNLS ; do
           for stc_val in $BOLD_SLICETIMING_VALUES ; do
             # define feat-dir
             _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
-            featdir=$fldr/preprocBOLD_hpf${_hpf_cut}_s${_sm_krnl}_uw${uw_dir}_stc${stc_val}.feat  
+            featdir=$fldr/${BOLD_FEATDIR_PREFIX}_hpf${_hpf_cut}_s${_sm_krnl}_uw${uw_dir}_stc${stc_val}.feat  
         
             # delete prev. run
             if [ -d $featdir ] ; then
@@ -1921,9 +1939,9 @@ if [ $BOLD_STG2 -eq 1 ] ; then
             
             # link...
             if [ $uw_dir = 0 ] ; then 
-              ln -sf ./$(basename $featdir)/filtered_func_data.nii.gz $fldr/mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}.nii.gz
+              ln -sf ./$(basename $featdir)/filtered_func_data.nii.gz $fldr/${BOLD_FEATDIR_PREFIX}_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}.nii.gz
             else
-              ln -sf ./$(basename $featdir)/filtered_func_data.nii.gz $fldr/uw_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}.nii.gz
+              ln -sf ./$(basename $featdir)/filtered_func_data.nii.gz $fldr/${BOLD_FEATDIR_PREFIX}_uw_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}.nii.gz
             fi
           done # end stc_val
         done # end sm_krnl        
@@ -1938,6 +1956,19 @@ waitIfBusy
 # BOLD write out mni registered files
 if [ $BOLD_STG3 -eq 1 ] ; then
   echo "----- BEGIN BOLD_STG3 -----"
+
+  # set prefix for feat-dir name
+  if [ "x${BOLD_FEATDIR_PREFIX}" = "x" ] ; then BOLD_FEATDIR_PREFIX="" ; fi
+  
+  # set interpolation method
+  if [ "x${BOLD_MNI_RESAMPLE_INTERP}" != "x" ] ; then interp="${BOLD_MNI_RESAMPLE_INTERP}" ; else interp="trilinear" ; fi
+  
+  # carry out substitutions
+  if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
+  if [ "x${BOLD_MNI_SMOOTH_LAST}" = "x" ] ; then BOLD_MNI_SMOOTH_LAST=0 ; fi
+  if [ $BOLD_MNI_SMOOTH_LAST -eq 1 ] ; then _BOLD_SMOOTHING_KRNLS=0 ; else _BOLD_SMOOTHING_KRNLS="$BOLD_SMOOTHING_KRNLS" ; fi
+  if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
+
   for subj in `cat subjects` ; do
     if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : WARNING : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
     if [ $BOLD_REGISTER_TO_MNI -eq 0 ] ; then echo "BOLD : MNI-registration disabled by user - breaking loop..." ; break ; fi
@@ -1948,21 +1979,19 @@ if [ $BOLD_STG3 -eq 1 ] ; then
         uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
       else 
         uw_dir=0
-      fi
+      fi     
       
       # write out MNI-registered volumes
       for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-        for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+        for sm_krnl in $_BOLD_SMOOTHING_KRNLS ; do
           for stc_val in $BOLD_SLICETIMING_VALUES ; do
             
             # define feat-dir.
             _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
-            featdir=$subjdir/$subj/$sess/bold/preprocBOLD_hpf${_hpf_cut}_s${_sm_krnl}_uw${uw_dir}_stc${stc_val}.feat          
+            featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_hpf${_hpf_cut}_s${_sm_krnl}_uw${uw_dir}_stc${stc_val}.feat          
             
             # check feat-dir.
             if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
-            
-            if [ "x${BOLD_MNI_RESAMPLE_INTERP}" != "x" ] ; then interp="${BOLD_MNI_RESAMPLE_INTERP}" ; else interp="trilinear" ; fi
             
             # execute...
             for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do
@@ -1981,9 +2010,9 @@ if [ $BOLD_STG3 -eq 1 ] ; then
               # link...
               echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-registered 4D BOLD."
               if [ $uw_dir = 0 ] ; then 
-                ln -sfv ./$(basename $featdir)/reg_standard/$out_file $subj/$sess/bold/mni_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz              
+                ln -sfv ./$(basename $featdir)/reg_standard/$out_file $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz              
               else
-                ln -sfv ./$(basename $featdir)/reg_standard/$out_file $subj/$sess/bold/mni_uw_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz
+                ln -sfv ./$(basename $featdir)/reg_standard/$out_file $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_uw_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz
               fi
             done # end mni_res
           done # end stc_val
@@ -1992,6 +2021,108 @@ if [ $BOLD_STG3 -eq 1 ] ; then
     
     done
   done
+  
+ waitIfBusy
+ 
+ # SMOOTHING POST HOC
+ if [ $BOLD_MNI_SMOOTH_LAST -eq 1 -a "$BOLD_SMOOTHING_KRNLS" != "0" ] ; then
+  for subj in `cat subjects` ; do
+    if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : WARNING : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
+    if [ $BOLD_REGISTER_TO_MNI -eq 0 ] ; then echo "BOLD : MNI-registration disabled by user - breaking loop..." ; break ; fi
+    for sess in `cat ${subj}/sessions_func` ; do
+  
+      # did we unwarp ?
+      if [ $BOLD_UNWARP -eq 1 ] ; then
+        uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
+      else 
+        uw_dir=0
+      fi    
+    
+      for hpf_cut in $BOLD_HPF_CUTOFFS ; do
+        for stc_val in $BOLD_SLICETIMING_VALUES ; do
+          
+          # define feat-dir.
+          _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") 
+          featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_hpf${_hpf_cut}_s0_uw${uw_dir}_stc${stc_val}.feat          
+          
+          # check feat-dir.
+          if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
+          
+          # execute...
+          for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do      
+            _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'
+            
+            data=${featdir}/reg_standard/filtered_func_data_${mni_res}
+            echo "BOLD : subj $subj , sess $sess : smoothing $data..." 
+            
+            echo "BOLD : subj $subj , sess $sess :    generating mean_func..." 
+            fslmaths ${data} -Tmean $(dirname $data)/mean_func
+            
+            echo "BOLD : subj $subj , sess $sess :    betting mean_func..."
+            bet2 $(dirname $data)/mean_func $(dirname $data)/mask -f 0.3 -n -m; immv $(dirname $data)/mask_mask $(dirname $data)/mask
+            
+            echo "BOLD : subj $subj , sess $sess :    masking `basename ${data}` ->  `basename ${data}_bet`..."
+            fslmaths ${data} -mas $(dirname $data)/mask ${data}_bet
+            range=`fslstats ${data}_bet -p 2 -p 98`
+            int2=$(echo $range | cut -d " " -f 1)
+            int98=$(echo $range | cut -d " " -f 2) 
+            brain_thres=10
+            intensity_threshold=$(echo "$int2 + ( ( $int98 - $int2 ) / 100.0 * $brain_thres )" | bc -l)
+            echo "BOLD : subj $subj , sess $sess :    p2: $int2 ; p98: $int98 ; intensity threshold: $intensity_threshold"
+            
+            echo "BOLD : subj $subj , sess $sess :    thresholding `basename ${data}_bet` with $intensity_threshold..."
+            fslmaths ${data}_bet -thr $intensity_threshold -Tmin -bin $(dirname $data)/mask -odt char
+            median_intensity=`fslstats ${data} -k $(dirname $data)/mask -p 50`
+            susan_int=$( echo "($median_intensity - $int2) * 0.75" | bc -l )
+            echo "BOLD : subj $subj , sess $sess :    median of `basename ${data}`: $median_intensity"
+            echo "BOLD : subj $subj , sess $sess :    susan_int: $susan_int"
+            
+            echo "BOLD : subj $subj , sess $sess :    dilating mask..."
+            fslmaths $(dirname $data)/mask -dilF $(dirname $data)/mask
+            
+            echo "BOLD : subj $subj , sess $sess :    masking `basename ${data}` -> `basename ${data}_thresh`..."
+            fslmaths ${data} -mas $(dirname $data)/mask ${data}_thresh
+            
+            echo "BOLD : subj $subj , sess $sess :    generating mean from `basename ${data}_thres` -> mean_func.."
+            fslmaths ${data}_thresh -Tmean $(dirname $data)/mean_func
+            
+            for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+              _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
+              smoothsigma=$(echo "$_sm_krnl / 2.355" | bc -l)
+              if [ $smoothsigma = "0" ] ; then echo "BOLD : subj $subj , sess $sess :    smoothsigma: $smoothsigma - skip" ;  continue ;  fi
+              echo "BOLD : subj $subj , sess $sess :    smoothsigma: $smoothsigma"
+              cmd="susan ${data}_thresh $susan_int $smoothsigma 3 1 1 $(dirname $data)/mean_func $susan_int ${data}_smooth"
+              echo "BOLD : subj $subj , sess $sess :    $cmd"
+              $cmd
+              
+              echo "BOLD : subj $subj , sess $sess :    masking `basename ${data}_smooth` -> `basename ${data}_smooth`..."
+              fslmaths ${data}_smooth -mas $(dirname $data)/mask ${data}_smooth
+              
+              normmean=10000
+              scaling=$(echo "$normmean / $median_intensity"  | bc -l)
+              echo "BOLD : subj $subj , sess $sess :    grand mean scaling with factor $scaling..."
+              fslmaths ${data}_smooth -mul $scaling ${data}_intnorm
+
+              fslmaths ${data}_intnorm ${data}_s${_sm_krnl}
+              
+            
+              # link...
+              echo "BOLD : subj $subj , sess $sess :    creating symlink to smoothed MNI-registered 4D BOLD."
+              if [ $uw_dir = 0 ] ; then 
+                ln -sfv ./$(basename $featdir)/reg_standard/filtered_func_data_${mni_res}_s${_sm_krnl}.nii.gz $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz              
+              else
+                ln -sfv ./$(basename $featdir)/reg_standard/filtered_func_data_${mni_res}_s${_sm_krnl}.nii.gz $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_uw_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz
+              fi             
+              
+            done # end sm_krnl
+          # cleanup
+          imrm ${data}_intnorm ${data}_smooth ${data}_bet ${data}_thresh ${data}_smooth_usan_size
+          done # end mni_res
+        done # end stc_val
+      done # end hpf_cut
+    done # end sess
+  done # end subj
+ fi # end if smooth_last 
 fi
 
 waitIfBusy
@@ -2641,7 +2772,7 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
         fi        
         
         # are DWIs already concatenated ?
-        if [ -e $subj/$sess/fdt/diff_merged.nii.gz ] ; then
+        if [ -f $subj/$sess/fdt/diff_merged.nii.gz ] ; then
           ln -sfv ../../$subj/$sess/fdt/diff_merged.nii.gz $fldr/diff_merged.nii.gz
         else
           echo "TRACULA : subj $subj , sess $sess : no pre-existing 4D file found - merging diffusion files..."
@@ -3105,7 +3236,7 @@ if [ $MELODIC_2NDLEV_STG1 -eq 1 ]; then
   sed -i "s|set fmri(regstandard_res) X|set fmri(regstandard_res) $MELODIC_REGSTD_RESOLUTION|g" $conffile # set resampling resolution of normalised volumes (mm)
   sed -i "s|set fmri(smooth) X|set fmri(smooth) $MELODIC_SMOOTH|g" $conffile # set smoothing kernel width (mm)
   sed -i "s|set fmri(paradigm_hp) X|set fmri(paradigm_hp) $MELODIC_HIGHPASS_CUTOFF|g" $conffile # set high-pass filter cuoff value
-  sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 1|g" $conffile # overwrite on re-run (does not work in case of Melodic!) (!)
+  sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 0|g" $conffile # overwrite on re-run (does not work in case of Melodic!) (!)
   # brain extraction
   if [ $MELODIC_BET -eq 1 ] ; then
     sed -i "s|set fmri(bet_yn) .*|set fmri(bet_yn) 1|g" $conffile
