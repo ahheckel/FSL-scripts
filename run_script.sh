@@ -2024,7 +2024,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
   
  waitIfBusy
  
- # SMOOTHING POST HOC
+ # MNI 4D SMOOTHING POST HOC
  if [ $BOLD_MNI_SMOOTH_LAST -eq 1 -a "$BOLD_SMOOTHING_KRNLS" != "0" ] ; then
   for subj in `cat subjects` ; do
     if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : WARNING : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
@@ -2104,8 +2104,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
               fslmaths ${data}_smooth -mul $scaling ${data}_intnorm
 
               fslmaths ${data}_intnorm ${data}_s${_sm_krnl}
-              
-            
+                          
               # link...
               echo "BOLD : subj $subj , sess $sess :    creating symlink to smoothed MNI-registered 4D BOLD."
               if [ $uw_dir = 0 ] ; then 
