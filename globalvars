@@ -204,8 +204,8 @@ BOLD_REGISTER_TO_STRUC_DOF=6                                # degrees of freedom
 BOLD_PTTRN_HIGHRES_BRAIN="*_t1_betted_masked_brain.nii.gz"  # pattern of t1 skull-stripped image
 BOLD_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                # pattern of t1 non-skull-stripped image
 BOLD_REGISTER_TO_MNI=1                                      # enable MNI registration
-BOLD_MNI_RESAMPLE_INTERP="spline"                           # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
 BOLD_MNI_RESAMPLE_RESOLUTIONS="2"                           # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
+BOLD_MNI_RESAMPLE_INTERP="spline"                           # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
 BOLD_MNI_SMOOTH_LAST=1                                      # smooth MNI registered 4D post hoc
 BOLD_UNWARP_NO_BROWSER=0                                    # don't open browser window
 
