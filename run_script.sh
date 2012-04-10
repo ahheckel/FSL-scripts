@@ -2021,16 +2021,20 @@ if [ $BOLD_STG3 -eq 1 ] ; then
     
     done
   done
+fi
   
- waitIfBusy
+waitIfBusy
+
+# MNI 4D SMOOTHING POST HOC
+if [ $BOLD_STG4 -eq 1 ] ; then 
+  echo "----- BEGIN BOLD_STG4 -----"
  
- # MNI 4D SMOOTHING POST HOC
- if [ $BOLD_MNI_SMOOTH_LAST -eq 1 -a "$BOLD_SMOOTHING_KRNLS" != "0" ] ; then
   for subj in `cat subjects` ; do
     if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : WARNING : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
-    if [ $BOLD_REGISTER_TO_MNI -eq 0 ] ; then echo "BOLD : MNI-registration disabled by user - breaking loop..." ; break ; fi
+    if [ "$BOLD_MNI_SMOOTH_LAST" = "0" -o "$BOLD_SMOOTHING_KRNLS" = "0" ] ; then echo "BOLD : post-hoc smoothing of MNI registered BOLDs disabled by user - breaking loop..." ; break ; fi
+    
     for sess in `cat ${subj}/sessions_func` ; do
-  
+      
       # did we unwarp ?
       if [ $BOLD_UNWARP -eq 1 ] ; then
         uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
@@ -2053,57 +2057,13 @@ if [ $BOLD_STG3 -eq 1 ] ; then
             _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'
             
             data=${featdir}/reg_standard/filtered_func_data_${mni_res}
-            echo "BOLD : subj $subj , sess $sess : smoothing $data..." 
-            
-            echo "BOLD : subj $subj , sess $sess :    generating mean_func..." 
-            fslmaths ${data} -Tmean $(dirname $data)/mean_func
-            
-            echo "BOLD : subj $subj , sess $sess :    betting mean_func..."
-            bet2 $(dirname $data)/mean_func $(dirname $data)/mask -f 0.3 -n -m; immv $(dirname $data)/mask_mask $(dirname $data)/mask
-            
-            echo "BOLD : subj $subj , sess $sess :    masking `basename ${data}` ->  `basename ${data}_bet`..."
-            fslmaths ${data} -mas $(dirname $data)/mask ${data}_bet
-            range=`fslstats ${data}_bet -p 2 -p 98`
-            int2=$(echo $range | cut -d " " -f 1)
-            int98=$(echo $range | cut -d " " -f 2) 
-            brain_thres=10
-            intensity_threshold=$(echo "$int2 + ( ( $int98 - $int2 ) / 100.0 * $brain_thres )" | bc -l)
-            echo "BOLD : subj $subj , sess $sess :    p2: $int2 ; p98: $int98 ; intensity threshold: $intensity_threshold"
-            
-            echo "BOLD : subj $subj , sess $sess :    thresholding `basename ${data}_bet` with $intensity_threshold..."
-            fslmaths ${data}_bet -thr $intensity_threshold -Tmin -bin $(dirname $data)/mask -odt char
-            median_intensity=`fslstats ${data} -k $(dirname $data)/mask -p 50`
-            susan_int=$( echo "($median_intensity - $int2) * 0.75" | bc -l )
-            echo "BOLD : subj $subj , sess $sess :    median of `basename ${data}`: $median_intensity"
-            echo "BOLD : subj $subj , sess $sess :    susan_int: $susan_int"
-            
-            echo "BOLD : subj $subj , sess $sess :    dilating mask..."
-            fslmaths $(dirname $data)/mask -dilF $(dirname $data)/mask
-            
-            echo "BOLD : subj $subj , sess $sess :    masking `basename ${data}` -> `basename ${data}_thresh`..."
-            fslmaths ${data} -mas $(dirname $data)/mask ${data}_thresh
-            
-            echo "BOLD : subj $subj , sess $sess :    generating mean from `basename ${data}_thres` -> mean_func.."
-            fslmaths ${data}_thresh -Tmean $(dirname $data)/mean_func
+          
+            $studydir/misc/scripts/susan_smooth.sh $data "$BOLD_SMOOTHING_KRNLS" $subj $sess
+          
             
             for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+              if [ $sm_krnl = "0" ] ; then continue ; fi
               _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
-              smoothsigma=$(echo "$_sm_krnl / 2.355" | bc -l)
-              if [ $smoothsigma = "0" ] ; then echo "BOLD : subj $subj , sess $sess :    smoothsigma: $smoothsigma - skip" ;  continue ;  fi
-              echo "BOLD : subj $subj , sess $sess :    smoothsigma: $smoothsigma"
-              cmd="susan ${data}_thresh $susan_int $smoothsigma 3 1 1 $(dirname $data)/mean_func $susan_int ${data}_smooth"
-              echo "BOLD : subj $subj , sess $sess :    $cmd"
-              $cmd
-              
-              echo "BOLD : subj $subj , sess $sess :    masking `basename ${data}_smooth` -> `basename ${data}_smooth`..."
-              fslmaths ${data}_smooth -mas $(dirname $data)/mask ${data}_smooth
-              
-              normmean=10000
-              scaling=$(echo "$normmean / $median_intensity"  | bc -l)
-              echo "BOLD : subj $subj , sess $sess :    grand mean scaling with factor $scaling..."
-              fslmaths ${data}_smooth -mul $scaling ${data}_intnorm
-
-              fslmaths ${data}_intnorm ${data}_s${_sm_krnl}
                           
               # link...
               echo "BOLD : subj $subj , sess $sess :    creating symlink to smoothed MNI-registered 4D BOLD."
@@ -2114,14 +2074,11 @@ if [ $BOLD_STG3 -eq 1 ] ; then
               fi             
               
             done # end sm_krnl
-          # cleanup
-          imrm ${data}_intnorm ${data}_smooth ${data}_bet ${data}_thresh ${data}_smooth_usan_size
           done # end mni_res
         done # end stc_val
       done # end hpf_cut
     done # end sess
-  done # end subj
- fi # end if smooth_last 
+  done # end subj 
 fi
 
 waitIfBusy
