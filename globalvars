@@ -25,7 +25,7 @@ export SUBJECTS_DIR=$FS_subjdir
 ########################################################################
 
 # set file patterns
-pttrn_diffs="*_ep2ddiff_pat3_esp0_75ms_*+.nii" # (!)
+pttrn_diffs="*_ep2ddiff_pat3_esp0_75ms_*-.nii" # (!)
 pttrn_bvals=`remove_ext $pttrn_diffs`_bvals
 pttrn_bvecs=`remove_ext $pttrn_diffs`_bvecs
 pttrn_fmaps="*_gre_field_mapping.nii " # (!)
@@ -46,8 +46,8 @@ pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
 
 SCRATCH=0                  # execute scratchpad and exit
 
-FIELDMAP_STG1=0            # FIELDMAP prepare
-FIELDMAP_STG2=0            # FIELDMAP create
+FIELDMAP_STG1=1            # FIELDMAP prepare
+FIELDMAP_STG2=1            # FIELDMAP create
 
 TOPUP_STG1=0               # TOPUP prepare
 TOPUP_STG2=0               # TOPUP low-B images: create index and extract
@@ -70,9 +70,9 @@ VBM_STG3=0                 # VBM apply standard space mask (SSM)
 VBM_STG4=0                 # VBM final skull strip - bet
 VBM_STG5=0                 # VBM final skull strip - watershed
 
-BOLD_STG1=0                # BOLD (ICA) prepare FEAT configuration file for motion correction and unwarping, etc.
-BOLD_STG2=0                # BOLD (ICA) execute FEAT configuration file
-BOLD_STG3=1                # BOLD write MNI-registered volumes
+BOLD_STG1=1                # BOLD (ICA) prepare FEAT configuration file for motion correction and unwarping, etc.
+BOLD_STG2=1                # BOLD (ICA) execute FEAT configuration file
+BOLD_STG3=0                # BOLD write MNI-registered volumes
 BOLD_STG4=0                # BOLD smooth MNI-registered volumes
 
 BIASMAP_STG1=0             # create bias map
@@ -126,7 +126,7 @@ PLOT_BOLD_UNWARP_DIRNAMES="preprocBOLD"    # (part of) dirname, where unwarp dir
 PLOT_BOLD_T1REG=0                          # plot registration func2T1
 PLOT_BOLD_T1REG_DIRNAMES="ica_50 ica_10"   # (part of) dirname, where reg directory is located (if multiple directories match, that one with the newest file in it is selected)
 PLOT_BOLD_MNIREG=0                         # plot registration func2MNI
-PLOT_BOLD_MNIREG_DIRNAMES="preprocBOLD"         # (part of) dirname, where reg_standard directory is located (if multiple directories match, that one with the newest file in it is selected)
+PLOT_BOLD_MNIREG_DIRNAMES="preprocBOLD"    # (part of) dirname, where reg_standard directory is located (if multiple directories match, that one with the newest file in it is selected)
 
 ########################################################################
 # configuration ########################################################
@@ -139,9 +139,8 @@ PLOT_BOLD_MNIREG_DIRNAMES="preprocBOLD"         # (part of) dirname, where reg_s
 # overwrite pre-existing subject /session file (to disable set any to "")
 #FIRSTLEV_SUBJECTS="01 02 03 04 flip04 05 flip05 06 flip06 07 flip07 08 09 flip09 10" 
 #FIRSTLEV_SUBJECTS="01 02 03 04 05 06 07 08 09 10" 
-FIRSTLEV_SUBJECTS="01" 
-#FIRSTLEV_SESSIONS_FUNC="a b c d e"               
-FIRSTLEV_SESSIONS_FUNC="a"               
+FIRSTLEV_SUBJECTS="04" 
+FIRSTLEV_SESSIONS_FUNC="b"               
 FIRSTLEV_SESSIONS_STRUC="a"                
 
 # SECOND LEVEL
@@ -189,14 +188,14 @@ VBM_USE_BETTED_INIT=1      # use betted brain as init. for standard space maskin
 VBM_USE_WATERSHED_INIT=0   # use watershed brain to initialize standard space masking
 
 # BOLD - preproc
-TR_bold=3.330              # TR (s)
-EES_bold=0.23333           # Effective Echo Spacing (ms)
-TE_bold=30                 # TE (ms)
-BOLD_FEATDIR_PREFIX="MIT1MI06nobetexf1T1"                   # prefix for .feat output directory
+TR_bold=3.330                                               # TR (s)
+EES_bold=0.23333                                            # Effective Echo Spacing (ms)
+TE_bold=30                                                  # TE (ms)
+BOLD_FEATDIR_PREFIX="test"                   # prefix for .feat output directory
 BOLD_BET=1                                                  # enable betting
 BOLD_BET_EXFUNC=0                                           # bet example func (middle of the 4D) (default 0)
 BOLD_HPF_CUTOFFS="Inf"                                      # enter "Inf" to switch off high-pass filter
-BOLD_SMOOTHING_KRNLS="0 2"                                    # enter "0" to swith off smoothing (note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes)
+BOLD_SMOOTHING_KRNLS="0 2"                                  # enter "0" to swith off smoothing (note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes)
 BOLD_SLICETIMING_VALUES="0"                                 # enter correction method (see .fsf file); "0" to switch off slice timing correction
 BOLD_UNWARP=1                                               # enable unwarping
 BOLD_SIGNLOSS_THRES=10 	                                    # signal loss threshold (%) (default: 10)
@@ -274,14 +273,14 @@ MELODIC_CMD_DELETE_PREV_RUNS=1                                  # delete previou
 # DUALREG
 DUALREG_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS               # subjects that should be used with dualreg
 DUALREG_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions that should be used with dualreg
-DUALREG_INPUT_ICA_DIRNAMES="test2_mni_uw_mc_bold_hpf100_s0_stc0_res4"                         # where the ICs reside ; ommit suffix '.gica'
-DUALREG_IC_FILENAMES="melodic_IC.nii.gz"       # 4D file with the IC of interest; it is to be found in the DUALREG_INPUT_ICA_DIRNAMES directories
+DUALREG_INPUT_ICA_DIRNAMES="test2_mni_uw_mc_bold_hpf100_s0_stc0_res4" # where the ICs reside ; ommit suffix '.gica'
+DUALREG_IC_FILENAMES="melodic_IC.nii.gz"                    # 4D file with the IC of interest; it is to be found in the DUALREG_INPUT_ICA_DIRNAMES directories
 DUALREG_OUTDIR_PREFIX="test99"                              # output directory pre-fix (dir-name is composed as: ${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAMES}_${DUALREG_IC_FILENAMES})
 DUALREG_NPERM=500                                           # number of permutations
 DUALREG_DELETE_PREV_RUNS=1                                  # delete previous runs?
 # compatibility mode
 DUALREG_COMPATIBILITY=0                                     # compatibility mode with older versions of this script (when MELODIC is used for MNI-registration)
-DUALREG_INPUT_BOLD_STDSPC_FILE=uw_mc_bold_hpfInf_s0.nii.gz # only used in compat. mode: the input filename to MELODIC
+DUALREG_INPUT_BOLD_STDSPC_FILE=uw_mc_bold_hpfInf_s0.nii.gz  # only used in compat. mode: the input filename to MELODIC
 
 # ----------------------------------------------------------------------
 
