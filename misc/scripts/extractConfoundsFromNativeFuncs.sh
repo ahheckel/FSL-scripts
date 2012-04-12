@@ -31,7 +31,7 @@ for i in $full_list ; do
 done
 #fslmerge -t $flirt_out $full_list
 
-# run fast, if not run already...
+# run fast, if not already done so...
 if [ ! -e ${struc}_pve_2.nii.gz ] ; then
   echo "fasting '$struc'..."
   #fast -t 1 -n 3 $struc

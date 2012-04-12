@@ -821,7 +821,7 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
         fi
       fi
       
-      # rotate bvecs to compensate for TOPUP 6 parameter rigid-body correction using OCTAVE
+      # rotate bvecs to compensate for TOPUP 6 parameter rigid-body correction using OCTAVE (for each run)
       for i in `seq -f %03g 001 $(cat $fldr/diff.files | wc -l)` ; do # for each run do...        
         # copy OCTAVE template
         cp $subjdir/template_makeXfmMatrix.m $fldr/makeXfmMatrix_${i}.m
@@ -1396,7 +1396,7 @@ if [ $BPX_STG1 -eq 1 ] ; then
             rm -rf ${bpx_dir}.bedpostX
           fi
           echo "BEDPOSTX : subj $subj , sess $sess : copying bedpostX inputfiles to '$bpx_dir'..."
-          cp -v $subjdir/$subj/$sess/fdt/nodif_brain_mask.nii.gz $bpx_dir/nodif_brain_mask.nii.gz 
+          cp -v $subjdir/$subj/$sess/fdt/uw_nodif_brain_mask.nii.gz $bpx_dir/nodif_brain_mask.nii.gz 
           cp -v $subjdir/$subj/$sess/fdt/bvecs_concat.txt $bpx_dir/bvecs
           cp -v $subjdir/$subj/$sess/fdt/bvals_concat.txt $bpx_dir/bvals
           cp -v $subjdir/$subj/$sess/fdt/uw_ec_diff_merged.nii.gz $bpx_dir/data.nii.gz
@@ -1411,7 +1411,7 @@ if [ $BPX_STG1 -eq 1 ] ; then
             rm -rf ${bpx_dir}.bedpostX
           fi
           echo "BEDPOSTX : subj $subj , sess $sess : copying bedpostX inputfiles to '$bpx_dir'..."
-          cp -v $subjdir/$subj/$sess/fdt/nodif_brain_mask.nii.gz $bpx_dir/nodif_brain_mask.nii.gz 
+          cp -v $subjdir/$subj/$sess/fdt/uw_nodif_brain_mask.nii.gz $bpx_dir/nodif_brain_mask.nii.gz 
           cp -v $subjdir/$subj/$sess/fdt/bvecs_concat.rot $bpx_dir/bvecs
           cp -v $subjdir/$subj/$sess/fdt/bvals_concat.txt $bpx_dir/bvals
           cp -v $subjdir/$subj/$sess/fdt/uw_ec_diff_merged.nii.gz $bpx_dir/data.nii.gz

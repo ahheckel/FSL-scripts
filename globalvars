@@ -46,8 +46,8 @@ pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
 
 SCRATCH=0                  # execute scratchpad and exit
 
-FIELDMAP_STG1=1            # FIELDMAP prepare
-FIELDMAP_STG2=1            # FIELDMAP create
+FIELDMAP_STG1=0            # FIELDMAP prepare
+FIELDMAP_STG2=0            # FIELDMAP create
 
 TOPUP_STG1=0               # TOPUP prepare
 TOPUP_STG2=0               # TOPUP low-B images: create index and extract
@@ -70,10 +70,10 @@ VBM_STG3=0                 # VBM apply standard space mask (SSM)
 VBM_STG4=0                 # VBM final skull strip - bet
 VBM_STG5=0                 # VBM final skull strip - watershed
 
-BOLD_STG1=1                # BOLD (ICA) prepare FEAT configuration file for motion correction and unwarping, etc.
-BOLD_STG2=1                # BOLD (ICA) execute FEAT configuration file
+BOLD_STG1=0                # BOLD (ICA) prepare FEAT configuration file for motion correction and unwarping, etc.
+BOLD_STG2=0                # BOLD (ICA) execute FEAT configuration file
 BOLD_STG3=0                # BOLD write MNI-registered volumes
-BOLD_STG4=0                # BOLD smooth MNI-registered volumes
+BOLD_STG4=1                # BOLD smooth MNI-registered volumes
 
 BIASMAP_STG1=0             # create bias map
 BIASMAP_STG2=0             # apply bias map
@@ -139,8 +139,8 @@ PLOT_BOLD_MNIREG_DIRNAMES="preprocBOLD"    # (part of) dirname, where reg_standa
 # overwrite pre-existing subject /session file (to disable set any to "")
 #FIRSTLEV_SUBJECTS="01 02 03 04 flip04 05 flip05 06 flip06 07 flip07 08 09 flip09 10" 
 #FIRSTLEV_SUBJECTS="01 02 03 04 05 06 07 08 09 10" 
-FIRSTLEV_SUBJECTS="04" 
-FIRSTLEV_SESSIONS_FUNC="b"               
+FIRSTLEV_SUBJECTS="01" 
+FIRSTLEV_SESSIONS_FUNC="a"               
 FIRSTLEV_SESSIONS_STRUC="a"                
 
 # SECOND LEVEL
@@ -191,7 +191,7 @@ VBM_USE_WATERSHED_INIT=0   # use watershed brain to initialize standard space ma
 TR_bold=3.330                                               # TR (s)
 EES_bold=0.23333                                            # Effective Echo Spacing (ms)
 TE_bold=30                                                  # TE (ms)
-BOLD_FEATDIR_PREFIX="test"                   # prefix for .feat output directory
+BOLD_FEATDIR_PREFIX="MIT1MI06nobetexf"                   # prefix for .feat output directory
 BOLD_BET=1                                                  # enable betting
 BOLD_BET_EXFUNC=0                                           # bet example func (middle of the 4D) (default 0)
 BOLD_HPF_CUTOFFS="Inf"                                      # enter "Inf" to switch off high-pass filter
@@ -203,9 +203,9 @@ BOLD_REGISTER_TO_STRUC_DOF=6                                # degrees of freedom
 BOLD_PTTRN_HIGHRES_BRAIN="*_t1_betted_masked_brain.nii.gz"  # pattern of t1 skull-stripped image
 BOLD_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                # pattern of t1 non-skull-stripped image
 BOLD_REGISTER_TO_MNI=1                                      # enable MNI registration
-BOLD_MNI_RESAMPLE_RESOLUTIONS="2"                           # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
+BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                           # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
 BOLD_MNI_RESAMPLE_INTERP="spline"                           # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
-BOLD_MNI_SMOOTH_LAST=1                                      # smooth MNI registered 4D post hoc
+BOLD_MNI_SMOOTH_LAST=1                                      # don't smooth before MNI registration !
 BOLD_UNWARP_NO_BROWSER=0                                    # don't open browser window
 
 # TRACULA
