@@ -183,7 +183,10 @@ for subj in `cat $subjdir/subjects` ; do
     if [ x${pttrn_bvals} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvals ; fi
     if [ x${pttrn_bvecs} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvecs ; fi
     dwi_txtfiles=$(echo $dwi_txtfiles| row2col | sort | uniq)
-    for i in $dwi_txtfiles ; do echo "    $i" ; dos2unix -q $i ; done
+    for i in $dwi_txtfiles ; do 
+      #echo "    $i"
+      dos2unix -q $i
+    done
   done
 done
 
@@ -1723,8 +1726,6 @@ if [ $BOLD_STG1 -eq 1 ] ; then
           
   # carry out substitutions
   if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
-  if [ "x${BOLD_MNI_SMOOTH_LAST}" = "x" ] ; then BOLD_MNI_SMOOTH_LAST=0 ; fi
-  if [ $BOLD_MNI_SMOOTH_LAST -eq 1 ] ; then _BOLD_SMOOTHING_KRNLS=0 ; else _BOLD_SMOOTHING_KRNLS="$BOLD_SMOOTHING_KRNLS" ; fi
   if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
   
   for subj in `cat subjects` ; do
@@ -1787,7 +1788,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       fi
 
       for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-        for sm_krnl in $_BOLD_SMOOTHING_KRNLS ; do
+        for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
           for uw_dir in -y +y 0 ; do
             for stc_val in $BOLD_SLICETIMING_VALUES ; do
             
@@ -1898,8 +1899,6 @@ if [ $BOLD_STG2 -eq 1 ] ; then
   
   # carry out substitutions
   if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
-  if [ "x${BOLD_MNI_SMOOTH_LAST}" = "x" ] ; then BOLD_MNI_SMOOTH_LAST=0 ; fi
-  if [ $BOLD_MNI_SMOOTH_LAST -eq 1 ] ; then _BOLD_SMOOTHING_KRNLS=0 ; else _BOLD_SMOOTHING_KRNLS="$BOLD_SMOOTHING_KRNLS" ; fi
   if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
   
   for subj in `cat subjects` ; do
@@ -1919,7 +1918,7 @@ if [ $BOLD_STG2 -eq 1 ] ; then
       # cleanup previous run, execute FEAT and link to processed file
       # NOTE: feat self-submits to the cluster and should in fact not be used in conjunction with fsl_sub (but it seems to work anyway) (!)
       for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-        for sm_krnl in $_BOLD_SMOOTHING_KRNLS ; do
+        for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
           for stc_val in $BOLD_SLICETIMING_VALUES ; do
             # define feat-dir
             _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
@@ -1953,6 +1952,62 @@ fi
 
 waitIfBusy
 
+## smooth 4D BOLD outside FEAT
+#if [ $BOLD_STG3 -eq 1 ] ; then
+  #echo "----- BEGIN BOLD_STG3 -----"
+  
+  ## set prefix for feat-dir name
+  #if [ "x${BOLD_FEATDIR_PREFIX}" = "x" ] ; then BOLD_FEATDIR_PREFIX="" ; fi
+  
+  ## carry out substitutions
+  #if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
+  #if [ "x${BOLD_SMOOTH_OUTSIDE_FEAT}" = "x" ] ; then BOLD_SMOOTH_OUTSIDE_FEAT=0 ; fi
+  #if [ $BOLD_SMOOTH_OUTSIDE_FEAT -eq 1 ] ; then _BOLD_SMOOTHING_KRNLS=0 ; else _BOLD_SMOOTHING_KRNLS="$BOLD_SMOOTHING_KRNLS" ; fi
+  #if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
+
+
+  #for subj in `cat subjects` ; do
+    
+    #if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : ERROR : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
+    #if [ $BOLD_REGISTER_TO_MNI -eq 0 ] ; then echo "BOLD : ERROR : MNI-registration disabled by user - breaking loop..." ; break ; fi
+    #if [ $BOLD_SMOOTH_OUTSIDE_FEAT -eq 0 ] ; then echo "BOLD : ERROR : smoothing disabled by user - breaking loop..." ; break ; fi
+    
+    #for sess in `cat ${subj}/sessions_func` ; do
+    
+      ## did we unwarp ?
+      #if [ $BOLD_UNWARP -eq 1 ] ; then
+        #uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
+      #else 
+        #uw_dir=0
+      #fi     
+      
+      ## smoothing...
+      #for hpf_cut in $BOLD_HPF_CUTOFFS ; do
+        #for sm_krnl in $_BOLD_SMOOTHING_KRNLS ; do
+          #for stc_val in $BOLD_SLICETIMING_VALUES ; do
+            
+            ## define feat-dir.
+            #_hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
+            #featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_hpf${_hpf_cut}_s${_sm_krnl}_uw${uw_dir}_stc${stc_val}.feat          
+            
+            ## check feat-dir.
+            #if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
+                        
+            
+            #if [ $BOLD_SMOOTH_OUTSIDE_FEAT -eq 1 ] ; then             
+              #$studydir/misc/scripts/susan_smooth.sh $featdir/filtered_func_data.nii.gz "$BOLD_SMOOTHING_KRNLS" $subj $sess
+            #fi
+            
+          #done
+        #done
+      #done
+        
+    #done
+  #done
+#fi
+
+waitIfBusy
+
 # BOLD write out mni registered files
 if [ $BOLD_STG3 -eq 1 ] ; then
   echo "----- BEGIN BOLD_STG3 -----"
@@ -1965,13 +2020,11 @@ if [ $BOLD_STG3 -eq 1 ] ; then
   
   # carry out substitutions
   if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
-  if [ "x${BOLD_MNI_SMOOTH_LAST}" = "x" ] ; then BOLD_MNI_SMOOTH_LAST=0 ; fi
-  if [ $BOLD_MNI_SMOOTH_LAST -eq 1 ] ; then _BOLD_SMOOTHING_KRNLS=0 ; else _BOLD_SMOOTHING_KRNLS="$BOLD_SMOOTHING_KRNLS" ; fi
   if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
 
   for subj in `cat subjects` ; do
-    if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : WARNING : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
-    if [ $BOLD_REGISTER_TO_MNI -eq 0 ] ; then echo "BOLD : MNI-registration disabled by user - breaking loop..." ; break ; fi
+    if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : ERROR : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
+    if [ $BOLD_REGISTER_TO_MNI -eq 0 ] ; then echo "BOLD : ERROR : MNI-registration disabled by user - breaking loop..." ; break ; fi
     for sess in `cat ${subj}/sessions_func` ; do
     
       # did we unwarp ?
@@ -1983,7 +2036,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
       
       # write out MNI-registered volumes
       for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-        for sm_krnl in $_BOLD_SMOOTHING_KRNLS ; do
+        for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
           for stc_val in $BOLD_SLICETIMING_VALUES ; do
             
             # define feat-dir.
@@ -1992,28 +2045,34 @@ if [ $BOLD_STG3 -eq 1 ] ; then
             
             # check feat-dir.
             if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
-            
+
             # execute...
             for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do
-              _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'
+
+              _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'             
+                  
+              in_file=filtered_func_data.nii.gz
               out_file=filtered_func_data_${_mni_res}.nii.gz
+              cmd_file=mni_write_res${_mni_res}.cmd
+              log_file=bold_write_MNI_res${_mni_res}_$(subjsess)
               
               echo "BOLD : subj $subj , sess $sess : writing MNI-registered 4D BOLD '$out_file' to '${featdir}/reg_standard'." 
               
               echo "featregapply $featdir ; \
               flirt -ref $featdir/reg/standard -in $featdir/reg/standard -out $featdir/reg_standard/standard_$_mni_res -applyisoxfm $mni_res ; \
               applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=$featdir/reg/highres --out=$featdir/reg_standard/highres_$_mni_res --warp=$featdir/reg/highres2standard_warp  --interp=sinc ; \
-              applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=$featdir/filtered_func_data --out=$featdir/reg_standard/$out_file --warp=$featdir/reg/highres2standard_warp --premat=$featdir/reg/example_func2highres.mat --interp=$interp; \
-              fslmaths $featdir/reg_standard/$out_file -Tstd -bin $featdir/reg_standard/mask_$_mni_res -odt char" > $featdir/mni_write_res${_mni_res}.cmd
-              fsl_sub -l $logdir -N bold_write_MNI_res${_mni_res}_$(subjsess) -t $featdir/mni_write_res${_mni_res}.cmd
+              applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=$featdir/$in_file --out=$featdir/reg_standard/$out_file --warp=$featdir/reg/highres2standard_warp --premat=$featdir/reg/example_func2highres.mat --interp=$interp; \
+              fslmaths $featdir/reg_standard/$out_file -Tstd -bin $featdir/reg_standard/mask_$_mni_res -odt char" > $featdir/$cmd_file
+              fsl_sub -l $logdir -N $log_file -t $featdir/$cmd_file
               
               # link...
               echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-registered 4D BOLD."
               if [ $uw_dir = 0 ] ; then 
-                ln -sfv ./$(basename $featdir)/reg_standard/$out_file $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz              
+                ln -sfv ./$(basename $featdir)/reg_standard/$out_file $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_mc_bold_hpf${_hpf_cut}_s${_sm_krnl_mni}_stc${stc_val}_res${_mni_res}.nii.gz              
               else
-                ln -sfv ./$(basename $featdir)/reg_standard/$out_file $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_uw_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz
+                ln -sfv ./$(basename $featdir)/reg_standard/$out_file $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_uw_mc_bold_hpf${_hpf_cut}_s${_sm_krnl_mni}_stc${stc_val}_res${_mni_res}.nii.gz
               fi
+                
             done # end mni_res
           done # end stc_val
         done # end sm_krnl
@@ -2021,67 +2080,68 @@ if [ $BOLD_STG3 -eq 1 ] ; then
     
     done
   done
+    
 fi
   
 waitIfBusy
 
-# MNI 4D SMOOTHING POST HOC
-if [ $BOLD_STG4 -eq 1 ] ; then 
-  echo "----- BEGIN BOLD_STG4 -----"
+## MNI 4D SMOOTHING POST HOC
+#if [ $BOLD_STG4 -eq 1 ] ; then 
+  #echo "----- BEGIN BOLD_STG4 -----"
  
-  for subj in `cat subjects` ; do
-    if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : WARNING : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
-    if [ "$BOLD_MNI_SMOOTH_LAST" = "0" -o "$BOLD_SMOOTHING_KRNLS" = "0" ] ; then echo "BOLD : post-hoc smoothing of MNI registered BOLDs disabled by user - breaking loop..." ; break ; fi
+  #for subj in `cat subjects` ; do
+    #if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : WARNING : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
+    #if [ "$BOLD_SMOOTH_OUTSIDE_FEAT" = "0" -o "$BOLD_SMOOTHING_KRNLS" = "0" ] ; then echo "BOLD : post-hoc smoothing of MNI registered BOLDs disabled by user - breaking loop..." ; break ; fi
     
-    for sess in `cat ${subj}/sessions_func` ; do
+    #for sess in `cat ${subj}/sessions_func` ; do
       
-      # did we unwarp ?
-      if [ $BOLD_UNWARP -eq 1 ] ; then
-        uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
-      else 
-        uw_dir=0
-      fi    
+      ## did we unwarp ?
+      #if [ $BOLD_UNWARP -eq 1 ] ; then
+        #uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
+      #else 
+        #uw_dir=0
+      #fi    
     
-      for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-        for stc_val in $BOLD_SLICETIMING_VALUES ; do
+      #for hpf_cut in $BOLD_HPF_CUTOFFS ; do
+        #for stc_val in $BOLD_SLICETIMING_VALUES ; do
           
-          # define feat-dir.
-          _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") 
-          featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_hpf${_hpf_cut}_s0_uw${uw_dir}_stc${stc_val}.feat          
+          ## define feat-dir.
+          #_hpf_cut=$(echo $hpf_cut | sed "s|\.||g") 
+          #featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_hpf${_hpf_cut}_s0_uw${uw_dir}_stc${stc_val}.feat          
           
-          # check feat-dir.
-          if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
+          ## check feat-dir.
+          #if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
           
-          # execute...
-          for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do      
-            _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'
+          ## execute...
+          #for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do      
+            #_mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'
             
-            data=${featdir}/reg_standard/filtered_func_data_${mni_res}
+            #data=${featdir}/reg_standard/filtered_func_data_${mni_res}
           
-            $studydir/misc/scripts/susan_smooth.sh $data "$BOLD_SMOOTHING_KRNLS" $subj $sess
+            #$studydir/misc/scripts/susan_smooth.sh $data "$BOLD_SMOOTHING_KRNLS" $subj $sess
           
             
-            for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
-              if [ $sm_krnl = "0" ] ; then continue ; fi
-              _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
+            #for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+              #if [ $sm_krnl = "0" ] ; then continue ; fi
+              #_sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
                           
-              # link...
-              echo "BOLD : subj $subj , sess $sess :    creating symlink to smoothed MNI-registered 4D BOLD."
-              if [ $uw_dir = 0 ] ; then 
-                ln -sfv ./$(basename $featdir)/reg_standard/filtered_func_data_${mni_res}_s${_sm_krnl}.nii.gz $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz              
-              else
-                ln -sfv ./$(basename $featdir)/reg_standard/filtered_func_data_${mni_res}_s${_sm_krnl}.nii.gz $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_uw_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz
-              fi             
+              ## link...
+              #echo "BOLD : subj $subj , sess $sess :    creating symlink to smoothed MNI-registered 4D BOLD."
+              #if [ $uw_dir = 0 ] ; then 
+                #ln -sfv ./$(basename $featdir)/reg_standard/filtered_func_data_${mni_res}_s${_sm_krnl}.nii.gz $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz              
+              #else
+                #ln -sfv ./$(basename $featdir)/reg_standard/filtered_func_data_${mni_res}_s${_sm_krnl}.nii.gz $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_uw_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz
+              #fi             
               
-            done # end sm_krnl
-          done # end mni_res
-        done # end stc_val
-      done # end hpf_cut
-    done # end sess
-  done # end subj 
-fi
+            #done # end sm_krnl
+          #done # end mni_res
+        #done # end stc_val
+      #done # end hpf_cut
+    #done # end sess
+  #done # end subj 
+#fi
 
-waitIfBusy
+#waitIfBusy
 
 #if [ $BOLD_STG4 -eq 1 ] ; then
 
