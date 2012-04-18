@@ -5,6 +5,7 @@
 ########################################################################
 
 studydir=`pwd` # (!)
+scriptdir=$studydir/misc/scripts
 subjdir=$studydir/subj
 grpdir=$studydir/grp
 tbssdir=$grpdir/tbss
@@ -70,8 +71,8 @@ VBM_STG3=0                 # VBM apply standard space mask (SSM)
 VBM_STG4=0                 # VBM final skull strip - bet
 VBM_STG5=0                 # VBM final skull strip - watershed
 
-BOLD_STG1=0                # BOLD (ICA) prepare FEAT configuration file for motion correction and unwarping, etc.
-BOLD_STG2=0                # BOLD (ICA) execute FEAT configuration file
+BOLD_STG1=1                # BOLD (ICA) prepare FEAT configuration file for motion correction and unwarping, etc.
+BOLD_STG2=1                # BOLD (ICA) execute FEAT configuration file
 BOLD_STG3=1                # BOLD write MNI-registered volumes
 
 BIASMAP_STG1=0             # create bias map
@@ -193,7 +194,7 @@ TE_bold=30                                                  # TE (ms)
 BOLD_FEATDIR_PREFIX="TEST"                   # prefix for .feat output directory
 BOLD_BET=1                                                  # enable betting
 BOLD_BET_EXFUNC=0                                           # bet example func (middle of the 4D) (default 0)
-BOLD_HPF_CUTOFFS="Inf"                                      # enter "Inf" to switch off high-pass filter
+BOLD_HPF_CUTOFFS="100"                                      # enter "Inf" to switch off high-pass filter
 BOLD_SMOOTHING_KRNLS="0 2"                                  # enter "0" to swith off smoothing (note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes)
 BOLD_SLICETIMING_VALUES="0"                                 # enter correction method (see .fsf file); "0" to switch off slice timing correction
 BOLD_UNWARP=1                                               # enable unwarping
@@ -204,7 +205,7 @@ BOLD_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                # pattern of t1 non-
 BOLD_REGISTER_TO_MNI=1                                      # enable MNI registration
 BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                         # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
 BOLD_MNI_RESAMPLE_INTERP="spline"                           # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
-BOLD_UNWARP_NO_BROWSER=0                                    # don't open browser window
+BOLD_UNWARP_NO_BROWSER=1                                    # don't open browser window
 
 # TRACULA
 # mutually exclusive:
@@ -260,7 +261,7 @@ MELODIC_REGSTD_RESOLUTION=4.0                                  # resampling reso
 MELODIC_HIGHPASS_CUTOFF=100                                    # high-pass filter cutoff value
 MELODIC_TEMPLATE_FILENAME="template_ICA.fsf"                   # template filename
 
-# MELODIC_CMD (optional)
+# MELODIC_CMD (optional, inputs must be in a common space)
 MELODIC_CMD_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS               # subjects to be included in the ICA analysis
 MELODIC_CMD_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions to be included in the ICA analysis
 MELODIC_CMD_INPUT_FILES="mni_uw_mc_bold_hpfInf_s0_stc0_res2.nii.gz"  # filename of input file (in 'bold' subdirectory)

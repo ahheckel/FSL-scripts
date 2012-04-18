@@ -1,6 +1,6 @@
 #!/bin/bash
 
-trap 'echo "NOTE: An ERROR has occured."' ERR
+trap 'echo "$0 : An ERROR has occured."' ERR
 
 # exit on error
 set -e
@@ -270,7 +270,7 @@ for subj in `cat subjects` ; do
     
     npts=`countVols $fldr/bold.nii.gz` ; mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
     echo "BOLD : subj $subj , sess $sess : executing extraction of confounds from '$fldr/bold' (using pos. $mid_pos / $npts as reference for anatomical alignment)..."
-    echo "$studydir/misc/scripts/extractConfoundsFromNativeFuncs.sh $fldr/bold $fldr/albold $mid_pos $fldr/$t1" | tee $fldr/filt.cmd
+    echo "$scriptdir/extractConfoundsFromNativeFuncs.sh $fldr/bold $fldr/albold $mid_pos $fldr/$t1" | tee $fldr/filt.cmd
     fsl_sub -t $fldr/filt.cmd
     
   done
@@ -3455,10 +3455,10 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
       # executing dualreg...
       echo "DUALREG : executing dualreg script on group-level ICs in '$ICfile' - writing to folder '$dr_outdir'..."
       
-      cmd="$studydir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 1 0 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
+      cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 1 0 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
       $cmd ; waitIfBusy
       
-      cmd="$studydir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 0 1 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
+      cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 0 1 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
       $cmd ; waitIfBusy
     done
   done
@@ -3530,7 +3530,7 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
         echo "DUALREG : copying GLM design '$dr_glm_name' to '$dr_outdir/stats'"
         mkdir -p $dr_outdir/stats ; cp -r $glmdir_dr/$dr_glm_name $dr_outdir/stats/ ; cp $ICfile $dr_outdir/stats/
         echo "DUALREG : calling '$RANDCMD' for folder '$dr_outdir/stats/$dr_glm_name' ($DUALREG_NPERM permutations)."
-        cmd="${studydir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp $RANDCMD $DUALREG_NPERM $dr_outdir 0 0 1 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
+        cmd="${scriptdir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp $RANDCMD $DUALREG_NPERM $dr_outdir 0 0 1 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
         $cmd ; waitIfBusy # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
       done
     done
