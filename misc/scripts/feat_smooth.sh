@@ -44,7 +44,7 @@ for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
     fslmaths ${out}_thresh -mas $(dirname $out)/susan_mask ${out}_smooth
   else
     echo "`basename $0`: subj $subj , sess $sess :    FWHM: $sm_krnl - sigma: $smoothsigma"
-    cmd="susan ${out}_thresh $susan_int $smoothsigma 3 0 1 $(dirname $out)/susan_mean_func $susan_int ${out}_smooth"
+    cmd="susan ${out}_thresh $susan_int $smoothsigma 3 1 1 $(dirname $out)/susan_mean_func $susan_int ${out}_smooth"
     echo "`basename $0`: subj $subj , sess $sess :    executing command: $cmd"
     $cmd
     

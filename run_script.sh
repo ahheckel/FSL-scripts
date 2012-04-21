@@ -39,13 +39,18 @@ fi
 # are all progs installed ?
 progs="$FSL_DIR/bin/tbss_x $FSL_DIR/bin/swap_voxelwise $FSL_DIR/bin/swap_subjectwise $FREESURFER_HOME/bin/trac-all $FSL_DIR/etc/flirtsch/b02b0.cnf $FSL_DIR/bin/topup $FSL_DIR/bin/applytopup"
 for prog in $progs ; do
-  if [ ! -e $prog ] ; then echo "ERROR : '$prog' is not installed. Exiting." ; exit ; fi
+  if [ ! -f $prog ] ; then echo "ERROR : '$prog' is not installed. Exiting." ; exit ; fi
 done
+if [ x$(which octave) = "x" ] ; then echo "ERROR : OCTAVE does not seem to be installed on your system ! Exiting..." ; exit ; fi
 
 # is sh linked to bash ?
 if [ ! -z $(which sh) ] ; then
   if [ $(basename $(readlink `which sh`)) != "bash" ] ; then read -p "WARNING : 'sh' is linked to $(readlink `which sh`), but should be linked to 'bash' for fsl compatibility. Press key to continue or abort with CTRL-C." ; fi
 fi
+
+# make scripts executable
+dos2unix -q $scriptdir/*
+chmod +x $scriptdir/*.sh
 
 # check presence of info files
 if [ $CHECK_INFOFILES = 1 ] ; then 
@@ -249,7 +254,7 @@ for subj in `cat subjects` ; do
     if [ ! -f $subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE ] ; then 
       echo "'$subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE' not found - exiting..." ; exit
     fi
-    #if [ ! -e $featdir/mc/prefiltered_func_data_mcf.par ] ; then
+    #if [ ! -f $featdir/mc/prefiltered_func_data_mcf.par ] ; then
      # echo "motion parameter file '$featdir/mc/prefiltered_func_data_mcf.par' not found - exiting..." ; exit
     #fi
 
@@ -381,7 +386,7 @@ if [ $FIELDMAP_STG2 -eq 1 ]; then
 
       # bet, if necessary
       if [ $f = "mod" ] ; then
-        if [ ! -e ${fldr}/magn_brain_${f}.nii.gz -o ! -e ${fldr}/magn_brain_${f}_mask.nii.gz ] ; then
+        if [ ! -f ${fldr}/magn_brain_${f}.nii.gz -o ! -f ${fldr}/magn_brain_${f}_mask.nii.gz ] ; then
           echo "FIELDMAP : subj $subj , sess $sess : externally modified volume (magn_brain_${f}.nii.gz) & mask (magn_brain_${f}_mask.nii.gz) not found - exiting..." ; exit          
         fi
       else
@@ -593,7 +598,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
           # create a task file for fsl_sub, which is needed to avoid accumulations when SGE does a re-run on error
           echo "rm -f $fldr/ec_diffs_merged_${i}*.nii.gz ; \
                 rm -f $fldr/ec_diffs_merged_${i}.ecclog ; \
-                eddy_correct $dwifile $fldr/ec_diffs_merged_${i} $b0img" > $fldr/topup_ec_${i}.cmd
+                $scriptdir/eddy_correct.sh $dwifile $fldr/ec_diffs_merged_${i} $b0img mutualinfo trilinear" > $fldr/topup_ec_${i}.cmd
           
           # eddy-correct
           echo "TOPUP : subj $subj , sess $sess : eddy_correction of '$dwifile' (ec_diffs_merged_${i}) is using volume no. $b0img as B0 (val:${min})..."
@@ -639,7 +644,7 @@ if [ $TOPUP_STG2 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=${subjdir}/${subj}/${sess}/topup
       
-      if [ ! -e $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
+      if [ ! -f $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
       
       # display info
       echo "TOPUP : subj $subj , sess $sess : concatenate bvals... "
@@ -687,7 +692,7 @@ if [ $TOPUP_STG3 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=${subjdir}/${subj}/${sess}/topup
       
-      if [ ! -e $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
+      if [ ! -f $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
       
       # merge B0 images
       echo "TOPUP : subj $subj , sess $sess : merging low-B images..."
@@ -706,7 +711,7 @@ if [ $TOPUP_STG4 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=${subjdir}/${subj}/${sess}/topup
       
-      if [ ! -e $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
+      if [ ! -f $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
       
       # execute TOPUP
       echo "TOPUP : subj $subj , sess $sess : executing TOPUP on merged low-b volumes..."
@@ -726,7 +731,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=${subjdir}/${subj}/${sess}/topup
       
-      if [ ! -e $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
+      if [ ! -f $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
       
       # generate commando without eddy-correction
       nplus=`ls $subj/$sess/$pttrn_diffsplus | wc -l`      
@@ -793,7 +798,7 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
 
       # bet, if necessary
       if [ $f = "mod" ] ; then
-        if [ ! -e $fldr/nodif_brain_${f}.nii.gz  -o ! -e $fldr/nodif_brain_${f}_mask.nii.gz ] ; then   
+        if [ ! -f $fldr/nodif_brain_${f}.nii.gz  -o ! -f $fldr/nodif_brain_${f}_mask.nii.gz ] ; then   
           echo "TOPUP: subj $subj , sess $sess : externally modified volume (nodif_brain_${f}) & mask (nodif_brain_${f}_mask) not found - exiting..." ; exit
         fi
       else      
@@ -962,7 +967,7 @@ if [ $FDT_STG2 -eq 1 ] ; then
       # creating task file for fsl_sub, the deletions are needed to avoid accumulations when sge is doing a re-run on error
       echo "rm -f $fldr/ec_diff_merged_*.nii.gz ; \
             rm -f $fldr/ec_diff_merged.ecclog ; \
-            eddy_correct $fldr/diff_merged $fldr/ec_diff_merged $b0img" > $fldr/fdt_ec.cmd
+            $scriptdir/eddy_correct.sh $fldr/diff_merged $fldr/ec_diff_merged $b0img mutualinfo trilinear" > $fldr/fdt_ec.cmd
       fsl_sub -l $logdir -N fdt_eddy_correct_$(subjsess) -t $fldr/fdt_ec.cmd
       
     done
@@ -1050,7 +1055,7 @@ if [ $FDT_STG3 -eq 1 ] ; then
         sed -i "s|set fmri(reginitial_highres_yn) .*|set fmri(reginitial_highres_yn) 0|g" $conffile # unset registration to initial highres
         sed -i "s|set fmri(reghighres_yn) .*|set fmri(reghighres_yn) 0|g" $conffile # unset registration to highres
         sed -i "s|set fmri(regstandard_yn) .*|set fmri(regstandard_yn) 0|g" $conffile # unset registration to standard space
-        sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 0|g" $conffile # overwrite on re-run
+        sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 1|g" $conffile # overwrite on re-run
         if [ $FDT_UNWARP_NO_BROWSER -eq 1 ] ; then
           sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 0|g" $conffile
         else 
@@ -1104,7 +1109,7 @@ if [ $FDT_STG5 -eq 1 ] ; then
 
       # bet, if necessary
       if [ $f = "mod" ] ; then
-        if [ ! -e $fldr/nodif_brain_${f}.nii.gz  -o ! -e $fldr/nodif_brain_${f}_mask.nii.gz ] ; then   
+        if [ ! -f $fldr/nodif_brain_${f}.nii.gz  -o ! -f $fldr/nodif_brain_${f}_mask.nii.gz ] ; then   
           echo "FDT : subj $subj , sess $sess : externally modified volume (nodif_brain_${f}) & mask (nodif_brain_${f}_mask) not found - exiting..." ; exit          
         fi
       else
@@ -1712,6 +1717,421 @@ fi
 waitIfBusy
 
 
+###########################
+# ----- BEGIN BIASMAP -----
+###########################
+  
+# BIASMAP creating bias map if applicable
+if [ $BIASMAP_STG1 -eq 1 ] ; then
+  echo "----- BEGIN BIASMAP_STG1 -----"
+  # search pattern for anatomicals set ?
+  if [ -z $pttrn_strucs ] ; then echo "BIASMAP : search pattern for anatomical files not set - exiting..." ; exit ; fi
+  
+  for subj in `cat subjects`; do 
+    for sess in `cat ${subj}/sessions_struc` ; do    
+      # mkdir
+      fldr=$subj/$sess/bias ; mkdir -p $fldr
+      
+      # prepare
+      src0=`ls $subjdir/$subj/$sess/$pttrn_strucs | head -n 1`
+      mask=$subjdir/$subj/$sess/vbm/$(subjsess)_t1_betted_masked_brain_mask.nii.gz
+      if [ ! -f $mask ] ; then echo "BIASMAP : subj $subj , sess $sess : $mask not found; you must run the VBM stream first - continuing loop..." ; continue ; fi
+      ln -sf $mask $fldr/t1_mask.nii.gz
+      echo "BIASMAP : subj $subj , sess $sess : skull-stripping $src0 using `basename $mask`..."
+      fslreorient2std $src0 $fldr/t1_biased
+      fslmaths $fldr/t1_biased -mas $fldr/t1_mask.nii.gz $fldr/t1_biased_brain -odt float
+      
+      # creating biasmap using fsl-fast...          
+      echo "BIASMAP : subj $subj , sess $sess : creating bias map using fsl-fast..."
+      fsl_sub -l $logdir -N bias_fast_$(subjsess) fast -v -b $fldr/t1_biased_brain.nii.gz  
+      
+      # check if prescan unbiased scan is presumably available
+      n_strucs=`ls $subjdir/$subj/$sess/$pttrn_strucs | wc -l`
+      if [ $n_strucs -gt 1 ] ; then 
+        echo "BIASMAP : subj $subj , sess $sess : $n_strucs t1 images found. Asuming the last one is prescan-unbiased. Creating bias map by division..."
+      else 
+        echo "BIASMAP : subj $subj , sess $sess : only $n_strucs t1 images found - cannot create pre-scan based bias-map. Continuing loop..."
+        continue
+      fi
+      
+      # create biasmap based on pre-scan unbiased...
+      src1=`ls $subjdir/$subj/$sess/$pttrn_strucs | tail -n 1`      
+
+      fslreorient2std $src1 $fldr/t1_prescan_unbiased
+      fslmaths $fldr/t1_prescan_unbiased -mas $fldr/t1_mask.nii.gz $fldr/t1_prescan_unbiased_brain -odt float
+      
+      echo "BIASMAP : subj $subj , sess $sess : applying non-uniformity correction to (putatively) pre-scan unbiased T1 volume `basename $src1`..."
+      mri_convert $fldr/t1_prescan_unbiased_brain.nii.gz $fldr/t1_prescan_unbiased_brain.mnc &>$logdir/bias_mri_convert01_$(subjsess) 
+      nu_correct -clobber $fldr/t1_prescan_unbiased_brain.mnc  $fldr/t1_prescan_unbiased_nuc_brain.mnc  &>$logdir/bias_nu_correct_$(subjsess) 
+      
+      echo "BIASMAP : subj $subj , sess $sess : creating bias map by division..."
+      mri_convert $fldr/t1_prescan_unbiased_nuc_brain.mnc $fldr/t1_unbiased_brain.nii.gz &>$logdir/bias_mri_convert02_$(subjsess) 
+      fslmaths $fldr/t1_unbiased_brain -div $fldr/t1_biased_brain $fldr/t1_biasmap
+       
+      # cleanup
+      imrm $fldr/t1_biased
+      imrm $fldr/t1_prescan_unbiased
+      imrm $fldr/t1_prescan_unbiased_brain
+      rm $fldr/t1_prescan_unbiased_nuc_brain.mnc    
+      rm $fldr/t1_prescan_unbiased_nuc_brain.imp      
+    
+    done
+  done
+  
+  waitIfBusy
+  
+  # fsl-fast's biasmap: take reciproc...
+  for subj in `cat subjects`; do 
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$subj/$sess/bias
+      
+      # does fsl-fast output exist ?
+      if [ ! -f $fldr/t1_biased_brain_bias.nii.gz ] ; then echo "BIASMAP : subj $subj , sess $sess : $fldr/t1_biased_brain_bias.nii.gz not found; has fsl's fast finished ? Continuing loop..." ; continue ; fi
+      
+      # take reciproc
+      fslmaths $fldr/t1_biased_brain_bias.nii.gz -recip $fldr/t1_biasmap_fast.nii.gz
+      
+      # cleanup
+      imrm $fldr/t1_biased
+    done
+  done
+fi
+
+waitIfBusy
+
+# BIASMAP applying bias map
+if [ $BIASMAP_STG2 -eq 1 ] ; then
+  echo "----- BEGIN BIASMAP_STG2 -----"
+  for subj in `cat subjects`; do 
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$subjdir/$subj/$sess/bias   
+      
+      bold=`find $subjdir/$subj/$sess/ -maxdepth 1 -name "*feat*" -type d | sort | tail -n 1`/filtered_func_data.nii.gz # must be adapted (!)
+      mat=`find $(dirname $bold) -maxdepth 1 -name "*ica*" -type d | sort | tail -n 1`/reg/example_func2highres.mat # must be adapted (!)
+      
+      if [ -z $bold -o ! -f $bold ] ; then echo "BIASMAP : subj $subj , sess $sess : filtered_func_data.nii.gz not found in latest FEAT directory - continuing loop..." ; continue ; fi
+      if [ -z $mat -o ! -f $mat ] ; then echo "BIASMAP : subj $subj , sess $sess : transformation matrix func -> highres not found in latest ICA (Melodic) directory - continuing loop..." ; continue ; fi
+      
+      ln -sf $mat $fldr/bold_to_t1
+      ln -sf $bold $fldr/filtered_func.nii.gz
+      
+      echo "BIASMAP : subj $subj , sess $sess : inverting transformation matrix func -> highres ($mat)..."
+      convert_xfm -omat $fldr/t1_to_bold -inverse $fldr/bold_to_t1
+      
+      echo "BIASMAP : subj $subj , sess $sess : resampling bias-map..."
+      flirt -in $fldr/t1_biasmap_fast -out $fldr/t1_biasmap_fast_bold -ref $fldr/filtered_func -applyxfm -init $fldr/t1_to_bold
+      flirt -in $fldr/t1_biasmap  -out $fldr/t1_biasmap_bold -ref $fldr/filtered_func -applyxfm -init $fldr/t1_to_bold
+
+      echo "BIASMAP : subj $subj , sess $sess : applying bias-map..."
+      fsl_sub -l $logdir -N bias_fslmaths fslmaths $fldr/filtered_func -mul $fldr/t1_biasmap_bold $fldr/filtered_func_unbiased
+      fsl_sub -l $logdir -N bias_fslmaths fslmaths $fldr/filtered_func -mul $fldr/t1_biasmap_fast_bold $fldr/filtered_func_unbiased_fast
+    done
+  done
+fi
+
+#########################
+# ----- END BIASMAP -----
+#########################
+
+
+waitIfBusy
+
+
+#########################
+# ----- BEGIN RECON -----
+#########################
+
+# RECON-ALL prepare 
+if [ $RECON_STG1 -eq 1 ] ; then
+  echo "----- BEGIN RECON_STG1 -----"
+  for subj in `cat subjects`; do 
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$FS_subjdir/$(subjsess)/mri/orig
+      mkdir -p $fldr
+      
+      # reorient to please fslview
+      echo "RECON : subj $subj , sess $sess : reorienting T1 to please fslview..."
+      file=`ls ${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check pattern (!)
+      fslreorient2std $file $fldr/tmp_t1
+      
+      # convert to .mgz
+      echo "RECON : subj $subj , sess $sess : converting T1 to .mgz format..."
+      mri_convert $fldr/tmp_t1.nii.gz $fldr/001.mgz &>$logdir/recon_mri_convert_$(subjsess)
+      rm -f $fldr/tmp_t1.nii.gz
+    done
+  done
+fi
+
+waitIfBusy
+
+# RECON-ALL execute
+if [ $RECON_STG2 -eq 1 ] ; then
+  echo "----- BEGIN RECON_STG2 -----"
+  for subj in `cat subjects`; do 
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$FS_subjdir/$(subjsess)
+      
+      echo "RECON : subj $subj , sess $sess : executing recon-all..."
+      
+      # use CUDA if available...
+      if [ $RECON_USE_CUDA = 1 ] ; then exitflag=0 ; else exitflag=X ; fi
+      echo '#!/bin/bash' > $fldr/recon-all_cuda.sh
+      echo 'cudadetect &>/dev/null' >>  $fldr/recon-all_cuda.sh
+      echo "if [ \$? = $exitflag ] ; then recon-all -all -use-gpu -no-isrunning -noappend -clean-tal -subjid $(subjsess)" >> $fldr/recon-all_cuda.sh # you may want to remove clean-tal flag (!)
+      echo "else  recon-all -all -no-isrunning -noappend -clean-tal -subjid $(subjsess) ; fi" >> $fldr/recon-all_cuda.sh 
+      chmod +x $fldr/recon-all_cuda.sh
+      
+      # execute...
+      fsl_sub -l $logdir -N recon-all_$(subjsess) $fldr/recon-all_cuda.sh
+    done
+  done
+fi
+
+waitIfBusy
+
+if [ $RECON_STG3 -eq 1 ] ; then
+  echo "----- BEGIN RECON_STG3 -----"
+  for subj in `cat subjects`; do
+    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj , sess $sess : single-session design ! Skipping longtitudinal freesurfer stream..." ; continue ; fi
+    
+    # create template dir.
+    fldr=$FS_subjdir/$subj
+    mkdir -p $fldr
+    
+    # init. command line
+    cmd="recon-all -base $subj"
+    
+    # generate command line
+    for sess in `cat ${subj}/sessions_struc` ; do
+      cmd="$cmd -tp $(subjsess)" 
+    done
+    
+    # executing...
+    echo "RECON : subj $subj , sess $sess : executing recon-all - unbiased template generation..."
+    cmd="$cmd -all -no-isrunning -noappend -clean-tal"
+    echo $cmd | tee $fldr/recon-all_base.cmd
+    fsl_sub -l $logdir -N recon-all_base_${subj} -t $fldr/recon-all_base.cmd
+  done
+fi 
+
+waitIfBusy
+
+if [ $RECON_STG4 -eq 1 ] ; then
+  echo "----- BEGIN RECON_STG4 -----"
+  for subj in `cat subjects`; do
+    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj , sess $sess : single-session design ! Skipping longtitudinal freesurfer stream..." ; continue ; fi
+    
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$FS_subjdir/$(subjsess)
+      
+      # generate command line
+      cmd="recon-all -long $(subjsess) $subj -all -no-isrunning -noappend -clean-tal"
+      
+      # executing...
+      echo "RECON : subj $subj , sess $sess : executing recon-all - longtitudinal stream..."
+      echo $cmd | tee $fldr/recon-all_long.cmd
+      fsl_sub -l $logdir -N recon-all_long_$(subjsess) -t $fldr/recon-all_long.cmd
+    done    
+  done
+fi 
+
+#########################
+# ----- END RECON -----
+#########################
+
+
+waitIfBusy
+
+
+###########################
+# ----- BEGIN TRACULA -----
+###########################
+
+# TRACULA prepare 
+if [ $TRACULA_STG1 -eq 1 ] ; then
+  echo "----- BEGIN TRACULA_STG1 -----"
+  if [ ! -f template_tracula.rc ] ; then echo "TRACULA : template file not found. Exiting..." ; exit ; fi
+  for subj in `cat subjects`; do 
+    for sess in `cat ${subj}/sessions_struc` ; do
+    
+      # create dest. folder
+      fldr=$FS_subjdir/$(subjsess) ; mkdir -p $fldr
+    
+      # display info
+      echo "TRACULA : subj $subj , sess $sess : preparing TRACULA in $fldr..."
+                  
+      # get BET info
+      thr=`getBetThres $subjdir/config_bet_lowb $subj`
+      echo "TRACULA : subj $subj , sess $sess : bet: FI Threshold: $thr"      
+            
+      # copy config-template to FS folder
+      echo "TRACULA : subj $subj , sess $sess : creating config file ${fldr}/tracula.rc" 
+      cp template_tracula.rc $fldr/tracula.rc
+      
+      # substitute TRACULA configuration
+      sed -i "s|setenv SUBJECTS_DIR X|setenv SUBJECTS_DIR $FS_subjdir|g" $fldr/tracula.rc
+      sed -i "s|set dtroot = X|set dtroot = $FS_subjdir|g" $fldr/tracula.rc
+      sed -i "s|set subjlist = (X)|set subjlist = ($(subjsess))|g" $fldr/tracula.rc
+      sed -i "s|set dcmroot = X|set dcmroot = $FS_subjdir|g" $fldr/tracula.rc
+      sed -i "s|set dcmlist = (X)|set dcmlist = ($(subjsess)/diff_merged.nii.gz)|g" $fldr/tracula.rc
+      sed -i "s|set bvalfile = X|set bvalfile = ($FS_subjdir/$(subjsess)/bvals_transp.txt)|g" $fldr/tracula.rc
+      sed -i "s|set bvecfile = X|set bvecfile = ($FS_subjdir/$(subjsess)/bvecs_transp.txt)|g" $fldr/tracula.rc
+      sed -i "s|set thrbet = X|set thrbet = $thr|g" $fldr/tracula.rc
+      
+      # link to appropiate files and adapt TRACULA settings...
+      echo "TRACULA : subj $subj , sess $sess : linking to appropriate bvals/bvecs files and DWI files..."
+      if [ $TRACULA_USE_NATIVE -eq 1 ] ; then
+        echo "TRACULA : subj $subj , sess $sess : linking to native DWIs..."
+        # are bvals and bvecs already concatenated ?
+        if [ ! -f $subj/$sess/fdt/bvals_concat.txt -o ! -f $subj/$sess/fdt/bvecs_concat.txt ] ; then
+          echo "TRACULA : subj $subj , sess $sess : creating concatenated bvals and bvecs file..."
+          concat_bvals $subj/$sess/"$pttrn_bvals" $fldr/bvals_concat.txt
+          concat_bvecs $subj/$sess/"$pttrn_bvecs" $fldr/bvecs_concat.txt
+        else 
+          ln -sfv ../../$subj/$sess/fdt/bvals_concat.txt $fldr/bvals_concat.txt
+          ln -sfv ../../$subj/$sess/fdt/bvecs_concat.txt $fldr/bvecs_concat.txt
+        fi        
+        
+        # are DWIs already concatenated ?
+        if [ -f $subj/$sess/fdt/diff_merged.nii.gz ] ; then
+          ln -sfv ../../$subj/$sess/fdt/diff_merged.nii.gz $fldr/diff_merged.nii.gz
+        else
+          echo "TRACULA : subj $subj , sess $sess : no pre-existing 4D file found - merging diffusion files..."
+          diffs=`ls $subj/$sess/$pttrn_diffs`          
+          fsl_sub -l $logdir -N trac_fslmerge_$(subjsess) fslmerge -t $fldr/diff_merged $diffs 
+        fi
+        
+        # tracula shall perform eddy-correction
+        sed -i "s|set doeddy = .*|set doeddy = 1|g" $fldr/tracula.rc
+        sed -i "s|set dorotbvecs = .*|set dorotbvecs = 1|g" $fldr/tracula.rc 
+      elif [ $TRACULA_USE_UNWARPED_BVECROT -eq 1 ] ; then          
+        # is fdt directory present ?
+        if [ ! -d $subjdir/$subj/$sess/fdt ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : you must run the FDT-stream first - breaking loop..." ; break ; fi
+        
+        echo "TRACULA : subj $subj , sess $sess : linking to unwarped DWIs (and corrected b-vectors)..."
+        ln -sfv ../../$subj/$sess/fdt/bvals_concat.txt $fldr/bvals_concat.txt
+        ln -sfv ../../$subj/$sess/fdt/bvecs_concat.rot $fldr/bvecs_concat.txt
+        ln -sfv ../../$subj/$sess/fdt/uw_ec_diff_merged.nii.gz $fldr/diff_merged.nii.gz
+        
+        # tracula shall not eddy-correct
+        sed -i "s|set doeddy = .*|set doeddy = 0|g" $fldr/tracula.rc
+        sed -i "s|set dorotbvecs = .*|set dorotbvecs = 0|g" $fldr/tracula.rc
+      elif [ $TRACULA_USE_TOPUP_NOEC_BVECROT -eq 1 ] ; then
+        # is topup directory present ?
+        if [ ! -d $subjdir/$subj/$sess/topup ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : you must run the TOPUP-stream first - breaking loop..." ; break ; fi
+        
+        echo "TRACULA : subj $subj , sess $sess : linking to TOPUP corrected DWIs (and corrected b-vectors)..."
+        ln -sfv ../../$subj/$sess/topup/avg_bvals.txt $fldr/bvals_concat.txt
+        ln -sfv ../../$subj/$sess/topup/avg_bvecs_topup.rot $fldr/bvecs_concat.txt
+        ln -sfv ../../$subj/$sess/topup/$(subjsess)_topup_corr_merged.nii.gz $fldr/diff_merged.nii.gz
+        
+        # tracula shall not eddy-correct
+        sed -i "s|set doeddy = .*|set doeddy = 0|g" $fldr/tracula.rc
+        sed -i "s|set dorotbvecs = .*|set dorotbvecs = 0|g" $fldr/tracula.rc # b-vec. correction in TRACULA will be incorrect for TOPUP corrected files, bc. TOPUP does a rigid body alignment that must be accounted for before running TRACULA
+      elif [ $TRACULA_USE_TOPUP_EC_BVECROT -eq 1 ] ; then
+        # is topup directory present ?
+        if [ ! -d $subjdir/$subj/$sess/topup ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : you must run the TOPUP-stream first - breaking loop..." ; break ; fi
+        
+        echo "TRACULA : subj $subj , sess $sess : linking to TOPUP corrected, eddy-corrected DWIs (and corrected b-vectors)..."
+        ln -sfv ../../$subj/$sess/topup/avg_bvals.txt $fldr/bvals_concat.txt
+        ln -sfv ../../$subj/$sess/topup/avg_bvecs_topup_ec.rot $fldr/bvecs_concat.txt
+        ln -sfv ../../$subj/$sess/topup/$(subjsess)_topup_corr_ec_merged.nii.gz $fldr/diff_merged.nii.gz
+       
+        # tracula shall not eddy-correct
+        sed -i "s|set doeddy = .*|set doeddy = 0|g" $fldr/tracula.rc
+        sed -i "s|set dorotbvecs = .*|set dorotbvecs = 0|g" $fldr/tracula.rc
+      fi
+      
+      # transpose bvals and bvecs files to please TRACULA
+      echo "TRACULA : subj $subj , sess $sess : transpose fsl-style bvals / bvecs files to please TRACULA..."
+      transpose $fldr/bvals_concat.txt > $fldr/bvals_transp.txt; cat $fldr/bvals_transp.txt | wc
+      transpose $fldr/bvecs_concat.txt > $fldr/bvecs_transp.txt; cat $fldr/bvecs_transp.txt | wc   
+                
+      # count number of low B images
+      nb0=0;
+      lowB=`cat $fldr/bvals_transp.txt | getMin`
+      for bval in `cat $fldr/bvals_transp.txt` ; do 
+        bval=`printf '%.0f' $bval` # strip zeroes
+        if [ "$bval" = "$lowB" ] ; then  nb0=$[$nb0+1] ; fi
+      done
+      echo "TRACULA : subj $subj , sess $sess : $nb0 low-B images counted (val:${lowB})"
+      sed -i "s|set nb0 = X|set nb0 = 1|g" $fldr/tracula.rc # set to '1': tracula averages the first n images of the 4D diff. volume, no matter if these are really b0 images or not (!)
+      
+      ## diff-file present ?
+      #if [ ! -f $fldr/diff_merged.nii.gz ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : $fldr/diff_merged.nii.gz not found - skipping consistency check..." ; continue ; fi
+            
+      # check consistency
+      checkConsistency $fldr/diff_merged.nii.gz $fldr/bvals_transp.txt $fldr/bvecs_transp.txt    
+    done
+  done
+fi
+
+waitIfBusy
+
+# TRACULA execute -prep
+if [ $TRACULA_STG2 -eq 1 ] ; then
+  echo "----- BEGIN TRACULA_STG2 -----"  
+  errflag=0
+  for subj in `cat subjects`; do 
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$FS_subjdir/$(subjsess)
+      if [ ! -f $fldr/mri/aparc+aseg.mgz ] ; then echo "TRACULA : subj $subj , sess $sess : aparc+aseg.mgz file not found - did you run recon-all ?" ; errflag=1 ;  fi
+    done
+  done
+  if [ $errflag = 1 ] ; then echo "TRACULA : subj $subj , sess $sess : you must run recon-all for all subjects before executing TRACULA - exiting..." ; exit ; fi
+  
+  for subj in `cat subjects`; do 
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$FS_subjdir/$(subjsess)
+      echo "TRACULA : subj $subj , sess $sess : executing trac-all -prep command:"
+      echo "fsl_sub -l $logdir -N trac-all-prep_$(subjsess) trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc" | tee $fldr/trac-all_prep.cmd
+      #echo "trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc -log $logdir/trac-all-prep_$(subjsess)_$$" | tee $fldr/trac-all_prep.cmd 
+      . $fldr/trac-all_prep.cmd
+      # note: the eddy correct log file is obviously overwritten on re-run by trac-all -prep, that's what we want (eddy_correct per se would append on .log from broken runs, that's bad)
+    done
+  done
+fi
+
+waitIfBusy
+
+# TRACULA execute -bedp
+if [ $TRACULA_STG3 -eq 1 ] ; then
+  echo "----- BEGIN TRACULA_STG3 -----"
+  for subj in `cat subjects`; do 
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$FS_subjdir/$(subjsess)
+      echo "TRACULA : subj $subj , sess $sess : executing trac-all -bedp command:"
+      #echo "fsl_sub -l $logdir -N trac-all-bedp_$(subjsess) trac-all -no-isrunning -noappendlog -bedp -c $fldr/tracula.rc" | tee $fldr/trac-all_bedp.cmd
+      echo "trac-all -no-isrunning -noappendlog -bedp -c $fldr/tracula.rc -log $logdir/trac-all-bedp_$(subjsess)_$$ " | tee $fldr/trac-all_bedp.cmd # bedpostx is self-submitting (!)
+      . $fldr/trac-all_bedp.cmd
+    done
+  done
+fi
+
+waitIfBusy
+
+# TRACULA execute -path
+if [ $TRACULA_STG4 -eq 1 ] ; then
+  echo "----- BEGIN TRACULA_STG4 -----"
+  for subj in `cat subjects`; do
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$FS_subjdir/$(subjsess)
+      echo "subj $subj , sess $sess : executing trac-all -path command:"
+      echo "fsl_sub -l $logdir -N trac-all-paths_$(subjsess) trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc" | tee $fldr/trac-all_path.cmd
+      #echo "trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc -log $logdir/trac-all-paths_$(subjsess)_$$" | tee $fldr/trac-all_path.cmd
+      . $fldr/trac-all_path.cmd
+    done
+  done
+fi
+
+#########################
+# ----- END TRACULA -----
+#########################
+
+
+waitIfBusy
+
+
 ############################
 # ----- BEGIN BOLD -----
 ############################
@@ -1728,8 +2148,73 @@ if [ $BOLD_STG1 -eq 1 ] ; then
   if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
   if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
   
+  # compute unbiased longt. template
+  if [ $BOLD_UNBIASED_TEMPLATE -eq 1 ] ; then
+    # for BOLDs
+    for subj in `cat subjects` ; do      
+      echo "BOLD : subj $subj : computing unbiased longt. template (BOLD)..."
+      exf_list=""
+      
+      for sess in `cat ${subj}/sessions_func` ; do
+        aex=$(ls $subjdir/$subj/$sess/$pttrn_bolds | tail -n 1)
+        npts=`countVols $aex`
+        mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
+        echo "BOLD : subj $subj : sess $sess : extracting example-func for unbiased template creation from '$aex' at pos. $mid_pos..."
+        fslroi $aex $subjdir/$subj/$sess/bold/exfunc4template $mid_pos 1
+        exf_templ=$subjdir/$subj/$sess/bold/exfunc4template
+        
+        if [ $BOLD_BET_EXFUNC -eq 1 ] ; then
+          echo "BOLD : subj $subj : sess $sess : betting..."
+          bet $exf_templ ${exf_templ}_betted -f 0.3
+          exf_templ=${exf_templ}_betted        
+        fi
+        
+        echo "BOLD : subj $subj : sess $sess : intensity scaling to please mri_robust_template..."
+        fslmaths ${exf_templ} -inm 10000 ${exf_templ} -odt float
+        exf_list=$exf_list" "${exf_templ}.nii.gz
+      done
+      
+      altExFunc=$subjdir/$subj/unbiased_template_bold
+      echo "BOLD : subj $subj : computing '$altExFunc'..."
+      fsl_sub -l $logdir -N bold_mri_robust_template_${subj} mri_robust_template --mov $exf_list --template ${altExFunc}.nii.gz --average 0 -iscale -satit   
+    done
+    
+    # for T1s
+    for subj in `cat subjects` ; do  
+      echo "BOLD : subj $subj : computing unbiased longt. template (T1)..."
+      t1_list=""
+      for sess in `cat ${subj}/sessions_struc` ; do
+        t1_list=$t1_list" "$subjdir/$subj/$sess/vbm/$(subjsess)_t1_nu_struc.nii.gz
+      done
+      t1_templ=$subjdir/$subj/unbiased_template_t1
+      fsl_sub -l $logdir -N t1_mri_robust_template_${subj} mri_robust_template --mov $t1_list --template ${t1_templ}.nii.gz --average 0 -iscale -satit   
+    done
+  fi
+  
+  waitIfBusy
+  
   for subj in `cat subjects` ; do
     if [ -z $pttrn_bolds ] ; then echo "BOLD : ERROR : no search pattern for BOLD filenames given - breaking loop..." ; break ; fi
+    
+    # define altExFunc
+    if [ x"$BOLD_REGISTER_TO_SESS" != "x" -a $BOLD_UNBIASED_TEMPLATE -eq 0 ] ; then
+      aex=$(ls $subjdir/$subj/$BOLD_REGISTER_TO_SESS/$pttrn_bolds | tail -n 1)
+      npts=`countVols $aex`
+      mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
+      altExFunc=$subjdir/$subj/$BOLD_REGISTER_TO_SESS/bold/altexfunc
+      
+      echo "BOLD : subj $subj : extracting alternative example func from '$aex' at pos. $mid_pos..."
+      mkdir -p $subjdir/$subj/$BOLD_REGISTER_TO_SESS/bold      
+      cmd="fslroi $aex $altExFunc $mid_pos 1"
+      echo $cmd ; $cmd
+      fslmaths $altExFunc $altExFunc -odt float      
+      
+      if [ $BOLD_BET_EXFUNC -eq 1 ] ; then
+        bet $altExFunc ${altExFunc}_betted -f 0.3
+        altExFunc=${altExFunc}_betted
+      fi
+    fi  
+    
     for sess in `cat ${subj}/sessions_func` ; do
       
       fldr=$subjdir/$subj/$sess/bold
@@ -1765,9 +2250,14 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       
       # create symlinks to t1-structurals (highres registration reference)
       if [ $BOLD_REGISTER_TO_MNI -eq 1 ] ; then
-        line=`cat $subjdir/config_func2highres.reg | awk '{print $1}' | grep -nx $(subjsess) | cut -d : -f1`
-        sess_t1=`cat $subjdir/config_func2highres.reg | awk '{print $2}' | sed -n ${line}p `
-        if [ $sess_t1 = '.' ] ; then sess_t1="" ; fi # single-session design
+        echo "BOLD : subj $subj , sess $sess : creating symlinks to t1-structurals (highres registration reference)..."
+        if [ x"$BOLD_REGISTER_TO_SESS" != "x"  ] ; then
+          sess_t1=$BOLD_REGISTER_TO_SESS
+        else 
+          line=`cat $subjdir/config_func2highres.reg | awk '{print $1}' | grep -nx $(subjsess) | cut -d : -f1`
+          sess_t1=`cat $subjdir/config_func2highres.reg | awk '{print $2}' | sed -n ${line}p `
+          if [ $sess_t1 = '.' ] ; then sess_t1="" ; fi # single-session design         
+        fi
         t1_brain=$fldr/${subj}${sess_t1}_t1_brain.nii.gz
         t1_struc=$fldr/${subj}${sess_t1}_t1.nii.gz
         feat_t1struc=`ls $subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_STRUC` ; feat_t1brain=`ls $subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_BRAIN`
@@ -1778,10 +2268,10 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       fi
       
       # preparing alternative example func
-      if [ $BOLD_BET_EXFUNC -eq 1 ] ; then
+      if [ $BOLD_BET_EXFUNC -eq 1 -a x"$BOLD_REGISTER_TO_SESS" = "x" -a $BOLD_UNBIASED_TEMPLATE -eq 0 ] ; then
         mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
         echo "BOLD : subj $subj , sess $sess : betting bold at pos. $mid_pos / $npts and using as example_func..."
-        altExFunc=$fldr/betted_bold
+        altExFunc=$fldr/exfunc_betted
         fslroi $fldr/$bold_lnk $altExFunc $mid_pos 1
         fslmaths $altExFunc $altExFunc -odt float
         bet $altExFunc $altExFunc -f 0.3
@@ -1789,12 +2279,12 @@ if [ $BOLD_STG1 -eq 1 ] ; then
 
       for hpf_cut in $BOLD_HPF_CUTOFFS ; do
         for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
-          for uw_dir in -y +y 0 ; do
+          for uw_dir in -y +y 00 ; do # 00 -> no unwarping applied
             for stc_val in $BOLD_SLICETIMING_VALUES ; do
             
               # set feat-file's name
               _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
-              conffile=$fldr/${BOLD_FEATDIR_PREFIX}_hpf${_hpf_cut}_s${_sm_krnl}_uw${uw_dir}_stc${stc_val}.fsf        
+              conffile=$fldr/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.fsf        
                        
               echo "BOLD : subj $subj , sess $sess : FEAT pre-processing - creating config file $conffile"
               cp template_preprocBOLD.fsf $conffile
@@ -1813,13 +2303,13 @@ if [ $BOLD_STG1 -eq 1 ] ; then
               sed -i "s|set fmri(analysis) .*|set fmri(analysis) 1|g" $conffile # do only pre-stats        
               sed -i "s|set fmri(mc) .*|set fmri(mc) 1|g" $conffile # enable motion correction
               sed -i "s|set fmri(reginitial_highres_yn) .*|set fmri(reginitial_highres_yn) 0|g" $conffile # unset registration to initial highres
-              sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 0|g" $conffile # overwrite on re-run
+              sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 1|g" $conffile # overwrite on re-run
               
               # set slice timing correction method
               sed -i "s|set fmri(st) .*|set fmri(st) $stc_val|g" $conffile
               
               # set alternative example func
-              if [ $BOLD_BET_EXFUNC -eq 1 ] ; then 
+              if [ $BOLD_BET_EXFUNC -eq 1 -o x"$BOLD_REGISTER_TO_SESS" != "x" -o $BOLD_UNBIASED_TEMPLATE -eq 1 ] ; then 
                 sed -i "s|set fmri(alternative_example_func) .*|set fmri(alternative_example_func) \"$altExFunc\"|g" $conffile 
               fi
               
@@ -1834,7 +2324,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
               sed -i "s|set fmri(smooth) X|set fmri(smooth) $sm_krnl|g" $conffile
               
               # unwarp
-              if [ $uw_dir = 0 ] ; then 
+              if [ $uw_dir = 00 ] ; then 
                 sed -i "s|set fmri(regunwarp_yn) .*|set fmri(regunwarp_yn) 0|g" $conffile # disable unwarp
               else
                 sed -i "s|set fmri(regunwarp_yn) .*|set fmri(regunwarp_yn) 1|g" $conffile # enable unwarp            
@@ -1912,7 +2402,7 @@ if [ $BOLD_STG2 -eq 1 ] ; then
       if [ $BOLD_UNWARP -eq 1 ] ; then
         uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
       else 
-        uw_dir=0
+        uw_dir=00
       fi
       
       # cleanup previous run, execute FEAT and link to processed file
@@ -1922,8 +2412,8 @@ if [ $BOLD_STG2 -eq 1 ] ; then
           for stc_val in $BOLD_SLICETIMING_VALUES ; do
             # define feat-dir
             _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
-            featdir=$fldr/${BOLD_FEATDIR_PREFIX}_hpf${_hpf_cut}_s${_sm_krnl}_uw${uw_dir}_stc${stc_val}.feat  
-        
+            featdir=$fldr/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.feat 
+             
             # delete prev. run
             if [ -d $featdir ] ; then
               echo "BOLD : subj $subj , sess $sess : WARNING : removing previous .feat directory ('$featdir') in 5 seconds - press CTRL-C to abort." ; sleep 5
@@ -1934,14 +2424,13 @@ if [ $BOLD_STG2 -eq 1 ] ; then
             conffile=${featdir%.feat}.fsf
             echo "BOLD : subj $subj , sess $sess : running \"feat $conffile\"..."
             #fsl_sub -l $logdir -N bold_feat_$(subjsess) feat $conffile
-            feat $conffile
+            feat $conffile            
             
             # link...
-            if [ $uw_dir = 0 ] ; then 
-              ln -sf ./$(basename $featdir)/filtered_func_data.nii.gz $fldr/${BOLD_FEATDIR_PREFIX}_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}.nii.gz
-            else
-              ln -sf ./$(basename $featdir)/filtered_func_data.nii.gz $fldr/${BOLD_FEATDIR_PREFIX}_uw_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}.nii.gz
-            fi
+            echo "BOLD : subj $subj , sess $sess : creating symlink to unwarped 4D BOLD."
+            lname=$(echo "$featdir" | sed "s|"uw[+-0][y0]"|"uw"|g") # remove unwarp direction from link's name
+            ln -sfv ./$(basename $featdir)/filtered_func_data.nii.gz ${lname%.feat}_filtered_func_data.nii.gz
+   
           done # end stc_val
         done # end sm_krnl        
       done # end hpf_cut
@@ -1952,65 +2441,57 @@ fi
 
 waitIfBusy
 
-## smooth 4D BOLD outside FEAT
-#if [ $BOLD_STG3 -eq 1 ] ; then
-  #echo "----- BEGIN BOLD_STG3 -----"
+# BOLD denoise
+if [ $BOLD_STG3 -eq 1 ] ; then
+echo "----- BEGIN BOLD_STG3 -----"
+for subj in `cat subjects` ; do
   
-  ## set prefix for feat-dir name
-  #if [ "x${BOLD_FEATDIR_PREFIX}" = "x" ] ; then BOLD_FEATDIR_PREFIX="" ; fi
+  if [ x"$BOLD_DENOISE_MASKS" = "x" ] ; then echo "BOLD : subj $subj : ERROR : no masks for signal extraction specified -> no denoising possible -> breaking loop..." ; break ; fi
   
-  ## carry out substitutions
-  #if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
-  #if [ "x${BOLD_SMOOTH_OUTSIDE_FEAT}" = "x" ] ; then BOLD_SMOOTH_OUTSIDE_FEAT=0 ; fi
-  #if [ $BOLD_SMOOTH_OUTSIDE_FEAT -eq 1 ] ; then _BOLD_SMOOTHING_KRNLS=0 ; else _BOLD_SMOOTHING_KRNLS="$BOLD_SMOOTHING_KRNLS" ; fi
-  #if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
-
-
-  #for subj in `cat subjects` ; do
+  _sess_t1=""
+  for sess in `cat ${subj}/sessions_func` ; do
     
-    #if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : ERROR : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
-    #if [ $BOLD_REGISTER_TO_MNI -eq 0 ] ; then echo "BOLD : ERROR : MNI-registration disabled by user - breaking loop..." ; break ; fi
-    #if [ $BOLD_SMOOTH_OUTSIDE_FEAT -eq 0 ] ; then echo "BOLD : ERROR : smoothing disabled by user - breaking loop..." ; break ; fi
+    fldr=$subjdir/$subj/$sess/bold
+    sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
     
-    #for sess in `cat ${subj}/sessions_func` ; do
+    if [ $BOLD_UNWARP -eq 1 ] ; then
+      uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
+    else 
+      uw_dir=00
+    fi
     
-      ## did we unwarp ?
-      #if [ $BOLD_UNWARP -eq 1 ] ; then
-        #uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
-      #else 
-        #uw_dir=0
-      #fi     
+    for hpf_cut in $BOLD_HPF_CUTOFFS ; do
+      for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+        for stc_val in $BOLD_SLICETIMING_VALUES ; do
+          
+          # define feat-dir
+          _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
+          featdir=$fldr/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.feat
+          
+          if [ ! -d $featdir ] ; then echo "BOLD : subj $subj , sess $sess : feat-directory '$featdir' not found ! -> breaking loop..." ; break ; fi
+          
+          echo "BOLD : subj $subj , sess $sess : creating masks..."
+          $scriptdir/FS_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $featdir/example_func $featdir $subj $sess
+                
+          echo "BOLD : subj $subj , sess $sess : denoising..."
+          if [ $BOLD_DENOISE_USE_MOVPARS -eq 1 ] ; then movpar=$featdir/mc/prefiltered_func_data_mcf.par ; else movpar=0 ; fi
+          $scriptdir/denoise4D.sh $featdir/filtered_func_data "$BOLD_DENOISE_MASKS" $movpar $featdir/filtered_func_data_denoised $subj $sess
+          
+          _sess_t1="$sess_t1"
+          
+        done # end stc_val
+      done # end sm_krnl
+    done # end hpf_cut
       
-      ## smoothing...
-      #for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-        #for sm_krnl in $_BOLD_SMOOTHING_KRNLS ; do
-          #for stc_val in $BOLD_SLICETIMING_VALUES ; do
-            
-            ## define feat-dir.
-            #_hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
-            #featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_hpf${_hpf_cut}_s${_sm_krnl}_uw${uw_dir}_stc${stc_val}.feat          
-            
-            ## check feat-dir.
-            #if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
-                        
-            
-            #if [ $BOLD_SMOOTH_OUTSIDE_FEAT -eq 1 ] ; then             
-              #$studydir/misc/scripts/susan_smooth.sh $featdir/filtered_func_data.nii.gz "$BOLD_SMOOTHING_KRNLS" $subj $sess
-            #fi
-            
-          #done
-        #done
-      #done
-        
-    #done
-  #done
-#fi
+  done
+done  
+fi
 
 waitIfBusy
 
 # BOLD write out mni registered files
-if [ $BOLD_STG3 -eq 1 ] ; then
-  echo "----- BEGIN BOLD_STG3 -----"
+if [ $BOLD_STG4 -eq 1 ] ; then
+  echo "----- BEGIN BOLD_STG4 -----"
 
   # set prefix for feat-dir name
   if [ "x${BOLD_FEATDIR_PREFIX}" = "x" ] ; then BOLD_FEATDIR_PREFIX="" ; fi
@@ -2023,15 +2504,16 @@ if [ $BOLD_STG3 -eq 1 ] ; then
   if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
 
   for subj in `cat subjects` ; do
+    
     if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : ERROR : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
-    if [ $BOLD_REGISTER_TO_MNI -eq 0 ] ; then echo "BOLD : ERROR : MNI-registration disabled by user - breaking loop..." ; break ; fi
+    
     for sess in `cat ${subj}/sessions_func` ; do
     
       # did we unwarp ?
       if [ $BOLD_UNWARP -eq 1 ] ; then
         uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
       else 
-        uw_dir=0
+        uw_dir=00
       fi     
       
       # write out MNI-registered volumes
@@ -2041,7 +2523,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
             
             # define feat-dir.
             _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
-            featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_hpf${_hpf_cut}_s${_sm_krnl}_uw${uw_dir}_stc${stc_val}.feat          
+            featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.feat
             
             # check feat-dir.
             if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
@@ -2050,29 +2532,37 @@ if [ $BOLD_STG3 -eq 1 ] ; then
             for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do
 
               _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'             
-                  
-              in_file=filtered_func_data.nii.gz
-              out_file=filtered_func_data_${_mni_res}.nii.gz
-              cmd_file=mni_write_res${_mni_res}.cmd
-              log_file=bold_write_MNI_res${_mni_res}_$(subjsess)
               
-              echo "BOLD : subj $subj , sess $sess : writing MNI-registered 4D BOLD '$out_file' to '${featdir}/reg_standard'." 
-              
-              echo "featregapply $featdir ; \
-              flirt -ref $featdir/reg/standard -in $featdir/reg/standard -out $featdir/reg_standard/standard_$_mni_res -applyisoxfm $mni_res ; \
-              applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=$featdir/reg/highres --out=$featdir/reg_standard/highres_$_mni_res --warp=$featdir/reg/highres2standard_warp  --interp=sinc ; \
-              applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=$featdir/$in_file --out=$featdir/reg_standard/$out_file --warp=$featdir/reg/highres2standard_warp --premat=$featdir/reg/example_func2highres.mat --interp=$interp; \
-              fslmaths $featdir/reg_standard/$out_file -Tstd -bin $featdir/reg_standard/mask_$_mni_res -odt char" > $featdir/$cmd_file
-              fsl_sub -l $logdir -N $log_file -t $featdir/$cmd_file
-              
-              # link...
-              echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-registered 4D BOLD."
-              if [ $uw_dir = 0 ] ; then 
-                ln -sfv ./$(basename $featdir)/reg_standard/$out_file $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_mc_bold_hpf${_hpf_cut}_s${_sm_krnl_mni}_stc${stc_val}_res${_mni_res}.nii.gz              
-              else
-                ln -sfv ./$(basename $featdir)/reg_standard/$out_file $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_uw_mc_bold_hpf${_hpf_cut}_s${_sm_krnl_mni}_stc${stc_val}_res${_mni_res}.nii.gz
-              fi
+              for data_file in $BOLD_MNI_RESAMPLE_FUNCDATAS ; do
+                in_file=$(remove_ext $data_file)
+                out_file=${in_file}_${_mni_res}
+                cmd_file=mni_write_${in_file}_res${_mni_res}.cmd
+                log_file=bold_write_MNI_${in_file}_res${_mni_res}_$(subjsess)
                 
+                echo "BOLD : subj $subj , sess $sess : writing MNI-registered 4D BOLD '$out_file' to '${featdir}/reg_standard'." 
+                
+                echo "featregapply $featdir ; \
+                flirt -ref $featdir/reg/standard -in $featdir/reg/standard -out $featdir/reg_standard/standard_$_mni_res -applyisoxfm $mni_res ; \
+                applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=$featdir/reg/highres --out=$featdir/reg_standard/highres_$_mni_res --warp=$featdir/reg/highres2standard_warp  --interp=sinc ; \
+                imrm $featdir/reg_standard/${out_file}_tmp_\?\?\?\?\.\*
+                fslsplit $featdir/$in_file $featdir/reg_standard/${out_file}_tmp_ ; \
+                full_list=\`imglob $featdir/reg_standard/${out_file}_tmp_????.*\` ; \
+                for i in \$full_list ; do \
+                  echo processing \$i ; \
+                  cmd=\"applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=\$i --out=\$i --warp=$featdir/reg/highres2standard_warp --premat=$featdir/reg/example_func2highres.mat --interp=$interp\" ; \
+                  echo \$cmd ; \
+                  \$cmd ; \
+                done ; \
+                fslmerge -t $featdir/reg_standard/$out_file \$full_list ; \
+                imrm \$full_list" > $featdir/$cmd_file
+                fsl_sub -l $logdir -N $log_file -t $featdir/$cmd_file
+                
+                # link...
+                echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-registered 4D BOLD."
+                lname=$(echo "$featdir" | sed "s|"uw[+-0][y0]"|"uw"|g") # remove unwarp direction from link's name
+                ln -sfv ./$(basename $featdir)/reg_standard/${out_file}.nii.gz ${lname%.feat}_mni${_mni_res}_${in_file}.nii.gz
+              done # end data_file
+              
             done # end mni_res
           done # end stc_val
         done # end sm_krnl
@@ -2082,137 +2572,6 @@ if [ $BOLD_STG3 -eq 1 ] ; then
   done
     
 fi
-  
-waitIfBusy
-
-## MNI 4D SMOOTHING POST HOC
-#if [ $BOLD_STG4 -eq 1 ] ; then 
-  #echo "----- BEGIN BOLD_STG4 -----"
- 
-  #for subj in `cat subjects` ; do
-    #if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : WARNING : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
-    #if [ "$BOLD_SMOOTH_OUTSIDE_FEAT" = "0" -o "$BOLD_SMOOTHING_KRNLS" = "0" ] ; then echo "BOLD : post-hoc smoothing of MNI registered BOLDs disabled by user - breaking loop..." ; break ; fi
-    
-    #for sess in `cat ${subj}/sessions_func` ; do
-      
-      ## did we unwarp ?
-      #if [ $BOLD_UNWARP -eq 1 ] ; then
-        #uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
-      #else 
-        #uw_dir=0
-      #fi    
-    
-      #for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-        #for stc_val in $BOLD_SLICETIMING_VALUES ; do
-          
-          ## define feat-dir.
-          #_hpf_cut=$(echo $hpf_cut | sed "s|\.||g") 
-          #featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_hpf${_hpf_cut}_s0_uw${uw_dir}_stc${stc_val}.feat          
-          
-          ## check feat-dir.
-          #if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
-          
-          ## execute...
-          #for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do      
-            #_mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'
-            
-            #data=${featdir}/reg_standard/filtered_func_data_${mni_res}
-          
-            #$studydir/misc/scripts/susan_smooth.sh $data "$BOLD_SMOOTHING_KRNLS" $subj $sess
-          
-            
-            #for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
-              #if [ $sm_krnl = "0" ] ; then continue ; fi
-              #_sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
-                          
-              ## link...
-              #echo "BOLD : subj $subj , sess $sess :    creating symlink to smoothed MNI-registered 4D BOLD."
-              #if [ $uw_dir = 0 ] ; then 
-                #ln -sfv ./$(basename $featdir)/reg_standard/filtered_func_data_${mni_res}_s${_sm_krnl}.nii.gz $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz              
-              #else
-                #ln -sfv ./$(basename $featdir)/reg_standard/filtered_func_data_${mni_res}_s${_sm_krnl}.nii.gz $subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_mni_uw_mc_bold_hpf${_hpf_cut}_s${_sm_krnl}_stc${stc_val}_res${_mni_res}.nii.gz
-              #fi             
-              
-            #done # end sm_krnl
-          #done # end mni_res
-        #done # end stc_val
-      #done # end hpf_cut
-    #done # end sess
-  #done # end subj 
-#fi
-
-#waitIfBusy
-
-#if [ $BOLD_STG4 -eq 1 ] ; then
-
-  #for subj in `cat subjects` ; do
-    #for sess in `cat ${subj}/sessions_func` ; do
-    
-    
-    
-    #fldr=$subjdir/$subj/$sess/bold/filt/$(remove_ext $BOLD_ESTIMATE_NUISANCE)
-    #mkdir -p $fldr
-    
-    #cp $subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE $fldr/bold
-    
-    #t1=$(remove_ext `basename $(ls $subjdir/$subj/$sess/vbm/$BOLD_PTTRN_HIGHRES_BRAIN)`)
-    #cp $subjdir/$subj/$sess/vbm/${t1}.nii.gz $fldr
-    
-    #flirt -in $fldr/bold -ref $fldr/$t1 -dof 12 -cost mutualinfo -omat $fldr/BOLD2T1.mat -out $fldr/t1_bold
-    #convert_xfm -omat $fldr/T12BOLD.mat -inverse $fldr/BOLD2T1.mat
-       
-    #fast -t 1 $fldr/$t1
-    #fslmaths $fldr/t1_bold -Tmin $fldr/WB_mask
-    #fslmaths $t1_pve_0 -thr 1 -bin $fldr/CSF_mask
-    #fslmaths $t1_pve_1 -thr 1 -bin $fldr/GM_mask
-    #fslmaths $t1_pve_2 -thr 1 -bin $fldr/WM_mask
-    
-    #for i in CSF_mask GM_mask WM_mask ; do
-      #flirt -in $fldr/$mask -init $fldr/T12BOLD.mat -applyxfm -out $fldr/$mask
-      #fslmaths $fldr/$mask -thr 1 -bin -mas $fldr/WB_mask $fldr/$mask
-    #done
-
-#done
-#done
-
-
-
-  #echo "----- BEGIN BOLD_STG3 -----"
-  #for subj in `cat subjects` ; do
-    #for sess in `cat ${subj}/sessions_func` ; do
-      #fldr=$subjdir/$subj/$sess/bold/filt
-      #mkdir -p $fldr
-      
-      ## link bold file
-      #bold_bn=`basename $(ls $subjdir/$subj/$sess/$pttrn_bolds | tail -n 1)`
-      #bold_ext=`echo ${bold_bn#*.}`
-      #bold_lnk=bold.${bold_ext}
-      #echo "BOLD : subj $subj , sess $sess : creating link '$bold_lnk' to '$bold_bn'"
-      #ln -sf ../../$bold_bn $fldr/$bold_lnk
-      
-      ## motion correct - prepare
-      #npts=`countVols $fldr/$bold_lnk`
-      #mid_pos=$(echo "$npts / 2" | bc | cut -d . -f 1) # equals: floor($npts / 2)
-      #echo "BOLD : subj $subj , sess $sess : using bold at pos. $mid_pos / $npts as reference for motion correction..."
-      #fslroi $fldr/$bold_lnk $fldr/ref $mid_pos 1
-      
-      ## motion correct - execute...
-      #echo "BOLD : subj $subj , sess $sess : performing motion correction..."
-      #echo "cd $fldr ; \
-      #fslsplit $bold_lnk ; \
-      #rm -f $(remove_ext $bold_lnk).mclog ; \
-      #for i in \`imglob vol????.*\` ; do \
-          #echo processing \$i ; \
-          #echo processing \$i >> $(remove_ext $bold_lnk).mclog ; \
-          #${FSLDIR}/bin/flirt -in \$i -ref ref -nosearch -o \$i -dof 6 >> $(remove_ext $bold_lnk).mclog ; \
-      #done ; \
-      #fslmerge -t mc_${bold_lnk} \`imglob vol????.*\` ; \
-      #rm -f ref vol????.nii.gz ; \
-      #cd $subjdir" > $fldr/mc.cmd
-      #fsl_sub -l $logdir -N bold_mc_$(subjsess) -t $fldr/mc.cmd
-    #done
-  #done
-#fi
 
 ######################
 # ----- END BOLD -----
@@ -2507,421 +2866,6 @@ fi
 ##################################
 # ----- END PLOT_BOLD_MNIREG -----
 ##################################
-
-
-waitIfBusy
-
-
-###########################
-# ----- BEGIN BIASMAP -----
-###########################
-  
-# BIASMAP creating bias map if applicable
-if [ $BIASMAP_STG1 -eq 1 ] ; then
-  echo "----- BEGIN BIASMAP_STG1 -----"
-  # search pattern for anatomicals set ?
-  if [ -z $pttrn_strucs ] ; then echo "BIASMAP : search pattern for anatomical files not set - exiting..." ; exit ; fi
-  
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do    
-      # mkdir
-      fldr=$subj/$sess/bias ; mkdir -p $fldr
-      
-      # prepare
-      src0=`ls $subjdir/$subj/$sess/$pttrn_strucs | head -n 1`
-      mask=$subjdir/$subj/$sess/vbm/$(subjsess)_t1_betted_masked_brain_mask.nii.gz
-      if [ ! -f $mask ] ; then echo "BIASMAP : subj $subj , sess $sess : $mask not found; you must run the VBM stream first - continuing loop..." ; continue ; fi
-      ln -sf $mask $fldr/t1_mask.nii.gz
-      echo "BIASMAP : subj $subj , sess $sess : skull-stripping $src0 using `basename $mask`..."
-      fslreorient2std $src0 $fldr/t1_biased
-      fslmaths $fldr/t1_biased -mas $fldr/t1_mask.nii.gz $fldr/t1_biased_brain -odt float
-      
-      # creating biasmap using fsl-fast...          
-      echo "BIASMAP : subj $subj , sess $sess : creating bias map using fsl-fast..."
-      fsl_sub -l $logdir -N bias_fast_$(subjsess) fast -v -b $fldr/t1_biased_brain.nii.gz  
-      
-      # check if prescan unbiased scan is presumably available
-      n_strucs=`ls $subjdir/$subj/$sess/$pttrn_strucs | wc -l`
-      if [ $n_strucs -gt 1 ] ; then 
-        echo "BIASMAP : subj $subj , sess $sess : $n_strucs t1 images found. Asuming the last one is prescan-unbiased. Creating bias map by division..."
-      else 
-        echo "BIASMAP : subj $subj , sess $sess : only $n_strucs t1 images found - cannot create pre-scan based bias-map. Continuing loop..."
-        continue
-      fi
-      
-      # create biasmap based on pre-scan unbiased...
-      src1=`ls $subjdir/$subj/$sess/$pttrn_strucs | tail -n 1`      
-
-      fslreorient2std $src1 $fldr/t1_prescan_unbiased
-      fslmaths $fldr/t1_prescan_unbiased -mas $fldr/t1_mask.nii.gz $fldr/t1_prescan_unbiased_brain -odt float
-      
-      echo "BIASMAP : subj $subj , sess $sess : applying non-uniformity correction to (putatively) pre-scan unbiased T1 volume `basename $src1`..."
-      mri_convert $fldr/t1_prescan_unbiased_brain.nii.gz $fldr/t1_prescan_unbiased_brain.mnc &>$logdir/bias_mri_convert01_$(subjsess) 
-      nu_correct -clobber $fldr/t1_prescan_unbiased_brain.mnc  $fldr/t1_prescan_unbiased_nuc_brain.mnc  &>$logdir/bias_nu_correct_$(subjsess) 
-      
-      echo "BIASMAP : subj $subj , sess $sess : creating bias map by division..."
-      mri_convert $fldr/t1_prescan_unbiased_nuc_brain.mnc $fldr/t1_unbiased_brain.nii.gz &>$logdir/bias_mri_convert02_$(subjsess) 
-      fslmaths $fldr/t1_unbiased_brain -div $fldr/t1_biased_brain $fldr/t1_biasmap
-       
-      # cleanup
-      imrm $fldr/t1_biased
-      imrm $fldr/t1_prescan_unbiased
-      imrm $fldr/t1_prescan_unbiased_brain
-      rm $fldr/t1_prescan_unbiased_nuc_brain.mnc    
-      rm $fldr/t1_prescan_unbiased_nuc_brain.imp      
-    
-    done
-  done
-  
-  waitIfBusy
-  
-  # fsl-fast's biasmap: take reciproc...
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$subj/$sess/bias
-      
-      # does fsl-fast output exist ?
-      if [ ! -f $fldr/t1_biased_brain_bias.nii.gz ] ; then echo "BIASMAP : subj $subj , sess $sess : $fldr/t1_biased_brain_bias.nii.gz not found; has fsl's fast finished ? Continuing loop..." ; continue ; fi
-      
-      # take reciproc
-      fslmaths $fldr/t1_biased_brain_bias.nii.gz -recip $fldr/t1_biasmap_fast.nii.gz
-      
-      # cleanup
-      imrm $fldr/t1_biased
-    done
-  done
-fi
-
-waitIfBusy
-
-# BIASMAP applying bias map
-if [ $BIASMAP_STG2 -eq 1 ] ; then
-  echo "----- BEGIN BIASMAP_STG2 -----"
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$subjdir/$subj/$sess/bias   
-      
-      bold=`find $subjdir/$subj/$sess/ -maxdepth 1 -name "*feat*" -type d | sort | tail -n 1`/filtered_func_data.nii.gz # must be adapted (!)
-      mat=`find $(dirname $bold) -maxdepth 1 -name "*ica*" -type d | sort | tail -n 1`/reg/example_func2highres.mat # must be adapted (!)
-      
-      if [ -z $bold -o ! -f $bold ] ; then echo "BIASMAP : subj $subj , sess $sess : filtered_func_data.nii.gz not found in latest FEAT directory - continuing loop..." ; continue ; fi
-      if [ -z $mat -o ! -f $mat ] ; then echo "BIASMAP : subj $subj , sess $sess : transformation matrix func -> highres not found in latest ICA (Melodic) directory - continuing loop..." ; continue ; fi
-      
-      ln -sf $mat $fldr/bold_to_t1
-      ln -sf $bold $fldr/filtered_func.nii.gz
-      
-      echo "BIASMAP : subj $subj , sess $sess : inverting transformation matrix func -> highres ($mat)..."
-      convert_xfm -omat $fldr/t1_to_bold -inverse $fldr/bold_to_t1
-      
-      echo "BIASMAP : subj $subj , sess $sess : resampling bias-map..."
-      flirt -in $fldr/t1_biasmap_fast -out $fldr/t1_biasmap_fast_bold -ref $fldr/filtered_func -applyxfm -init $fldr/t1_to_bold
-      flirt -in $fldr/t1_biasmap  -out $fldr/t1_biasmap_bold -ref $fldr/filtered_func -applyxfm -init $fldr/t1_to_bold
-
-      echo "BIASMAP : subj $subj , sess $sess : applying bias-map..."
-      fsl_sub -l $logdir -N bias_fslmaths fslmaths $fldr/filtered_func -mul $fldr/t1_biasmap_bold $fldr/filtered_func_unbiased
-      fsl_sub -l $logdir -N bias_fslmaths fslmaths $fldr/filtered_func -mul $fldr/t1_biasmap_fast_bold $fldr/filtered_func_unbiased_fast
-    done
-  done
-fi
-
-#########################
-# ----- END BIASMAP -----
-#########################
-
-
-waitIfBusy
-
-
-#########################
-# ----- BEGIN RECON -----
-#########################
-
-# RECON-ALL prepare 
-if [ $RECON_STG1 -eq 1 ] ; then
-  echo "----- BEGIN RECON_STG1 -----"
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$FS_subjdir/$(subjsess)/mri/orig
-      mkdir -p $fldr
-      
-      # reorient to please fslview
-      echo "RECON : subj $subj , sess $sess : reorienting T1 to please fslview..."
-      file=`ls ${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check pattern (!)
-      fslreorient2std $file $fldr/tmp_t1
-      
-      # convert to .mgz
-      echo "RECON : subj $subj , sess $sess : converting T1 to .mgz format..."
-      mri_convert $fldr/tmp_t1.nii.gz $fldr/001.mgz &>$logdir/recon_mri_convert_$(subjsess)
-      rm -f $fldr/tmp_t1.nii.gz
-    done
-  done
-fi
-
-waitIfBusy
-
-# RECON-ALL execute
-if [ $RECON_STG2 -eq 1 ] ; then
-  echo "----- BEGIN RECON_STG2 -----"
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$FS_subjdir/$(subjsess)
-      
-      echo "RECON : subj $subj , sess $sess : executing recon-all..."
-      
-      # use CUDA if available...
-      if [ $RECON_USE_CUDA = 1 ] ; then exitflag=0 ; else exitflag=X ; fi
-      echo '#!/bin/bash' > $fldr/recon-all_cuda.sh
-      echo 'cudadetect &>/dev/null' >>  $fldr/recon-all_cuda.sh
-      echo "if [ \$? = $exitflag ] ; then recon-all -all -use-gpu -no-isrunning -noappend -clean-tal -subjid $(subjsess)" >> $fldr/recon-all_cuda.sh # you may want to remove clean-tal flag (!)
-      echo "else  recon-all -all -no-isrunning -noappend -clean-tal -subjid $(subjsess) ; fi" >> $fldr/recon-all_cuda.sh 
-      chmod +x $fldr/recon-all_cuda.sh
-      
-      # execute...
-      fsl_sub -l $logdir -N recon-all_$(subjsess) $fldr/recon-all_cuda.sh
-    done
-  done
-fi
-
-waitIfBusy
-
-if [ $RECON_STG3 -eq 1 ] ; then
-  echo "----- BEGIN RECON_STG3 -----"
-  for subj in `cat subjects`; do
-    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj , sess $sess : single-session design ! Skipping longtitudinal freesurfer stream..." ; continue ; fi
-    
-    # create template dir.
-    fldr=$FS_subjdir/$subj
-    mkdir -p $fldr
-    
-    # init. command line
-    cmd="recon-all -base $subj"
-    
-    # generate command line
-    for sess in `cat ${subj}/sessions_struc` ; do
-      cmd="$cmd -tp $(subjsess)" 
-    done
-    
-    # executing...
-    echo "RECON : subj $subj , sess $sess : executing recon-all - unbiased template generation..."
-    cmd="$cmd -all -no-isrunning -noappend -clean-tal"
-    echo $cmd | tee $fldr/recon-all_base.cmd
-    fsl_sub -l $logdir -N recon-all_base_${subj} -t $fldr/recon-all_base.cmd
-  done
-fi 
-
-waitIfBusy
-
-if [ $RECON_STG4 -eq 1 ] ; then
-  echo "----- BEGIN RECON_STG4 -----"
-  for subj in `cat subjects`; do
-    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj , sess $sess : single-session design ! Skipping longtitudinal freesurfer stream..." ; continue ; fi
-    
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$FS_subjdir/$(subjsess)
-      
-      # generate command line
-      cmd="recon-all -long $(subjsess) $subj -all -no-isrunning -noappend -clean-tal"
-      
-      # executing...
-      echo "RECON : subj $subj , sess $sess : executing recon-all - longtitudinal stream..."
-      echo $cmd | tee $fldr/recon-all_long.cmd
-      fsl_sub -l $logdir -N recon-all_long_$(subjsess) -t $fldr/recon-all_long.cmd
-    done    
-  done
-fi 
-
-#########################
-# ----- END RECON -----
-#########################
-
-
-waitIfBusy
-
-
-###########################
-# ----- BEGIN TRACULA -----
-###########################
-
-# TRACULA prepare 
-if [ $TRACULA_STG1 -eq 1 ] ; then
-  echo "----- BEGIN TRACULA_STG1 -----"
-  if [ ! -e template_tracula.rc ] ; then echo "TRACULA : template file not found. Exiting..." ; exit ; fi
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do
-    
-      # create dest. folder
-      fldr=$FS_subjdir/$(subjsess) ; mkdir -p $fldr
-    
-      # display info
-      echo "TRACULA : subj $subj , sess $sess : preparing TRACULA in $fldr..."
-                  
-      # get BET info
-      thr=`getBetThres $subjdir/config_bet_lowb $subj`
-      echo "TRACULA : subj $subj , sess $sess : bet: FI Threshold: $thr"      
-            
-      # copy config-template to FS folder
-      echo "TRACULA : subj $subj , sess $sess : creating config file ${fldr}/tracula.rc" 
-      cp template_tracula.rc $fldr/tracula.rc
-      
-      # substitute TRACULA configuration
-      sed -i "s|setenv SUBJECTS_DIR X|setenv SUBJECTS_DIR $FS_subjdir|g" $fldr/tracula.rc
-      sed -i "s|set dtroot = X|set dtroot = $FS_subjdir|g" $fldr/tracula.rc
-      sed -i "s|set subjlist = (X)|set subjlist = ($(subjsess))|g" $fldr/tracula.rc
-      sed -i "s|set dcmroot = X|set dcmroot = $FS_subjdir|g" $fldr/tracula.rc
-      sed -i "s|set dcmlist = (X)|set dcmlist = ($(subjsess)/diff_merged.nii.gz)|g" $fldr/tracula.rc
-      sed -i "s|set bvalfile = X|set bvalfile = ($FS_subjdir/$(subjsess)/bvals_transp.txt)|g" $fldr/tracula.rc
-      sed -i "s|set bvecfile = X|set bvecfile = ($FS_subjdir/$(subjsess)/bvecs_transp.txt)|g" $fldr/tracula.rc
-      sed -i "s|set thrbet = X|set thrbet = $thr|g" $fldr/tracula.rc
-      
-      # link to appropiate files and adapt TRACULA settings...
-      echo "TRACULA : subj $subj , sess $sess : linking to appropriate bvals/bvecs files and DWI files..."
-      if [ $TRACULA_USE_NATIVE -eq 1 ] ; then
-        echo "TRACULA : subj $subj , sess $sess : linking to native DWIs..."
-        # are bvals and bvecs already concatenated ?
-        if [ ! -f $subj/$sess/fdt/bvals_concat.txt -o ! -f $subj/$sess/fdt/bvecs_concat.txt ] ; then
-          echo "TRACULA : subj $subj , sess $sess : creating concatenated bvals and bvecs file..."
-          concat_bvals $subj/$sess/"$pttrn_bvals" $fldr/bvals_concat.txt
-          concat_bvecs $subj/$sess/"$pttrn_bvecs" $fldr/bvecs_concat.txt
-        else 
-          ln -sfv ../../$subj/$sess/fdt/bvals_concat.txt $fldr/bvals_concat.txt
-          ln -sfv ../../$subj/$sess/fdt/bvecs_concat.txt $fldr/bvecs_concat.txt
-        fi        
-        
-        # are DWIs already concatenated ?
-        if [ -f $subj/$sess/fdt/diff_merged.nii.gz ] ; then
-          ln -sfv ../../$subj/$sess/fdt/diff_merged.nii.gz $fldr/diff_merged.nii.gz
-        else
-          echo "TRACULA : subj $subj , sess $sess : no pre-existing 4D file found - merging diffusion files..."
-          diffs=`ls $subj/$sess/$pttrn_diffs`          
-          fsl_sub -l $logdir -N trac_fslmerge_$(subjsess) fslmerge -t $fldr/diff_merged $diffs 
-        fi
-        
-        # tracula shall perform eddy-correction
-        sed -i "s|set doeddy = .*|set doeddy = 1|g" $fldr/tracula.rc
-        sed -i "s|set dorotbvecs = .*|set dorotbvecs = 1|g" $fldr/tracula.rc 
-      elif [ $TRACULA_USE_UNWARPED_BVECROT -eq 1 ] ; then          
-        # is fdt directory present ?
-        if [ ! -d $subjdir/$subj/$sess/fdt ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : you must run the FDT-stream first - breaking loop..." ; break ; fi
-        
-        echo "TRACULA : subj $subj , sess $sess : linking to unwarped DWIs (and corrected b-vectors)..."
-        ln -sfv ../../$subj/$sess/fdt/bvals_concat.txt $fldr/bvals_concat.txt
-        ln -sfv ../../$subj/$sess/fdt/bvecs_concat.rot $fldr/bvecs_concat.txt
-        ln -sfv ../../$subj/$sess/fdt/uw_ec_diff_merged.nii.gz $fldr/diff_merged.nii.gz
-        
-        # tracula shall not eddy-correct
-        sed -i "s|set doeddy = .*|set doeddy = 0|g" $fldr/tracula.rc
-        sed -i "s|set dorotbvecs = .*|set dorotbvecs = 0|g" $fldr/tracula.rc
-      elif [ $TRACULA_USE_TOPUP_NOEC_BVECROT -eq 1 ] ; then
-        # is topup directory present ?
-        if [ ! -d $subjdir/$subj/$sess/topup ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : you must run the TOPUP-stream first - breaking loop..." ; break ; fi
-        
-        echo "TRACULA : subj $subj , sess $sess : linking to TOPUP corrected DWIs (and corrected b-vectors)..."
-        ln -sfv ../../$subj/$sess/topup/avg_bvals.txt $fldr/bvals_concat.txt
-        ln -sfv ../../$subj/$sess/topup/avg_bvecs_topup.rot $fldr/bvecs_concat.txt
-        ln -sfv ../../$subj/$sess/topup/$(subjsess)_topup_corr_merged.nii.gz $fldr/diff_merged.nii.gz
-        
-        # tracula shall not eddy-correct
-        sed -i "s|set doeddy = .*|set doeddy = 0|g" $fldr/tracula.rc
-        sed -i "s|set dorotbvecs = .*|set dorotbvecs = 0|g" $fldr/tracula.rc # b-vec. correction in TRACULA will be incorrect for TOPUP corrected files, bc. TOPUP does a rigid body alignment that must be accounted for before running TRACULA
-      elif [ $TRACULA_USE_TOPUP_EC_BVECROT -eq 1 ] ; then
-        # is topup directory present ?
-        if [ ! -d $subjdir/$subj/$sess/topup ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : you must run the TOPUP-stream first - breaking loop..." ; break ; fi
-        
-        echo "TRACULA : subj $subj , sess $sess : linking to TOPUP corrected, eddy-corrected DWIs (and corrected b-vectors)..."
-        ln -sfv ../../$subj/$sess/topup/avg_bvals.txt $fldr/bvals_concat.txt
-        ln -sfv ../../$subj/$sess/topup/avg_bvecs_topup_ec.rot $fldr/bvecs_concat.txt
-        ln -sfv ../../$subj/$sess/topup/$(subjsess)_topup_corr_ec_merged.nii.gz $fldr/diff_merged.nii.gz
-       
-        # tracula shall not eddy-correct
-        sed -i "s|set doeddy = .*|set doeddy = 0|g" $fldr/tracula.rc
-        sed -i "s|set dorotbvecs = .*|set dorotbvecs = 0|g" $fldr/tracula.rc
-      fi
-      
-      # transpose bvals and bvecs files to please TRACULA
-      echo "TRACULA : subj $subj , sess $sess : transpose fsl-style bvals / bvecs files to please TRACULA..."
-      transpose $fldr/bvals_concat.txt > $fldr/bvals_transp.txt; cat $fldr/bvals_transp.txt | wc
-      transpose $fldr/bvecs_concat.txt > $fldr/bvecs_transp.txt; cat $fldr/bvecs_transp.txt | wc   
-                
-      # count number of low B images
-      nb0=0;
-      lowB=`cat $fldr/bvals_transp.txt | getMin`
-      for bval in `cat $fldr/bvals_transp.txt` ; do 
-        bval=`printf '%.0f' $bval` # strip zeroes
-        if [ "$bval" = "$lowB" ] ; then  nb0=$[$nb0+1] ; fi
-      done
-      echo "TRACULA : subj $subj , sess $sess : $nb0 low-B images counted (val:${lowB})"
-      sed -i "s|set nb0 = X|set nb0 = 1|g" $fldr/tracula.rc # set to '1': tracula averages the first n images of the 4D diff. volume, no matter if these are really b0 images or not (!)
-      
-      ## diff-file present ?
-      #if [ ! -f $fldr/diff_merged.nii.gz ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : $fldr/diff_merged.nii.gz not found - skipping consistency check..." ; continue ; fi
-            
-      # check consistency
-      checkConsistency $fldr/diff_merged.nii.gz $fldr/bvals_transp.txt $fldr/bvecs_transp.txt    
-    done
-  done
-fi
-
-waitIfBusy
-
-# TRACULA execute -prep
-if [ $TRACULA_STG2 -eq 1 ] ; then
-  echo "----- BEGIN TRACULA_STG2 -----"  
-  errflag=0
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$FS_subjdir/$(subjsess)
-      if [ ! -f $fldr/mri/aparc+aseg.mgz ] ; then echo "TRACULA : subj $subj , sess $sess : aparc+aseg.mgz file not found - did you run recon-all ?" ; errflag=1 ;  fi
-    done
-  done
-  if [ $errflag = 1 ] ; then echo "TRACULA : subj $subj , sess $sess : you must run recon-all for all subjects before executing TRACULA - exiting..." ; exit ; fi
-  
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$FS_subjdir/$(subjsess)
-      echo "TRACULA : subj $subj , sess $sess : executing trac-all -prep command:"
-      echo "fsl_sub -l $logdir -N trac-all-prep_$(subjsess) trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc" | tee $fldr/trac-all_prep.cmd
-      #echo "trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc -log $logdir/trac-all-prep_$(subjsess)_$$" | tee $fldr/trac-all_prep.cmd 
-      . $fldr/trac-all_prep.cmd
-      # note: the eddy correct log file is obviously overwritten on re-run by trac-all -prep, that's what we want (eddy_correct per se would append on .log from broken runs, that's bad)
-    done
-  done
-fi
-
-waitIfBusy
-
-# TRACULA execute -bedp
-if [ $TRACULA_STG3 -eq 1 ] ; then
-  echo "----- BEGIN TRACULA_STG3 -----"
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$FS_subjdir/$(subjsess)
-      echo "TRACULA : subj $subj , sess $sess : executing trac-all -bedp command:"
-      #echo "fsl_sub -l $logdir -N trac-all-bedp_$(subjsess) trac-all -no-isrunning -noappendlog -bedp -c $fldr/tracula.rc" | tee $fldr/trac-all_bedp.cmd
-      echo "trac-all -no-isrunning -noappendlog -bedp -c $fldr/tracula.rc -log $logdir/trac-all-bedp_$(subjsess)_$$ " | tee $fldr/trac-all_bedp.cmd # bedpostx is self-submitting (!)
-      . $fldr/trac-all_bedp.cmd
-    done
-  done
-fi
-
-waitIfBusy
-
-# TRACULA execute -path
-if [ $TRACULA_STG4 -eq 1 ] ; then
-  echo "----- BEGIN TRACULA_STG4 -----"
-  for subj in `cat subjects`; do
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$FS_subjdir/$(subjsess)
-      echo "subj $subj , sess $sess : executing trac-all -path command:"
-      echo "fsl_sub -l $logdir -N trac-all-paths_$(subjsess) trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc" | tee $fldr/trac-all_path.cmd
-      #echo "trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc -log $logdir/trac-all-paths_$(subjsess)_$$" | tee $fldr/trac-all_path.cmd
-      . $fldr/trac-all_path.cmd
-    done
-  done
-fi
-
-#########################
-# ----- END TRACULA -----
-#########################
 
 
 waitIfBusy
@@ -3368,12 +3312,12 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
 
   for DUALREG_INPUT_ICA_DIRNAME in $DUALREG_INPUT_ICA_DIRNAMES ; do
     if [ $DUALREG_COMPATIBILITY -eq 0 ] ; then
-      # this applies when the MNI registration is done in MELODIC
+      # this applies when MELODIC-GUI was used
       if [ -f $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf ] ; then
         echo "DUALREG : taking basic input filename from '${DUALREG_INPUT_ICA_DIRNAME}.fsf' (first entry therein)"
         _inputfile=$(basename $(cat $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf | grep "set feat_files(1)" | cut -d "\"" -f 2))  # get inputfile basename from melodic *.fsf file... (assuming same basename for all included subjects/sessions) (!)
         _inputfile=$(remove_ext $_inputfile)_${DUALREG_INPUT_ICA_DIRNAME}.ica/reg_standard/filtered_func_data.nii.gz
-      # this applies when the MNI registration is done in FEAT
+      # this applies when MELODIC command line tool was used
       elif [ -f $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files ] ; then
         echo "DUALREG : taking basic input filename from '${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files' (first entry therein)"
         _inputfile=$(basename $(head -n 1 $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files)) # get inputfile basename from melodic input-file list...(assuming same basename for all included subjects/sessions) (!)

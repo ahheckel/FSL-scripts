@@ -21,7 +21,7 @@ interp=${5}
 full_list=""
 
 if [ "$4" = "" ] ; then cost="mutualinfo" ; fi
-if [ "$5" = "" ] ; then interp="spline" ; fi
+if [ "$5" = "" ] ; then interp="trilinear" ; fi
 
 if [ `${FSLDIR}/bin/imtest $input` -eq 0 ];then
     echo "Input does not exist or is not in a supported format"
