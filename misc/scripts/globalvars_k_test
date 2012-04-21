@@ -166,7 +166,7 @@ EES_diff=0.25              # Effective Echo Spacing of the DWIs (ms)
 TE_diff=88                 # TE of the DWIs (ms)
 FDT_SIGNLOSS_THRES=100     # signal loss threshold (%)
 FDT_UNWARP_BET_ALTEXFUNC=1 # brain-extract the input alternative example func (i.e. the B0 image)
-FDT_UNWARP_NO_BROWSER=1    # don't open browser window
+FDT_FEAT_NO_BROWSER=1    # don't open browser window
 
 # BPX
 BPX_OUTDIR_PREFIX="bpx"
@@ -215,7 +215,7 @@ BOLD_REGISTER_TO_MNI=1                                      # enable MNI registr
 BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data_denoised_s2 filtered_func_data_denoised_s4"
 BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                         # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes
 BOLD_MNI_RESAMPLE_INTERP="spline"                           # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
-BOLD_NO_BROWSER=1                                           # don't open browser window
+BOLD_FEAT_NO_BROWSER=1                                           # don't open browser window
 
 #-----------------------------------------------------------------------
 # second level analyses ------------------------------------------------

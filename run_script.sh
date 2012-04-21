@@ -48,9 +48,9 @@ if [ ! -z $(which sh) ] ; then
   if [ $(basename $(readlink `which sh`)) != "bash" ] ; then read -p "WARNING : 'sh' is linked to $(readlink `which sh`), but should be linked to 'bash' for fsl compatibility. Press key to continue or abort with CTRL-C." ; fi
 fi
 
-# make scripts executable
-dos2unix -q $scriptdir/*
-chmod +x $scriptdir/*.sh
+## make scripts executable
+#dos2unix -q $scriptdir/*
+#chmod +x $scriptdir/*.sh
 
 # check presence of info files
 if [ $CHECK_INFOFILES = 1 ] ; then 
@@ -1056,7 +1056,7 @@ if [ $FDT_STG3 -eq 1 ] ; then
         sed -i "s|set fmri(reghighres_yn) .*|set fmri(reghighres_yn) 0|g" $conffile # unset registration to highres
         sed -i "s|set fmri(regstandard_yn) .*|set fmri(regstandard_yn) 0|g" $conffile # unset registration to standard space
         sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 1|g" $conffile # overwrite on re-run
-        if [ $FDT_UNWARP_NO_BROWSER -eq 1 ] ; then
+        if [ $FDT_FEAT_NO_BROWSER -eq 1 ] ; then
           sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 0|g" $conffile
         else 
           sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 1|g" $conffile
@@ -2364,7 +2364,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
               fi
               
               # progress watcher
-              if [ $BOLD_NO_BROWSER -eq 1 ] ; then
+              if [ $BOLD_FEAT_NO_BROWSER -eq 1 ] ; then
                 sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 0|g" $conffile
               else 
                 sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 1|g" $conffile
@@ -2469,12 +2469,12 @@ for subj in `cat subjects` ; do
           
           if [ ! -d $featdir ] ; then echo "BOLD : subj $subj , sess $sess : feat-directory '$featdir' not found ! -> breaking loop..." ; break ; fi
           
-          echo "BOLD : subj $subj , sess $sess : creating masks..."
+          echo "BOLD : subj $subj , sess $sess : creating masks in functional native space using FS's bbreg..."
           $scriptdir/FS_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $featdir/example_func $featdir $subj $sess
                 
           echo "BOLD : subj $subj , sess $sess : denoising..."
-          if [ $BOLD_DENOISE_USE_MOVPARS -eq 1 ] ; then movpar=$featdir/mc/prefiltered_func_data_mcf.par ; else movpar=0 ; fi
-          $scriptdir/denoise4D.sh $featdir/filtered_func_data "$BOLD_DENOISE_MASKS" $movpar $featdir/filtered_func_data_denoised $subj $sess
+          movpar_calcs=$BOLD_DENOISE_USE_MOVPARS
+          $scriptdir/denoise4D.sh $featdir/filtered_func_data "$BOLD_DENOISE_MASKS" $featdir/mc/prefiltered_func_data_mcf.par "$movpar_calcs" $featdir/filtered_func_data_denoised $subj $sess
           
           echo "BOLD : subj $subj , sess $sess : smoothing..."
           $scriptdir/feat_smooth.sh $featdir/filtered_func_data_denoised $featdir/filtered_func_data_denoised "$BOLD_SMOOTHING_KRNLS" $subj $sess
@@ -2518,12 +2518,12 @@ if [ $BOLD_STG4 -eq 1 ] ; then
       
       # write out MNI-registered volumes
       for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-        for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+        for sm_krnl in $BOLD_DENOISE_SMOOTHING_KRNLS ; do
           for stc_val in $BOLD_SLICETIMING_VALUES ; do
             
             # define feat-dir.
             _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
-            featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.feat
+            featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s0_hpf${_hpf_cut}.feat
             
             # check feat-dir.
             if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi

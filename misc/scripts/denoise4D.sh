@@ -7,7 +7,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input4D> <masks> <movpar|0> <output> <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` <input4D> <masks> <movpar> <movpar_calcs> <output> <subj_idx> <sess_idx>"
     echo ""
     exit 1
 }
@@ -21,13 +21,14 @@ function row2col()
 
 if [ x$(which octave) = "x" ] ; then echo "`basename $0` : ERROR : OCTAVE does not seem to be installed on your system ! Exiting..." ; exit 1 ; fi
 
-[ "$4" = "" ] && Usage
+[ "$5" = "" ] && Usage
 input=$(remove_ext "$1")
 masks="$2"
-movpar="$3" ; if [ $movpar = "0" ] ; then movpar="" ; fi
-output=$(remove_ext "$4")
-subj="$5"  # optional
-sess="$6"  # optional
+movpar="$3" ; 
+movpar_calcs="$4"
+output=$(remove_ext "$5")
+subj="$6"  # optional
+sess="$7"  # optional
 
 outdir=`dirname $output`
 indir=`dirname $input`
@@ -55,7 +56,7 @@ for mask in $masks ; do
   ts_list_proc=$ts_list_proc" "${ts}_proc
 done
 
-if [ x$movpar != "x" ] ; then 
+if [ "$movpar_calcs" != 0 ] ; then 
   if [ ! -f $movpar ] ; then 
     echo "`basename $0` : subj $subj , sess $sess : motion parameter file '$movpar' not found - exiting..."
     exit 1
@@ -65,23 +66,41 @@ if [ x$movpar != "x" ] ; then
     # process using octave
     movpar_proc=${output}_movpar_proc
     rm -f ${movpar_proc}_?
+    
+    movpar_calc_list=""
+    for calc in $movpar_calcs ; do
+      if [ $calc -eq 0 ] ; then continue ; fi
+      if [ $calc -eq 1 ] ; then formula2="output_precision(8); c" ; fi
+      if [ $calc -eq 2 ] ; then formula2="output_precision(8); c.*c" ; fi
+      if [ $calc -eq 3 ] ; then formula2="output_precision(8); abs(c)" ; fi
+      if [ $calc -eq 4 ] ; then formula2="output_precision(8); c=diff(c); c=[0 ; c]" ; fi
+      if [ $calc -eq 5 ] ; then formula2="output_precision(8); c=diff(c); c=[c ; 0]" ; fi
 
-    vals=$(cat $movpar | awk '{print $1}')
-    c=$(octave -q --eval "c=[$vals] ; $formula2") ; echo $c | cut -d "=" -f 2- |  row2col > ${movpar_proc}_1
-    vals=$(cat $movpar | awk '{print $2}')
-    c=$(octave -q --eval "c=[$vals] ; $formula2") ; echo $c | cut -d "=" -f 2- |  row2col > ${movpar_proc}_2
-    vals=$(cat $movpar | awk '{print $3}')
-    c=$(octave -q --eval "c=[$vals] ; $formula2") ; echo $c | cut -d "=" -f 2- |  row2col > ${movpar_proc}_3
-    vals=$(cat $movpar | awk '{print $4}')
-    c=$(octave -q --eval "c=[$vals] ; $formula2") ; echo $c | cut -d "=" -f 2- |  row2col > ${movpar_proc}_4
-    vals=$(cat $movpar | awk '{print $5}')
-    c=$(octave -q --eval "c=[$vals] ; $formula2") ; echo $c | cut -d "=" -f 2- |  row2col > ${movpar_proc}_5
-    vals=$(cat $movpar | awk '{print $6}')
-    c=$(octave -q --eval "c=[$vals] ; $formula2") ; echo $c | cut -d "=" -f 2- |  row2col > ${movpar_proc}_6
-        
-    paste -d " " ${movpar_proc}_1 ${movpar_proc}_2 ${movpar_proc}_3 ${movpar_proc}_4 ${movpar_proc}_5 ${movpar_proc}_6 > $movpar_proc
-    rm -f ${movpar_proc}_?
+      echo "`basename $0` : subj $subj , sess $sess : applied OCTAVE formula for motion parameter regressors: '$formula2'" 
+
+      vals=$(cat $movpar | awk '{print $1}')
+      c=$(octave -q --eval "c=[$vals] ; $formula2") ; echo $c | cut -d "=" -f 2- |  row2col > ${movpar_proc}_1
+      vals=$(cat $movpar | awk '{print $2}')
+      c=$(octave -q --eval "c=[$vals] ; $formula2") ; echo $c | cut -d "=" -f 2- |  row2col > ${movpar_proc}_2
+      vals=$(cat $movpar | awk '{print $3}')
+      c=$(octave -q --eval "c=[$vals] ; $formula2") ; echo $c | cut -d "=" -f 2- |  row2col > ${movpar_proc}_3
+      vals=$(cat $movpar | awk '{print $4}')
+      c=$(octave -q --eval "c=[$vals] ; $formula2") ; echo $c | cut -d "=" -f 2- |  row2col > ${movpar_proc}_4
+      vals=$(cat $movpar | awk '{print $5}')
+      c=$(octave -q --eval "c=[$vals] ; $formula2") ; echo $c | cut -d "=" -f 2- |  row2col > ${movpar_proc}_5
+      vals=$(cat $movpar | awk '{print $6}')
+      c=$(octave -q --eval "c=[$vals] ; $formula2") ; echo $c | cut -d "=" -f 2- |  row2col > ${movpar_proc}_6
+
+      paste -d " " ${movpar_proc}_1 ${movpar_proc}_2 ${movpar_proc}_3 ${movpar_proc}_4 ${movpar_proc}_5 ${movpar_proc}_6 > ${movpar_proc}_calc${calc}
+      movpar_calc_list=$movpar_calc_list" "${movpar_proc}_calc${calc}
+      rm -f ${movpar_proc}_?
+    done
+    paste -d " " $movpar_calc_list > ${movpar_proc}
+    rm -f ${movpar_proc}_calc*
   fi
+else
+  movpar=""
+  movpar_proc=""
 fi
 
 ones=$outdir/ones
@@ -100,7 +119,11 @@ echo "`basename $0` : subj $subj , sess $sess : denoising..."
 #fslmaths $input -Tmean ${input}_mean
 #fslmaths ${output} -add ${input}_mean ${output} # otw. speckled results...
 
-n_movpar=$(awk '{print NF}' $movpar | sort -nu | head -n 1)
+if [ x$movpar = "x" ] ; then 
+  n_movpar=0
+else
+  n_movpar=$(awk '{print NF}' $movpar_proc | sort -nu | head -n 1)
+fi
 n_masks=$(echo $masks | wc -w)
 n_total=$(echo "scale=0; $n_movpar + $n_masks + 1" | bc) # add 1 for the mean regressor (!)
 comps=$(echo `seq 1 $n_total` | sed "s| |","|g")
