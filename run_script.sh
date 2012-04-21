@@ -2364,7 +2364,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
               fi
               
               # progress watcher
-              if [ $BOLD_UNWARP_NO_BROWSER -eq 1 ] ; then
+              if [ $BOLD_NO_BROWSER -eq 1 ] ; then
                 sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 0|g" $conffile
               else 
                 sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 1|g" $conffile
@@ -2448,7 +2448,6 @@ for subj in `cat subjects` ; do
   
   if [ x"$BOLD_DENOISE_MASKS" = "x" ] ; then echo "BOLD : subj $subj : ERROR : no masks for signal extraction specified -> no denoising possible -> breaking loop..." ; break ; fi
   
-  _sess_t1=""
   for sess in `cat ${subj}/sessions_func` ; do
     
     fldr=$subjdir/$subj/$sess/bold
@@ -2461,7 +2460,7 @@ for subj in `cat subjects` ; do
     fi
     
     for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-      for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+      for sm_krnl in 0 ; do # denoising only with non-smoothed data -> smoothing carried out at the end.
         for stc_val in $BOLD_SLICETIMING_VALUES ; do
           
           # define feat-dir
@@ -2477,8 +2476,9 @@ for subj in `cat subjects` ; do
           if [ $BOLD_DENOISE_USE_MOVPARS -eq 1 ] ; then movpar=$featdir/mc/prefiltered_func_data_mcf.par ; else movpar=0 ; fi
           $scriptdir/denoise4D.sh $featdir/filtered_func_data "$BOLD_DENOISE_MASKS" $movpar $featdir/filtered_func_data_denoised $subj $sess
           
-          _sess_t1="$sess_t1"
-          
+          echo "BOLD : subj $subj , sess $sess : smoothing..."
+          $scriptdir/feat_smooth.sh $featdir/filtered_func_data_denoised $featdir/filtered_func_data_denoised "$BOLD_SMOOTHING_KRNLS" $subj $sess
+                    
         done # end stc_val
       done # end sm_krnl
     done # end hpf_cut
@@ -2535,7 +2535,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
               
               for data_file in $BOLD_MNI_RESAMPLE_FUNCDATAS ; do
                 in_file=$(remove_ext $data_file)
-                out_file=${in_file}_${_mni_res}
+                out_file=${in_file}_mni${_mni_res}
                 cmd_file=mni_write_${in_file}_res${_mni_res}.cmd
                 log_file=bold_write_MNI_${in_file}_res${_mni_res}_$(subjsess)
                 
@@ -2560,7 +2560,8 @@ if [ $BOLD_STG4 -eq 1 ] ; then
                 # link...
                 echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-registered 4D BOLD."
                 lname=$(echo "$featdir" | sed "s|"uw[+-0][y0]"|"uw"|g") # remove unwarp direction from link's name
-                ln -sfv ./$(basename $featdir)/reg_standard/${out_file}.nii.gz ${lname%.feat}_mni${_mni_res}_${in_file}.nii.gz
+                ln -sfv ./$(basename $featdir)/reg_standard/${out_file}.nii.gz ${lname%.feat}_${out_file}.nii.gz
+                
               done # end data_file
               
             done # end mni_res

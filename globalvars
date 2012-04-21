@@ -84,9 +84,9 @@ TRACULA_STG2=0             # TRACULA execute -prep
 TRACULA_STG3=0             # TRACULA execute -bedp
 TRACULA_STG4=0             # TRACULA execute -path
 
-BOLD_STG1=0                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
-BOLD_STG2=0                # BOLD execute FEAT configuration file
-BOLD_STG3=0                # BOLD denoising (needs Freesurfer recons)
+BOLD_STG1=1                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
+BOLD_STG2=1                # BOLD execute FEAT configuration file
+BOLD_STG3=1                # BOLD denoising (needs Freesurfer recons)
 BOLD_STG4=1                # BOLD write MNI-registered volumes
 
 ########################################################################
@@ -141,7 +141,7 @@ PLOT_BOLD_MNIREG_DIRNAMES="preprocBOLD"    # (part of) dirname, where reg_standa
 #FIRSTLEV_SUBJECTS="01 02 03 04 flip04 05 flip05 06 flip06 07 flip07 08 09 flip09 10" 
 #FIRSTLEV_SUBJECTS="01 02 03 04 05 06 07 08 09 10" 
 FIRSTLEV_SUBJECTS="01" 
-FIRSTLEV_SESSIONS_FUNC="a b c"               
+FIRSTLEV_SESSIONS_FUNC="a b"               
 FIRSTLEV_SESSIONS_STRUC="a"                
 
 # SECOND LEVEL
@@ -205,7 +205,7 @@ BOLD_UNBIASED_TEMPLATE=0
 BOLD_BET=1                                                    # enable betting
 BOLD_BET_EXFUNC=0                                             # bet example func (middle of the 4D) (default 0)
 BOLD_HPF_CUTOFFS="100"                                        # enter "Inf" to switch off high-pass filter
-BOLD_SMOOTHING_KRNLS="0"                                      # enter "0" to swith off smoothing (note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes)
+BOLD_SMOOTHING_KRNLS='0 2 4'                                  # enter "0" to swith off smoothing (note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes) ; mind the ' '
 BOLD_SLICETIMING_VALUES="0"                                   # enter correction method (see .fsf file); "0" to switch off slice timing correction
 BOLD_UNWARP=1                                                 # enable unwarping
 BOLD_SIGNLOSS_THRES=10 	                                      # signal loss threshold (%) (default: 10)
@@ -215,10 +215,10 @@ BOLD_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                  # pattern of t1 no
 BOLD_DENOISE_MASKS='EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz'  # masks used for denoising [EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz EF_GM.nii.gz] located in feat-dir (need FS-recons for creation) -> see FS_create_masks.sh ; mind the ' '
 BOLD_DENOISE_USE_MOVPARS='1'
 BOLD_REGISTER_TO_MNI=1                                        # enable MNI registration
-BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data_denoised"
-BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                           # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
+BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data_denoised_s2 filtered_func_data_denoised_s4"
+BOLD_MNI_RESAMPLE_RESOLUTIONS="4"                             # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
 BOLD_MNI_RESAMPLE_INTERP="spline"                             # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
-BOLD_UNWARP_NO_BROWSER=0                                      # don't open browser window
+BOLD_NO_BROWSER=0                                             # don't open browser window
 
 #-----------------------------------------------------------------------
 # second level analyses ------------------------------------------------

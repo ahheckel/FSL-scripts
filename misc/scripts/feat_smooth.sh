@@ -38,19 +38,19 @@ fslmaths ${out}_thresh -Tmean $(dirname $out)/susan_mean_func
 for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
   _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
   smoothsigma=$(echo "scale=10; $sm_krnl / 2.355" | bc -l)
+
   if [ $smoothsigma = "0" ] ; then 
-    echo "`basename $0`: subj $subj , sess $sess :    FWHM: $sm_krnl - sigma: $smoothsigma -> no smoothing"
-    echo "`basename $0`: subj $subj , sess $sess :    masking `basename ${out}_thres` -> `basename ${out}_smooth`..."
-    fslmaths ${out}_thresh -mas $(dirname $out)/susan_mask ${out}_smooth
-  else
-    echo "`basename $0`: subj $subj , sess $sess :    FWHM: $sm_krnl - sigma: $smoothsigma"
-    cmd="susan ${out}_thresh $susan_int $smoothsigma 3 1 1 $(dirname $out)/susan_mean_func $susan_int ${out}_smooth"
-    echo "`basename $0`: subj $subj , sess $sess :    executing command: $cmd"
-    $cmd
-    
-    echo "`basename $0`: subj $subj , sess $sess :    masking `basename ${out}_smooth` -> `basename ${out}_smooth`..."
-    fslmaths ${out}_smooth -mas $(dirname $out)/susan_mask ${out}_smooth
+    echo "`basename $0`: subj $subj , sess $sess :    FWHM: $sm_krnl - sigma: $smoothsigma -> no smoothing -> skip..."
+    continue
   fi
+  
+  echo "`basename $0`: subj $subj , sess $sess :    FWHM: $sm_krnl - sigma: $smoothsigma"
+  cmd="susan ${out}_thresh $susan_int $smoothsigma 3 1 1 $(dirname $out)/susan_mean_func $susan_int ${out}_smooth"
+  echo "`basename $0`: subj $subj , sess $sess :    executing command: $cmd"
+  $cmd
+  
+  echo "`basename $0`: subj $subj , sess $sess :    masking `basename ${out}_smooth` -> `basename ${out}_smooth`..."
+  fslmaths ${out}_smooth -mas $(dirname $out)/susan_mask ${out}_smooth
   
   # global mean scaling
   normmean=10000
