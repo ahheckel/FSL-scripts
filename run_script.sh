@@ -2477,7 +2477,7 @@ for subj in `cat subjects` ; do
           $scriptdir/denoise4D.sh $featdir/filtered_func_data "$BOLD_DENOISE_MASKS" $featdir/mc/prefiltered_func_data_mcf.par "$movpar_calcs" $featdir/filtered_func_data_denoised $subj $sess
           
           echo "BOLD : subj $subj , sess $sess : smoothing..."
-          $scriptdir/feat_smooth.sh $featdir/filtered_func_data_denoised $featdir/filtered_func_data_denoised "$BOLD_SMOOTHING_KRNLS" $subj $sess
+          $scriptdir/feat_smooth.sh $featdir/filtered_func_data_denoised $featdir/filtered_func_data_denoised "$BOLD_DENOISE_SMOOTHING_KRNLS" $subj $sess
                     
         done # end stc_val
       done # end sm_krnl
@@ -2518,27 +2518,33 @@ if [ $BOLD_STG4 -eq 1 ] ; then
       
       # write out MNI-registered volumes
       for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-        for sm_krnl in $BOLD_DENOISE_SMOOTHING_KRNLS ; do
+        for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
           for stc_val in $BOLD_SLICETIMING_VALUES ; do
             
             # define feat-dir.
             _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
-            featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s0_hpf${_hpf_cut}.feat
+            featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.feat
             
             # check feat-dir.
             if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
 
             # execute...
-            for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do
-
-              _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'             
+            for data_file in $BOLD_MNI_RESAMPLE_FUNCDATAS ; do
               
-              for data_file in $BOLD_MNI_RESAMPLE_FUNCDATAS ; do
+              if [ $(imtest $featdir/$data_file) != 1 ] ; then
+                  echo "BOLD : subj $subj , sess $sess : WARNING : volume '$featdir/$data_file' not found -> this file cannot be written out to MNI-space. Continuing loop..."
+                  continue
+              fi
+              
+              for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do
+
+                _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'              
+
                 in_file=$(remove_ext $data_file)
                 out_file=${in_file}_mni${_mni_res}
                 cmd_file=mni_write_${in_file}_res${_mni_res}.cmd
                 log_file=bold_write_MNI_${in_file}_res${_mni_res}_$(subjsess)
-                
+                   
                 echo "BOLD : subj $subj , sess $sess : writing MNI-registered 4D BOLD '$out_file' to '${featdir}/reg_standard'." 
                 
                 echo "featregapply $featdir ; \
@@ -2562,9 +2568,8 @@ if [ $BOLD_STG4 -eq 1 ] ; then
                 lname=$(echo "$featdir" | sed "s|"uw[+-0][y0]"|"uw"|g") # remove unwarp direction from link's name
                 ln -sfv ./$(basename $featdir)/reg_standard/${out_file}.nii.gz ${lname%.feat}_${out_file}.nii.gz
                 
-              done # end data_file
-              
-            done # end mni_res
+              done # end mni_res            
+            done # end data_file
           done # end stc_val
         done # end sm_krnl
       done # end hpf_cut
