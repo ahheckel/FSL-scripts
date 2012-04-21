@@ -4,10 +4,12 @@
 
 if [ $# -lt 1 ] ; then echo "Usage: update [32|64]" ; exit ; fi
 
+if [ x$FSL_DIR = "x" ] ; then echo "FSL_DIR variable is not defined ! Exiting." ; exit 1 ; fi
+
 cp -iv fsl/tbss_x/tbss_x $FSL_DIR/bin/tbss_x
 cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
 cp -iv fsl/topup/b02b0.cnf $FSL_DIR/etc/flirtsch/b02b0.cnf
-cp -iv fsl/MNI_T1_4mm_brain.nii.gz $FSL_DIR/data/standard/
+cp -iv fsl/MNI152*.nii.gz $FSL_DIR/data/standard/
 cp -iv fsl/avg152T1_white_bin.nii.gz $FSL_DIR/data/standard/
 cp -iv fsl/avg152T1_csf_bin.nii.gz $FSL_DIR/data/standard/
 
