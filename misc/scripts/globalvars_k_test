@@ -211,11 +211,12 @@ BOLD_PTTRN_HIGHRES_BRAIN="*_t1_betted_masked_brain.nii.gz"  # pattern of t1 skul
 BOLD_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                # pattern of t1 non-skull-stripped image
 BOLD_DENOISE_MASKS='EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz'  # masks used for denoising [EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz EF_GM.nii.gz] located in feat-dir (need FS-recons for creation) -> see FS_create_masks.sh ; mind the ' '
 BOLD_DENOISE_USE_MOVPARS='1'
+BOLD_DENOISE_SMOOTHING_KRNLS='0 2'                          # smooth denoised data ; mind the ' '
 BOLD_REGISTER_TO_MNI=1                                      # enable MNI registration
 BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data_denoised_s2 filtered_func_data_denoised_s4"
 BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                         # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes
 BOLD_MNI_RESAMPLE_INTERP="spline"                           # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
-BOLD_FEAT_NO_BROWSER=1                                           # don't open browser window
+BOLD_FEAT_NO_BROWSER=1                                      # don't open browser window
 
 #-----------------------------------------------------------------------
 # second level analyses ------------------------------------------------
