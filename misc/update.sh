@@ -5,6 +5,7 @@
 if [ $# -lt 1 ] ; then echo "Usage: update [32|64]" ; exit ; fi
 
 if [ x$FSL_DIR = "x" ] ; then echo "FSL_DIR variable is not defined ! Exiting." ; exit 1 ; fi
+if [ x$FREESURFER_HOME = "x" ] ; then echo "FREESURFER_HOME variable is not defined ! Exiting." ; exit 1 ; fi
 
 cp -iv fsl/tbss_x/tbss_x $FSL_DIR/bin/tbss_x
 cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
