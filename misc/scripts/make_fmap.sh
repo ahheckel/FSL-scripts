@@ -67,3 +67,4 @@ fslmaths $outdir/fmap_rads -sub $p50 -mas $outdir/magn_brain_mask_ero $out
 fslmaths $outdir/uphase_rad -s 10 $outdir/uphase_rad_s10 
 fslmaths $outdir/uphase_rad -sub $outdir/uphase_rad_s10 $outdir/uphase_rad_filt 
 
+echo "`basename $0` : subj $subj , sess $sess : done."

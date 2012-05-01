@@ -7,7 +7,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input4D> <masks> <movpar> <movpar_calcs> <output> <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` <input4D> <"mask1 mask2 ..."> <movpar> <movpar_calcs 0:none|1:orig|2:^2|3:abs|4:diff+|5:diff-> <output> <subj_idx> <sess_idx>"
     echo ""
     exit 1
 }
@@ -42,7 +42,7 @@ for mask in $masks ; do
   ts=${output}_$(basename $(remove_ext $mask))_meants
   echo "`basename $0` : subj $subj , sess $sess : extracting timecourse for '$mask' -> '$ts'..."
   
-  if [ ! -f $mask ] ; then echo "`basename $0` : subj $subj , sess $sess : ERROR: '$mask' not found - exiting..." ; exit 1 ; fi
+  if [ $(imtest $mask) -eq 0 ] ; then echo "`basename $0` : subj $subj , sess $sess : ERROR: '$mask' not found - exiting..." ; exit 1 ; fi
   
   fslmeants -i $input -m $mask -o $ts
   
@@ -135,5 +135,5 @@ echo $cmd | tee ${output}.cmd ; $cmd
 rm -f $ones $ts_list_proc $movpar_proc
 imrm ${input}_mean
 
-
+echo "`basename $0` : subj $subj , sess $sess : done."
 

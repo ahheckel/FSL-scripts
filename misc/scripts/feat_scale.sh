@@ -34,3 +34,4 @@ else
   exit 1
 fi
   
+echo "`basename $0` : subj $subj , sess $sess : done."

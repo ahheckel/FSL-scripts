@@ -2532,7 +2532,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
             for data_file in $BOLD_MNI_RESAMPLE_FUNCDATAS ; do
               
               if [ $(imtest $featdir/$data_file) != 1 ] ; then
-                  echo "BOLD : subj $subj , sess $sess : WARNING : volume '$featdir/$data_file' not found -> this file cannot be written out to MNI-space. Continuing loop..."
+                  echo "BOLD : subj $subj , sess $sess : WARNING : volume '$featdir/$data_file' not found -> this file cannot be written out in MNI-space. Continuing loop..."
                   continue
               fi
               
@@ -2540,33 +2540,41 @@ if [ $BOLD_STG4 -eq 1 ] ; then
 
                 _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'              
 
-                in_file=$(remove_ext $data_file)
-                out_file=${in_file}_mni${_mni_res}
-                cmd_file=mni_write_${in_file}_res${_mni_res}.cmd
-                log_file=bold_write_MNI_${in_file}_res${_mni_res}_$(subjsess)
+                in_file=$featdir/$(remove_ext $data_file)
+                T1_file=$featdir/reg/highres
+                MNI_file=$featdir/reg/standard
+                out_file=$featdir/reg_standard/$(basename $in_file)_mni${_mni_res}
+                affine=$featdir/reg/example_func2highres.mat
+                warp=$featdir/reg/highres2standard_warp
+                cmd_file=$featdir/mni_write_$(basename $in_file)_res${_mni_res}.cmd
+                log_file=bold_write_MNI_$(basename $in_file)_res${_mni_res}_$(subjsess)
                    
-                echo "BOLD : subj $subj , sess $sess : writing MNI-registered 4D BOLD '$out_file' to '${featdir}/reg_standard'." 
+                echo "BOLD : subj $subj , sess $sess : writing MNI-registered 4D BOLD '$out_file' to '${featdir}/reg_standard'."
                 
-                echo "featregapply $featdir ; \
-                flirt -ref $featdir/reg/standard -in $featdir/reg/standard -out $featdir/reg_standard/standard_$_mni_res -applyisoxfm $mni_res ; \
-                applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=$featdir/reg/highres --out=$featdir/reg_standard/highres_$_mni_res --warp=$featdir/reg/highres2standard_warp  --interp=sinc ; \
-                imrm $featdir/reg_standard/${out_file}_tmp_\?\?\?\?\.\*
-                fslsplit $featdir/$in_file $featdir/reg_standard/${out_file}_tmp_ ; \
-                full_list=\`imglob $featdir/reg_standard/${out_file}_tmp_????.*\` ; \
-                for i in \$full_list ; do \
-                  echo processing \$i ; \
-                  cmd=\"applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=\$i --out=\$i --warp=$featdir/reg/highres2standard_warp --premat=$featdir/reg/example_func2highres.mat --interp=$interp\" ; \
-                  echo \$cmd ; \
-                  \$cmd ; \
-                done ; \
-                fslmerge -t $featdir/reg_standard/$out_file \$full_list ; \
-                imrm \$full_list" > $featdir/$cmd_file
-                fsl_sub -l $logdir -N $log_file -t $featdir/$cmd_file
+                echo "featregapply $featdir ; $scriptdir/feat_writeMNI.sh $in_file $T1_file $MNI_file $out_file $mni_res $affine $warp $interp $subj $sess" > $cmd_file
+                
+                fsl_sub -l $logdir -N $log_file -t $cmd_file 
+                
+                #echo "featregapply $featdir ; \
+                #flirt -ref $featdir/reg/standard -in $featdir/reg/standard -out $featdir/reg_standard/standard_$_mni_res -applyisoxfm $mni_res ; \
+                #applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=$featdir/reg/highres --out=$featdir/reg_standard/highres_$_mni_res --warp=$featdir/reg/highres2standard_warp  --interp=sinc ; \
+                #imrm $featdir/reg_standard/${out_file}_tmp_\?\?\?\?\.\*
+                #fslsplit $featdir/$in_file $featdir/reg_standard/${out_file}_tmp_ ; \
+                #full_list=\`imglob $featdir/reg_standard/${out_file}_tmp_????.*\` ; \
+                #for i in \$full_list ; do \
+                  #echo processing \$i ; \
+                  #cmd=\"applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=\$i --out=\$i --warp=$featdir/reg/highres2standard_warp --premat=$featdir/reg/example_func2highres.mat --interp=$interp\" ; \
+                  #echo \$cmd ; \
+                  #\$cmd ; \
+                #done ; \
+                #fslmerge -t $featdir/reg_standard/$out_file \$full_list ; \
+                #imrm \$full_list" > $featdir/$cmd_file
+                #fsl_sub -l $logdir -N $log_file -t $featdir/$cmd_file
                 
                 # link...
                 echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-registered 4D BOLD."
                 lname=$(echo "$featdir" | sed "s|"uw[+-0][y0]"|"uw"|g") # remove unwarp direction from link's name
-                ln -sfv ./$(basename $featdir)/reg_standard/${out_file}.nii.gz ${lname%.feat}_${out_file}.nii.gz
+                ln -sfv ./$(basename $featdir)/reg_standard/$(basename $out_file).nii.gz ${lname%.feat}_$(basename $out_file).nii.gz
                 
               done # end mni_res            
             done # end data_file

@@ -58,3 +58,4 @@ fslmaths ${exfunc}_betted_$$ -thr $min -bin -ero $outdir/EF_WB.nii.gz
 # cleanup
 imrm ${exfunc}_betted_$$ $outdir/T1_GM.nii.gz $outdir/T1_WM.nii.gz $outdir/T1_CSF.nii.gz
 
+echo "`basename $0` : subj $subj , sess $sess : done."

@@ -644,6 +644,7 @@ function prepareVBM()
       fi
       if [ $DEL -eq 0 ] ; then read -p "Press key to continue..." ; fi
       
+      # checking whether number of *struc and *struc_brain files are plausible
       files=`find ${destdir} -maxdepth 1 -name "*.nii.gz" -type f`
       brains=`echo $files | row2col | grep _struc_brain.nii.gz || true` # added '|| true' to avoid abortion by 'set -e' statement
       strucs=`echo $files | row2col | grep _struc.nii.gz || true` # added '|| true' to avoid abortion by 'set -e' statement
@@ -764,36 +765,3 @@ function _randomise()
   cd $wd
 }
 
-function _eddy_correct()
-{
-  local input=`${FSLDIR}/bin/remove_ext ${1}`
-  local output=`${FSLDIR}/bin/remove_ext ${2}`
-  local ref=${3}
-  local opts=${4}
-  local full_list=""
-  local i=""
-  
-  if [ "$3" = "" ] ; then echo "_eddy_correct(): Usage: _eddy_correct <4dinput> <4doutput> <reference_no> <options>" ; echo "Exiting..." ; exit 1 ; fi
-  if [ "$4" = "" ] ; then opts="-interp trilinear" ; fi
-
-  if [ `${FSLDIR}/bin/imtest $input` -eq 0 ];then
-      echo "_eddy_correct(): ERROR: Input does not exist or is not in a supported format. Exiting..."
-      exit 1
-  fi
-
-  fslroi $input ${output}_ref $ref 1
-
-  fslsplit $input ${output}_tmp
-  full_list=`${FSLDIR}/bin/imglob ${output}_tmp????.*`
-  
-  if [ -f ${output}.ecclog ] ; then echo "_eddy_correct(): WARNING: log-file already exists - deleting it..." ; rm ${output}.ecclog ; fi
-  for i in $full_list ; do
-      echo processing $i
-      echo processing $i >> ${output}.ecclog
-      ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -o $i -paddingsize 1 $opts >> ${output}.ecclog
-  done
-
-  fslmerge -t $output $full_list
-
-  /bin/rm ${output}_tmp????.* ${output}_ref*  
-}
