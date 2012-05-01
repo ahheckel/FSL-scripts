@@ -63,4 +63,4 @@ done # end sm_krnl
 echo "`basename $0`: subj $subj , sess $sess : cleanup..."
 imrm ${out}_intnorm ${out}_smooth ${out}_bet ${out}_thresh ${out}_smooth_usan_size $(dirname $out)/susan_mean_func
 
-echo "`basename $0` : subj $subj , sess $sess : done."
+echo "`basename $0`: subj $subj , sess $sess : done."

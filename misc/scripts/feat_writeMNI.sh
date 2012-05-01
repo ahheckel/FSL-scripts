@@ -50,4 +50,4 @@ echo "`basename $0`: subj $subj , sess $sess : merge outputs...."
 fslmerge -t $output $full_list
 imrm $full_list
 
-echo "`basename $0` : subj $subj , sess $sess : done."
+echo "`basename $0`: subj $subj , sess $sess : done."

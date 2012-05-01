@@ -217,9 +217,9 @@ BOLD_DENOISE_USE_MOVPARS='1'                                  # mind the ' ' ; 1
 BOLD_DENOISE_SMOOTHING_KRNLS='0 2'                            # smooth denoised data ; mind the ' '
 BOLD_REGISTER_TO_MNI=1                                        # enable MNI registration
 BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data_denoised_s0 filtered_func_data_denoised_s2"
-BOLD_MNI_RESAMPLE_RESOLUTIONS="4"                             # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
+BOLD_MNI_RESAMPLE_RESOLUTIONS="2"                             # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
 BOLD_MNI_RESAMPLE_INTERP="spline"                             # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
-BOLD_FEAT_NO_BROWSER=0                                        # don't open browser window
+BOLD_FEAT_NO_BROWSER=1                                        # don't open browser window
 
 #-----------------------------------------------------------------------
 # second level analyses ------------------------------------------------

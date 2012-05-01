@@ -54,4 +54,4 @@ imrm ${out}_bet ${out}_mean_func
 
 echo "$int2 $int98 $intensity_threshold $median_intensity $susan_int" > ${out}_vals
 
-echo "`basename $0` : subj $subj , sess $sess : done."
+echo "`basename $0`: subj $subj , sess $sess : done."
