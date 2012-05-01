@@ -4741,8 +4741,8 @@ proc feat5:flirt { in ref dof search interp existing_mats report init in_weighti
     
     # added by HKL
     if { $in == "highres" && $ref == "standard" }  {
-		set costfunction "mutualinfo"
-		#set costfunction "corratio"
+		#set costfunction "mutualinfo"
+		set costfunction "corratio"
     } 
 
     if { $existing_mats } {
