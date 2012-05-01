@@ -52,6 +52,7 @@ fslmaths ${out} -dilF ${out}
 echo "`basename $0`: subj $subj , sess $sess :    cleanup..."
 imrm ${out}_bet ${out}_mean_func
 
+# save stats
 echo "$int2 $int98 $intensity_threshold $median_intensity $susan_int" > ${out}_vals
 
 echo "`basename $0`: subj $subj , sess $sess : done."
