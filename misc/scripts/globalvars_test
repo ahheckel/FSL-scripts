@@ -1,0 +1,300 @@
+#!/bin/bash
+
+########################################################################
+# set paths ############################################################
+########################################################################
+
+studydir=`pwd` # (!)
+scriptdir=$studydir/misc/scripts
+subjdir=$studydir/subj
+grpdir=$studydir/grp
+tbssdir=$grpdir/tbss
+vbmdir=$grpdir/vbm
+dregdir=$grpdir/dualreg
+glmdir=$grpdir/glm
+glmdir_tbss=$glmdir/tbss
+glmdir_vbm=$glmdir/vbm
+glmdir_dr=$glmdir/dualreg
+logdir=$studydir/logs 
+tmpdir=$studydir/.tmp
+FS_subjdir=$subjdir/FS_subj
+FS_sessdir=$subjdir/FS_sess
+export SUBJECTS_DIR=$FS_subjdir
+
+########################################################################
+# set file patterns ####################################################
+########################################################################
+
+# set file patterns
+pttrn_diffs="*_ep2ddiff_pat3_esp0_75ms_*-.nii" # (!)
+pttrn_bvals=`remove_ext $pttrn_diffs`_bvals
+pttrn_bvecs=`remove_ext $pttrn_diffs`_bvecs
+pttrn_fmaps="*_gre_field_mapping.nii " # (!)
+pttrn_strucs="*T1_MPRAGE_tra_256_1_0mm_nopat.nii" # (!)
+pttrn_bolds="*resting_TE30_pat3_esp0_7_Filter.nii" # (!)
+
+# set file patterns for TOPUP
+pttrn_diffsplus="*_ep2ddiff_pat3_esp0_75ms_*+.nii" # (!)
+pttrn_diffsminus="*_ep2ddiff_pat3_esp0_75ms_*-.nii" # (!)
+pttrn_bvalsplus=`remove_ext $pttrn_diffsplus`_bvals
+pttrn_bvalsminus=`remove_ext $pttrn_diffsminus`_bvals
+pttrn_bvecsplus=`remove_ext $pttrn_diffsplus`_bvecs
+pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
+
+########################################################################
+# enable 1st level processing streams ##################################
+########################################################################
+
+SCRATCH=0                  # execute scratchpad and exit
+
+FIELDMAP_STG1=1            # FIELDMAP prepare
+FIELDMAP_STG2=1            # FIELDMAP create
+
+TOPUP_STG1=1               # TOPUP prepare
+TOPUP_STG2=1               # TOPUP low-B images: create index and extract
+TOPUP_STG3=1               # TOPUP merge B0 images
+TOPUP_STG4=1               # TOPUP execute topup
+TOPUP_STG5=1               # TOPUP apply warp
+TOPUP_STG6=1               # TOPUP estimate tensor model
+
+FDT_STG1=1                 # FDT merging
+FDT_STG2=1                 # FDT eddy-correct & extract B0 reference image
+FDT_STG3=1                 # FDT prepare FEAT configuration file for unwarping the DWIs
+FDT_STG4=1                 # FDT execute FEAT & extract unwarped B0 reference image
+FDT_STG5=1                 # FDT estimate tensor model
+
+BPX_STG1=1                 # BedpostX - execute 
+
+VBM_STG1=1                 # VBM prepare T1
+VBM_STG2=1                 # VBM initial skull strip
+VBM_STG3=1                 # VBM apply standard space mask (SSM)
+VBM_STG4=1                 # VBM final skull strip - bet
+VBM_STG5=1                 # VBM final skull strip - watershed
+
+BIASMAP_STG1=0             # create bias map
+BIASMAP_STG2=0             # apply bias map
+
+RECON_STG1=1               # RECON-ALL prepare (copy and convert T1 nifti)
+RECON_STG2=1               # RECON-ALL execute cross-sectional stream
+RECON_STG3=1               # RECON-ALL execute longtitudinal stream's template creation
+RECON_STG4=1               # RECON-ALL execute longtitudinal processing for each timepoint
+
+TRACULA_STG1=0             # TRACULA prepare
+TRACULA_STG2=0             # TRACULA execute -prep
+TRACULA_STG3=0             # TRACULA execute -bedp
+TRACULA_STG4=0             # TRACULA execute -path
+
+BOLD_STG1=1                # BOLD (ICA) prepare FEAT configuration file for motion correction and unwarping, etc.
+BOLD_STG2=1                # BOLD (ICA) execute FEAT configuration file
+BOLD_STG3=1                # BOLD denoising (needs Freesurfer recons)
+BOLD_STG4=1                # BOLD write MNI-registered volumes
+
+########################################################################
+# enable second level analyses #########################################
+########################################################################
+
+TBSS_STG1=1                # TBSS prepare 
+TBSS_STG2=1                # TBSS threshold skeleton 
+TBSS_STG3=1                # TBSS permutation testing
+TBSS_STG4=1                # TBSSX prepare - needs BedpostX (!)
+TBSS_STG5=1                # TBSSX permutation testing
+
+VBM_2NDLEV_STG1=1          # VBM prepare 
+VBM_2NDLEV_STG2=1          # VBM smooth
+VBM_2NDLEV_STG3=1          # VBM permutation testing
+
+MELODIC_2NDLEV_STG1=1      # MELODIC create *.fsf file 
+MELODIC_2NDLEV_STG2=1      # MELODIC create sym-links to t1-structurals
+
+MELODIC_CMD_STG1=1         # MELODIC use melodic-command line tool (optional)
+
+DUALREG_STG1=1             # DUALREG prepare for randomie
+DUALREG_STG2=1             # DUALREG randomise
+
+PSEUDOSWI_STG1=1           # PSEUDOSWI register fieldmap to MNI (needs feat unwarp) (!)
+
+########################################################################
+# plots ################################################################
+########################################################################
+
+PLOT_EC=0                                  # plot motion parameters from eddy-correct log file
+PLOT_DWI_UNWARP=0                          # plot registration dwi2mag
+PLOT_DWI_UNWARP_DIRNAMES="unwarpDWI"       # (part of) dirname, where unwarp directory is located (if multiple directories match, that one with the newest file in it is selected)
+PLOT_BOLD_MC=0                             # plot motion parameters from flirt correction of BOLDs
+PLOT_BOLD_MC_DIRNAMES="preprocBOLD"        # (part of) dirname, where mc directory is located (if multiple directories match, that one with the newest file in it is selected)
+PLOT_BOLD_UNWARP=0                         # plot registration dwi2mag
+PLOT_BOLD_UNWARP_DIRNAMES="preprocBOLD"    # (part of) dirname, where unwarp directory is located (if multiple directories match, that one with the newest file in it is selected)
+PLOT_BOLD_T1REG=0                          # plot registration func2T1
+PLOT_BOLD_T1REG_DIRNAMES="ica_50 ica_10"   # (part of) dirname, where reg directory is located (if multiple directories match, that one with the newest file in it is selected)
+PLOT_BOLD_MNIREG=0                         # plot registration func2MNI
+PLOT_BOLD_MNIREG_DIRNAMES="ica_50"         # (part of) dirname, where reg_standard directory is located (if multiple directories match, that one with the newest file in it is selected)
+
+########################################################################
+# configuration ########################################################
+########################################################################
+
+# SGE CLUSTER
+#SGE_ROOT=""                    # set SGE_ROOT to empty, if no cluster, otherwise comment this line out (!)
+
+# FIRST LEVEL
+# overwrite pre-existing subject /session file (to disable set any to "")
+FIRSTLEV_SUBJECTS="01 02 03 04 flip04 05 flip05 06 flip06 07 flip07 08 09 flip09 10" 
+FIRSTLEV_SESSIONS_FUNC="a b c d e"               
+FIRSTLEV_SESSIONS_STRUC="a c e"                
+
+# SECOND LEVEL
+SECONDLEV_SUBJECTS="01 02 03 flip04 flip05 flip06 flip07 08 flip09 10" 
+SECONDLEV_SESSIONS_FUNC="a b c d e"                
+SECONDLEV_SESSIONS_STRUC="a c e"     
+
+#-----------------------------------------------------------------------
+# first level analyses -------------------------------------------------
+#-----------------------------------------------------------------------
+
+# FIELDMAP
+deltaTEphase=0.00246
+PI=$(echo "scale=10; 4*a(1)" | bc -l) # define pi
+
+# TOPUP
+readout_diff=0.02375       # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 95 / 1000)
+TOPUP_USE_NATIVE=1         # apply TOPUP-warps to native DWI runs
+TOPUP_USE_EC=1             # apply TOPUP-warps to eddy-corrected DWI runs (i.e. runs that have been eddy-corrected to the first B0 volume per run)
+
+# FDT - unwarp
+TR_diff=11                 # TR of the DWIs (s)
+EES_diff=0.25              # Effective Echo Spacing of the DWIs (ms)
+TE_diff=88                 # TE of the DWIs (ms)
+FDT_SIGNLOSS_THRES=100     # signal loss threshold (%)
+FDT_UNWARP_BET_ALTEXFUNC=1 # brain-extract the input alternative example func (i.e. the B0 image)
+FDT_FEAT_NO_BROWSER=1      # don't open browser window
+
+# BPX
+BPX_OUTDIR_PREFIX="bpx"
+BPX_USE_NOEC=0
+BPX_USE_EC_NOROT=0
+BPX_USE_EC_BVECROT=0
+BPX_USE_UNWARPED_NOROT=0
+BPX_USE_UNWARPED_BVECROT=0
+BPX_USE_TOPUP_NOEC_BVECROT=0
+BPX_USE_TOPUP_EC_BVECROT=1
+
+# VBM_PREPROC
+VBM_NU_CORRECT_T1=1        # perform non-uniformity correction prior to t1 skull-stripping - useful for mri_watershed (default: 0)
+VBM_SSM_ERODE_STEPS=3
+# mutually exclusive:
+VBM_USE_BETTED_INIT=1      # use betted brain as init. for standard space masking (default: 1)
+VBM_USE_WATERSHED_INIT=0   # use watershed brain to initialize standard space masking
+
+# TRACULA
+# mutually exclusive:
+TRACULA_USE_NATIVE=0             # use unprocessed merged DWI files
+TRACULA_USE_UNWARPED_BVECROT=0   # use unwarped and eddy-corrected merged DWI files and corrected b-vectors
+TRACULA_USE_TOPUP_NOEC_BVECROT=0 # use TOPUP corrected merged DWI files with corrected b-vectors
+TRACULA_USE_TOPUP_EC_BVECROT=1   # use TOPUP corrected & eddy-corrected merged DWI files with corrected b-vectors
+
+# BOLD - preproc
+TR_bold=3.330              # TR (s)
+EES_bold=0.23333           # Effective Echo Spacing (ms)
+TE_bold=30                 # TE (ms)
+BOLD_FEATDIR_PREFIX="preprocBOLD"                           # prefix for .feat output directory
+BOLD_REGISTER_TO_SESS=""
+BOLD_UNBIASED_TEMPLATE=0
+BOLD_BET=1                                                  # enable betting
+BOLD_BET_EXFUNC=0                                           # bet example func (middle of the 4D) (default 0)
+BOLD_HPF_CUTOFFS="100"                                 		# enter "Inf" to switch off high-pass filter
+BOLD_SMOOTHING_KRNLS="0"                     	            # enter "0" to swith off smoothing (note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes) ; mind the ' '
+BOLD_SLICETIMING_VALUES="0"                                 # enter correction method (see .fsf file); "0" to switch off slice timing correction
+BOLD_UNWARP=1                                               # enable unwarping
+BOLD_SIGNLOSS_THRES=10 	                                    # signal loss threshold (%) (default: 10)
+BOLD_REGISTER_TO_STRUC_DOF=6                                # degrees of freedom when registering bold -> T1
+BOLD_PTTRN_HIGHRES_BRAIN="*_t1_betted_masked_brain.nii.gz"  # pattern of t1 skull-stripped image
+BOLD_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                # pattern of t1 non-skull-stripped image
+BOLD_DENOISE_MASKS='EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz'  # masks used for denoising [EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz EF_GM.nii.gz] located in feat-dir (need FS-recons for creation) -> see FS_create_masks.sh ; mind the ' '
+BOLD_DENOISE_USE_MOVPARS='1'
+BOLD_DENOISE_SMOOTHING_KRNLS='2 4'                          # smooth denoised data ; mind the ' '
+BOLD_REGISTER_TO_MNI=1                                      # enable MNI registration
+BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data_denoised_s2    filtered_func_data_denoised_s4"
+BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                         # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes
+BOLD_MNI_RESAMPLE_INTERP="spline"                           # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
+BOLD_FEAT_NO_BROWSER=1                                      # don't open browser window
+
+#-----------------------------------------------------------------------
+# second level analyses ------------------------------------------------
+#-----------------------------------------------------------------------
+
+# TBSS     
+TBSS_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS        # subjects to be included in the TBSS analysis
+TBSS_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_STRUC  # sessions to be included in the TBSS analysis
+TBSS_USE_BPX_FROM_TRACULA=0                       # use BedpostX files from TRACULA, otherwise use from BPX stream
+TBSS_BPX_INDIR_PREFIX="bpx"                       # prefix of BedpostX input directory (for TBSSX, if files from TRACULA stream are not used)
+TBSS_OUTDIR_PREFIX="tbss"                         # prefix of output directory
+TBSS_THRES="0.2 0.3 0.4"                          # cycle through some skeleton-threshold values
+TBSS_Z_TRANSFORM=1                                # z-transform FA skeletons
+TBSS_RANDOMISE_NPERM=5000                         # number of permutations (!)
+TBSS_DELETE_PREV_RUNS=1                           # delete previously created TBSS directories and files; if set, no questions will be asked (!)
+# NOTE: if you use BedpostX files from TRACULA for TBSSX, then you should chose the (*single*) appropriate switch from below to ensure proper naming
+TBSS_USE_NOEC=0                                   # use FA maps from non eddy-corrected DWIs
+TBSS_USE_EC_NOROT=0                               # use FA maps from eddy-corrected DWIs w/o b-vector compensation
+TBSS_USE_EC_BVECROT=0                             # use FA maps from eddy-corrected DWIs with b-vector compensation applied
+TBSS_USE_UNWARPED_NOROT=0                         # use FA maps from eddy-corrected & unwarped DWIs w/o b-vector compensation
+TBSS_USE_UNWARPED_BVECROT=0                       # use FA maps from eddy-corrected & unwarped DWIs with b-vector compensation applied
+TBSS_USE_TOPUP_NOEC_BVECROT=0                     # use FA maps from TOPUP-corrected DWIs (w/o eddy-correction) with b-vector compensation applied
+TBSS_USE_TOPUP_EC_BVECROT=1                       # use FA maps from TOPUP-corrected & eddy-corrected DWIs with b-vector compensation applied
+
+# VBM
+VBM_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included in the VBM analysis
+VBM_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_STRUC   # subjects to be included in the VBM analysis
+VBM_OUTDIRNAME="vbm_01"                           # name of output directory
+VBM_PTTRN_BRAIN="*_t1_betted_masked_brain.nii.gz" # search pattern for brain-extracted structurals
+VBM_PTTRN_STRUC="*_t1_struc.nii.gz"               # search pattern for original structurals (w/o skull-strip)
+VBM_SMOOTHING_KRNL="2 3 4"                        # cycle through some smoothing kernels
+VBM_Z_TRANSFORM=1                                 # z-transform grey matter 4D
+VBM_RANDOMISE_NPERM=5000                          # number of permutations (!)
+VBM_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked (!)
+
+# MELODIC GUI
+MELODIC_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS                  # subjects to be included in the ICA analysis
+MELODIC_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC             # sessions to be included in the ICA analysis
+MELODIC_INPUT_FILE="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_mni2.nii.gz" # filename of input file (in 'bold' subdirectory)
+MELODIC_OUTDIRNAME="MELODIC-GUI01"                             # output directory (ommit '.gica' suffix)
+MELODIC_PTTRN_HIGHRES_BRAIN="*_t1_betted_masked_brain.nii.gz"  # pattern of t1 skull-stripped image
+MELODIC_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                # pattern of t1 non skull-stripped image
+MELODIC_BET=0                                                  # enable betting
+MELODIC_SMOOTH=4.0                                             # smoothing kernel width in mm
+MELODIC_REGSTD_RESOLUTION=4.0                                  # resampling resolution of normalised volumes volumes
+MELODIC_HIGHPASS_CUTOFF=100                                    # high-pass filter cutoff value
+MELODIC_TEMPLATE_FILENAME="template_ICA.fsf"                   # template filename
+
+# MELODIC_CMD (optional)
+MELODIC_CMD_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS               # subjects to be included in the ICA analysis
+MELODIC_CMD_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions to be included in the ICA analysis
+MELODIC_CMD_INPUT_FILES="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_mni2.nii.gz    preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_mni4.nii.gz"   # preprocBOLD_mni_uw_mc_bold_hpf100_s4_stc0_res4.nii.gz preprocBOLD_mni_uw_mc_bold_hpf100_s2_stc0_res2.nii.gz"  # filename of input file (in 'bold' subdirectory)
+MELODIC_CMD_OUTDIR_PREFIX="MELODIC-CMD01"                       # output directory pre-fix (dir-name is composed as: ${MELODIC_OUTDIR_PREFIX}_${MELODIC_INPUT_FILE}.gica)
+MELODIC_CMD_BET=0                                               # enable betting
+MELODIC_CMD_DELETE_PREV_RUNS=1                                  # delete previously created melodic directories and files; if set, no questions will be asked (!)
+
+# DUALREG
+DUALREG_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS               # subjects that should be used with dualreg
+DUALREG_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions that should be used with dualreg
+DUALREG_INPUT_ICA_DIRNAMES="MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_mni2    MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_mni4" # where the ICs reside ; ommit suffix '.gica'
+DUALREG_IC_FILENAMES="melodic_IC.nii.gz"                    # 4D file with the IC of interest; it is to be found in the DUALREG_INPUT_ICA_DIRNAMES directories
+DUALREG_OUTDIR_PREFIX="dr"                                  # output directory pre-fix (dir-name is composed as: ${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAMES}_${DUALREG_IC_FILENAMES})
+DUALREG_NPERM=5000                                          # number of permutations
+DUALREG_DELETE_PREV_RUNS=1                                  # delete previous runs?
+# compatibility mode
+DUALREG_COMPATIBILITY=0                                     # compatibility mode with older versions of this script (when MELODIC is used for MNI-registration)
+DUALREG_INPUT_BOLD_STDSPC_FILE=uw_mc_bold_hpf120_s4_res4.nii.gz # only used in compat. mode: the input filename to MELODIC
+
+# ----------------------------------------------------------------------
+
+# misc.
+CHECK_INFOFILES=1               # check presence of info-files at startup and create default files if necessary
+BETLOWB_INFO="0.30"             # default bet values for b0 images
+BETMAGN_INFO="0.50"             # default bet values for fieldmap magnitude images
+BETSTRUC0_INFO="0.30 na na na"  # default bet values for t1 structurals (CoG na) - inital skullstrip (SSM)
+BETSTRUC1_INFO="0.10 na na na"  # default bet values for t1 structurals (CoG na) - final skullstrip (SSM)
+DWIUNWARP_INFO="+y"             # default direction values for unwarping DWIs (default: -y)
+BOLDUNWARP_INFO="+y"            # default direction values for unwarping BOLDs (default: -y)
+CHECK_CONSISTENCY_DIFFS=1       # checks number of bvals/bvecs entries at startup
+RECON_USE_CUDA=0                # use CUDA for recon-all, if available
+RANDOMISE_PARALLEL=1            # use randomise_parallel for clusters
