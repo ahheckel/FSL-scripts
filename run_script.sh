@@ -1882,7 +1882,7 @@ if [ $RECON_STG2 -eq 1 ] ; then
       chmod +x $fldr/recon-all_cuda.sh
       
       # execute...
-      fsl_sub -l $logdir -N recon-all_$(subjsess) $fldr/recon-all_cuda.sh
+      $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N recon-all_$(subjsess) $fldr/recon-all_cuda.sh
     done
   done
 fi
@@ -1910,7 +1910,7 @@ if [ $RECON_STG3 -eq 1 ] ; then
     echo "RECON : subj $subj , sess $sess : executing recon-all - unbiased template generation..."
     cmd="$cmd -all -no-isrunning -noappend -clean-tal"
     echo $cmd | tee $fldr/recon-all_base.cmd
-    fsl_sub -l $logdir -N recon-all_base_${subj} -t $fldr/recon-all_base.cmd
+    $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N recon-all_base_${subj} -t $fldr/recon-all_base.cmd
   done
 fi 
 
@@ -1930,7 +1930,7 @@ if [ $RECON_STG4 -eq 1 ] ; then
       # executing...
       echo "RECON : subj $subj , sess $sess : executing recon-all - longtitudinal stream..."
       echo $cmd | tee $fldr/recon-all_long.cmd
-      fsl_sub -l $logdir -N recon-all_long_$(subjsess) -t $fldr/recon-all_long.cmd
+      $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N recon-all_long_$(subjsess) -t $fldr/recon-all_long.cmd
     done    
   done
 fi 
@@ -2084,7 +2084,7 @@ if [ $TRACULA_STG2 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$FS_subjdir/$(subjsess)
       echo "TRACULA : subj $subj , sess $sess : executing trac-all -prep command:"
-      echo "fsl_sub -l $logdir -N trac-all-prep_$(subjsess) trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc" | tee $fldr/trac-all_prep.cmd
+      echo "$scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N trac-all-prep_$(subjsess) trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc" | tee $fldr/trac-all_prep.cmd
       #echo "trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc -log $logdir/trac-all-prep_$(subjsess)_$$" | tee $fldr/trac-all_prep.cmd 
       . $fldr/trac-all_prep.cmd
       # note: the eddy correct log file is obviously overwritten on re-run by trac-all -prep, that's what we want (eddy_correct per se would append on .log from broken runs, that's bad)
@@ -2101,7 +2101,7 @@ if [ $TRACULA_STG3 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$FS_subjdir/$(subjsess)
       echo "TRACULA : subj $subj , sess $sess : executing trac-all -bedp command:"
-      #echo "fsl_sub -l $logdir -N trac-all-bedp_$(subjsess) trac-all -no-isrunning -noappendlog -bedp -c $fldr/tracula.rc" | tee $fldr/trac-all_bedp.cmd
+      #echo "$scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N trac-all-bedp_$(subjsess) trac-all -no-isrunning -noappendlog -bedp -c $fldr/tracula.rc" | tee $fldr/trac-all_bedp.cmd
       echo "trac-all -no-isrunning -noappendlog -bedp -c $fldr/tracula.rc -log $logdir/trac-all-bedp_$(subjsess)_$$ " | tee $fldr/trac-all_bedp.cmd # bedpostx is self-submitting (!)
       . $fldr/trac-all_bedp.cmd
     done
@@ -2117,7 +2117,7 @@ if [ $TRACULA_STG4 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$FS_subjdir/$(subjsess)
       echo "subj $subj , sess $sess : executing trac-all -path command:"
-      echo "fsl_sub -l $logdir -N trac-all-paths_$(subjsess) trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc" | tee $fldr/trac-all_path.cmd
+      echo "$scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N trac-all-paths_$(subjsess) trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc" | tee $fldr/trac-all_path.cmd
       #echo "trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc -log $logdir/trac-all-paths_$(subjsess)_$$" | tee $fldr/trac-all_path.cmd
       . $fldr/trac-all_path.cmd
     done
@@ -2459,7 +2459,7 @@ for subj in `cat subjects` ; do
       uw_dir=00
     fi
     
-    for hpf_cut in $BOLD_HPF_CUTOFFS ; do
+    for hpf_cut in Inf ; do
       for sm_krnl in 0 ; do # denoising only with non-smoothed data -> smoothing carried out at the end.
         for stc_val in $BOLD_SLICETIMING_VALUES ; do
           
@@ -2477,7 +2477,7 @@ for subj in `cat subjects` ; do
           $scriptdir/denoise4D.sh $featdir/filtered_func_data "$BOLD_DENOISE_MASKS" $featdir/mc/prefiltered_func_data_mcf.par "$movpar_calcs" $featdir/filtered_func_data_denoised $subj $sess
           
           echo "BOLD : subj $subj , sess $sess : smoothing..."
-          $scriptdir/feat_smooth.sh $featdir/filtered_func_data_denoised $featdir/filtered_func_data_denoised "$BOLD_DENOISE_SMOOTHING_KRNLS" $subj $sess
+          $scriptdir/feat_smooth.sh $featdir/filtered_func_data_denoised $featdir/filtered_func_data_denoised "$BOLD_DENOISE_SMOOTHING_KRNLS" "$BOLD_DENOISE_HPF_CUTOFFS" $TR_bold $subj $sess
                     
         done # end stc_val
       done # end sm_krnl

@@ -1,5 +1,5 @@
 ToDo:
 
 update imagemagick (compile)
-update trac-all ($FREESURFER_HOME/bin)
+fsl_sub: comment out POSIXLY_CORRECT=1 <-- consult fsl list
 

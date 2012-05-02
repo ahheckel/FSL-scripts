@@ -9,7 +9,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <4dinput> <4doutput> <"FWHM kernels"> <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` <4dinput> <4doutput> <"FWHM kernels"> <"HighPass cutoffs | none"> [<TR>] <subj_idx> <sess_idx>"
     echo ""
     exit 1
 }
@@ -18,8 +18,16 @@ Usage() {
 data=`remove_ext "$1"`
 out=`remove_ext "$2"`
 BOLD_SMOOTHING_KRNLS="$3"
-subj="$4"  # optional
-sess="$5"  # optional
+hpf_cutoffs="$4"
+if [ x"$hpf_cutoffs" = "x" -o "$hpf_cutoffs" = "none" ] ; then 
+  dohpf=0
+else 
+  dohpf=1
+  tr=$5
+  shift
+fi
+subj="$5"  # optional
+sess="$6"  # optional
 
 echo "`basename $0`: subj $subj , sess $sess : smoothing $data with [ $BOLD_SMOOTHING_KRNLS ] (FWHM) kernels -> ${out}_[${BOLD_SMOOTHING_KRNLS}] ..." 
 
@@ -54,9 +62,18 @@ for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
   
   # global mean scaling
   normmean=10000
-  $(dirname $0)/feat_scale.sh ${out}_smooth ${out}_intnorm "global" $normmean $median_intensity $subj $sess
+  $(dirname $0)/feat_scale.sh ${out}_smooth ${out}_intnorm "global" $normmean $median_intensity $subj $sess  
   echo "`basename $0`: subj $subj , sess $sess : writing ${out}_s${_sm_krnl}..."
-  fslmaths ${out}_intnorm ${out}_s${_sm_krnl}              
+  fslmaths ${out}_intnorm ${out}_s${_sm_krnl}
+  
+  # high pass filtering (if applicable)
+  if [ $dohpf -eq 1 ] ; then
+    for hpf_cutoff in $hpf_cutoffs ; do
+      echo "`basename $0`: subj $subj , sess $sess : high pass filtering with cutoff $hpf_cutoff (s) -> ${out}_s${_sm_krnl}_hpf${hpf_cutoff}..."
+      $(dirname $0)/feat_hpf.sh ${out}_s${_sm_krnl} ${out}_s${_sm_krnl}_hpf${hpf_cutoff} $hpf_cutoff $tr $subj $sess
+    done # end hpf_cutoff
+    imrm ${out}_s${_sm_krnl}
+  fi
 done # end sm_krnl
 
 # cleanup
