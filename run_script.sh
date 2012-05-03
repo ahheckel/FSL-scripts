@@ -2470,7 +2470,7 @@ for subj in `cat subjects` ; do
           if [ ! -d $featdir ] ; then echo "BOLD : subj $subj , sess $sess : feat-directory '$featdir' not found ! -> breaking loop..." ; break ; fi
           
           echo "BOLD : subj $subj , sess $sess : creating masks in functional native space using FS's bbreg..."
-          $scriptdir/FS_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $featdir/example_func $featdir $subj $sess
+          $scriptdir/fs_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $featdir/example_func $featdir $subj $sess
                 
           echo "BOLD : subj $subj , sess $sess : denoising..."
           movpar_calcs=$BOLD_DENOISE_USE_MOVPARS
