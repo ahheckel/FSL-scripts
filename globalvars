@@ -87,7 +87,7 @@ TRACULA_STG4=0             # TRACULA execute -path
 
 BOLD_STG1=0                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
 BOLD_STG2=0                # BOLD execute FEAT configuration file
-BOLD_STG3=1                # BOLD denoising (needs Freesurfer recons)
+BOLD_STG3=0                # BOLD denoising (needs Freesurfer recons)
 BOLD_STG4=1                # BOLD write MNI-registered volumes
 
 ########################################################################
@@ -141,7 +141,7 @@ SGE_ROOT=""                    # set SGE_ROOT to empty, if no cluster, otherwise
 # overwrite pre-existing subject /session file (to disable set any to "")
 #FIRSTLEV_SUBJECTS="01 02 03 04 flip04 05 flip05 06 flip06 07 flip07 08 09 flip09 10" 
 #FIRSTLEV_SUBJECTS="01 02 03 04 05 06 07 08 09 10" 
-FIRSTLEV_SUBJECTS="02" 
+FIRSTLEV_SUBJECTS="01" 
 FIRSTLEV_SESSIONS_FUNC="a"               
 FIRSTLEV_SESSIONS_STRUC="a"                
 
