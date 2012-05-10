@@ -1,9 +1,21 @@
 #!/bin/bash
 
-trap 'echo "$0 : An ERROR has occured."' ERR # don't exit on trap (!)
-
 # exit on error
 set -e
+
+trap 'echo "$0 : An ERROR has occured."' ERR # don't exit on trap (!)
+
+# define current working directory
+wd=`pwd`
+# check lock
+set +e
+  echo "creating lock."
+  mkdir $wd/.lockdir121978 &>/dev/null
+  if [ $? -gt 0 ] ; then echo "$0 : --> another instance is already running - exiting." ; exit ; fi
+set -e
+
+# remove lock on exit
+trap "rmdir $wd/.lockdir121978 ; echo -e \"\nlock removed.\" ; exit" EXIT
 
 # echo date
 date
@@ -12,8 +24,37 @@ date
 source ./globalfuncs
 source ./globalvars
 
-# define current working directory
-wd=`pwd`
+# remove duplicates in string arrays (to avoid collisions on the cluster)
+FIRSTLEV_SUBJECTS=$(echo $FIRSTLEV_SUBJECTS | row2col | sort -u)
+FIRSTLEV_SESSIONS_FUNC=$(echo $FIRSTLEV_SESSIONS_FUNC | row2col | sort -u)
+FIRSTLEV_SESSIONS_STRUC=$(echo $FIRSTLEV_SESSIONS_STRUC | row2col | sort -u)
+SECONDLEV_SUBJECTS_SUBJECTS=$(echo $SECONDLEV_SUBJECTS_SUBJECTS | row2col | sort -u)
+SECONDLEV_SUBJECTS_SESSIONS_FUNC=$(echo $SECONDLEV_SUBJECTS_SESSIONS_FUNC | row2col | sort -u)
+SECONDLEV_SUBJECTS_SESSIONS_STRUC=$(echo $SECONDLEV_SUBJECTS_SESSIONS_STRUC | row2col | sort -u)
+BOLD_SLICETIMING_VALUES=$(echo $BOLD_SLICETIMING_VALUES | row2col | sort -u)
+BOLD_SMOOTHING_KRNLS=$(echo $BOLD_SMOOTHING_KRNLS | row2col | sort -u)
+BOLD_HPF_CUTOFFS=$(echo $BOLD_HPF_CUTOFFS | row2col | sort -u)
+BOLD_DENOISE_MASKS=\'$(echo $BOLD_DENOISE_MASKS | row2col | sort -u)\' # mind the \' \' -> necessary, otw. string gets split up when passed as an argument (!)
+BOLD_DENOISE_SMOOTHING_KRNLS=\'$(echo $BOLD_DENOISE_SMOOTHING_KRNLS | row2col | sort -u)\'
+BOLD_DENOISE_HPF_CUTOFFS=\'$(echo $BOLD_DENOISE_HPF_CUTOFFS | row2col | sort -u)\'
+BOLD_DENOISE_USE_MOVPARS=\'$(echo $BOLD_DENOISE_USE_MOVPARS | row2col | sort -u)\'
+BOLD_MNI_RESAMPLE_FUNCDATAS=$(echo $BOLD_MNI_RESAMPLE_FUNCDATAS | row2col | sort -u)
+BOLD_MNI_RESAMPLE_RESOLUTIONS=$(echo $BOLD_MNI_RESAMPLE_RESOLUTIONS | row2col | sort -u)
+TBSS_INCLUDED_SUBJECTS=$(echo $TBSS_INCLUDED_SUBJECTS | row2col | sort -u)
+TBSS_INCLUDED_SESSIONS=$(echo $TBSS_INCLUDED_SESSIONS | row2col | sort -u)
+TBSS_THRES=$(echo $TBSS_THRES | row2col | sort -u)
+VBM_INCLUDED_SUBJECTS=$(echo $VBM_INCLUDED_SUBJECTS | row2col | sort -u)
+VBM_INCLUDED_SESSIONS=$(echo $VBM_INCLUDED_SESSIONS | row2col | sort -u)
+VBM_SMOOTHING_KRNL=$(echo $VBM_SMOOTHING_KRNL | row2col | sort -u)
+MELODIC_INCLUDED_SUBJECTS=$(echo $MELODIC_INCLUDED_SUBJECTS | row2col | sort -u)
+MELODIC_INCLUDED_SESSIONS=$(echo $MELODIC_INCLUDED_SESSIONS | row2col | sort -u)
+MELODIC_CMD_INPUT_FILES=$(echo $MELODIC_CMD_INPUT_FILES | row2col | sort -u)
+MELODIC_CMD_INCLUDED_SUBJECTS=$(echo $MELODIC_CMD_INCLUDED_SUBJECTS | row2col | sort -u)
+MELODIC_CMD_INCLUDED_SESSIONS=$(echo $MELODIC_CMD_INCLUDED_SESSIONS | row2col | sort -u)
+DUALREG_INCLUDED_SUBJECTS=$(echo $DUALREG_INCLUDED_SUBJECTS | row2col | sort -u)
+DUALREG_INCLUDED_SESSIONS=$(echo $DUALREG_INCLUDED_SESSIONS | row2col | sort -u)
+DUALREG_INPUT_ICA_DIRNAMES=$(echo $DUALREG_INPUT_ICA_DIRNAMES | row2col | sort -u)
+DUALREG_IC_FILENAMES=$(echo $DUALREG_IC_FILENAMES | row2col | sort -u)
 
 # ----- create 1st level subject- and session files -----
 
@@ -241,96 +282,9 @@ cd $subjdir
 ###########################
 
 if [ $SCRATCH -eq 1 ]; then
-echo "----- BEGIN SCRATCH -----"
-BOLD_ESTIMATE_NUISANCE=bold.nii
-confounds="GB CSF WM MC"
+  echo "----- BEGIN SCRATCH -----"
 
-for subj in `cat subjects` ; do
-  for sess in `cat ${subj}/sessions_func` ; do
-      
-    #featdir=$subjdir/$subj/$sess/bold/$(dirname `readlink $subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE`)
-    fldr=$subjdir/$subj/$sess/bold/filt/$(remove_ext $BOLD_ESTIMATE_NUISANCE)
-
-    if [ ! -f $subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE ] ; then 
-      echo "'$subjdir/$subj/$sess/bold/$BOLD_ESTIMATE_NUISANCE' not found - exiting..." ; exit
-    fi
-    #if [ ! -f $featdir/mc/prefiltered_func_data_mcf.par ] ; then
-     # echo "motion parameter file '$featdir/mc/prefiltered_func_data_mcf.par' not found - exiting..." ; exit
-    #fi
-
-    echo "BOLD : subj $subj , sess $sess : creating directory '$fldr'"
-    mkdir -p $fldr
-    
-    #echo "BOLD : subj $subj , sess $sess : copying motion parameter file..."
-    #cp -v $featdir/mc/prefiltered_func_data_mcf.par $fldr/mc.par
-    
-    echo "BOLD : subj $subj , sess $sess : linking bold 4D..."
-    ln -sfv ../../$BOLD_ESTIMATE_NUISANCE $fldr/bold.nii.gz
-        
-    echo "BOLD : subj $subj , sess $sess : linking T1..."
-    sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
-    t1=$(remove_ext `basename $(ls $subjdir/$subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_BRAIN)`)
-    if [ ! -f  $subjdir/$subj/$sess_t1/vbm/${t1}.nii.gz ] ; then echo "BOLD : $subj , $sess : '$subj/$sess/vbm/${t1}.nii.gz' does not exist - exiting..." ; exit ; fi
-    ln -sfv ../../../../$sess_t1/vbm/${t1}.nii.gz $fldr
-    
-    npts=`countVols $fldr/bold.nii.gz` ; mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
-    echo "BOLD : subj $subj , sess $sess : executing extraction of confounds from '$fldr/bold' (using pos. $mid_pos / $npts as reference for anatomical alignment)..."
-    echo "$scriptdir/extractConfoundsFromNativeFuncs.sh $fldr/bold $fldr/albold $mid_pos $fldr/$t1" | tee $fldr/filt.cmd
-    fsl_sub -t $fldr/filt.cmd
-    
-  done
-done
-
-#for subj in `cat subjects` ; do
-  #for sess in `cat ${subj}/sessions_func` ; do
-    #echo "BOLD : subj $subj , sess $sess : creating confounds matrix [${confounds}]."
-    #fldr=$subjdir/$subj/$sess/bold/filt/$(remove_ext $BOLD_ESTIMATE_NUISANCE)
-    #cd $fldr
-    #paste -d "  " ${confounds} > confounds
-    #cd $subjdir
-  #done
-#done
-
-for subj in `cat subjects` ; do
-  for sess in `cat ${subj}/sessions_func` ; do
-    
-    fldr=$subjdir/$subj/$sess/bold/filt/$(remove_ext $BOLD_ESTIMATE_NUISANCE)
-   
-    # gather confounds
-    conf_list=""
-    for confound in $confounds ; do
-      if [ $confound = "CSF" ] ; then 
-        conf_list=$conf_list" "$fldr/tc_CSF_mask
-      fi
-      if [ $confound = "WB" ] ; then 
-        conf_list=$conf_list" "$fldr/tc_WB_mask 	
-      fi
-      if [ $confound = "WM" ] ; then 
-        conf_list=$conf_list" "$fldr/tc_WM_mask 
-      fi
-      if [ $confound = "MotionPar" ] ; then 
-        conf_list=$conf_list" "$fldr/mc.par 
-      fi
-    done
-
-    echo "BOLD : subj $subj , sess $sess : creating confounds matrix including: $conf_list"
-
-    # do confounds exist ?
-    for file in $conf_list ; do
-      if [ ! -f $file ] ; then
-      echo "ERROR: $file not found." ; errflag=1
-      fi
-    done
-    if [ $errflag -eq 1 ] ; then exit ; fi
-
-    # forge confounds matrix
-    suffix=$(echo $confounds | sed "s|" "|_|g")
-    paste -d "  " $conf_list > $fldr/confound_$suffix
-    
-  done
-done
-
-exit  
+  exit  
 fi
 
 #########################
@@ -812,7 +766,7 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
       ln -sf nodif_brain_${f}_mask.nii.gz $fldr/nodif_brain_mask.nii.gz      
     
       # averaging +/- bvecs & bvals...
-      #average $fldr/bvecsminus_concat.txt $fldr/bvecsplus_concat.txt > $fldr/avg_bvecs.txt
+      # NOTE: bvecs are averaged further below (following rotation)
       average $fldr/bvalsminus_concat.txt $fldr/bvalsplus_concat.txt > $fldr/avg_bvals.txt
       
       # rotate bvecs to compensate for eddy-correction, if applicable
@@ -1991,10 +1945,11 @@ if [ $RECON_STG5 -eq 1 ] ; then
     cmd="$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longt_head $FS_fldr/longt_brain $FS_fldr/longt_head2longt_standard none corratio $MNI_head $MNI_brain $MNI_mask $subj --"
     
     # executing...
-    cmd_file=$FS_subjdir/$subj/recon_longt2MNI.cmd
+    cmd_file=$FS_subjdir/$subj/recon_longt2fslMNI.cmd
+    log_file=recon_longt2fslMNI_${subj}
     echo "RECON : subj $subj : executing '$cmd_file'"
     echo "$cmd" | tee $cmd_file
-    fsl_sub -l $logdir -N recon_longt2MNI_${subj} -t $cmd_file
+    fsl_sub -l $logdir -N $log_file -t $cmd_file
   done
 fi
 
@@ -2444,16 +2399,19 @@ if [ $BOLD_STG3 -eq 1 ] ; then
     
     if [ x"$BOLD_DENOISE_MASKS" = "x" ] ; then echo "BOLD : subj $subj : ERROR : no masks for signal extraction specified -> no denoising possible -> breaking loop..." ; break ; fi
     
+    # substitutions
+    if [ x"$BOLD_DENOISE_SMOOTHING_KRNLS" = "x" ] ; then BOLD_DENOISE_SMOOTHING_KRNLS='0'; fi
+    if [ x"$BOLD_DENOISE_HPF_CUTOFFS" = "x" ] ; then BOLD_DENOISE_HPF_CUTOFFS='Inf' ; fi
+    if [ x"$BOLD_DENOISE_USE_MOVPARS" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS='0' ; fi
+        
     for sess in `cat ${subj}/sessions_func` ; do
+    
+      if [ ! -f $FS_subjdir/$(subjsess)/mri/aparc+aseg.mgz ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : aparc+aseg.mgz not found ! You must run recon-all first. Continuing ..." ; continue ; fi
       
       fldr=$subjdir/$subj/$sess/bold
       sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
       
-      if [ $BOLD_UNWARP -eq 1 ] ; then
-        uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
-      else 
-        uw_dir=00
-      fi
+      if [ $BOLD_UNWARP -eq 1 ] ; then uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; else uw_dir=00 ; fi
       
       for hpf_cut in Inf ; do
         for sm_krnl in 0 ; do # denoising only with non-smoothed data -> smoothing carried out at the end.
@@ -2477,8 +2435,8 @@ if [ $BOLD_STG3 -eq 1 ] ; then
             mkdir -p $featdir/noise
             ln -sf ../filtered_func_data.nii.gz $featdir/noise/filtered_func_data.nii.gz
             echo "$scriptdir/fs_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $featdir/example_func $featdir/noise $subj $sess ; \
-            $scriptdir/denoise4D.sh $featdir/noise/filtered_func_data \"$BOLD_DENOISE_MASKS\" $featdir/mc/prefiltered_func_data_mcf.par \"$BOLD_DENOISE_USE_MOVPARS\" $featdir/noise/filtered_func_data_denoised $subj $sess ; \
-            $scriptdir/feat_smooth.sh $featdir/noise/filtered_func_data_denoised $featdir/filtered_func_data_denoised \"$BOLD_DENOISE_SMOOTHING_KRNLS\" \"$BOLD_DENOISE_HPF_CUTOFFS\" $TR_bold $subj $sess" > $featdir/denoise.cmd
+            $scriptdir/denoise4D.sh $featdir/noise/filtered_func_data "$BOLD_DENOISE_MASKS" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS" $featdir/noise/filtered_func_data_denoised $subj $sess ; \
+            $scriptdir/feat_smooth.sh $featdir/noise/filtered_func_data_denoised $featdir/filtered_func_data_denoised "$BOLD_DENOISE_SMOOTHING_KRNLS" "$BOLD_DENOISE_HPF_CUTOFFS" $TR_bold $subj $sess" > $featdir/denoise.cmd
             
             # executing...
             fsl_sub -l $logdir -N bold_denoise_$(subjsess) -t $featdir/denoise.cmd
@@ -2507,6 +2465,72 @@ if [ $BOLD_STG4 -eq 1 ] ; then
   if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
   if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
   
+  if [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 1 ] ; then
+    for subj in `cat subjects` ; do
+
+      if [ ! -f $FS_subjdir/${subj}/mri/aparc+aseg.mgz ] ; then echo "BOLD : subj $subj : ERROR : aparc+aseg.mgz not found ! You must run recon-all (longtitudinal) first. Continuing ..." ; continue ; fi
+
+      for sess in `cat ${subj}/sessions_func` ; do
+      
+        echo "BOLD : subj $subj , sess $sess : performing boundary-based registration of func -> FS's longtitudinal anatomical template..."
+        
+        if [ $sess = "." ] ; then echo "BOLD : subj $subj , sess $sess : single-session design -> skipping..." ; continue ; fi
+        if [ ! -f $FS_subjdir/$(subjsess)/mri/aparc+aseg.mgz ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : aparc+aseg.mgz not found ! You must run recon-all first. Continuing ..." ; continue ; fi
+     
+        # did we unwarp ?
+        if [ $BOLD_UNWARP -eq 1 ] ; then uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; else uw_dir=00 ; fi
+              
+        # FS's bbreg based registration, if applicable
+        for hpf_cut in $BOLD_HPF_CUTOFFS ; do
+          for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+            for stc_val in $BOLD_SLICETIMING_VALUES ; do
+              
+              # define feat-dir.
+              _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
+              featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.feat
+              
+              # check feat-dir.
+              if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi              
+            
+              echo "BOLD : subj $subj , sess $sess : copying registrations from '$FS_subjdir/$subj/fsl_reg/' to '$featdir/reg_longt/'..."
+              mkdir -p $featdir/reg_longt
+              cp $FS_subjdir/$subj/fsl_reg/* $featdir/reg_longt/
+
+              # cleanup prev. bbreg. runs
+              rm -rf $featdir/reg_longt/tmp.bbregister.*
+              
+              # needful vars
+              affine=$featdir/reg_longt/example_func2longt_brain.mat
+              cmd_file=$featdir/bold_bbr-longt.cmd
+              log_file=bold_bbr-longt_$(subjsess)
+              sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`              
+              
+              echo "BOLD : subj $subj , sess $sess : converting '${subj}${sess_t1}_to_${subj}.lta' -> '${subj}${sess_t1}_to_${subj}.mat' (FSL-style)..."
+              echo "BOLD : subj $subj , sess $sess : using FS's bbreg to register 'example_func.nii.gz' -> FS's structural (ID '${subj}${sess_t1}')..."
+              echo "BOLD : subj $subj , sess $sess : writing example_func -> FS's structural..."
+              echo "BOLD : subj $subj , sess $sess : concatenating matrices..."
+              
+              echo "tkregister2 --noedit --mov $FS_subjdir/${subj}${sess_t1}/mri/norm.mgz --targ $FS_subjdir/$subj/mri/norm_template.mgz --lta $FS_subjdir/$subj/mri/transforms/${subj}${sess_t1}_to_${subj}.lta --fslregout $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat --reg $tmpdir/deleteme.reg.dat ;\
+              bbregister --s ${subj}${sess_t1} --mov $featdir/example_func.nii.gz --init-fsl --reg $featdir/reg_longt/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg_longt/example_func2highres_bbr.mat ;\
+              mri_convert $FS_subjdir/${subj}${sess_t1}/mri/T1.mgz $featdir/reg_longt/T1.nii.gz ;\
+              flirt -in $featdir/example_func.nii.gz -ref $featdir/reg_longt/T1.nii.gz -init $featdir/reg_longt/example_func2highres_bbr.mat -applyxfm -out $featdir/reg_longt/example_func2highres_bbr ;\
+              fslreorient2std $featdir/reg_longt/T1 $featdir/reg_longt/highres ;\
+              fslreorient2std $featdir/reg_longt/example_func2highres_bbr $featdir/reg_longt/example_func2highres_bbr ;\
+              imrm $featdir/reg_longt/T1 ;\
+              convert_xfm -omat $affine -concat $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat $featdir/reg_longt/example_func2highres_bbr.mat" > $cmd_file
+              
+              fsl_sub -l $logdir -N $log_file -t $cmd_file    
+              
+             done # end stc_val
+          done # end sm_krnl
+        done # end hpf_cut
+
+      done
+    done
+  fi
+  
+  waitIfBusy
+  
   for subj in `cat subjects` ; do
     
     if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : ERROR : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
@@ -2514,11 +2538,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_func` ; do
     
       # did we unwarp ?
-      if [ $BOLD_UNWARP -eq 1 ] ; then
-        uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
-      else 
-        uw_dir=00
-      fi     
+      if [ $BOLD_UNWARP -eq 1 ] ; then uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; else uw_dir=00 ; fi
       
       # write out MNI-registered volumes
       for hpf_cut in $BOLD_HPF_CUTOFFS ; do
@@ -2536,46 +2556,18 @@ if [ $BOLD_STG4 -eq 1 ] ; then
             echo "BOLD : subj $subj , sess $sess : featregapply -> '$featdir/reg_standard'..."
             featregapply $featdir
             
-            if [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 1 ] ; then
-            
+            if [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 1 ] ; then            
               T1_file=$featdir/reg_longt/longt_brain # see RECON_STG5
               MNI_file=$featdir/reg_longt/longt_standard
               affine=$featdir/reg_longt/example_func2longt_brain.mat
               warp=$featdir/reg_longt/longt_head2longt_standard_warp
-              ltag="_longt"
-              
-              echo "BOLD : subj $subj , sess $sess : copying registrations from '$FS_subjdir/$subj/fsl_reg/' to '$featdir/reg_longt/'..."
-              mkdir -p $featdir/reg_longt
-              cp $FS_subjdir/$subj/fsl_reg/* $featdir/reg_longt/
-
-              # cleanup prev. bbreg. runs
-              rm -rf $featdir/reg_longt/tmp.bbregister.*
-              
-              sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`              
-              echo "BOLD : subj $subj , sess $sess : converting '${subj}${sess_t1}_to_${subj}.lta' -> '${subj}${sess_t1}_to_${subj}.mat' (FSL-style)..."
-              tkregister2 --noedit --mov $FS_subjdir/${subj}${sess_t1}/mri/norm.mgz --targ $FS_subjdir/$subj/mri/norm_template.mgz --lta $FS_subjdir/$subj/mri/transforms/${subj}${sess_t1}_to_${subj}.lta --fslregout $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat --reg $tmpdir/deleteme.reg.dat 1>/dev/null
-              
-              echo "BOLD : subj $subj , sess $sess : using FS's bbreg to register 'example_func.nii.gz' -> FS's structural (ID '${subj}${sess_t1}')..."
-              bbregister --s ${subj}${sess_t1} --mov $featdir/example_func.nii.gz --init-fsl --reg $featdir/reg_longt/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg_longt/example_func2highres_bbr.mat 1>/dev/null
-              
-              echo "BOLD : subj $subj , sess $sess : writing example_func -> FS's structural..."
-              mri_convert $FS_subjdir/${subj}${sess_t1}/mri/T1.mgz $featdir/reg_longt/T1.nii.gz 1>/dev/null
-              flirt -in $featdir/example_func.nii.gz -ref $featdir/reg_longt/T1.nii.gz -init $featdir/reg_longt/example_func2highres_bbr.mat -applyxfm -out $featdir/reg_longt/example_func2highres_bbr
-              fslreorient2std $featdir/reg_longt/T1 $featdir/reg_longt/highres
-              fslreorient2std $featdir/reg_longt/example_func2highres_bbr $featdir/reg_longt/example_func2highres_bbr
-              imrm $featdir/reg_longt/T1
-              
-              echo "BOLD : subj $subj , sess $sess : concatenating matrices..."
-              convert_xfm -omat $affine -concat $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat $featdir/reg_longt/example_func2highres_bbr.mat              
-              
-            else
-            
+              ltag="_longt"   
+            else            
               T1_file=$featdir/reg/highres
               MNI_file=$featdir/reg/standard
               affine=$featdir/reg/example_func2highres.mat
               warp=$featdir/reg/highres2standard_warp
-              ltag=""
-            
+              ltag=""            
             fi
 
             # execute...
@@ -2595,7 +2587,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
                 resampled_MNI_file=$featdir/reg_standard/$(basename $MNI_file)_${_mni_res}.nii.gz
                 MNI_T1_file=$featdir/reg_standard/$(basename $T1_file)_${_mni_res}.nii.gz
                 cmd_file=$featdir/mni_write_$(basename $in_file)${ltag}_res${_mni_res}.cmd
-                log_file=bold_write_MNI_$(basename $in_file)${ltag}_res${_mni_res}_$(subjsess)
+                log_file=bold_writeMNI_$(basename $in_file)${ltag}_res${_mni_res}_$(subjsess)
                 
                 # resampling standard
                 if [ ! -f $resampled_MNI_file ] ; then
