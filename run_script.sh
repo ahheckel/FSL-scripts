@@ -1495,8 +1495,19 @@ if [ $VBM_STG1 -eq 1 ] ; then
       # convert to .mnc & perform non-uniformity correction
       if [ $VBM_NU_CORRECT_T1 -eq 1 ] ; then
         echo "VBM PREPROC : subj $subj , sess $sess : performing non-uniformity correction..."
-        mri_convert ${fldr}/$(subjsess)_t1_flipped.nii.gz $fldr/tmp.mnc &>$logdir/vbm_mri_convert01_$(subjsess) 
+        mri_convert ${fldr}/$(subjsess)_t1_flipped.nii.gz $fldr/tmp.mnc # &>$logdir/vbm_mri_convert01_$(subjsess) 
         fsl_sub -l $logdir -N vbm_nu_correct_$(subjsess) nu_correct -clobber $fldr/tmp.mnc $fldr/t1_nu_struc.mnc
+      fi
+      
+      # also obtain skull-stripped volumes from FREESURFER, if available
+      if [ -f $FS_subjdir/$(subjsess)/mri/brain.mgz ] ; then
+        echo "VBM PREPROC : subj $subj , sess $sess : obtaining skull-stripped FREESURFER volumes (-> '$(subjsess)_FS_brain.nii.gz' & '$(subjsess)_FS_struc.nii.gz')..."
+        mri_convert $FS_subjdir/$(subjsess)/mri/brain.mgz $fldr/$(subjsess)_FS_brain.nii.gz
+        mri_convert $FS_subjdir/$(subjsess)/mri/T1.mgz $fldr/$(subjsess)_FS_struc.nii.gz
+        fslreorient2std $fldr/$(subjsess)_FS_brain.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz
+        fslreorient2std $fldr/$(subjsess)_FS_struc.nii.gz $fldr/$(subjsess)_FS_struc.nii.gz
+      else
+        echo "VBM PREPROC : subj $subj , sess $sess : FREESURFER processed MRIs not found."
       fi
     done
   done
@@ -1953,16 +1964,16 @@ if [ $RECON_STG5 -eq 1 ] ; then
     # prepare...
     echo "RECON : subj $subj : preparing..."
     FS_fldr=$FS_subjdir/$subj/fsl_reg ; mkdir -p $FS_fldr
-    MNI_head=$FS_fldr/standard_head.nii.gz
-    MNI_brain=$FS_fldr/standard.nii.gz
-    MNI_mask=$FS_fldr/standard_mask.nii.gz
+    MNI_brain=$FS_fldr/longt_standard.nii.gz
+    MNI_head=$FS_fldr/longt_standard_head.nii.gz
+    MNI_mask=$FS_fldr/longt_standard_mask.nii.gz
     cp -v $FSL_DIR/data/standard/MNI152_T1_2mm.nii.gz $MNI_head
     cp -v $FSL_DIR/data/standard/MNI152_T1_2mm_brain.nii.gz $MNI_brain
     cp -v $FSL_DIR/data/standard/MNI152_T1_2mm_brain_mask_dil.nii.gz $MNI_mask
     
     # convert to FSL-format
-    $scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/T1.mgz $FS_fldr/longthead.nii.gz 0
-    $scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/norm_template.mgz $FS_fldr/longtbrain.nii.gz 0 
+    $scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/T1.mgz $FS_fldr/longt_head.nii.gz 0
+    $scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/norm_template.mgz $FS_fldr/longt_brain.nii.gz 0 
           
     #MNI_head_LIA=$FS_fldr/standard_head_LIA
     #MNI_brain_LIA=$FS_fldr/standard_brain_LIA
@@ -1977,7 +1988,7 @@ if [ $RECON_STG5 -eq 1 ] ; then
     #$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longthead $FS_fldr/longtbrain $FS_fldr/longthead2standard "none" "corratio" ${MNI_head_LIA} ${MNI_brain_LIA} ${MNI_mask_LIA} $subj "/"
     
     # generate command line
-    cmd="$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longthead $FS_fldr/longtbrain $FS_fldr/longthead2standard none corratio $MNI_head $MNI_brain $MNI_mask $subj --"
+    cmd="$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longt_head $FS_fldr/longt_brain $FS_fldr/longt_head2longt_standard none corratio $MNI_head $MNI_brain $MNI_mask $subj --"
     
     # executing...
     cmd_file=$FS_subjdir/$subj/recon_longt2MNI.cmd
@@ -2527,25 +2538,16 @@ if [ $BOLD_STG4 -eq 1 ] ; then
             
             if [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 1 ] ; then
             
-              T1_file=$featdir/reg_longt/longtbrain # see RECON_STG5
-              MNI_file=$featdir/reg_longt/standard
-              affine=$featdir/reg_longt/example_func2longtbrain.mat
-              warp=$featdir/reg_longt/longthead2standard_warp
+              T1_file=$featdir/reg_longt/longt_brain # see RECON_STG5
+              MNI_file=$featdir/reg_longt/longt_standard
+              affine=$featdir/reg_longt/example_func2longt_brain.mat
+              warp=$featdir/reg_longt/longt_head2longt_standard_warp
               ltag="_longt"
               
               echo "BOLD : subj $subj , sess $sess : copying registrations from '$FS_subjdir/$subj/fsl_reg/' to '$featdir/reg_longt/'..."
               mkdir -p $featdir/reg_longt
               cp $FS_subjdir/$subj/fsl_reg/* $featdir/reg_longt/
-              #cp $FS_subjdir/$subj/fsl_reg/longthead2standard_warp.nii.gz $featdir/reg/
-              #cp $FS_subjdir/$subj/fsl_reg/longthead2standard_jac.nii.gz $featdir/reg/
-              #cp $FS_subjdir/$subj/fsl_reg/longthead2standard.nii.gz $featdir/reg/
-              #cp $FS_subjdir/$subj/fsl_reg/longtbrain.nii.gz $featdir/reg/
-              #cp $FS_subjdir/$subj/fsl_reg/longthead.nii.gz $featdir/reg/
-              #cp $FS_subjdir/$subj/fsl_reg/MNI_head.nii.gz $featdir/reg/
-              #cp $FS_subjdir/$subj/fsl_reg/MNI_brain.nii.gz $featdir/reg/
-              #cp $FS_subjdir/$subj/fsl_reg/MNI_mask.nii.gz $featdir/reg/
-              #cp $FS_subjdir/$subj/fsl_reg/longtbrain2standard.mat $featdir/reg/
-                                           
+
               # cleanup prev. bbreg. runs
               rm -rf $featdir/reg_longt/tmp.bbregister.*
               
@@ -2590,20 +2592,24 @@ if [ $BOLD_STG4 -eq 1 ] ; then
                 _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'
                                   
                 out_file=$featdir/reg_standard/$(basename $in_file)${ltag}_mni${_mni_res}
+                resampled_MNI_file=$featdir/reg_standard/$(basename $MNI_file)_${_mni_res}.nii.gz
+                MNI_T1_file=$featdir/reg_standard/$(basename $T1_file)_${_mni_res}.nii.gz
                 cmd_file=$featdir/mni_write_$(basename $in_file)${ltag}_res${_mni_res}.cmd
                 log_file=bold_write_MNI_$(basename $in_file)${ltag}_res${_mni_res}_$(subjsess)
                 
-                if [ ! -f $featdir/reg_standard/$(basename $MNI_file)_${_mni_res}.nii.gz ] ; then
-                  echo "BOLD : subj $subj , sess $sess : resampling standard '$MNI_file' to resolution $mni_res..."
-                  flirt -ref $MNI_file -in $MNI_file -out $featdir/reg_standard/$(basename $MNI_file)_${_mni_res} -applyisoxfm $mni_res
+                # resampling standard
+                if [ ! -f $resampled_MNI_file ] ; then
+                  echo "BOLD : subj $subj , sess $sess : resampling standard '$(basename $MNI_file)' to resolution $mni_res..."
+                  flirt -ref $MNI_file -in $MNI_file -out $resampled_MNI_file -applyisoxfm $mni_res
                 fi
                 
-                if [ ! -f $featdir/reg_standard/$(basename $T1_file)_${_mni_res}.nii.gz ] ; then
-                  echo "BOLD : subj $subj , sess $sess : registering highres '$T1_file' to '$MNI_file'..."
-                  applywarp --ref=$featdir/reg_standard/$(basename $MNI_file)_${_mni_res} --in=${T1_file} --out=$featdir/reg_standard/$(basename $T1_file)_${_mni_res} --warp=${warp}  --interp=sinc
+                # writing registration T1->standard
+                if [ ! -f $MNI_T1_file ] ; then
+                  echo "BOLD : subj $subj , sess $sess : writing registration highres '$(basename $T1_file)' -> '$(basename $MNI_file)'..."
+                  applywarp --ref=$resampled_MNI_file --in=${T1_file} --out=$MNI_T1_file --warp=${warp}  --interp=sinc
                 fi
                 
-                echo "BOLD : subj $subj , sess $sess : writing MNI-registered 4D BOLD '$out_file' to '$(dirname $out_file)/'."
+                echo "BOLD : subj $subj , sess $sess : writing MNI-registered 4D BOLD '$(basename $out_file)' to '$(dirname $out_file)/'."
                                 
                 # create command for fsl_sub
                 echo "$scriptdir/feat_writeMNI.sh $in_file $T1_file $MNI_file $out_file $mni_res $affine $warp $interp $subj $sess" > $cmd_file

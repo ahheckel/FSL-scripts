@@ -30,6 +30,7 @@ _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'
 
 echo "`basename $0`: subj $subj , sess $sess : output directory: '$outdir'"
 
+# commented out so as to make parallelisation safer
 #echo "`basename $0`: subj $subj , sess $sess : resample MNI-template to a resolution of $mni_res ('$MNI' -> '$outdir/$(basename $MNI)_${_mni_res}')..." 
 #flirt -ref $MNI -in $MNI -out $outdir/$(basename $MNI)_${_mni_res} -applyisoxfm $mni_res
 
