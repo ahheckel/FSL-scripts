@@ -1,6 +1,6 @@
 #!/bin/bash
 
-trap 'echo "$0 : An ERROR has occured."' ERR
+trap 'echo "$0 : An ERROR has occured."' ERR # don't exit on trap (!)
 
 # exit on error
 set -e
@@ -1850,13 +1850,13 @@ if [ $RECON_STG1 -eq 1 ] ; then
       mkdir -p $fldr
       
       # reorient to please fslview
-      echo "RECON : subj $subj , sess $sess : reorienting T1 to please fslview..."
+      echo "RECON : subj $subj , sess $sess : reorienting T1 to please fslview..." 
       file=`ls ${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check pattern (!)
       fslreorient2std $file $fldr/tmp_t1
       
       # convert to .mgz
       echo "RECON : subj $subj , sess $sess : converting T1 to .mgz format..."
-      mri_convert $fldr/tmp_t1.nii.gz $fldr/001.mgz &>$logdir/recon_mri_convert_$(subjsess)
+      mri_convert $fldr/tmp_t1.nii.gz $fldr/001.mgz &>$logdir/recon_mri_convert_$(subjsess) # fslreorient2std above is probably useless...
       rm -f $fldr/tmp_t1.nii.gz
     done
   done
@@ -1892,7 +1892,7 @@ waitIfBusy
 if [ $RECON_STG3 -eq 1 ] ; then
   echo "----- BEGIN RECON_STG3 -----"
   for subj in `cat subjects`; do
-    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj , sess $sess : single-session design ! Skipping longtitudinal freesurfer stream..." ; continue ; fi
+    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj : single-session design ! Skipping longtitudinal freesurfer stream..." ; continue ; fi
     
     # create template dir.
     fldr=$FS_subjdir/$subj
@@ -1919,7 +1919,7 @@ waitIfBusy
 if [ $RECON_STG4 -eq 1 ] ; then
   echo "----- BEGIN RECON_STG4 -----"
   for subj in `cat subjects`; do
-    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj , sess $sess : single-session design ! Skipping longtitudinal freesurfer stream..." ; continue ; fi
+    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj : single-session design ! Skipping longtitudinal freesurfer stream..." ; continue ; fi
     
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$FS_subjdir/$(subjsess)
@@ -1934,6 +1934,56 @@ if [ $RECON_STG4 -eq 1 ] ; then
     done    
   done
 fi 
+
+waitIfBusy
+
+if [ $RECON_STG5 -eq 1 ] ; then
+  echo "----- BEGIN RECON_STG5 -----"
+
+  # register Freesurfer's longt. template to FSL'S MNI152
+  for subj in `cat subjects` ; do
+    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj : single-session design ! Skipping..." ; continue ; fi
+        
+    # display info
+    echo "RECON : subj $subj : registering Freesurfer's longtitudinal template to FSL's MNI152 template..."
+    
+    # check
+    if [ ! -f $FS_subjdir/$subj/mri/norm_template.mgz ] ; then "RECON : subj $subj : longtitudinal template not found ! Skipping..." ; continue ; fi
+    
+    # prepare...
+    echo "RECON : subj $subj : preparing..."
+    FS_fldr=$FS_subjdir/$subj/fsl_reg ; mkdir -p $FS_fldr
+    MNI_head=$FS_fldr/MNI_head.nii.gz
+    MNI_brain=$FS_fldr/MNI_brain.nii.gz
+    MNI_mask=$FS_fldr/MNI_mask.nii.gz
+    cp -v $FSL_DIR/data/standard/MNI152_T1_2mm.nii.gz $MNI_head
+    cp -v $FSL_DIR/data/standard/MNI152_T1_2mm_brain.nii.gz $MNI_brain
+    cp -v $FSL_DIR/data/standard/MNI152_T1_2mm_brain_mask_dil.nii.gz $MNI_mask
+    
+    $scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/T1.mgz $FS_fldr/longthead.nii.gz 0
+    $scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/norm_template.mgz $FS_fldr/longtbrain.nii.gz 0 
+          
+    #MNI_head_LIA=$FS_fldr/standard_head_LIA
+    #MNI_brain_LIA=$FS_fldr/standard_brain_LIA
+    #MNI_mask_LIA=$FS_fldr/standard_mask_LIA      
+    #echo "BOLD : subj $subj : reorienting FSL's MNI152 template LAS -> LIA..."
+    #fslswapdim $FSL_DIR/data/standard/MNI152_T1_2mm RL SI PA ${MNI_head_LIA}
+    #fslswapdim $FSL_DIR/data/standard/MNI152_T1_2mm_brain RL SI PA ${MNI_brain_LIA}
+    #fslswapdim $FSL_DIR/data/standard/MNI152_T1_2mm_brain_mask_dil RL SI PA ${MNI_mask_LIA}      
+    #echo "BOLD : subj $subj : registering Freesurfer longtitudinal template to FSL's MNI152 space..."
+    #$scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/T1.mgz $FS_fldr/longthead.nii.gz 0
+    #$scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/norm_template.mgz $FS_fldr/longtbrain.nii.gz 0
+    #$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longthead $FS_fldr/longtbrain $FS_fldr/longthead2standard "none" "corratio" ${MNI_head_LIA} ${MNI_brain_LIA} ${MNI_mask_LIA} $subj "/"
+    
+    # generate command line
+    cmd="$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longthead $FS_fldr/longtbrain $FS_fldr/longthead2standard none corratio $MNI_head $MNI_brain $MNI_mask $subj --"
+    
+    # executing...
+    echo "RECON : subj $subj : executing '$FS_subjdir/$subj/recon_longt2MNI.cmd'"
+    echo "$cmd" | tee $FS_subjdir/$subj/recon_longt2MNI.cmd
+    fsl_sub -l $logdir -N recon_longt2MNI_${subj} -t $FS_subjdir/$subj/recon_longt2MNI.cmd
+  done
+fi
 
 #########################
 # ----- END RECON -----
@@ -2148,72 +2198,8 @@ if [ $BOLD_STG1 -eq 1 ] ; then
   if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
   if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
   
-  # compute unbiased longt. template
-  if [ $BOLD_UNBIASED_TEMPLATE -eq 1 ] ; then
-    # for BOLDs
-    for subj in `cat subjects` ; do      
-      echo "BOLD : subj $subj : computing unbiased longt. template (BOLD)..."
-      exf_list=""
-      
-      for sess in `cat ${subj}/sessions_func` ; do
-        aex=$(ls $subjdir/$subj/$sess/$pttrn_bolds | tail -n 1)
-        npts=`countVols $aex`
-        mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
-        echo "BOLD : subj $subj : sess $sess : extracting example-func for unbiased template creation from '$aex' at pos. $mid_pos..."
-        fslroi $aex $subjdir/$subj/$sess/bold/exfunc4template $mid_pos 1
-        exf_templ=$subjdir/$subj/$sess/bold/exfunc4template
-        
-        if [ $BOLD_BET_EXFUNC -eq 1 ] ; then
-          echo "BOLD : subj $subj : sess $sess : betting..."
-          bet $exf_templ ${exf_templ}_betted -f 0.3
-          exf_templ=${exf_templ}_betted        
-        fi
-        
-        echo "BOLD : subj $subj : sess $sess : intensity scaling to please mri_robust_template..."
-        fslmaths ${exf_templ} -inm 10000 ${exf_templ} -odt float
-        exf_list=$exf_list" "${exf_templ}.nii.gz
-      done
-      
-      altExFunc=$subjdir/$subj/unbiased_template_bold
-      echo "BOLD : subj $subj : computing '$altExFunc'..."
-      fsl_sub -l $logdir -N bold_mri_robust_template_${subj} mri_robust_template --mov $exf_list --template ${altExFunc}.nii.gz --average 0 -iscale -satit   
-    done
-    
-    # for T1s
-    for subj in `cat subjects` ; do  
-      echo "BOLD : subj $subj : computing unbiased longt. template (T1)..."
-      t1_list=""
-      for sess in `cat ${subj}/sessions_struc` ; do
-        t1_list=$t1_list" "$subjdir/$subj/$sess/vbm/$(subjsess)_t1_nu_struc.nii.gz
-      done
-      t1_templ=$subjdir/$subj/unbiased_template_t1
-      fsl_sub -l $logdir -N t1_mri_robust_template_${subj} mri_robust_template --mov $t1_list --template ${t1_templ}.nii.gz --average 0 -iscale -satit   
-    done
-  fi
-  
-  waitIfBusy
-  
   for subj in `cat subjects` ; do
     if [ -z $pttrn_bolds ] ; then echo "BOLD : ERROR : no search pattern for BOLD filenames given - breaking loop..." ; break ; fi
-    
-    # define altExFunc
-    if [ x"$BOLD_REGISTER_TO_SESS" != "x" -a $BOLD_UNBIASED_TEMPLATE -eq 0 ] ; then
-      aex=$(ls $subjdir/$subj/$BOLD_REGISTER_TO_SESS/$pttrn_bolds | tail -n 1)
-      npts=`countVols $aex`
-      mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
-      altExFunc=$subjdir/$subj/$BOLD_REGISTER_TO_SESS/bold/altexfunc
-      
-      echo "BOLD : subj $subj : extracting alternative example func from '$aex' at pos. $mid_pos..."
-      mkdir -p $subjdir/$subj/$BOLD_REGISTER_TO_SESS/bold      
-      cmd="fslroi $aex $altExFunc $mid_pos 1"
-      echo $cmd ; $cmd
-      fslmaths $altExFunc $altExFunc -odt float      
-      
-      if [ $BOLD_BET_EXFUNC -eq 1 ] ; then
-        bet $altExFunc ${altExFunc}_betted -f 0.3
-        altExFunc=${altExFunc}_betted
-      fi
-    fi  
     
     for sess in `cat ${subj}/sessions_func` ; do
       
@@ -2251,13 +2237,9 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       # create symlinks to t1-structurals (highres registration reference)
       if [ $BOLD_REGISTER_TO_MNI -eq 1 ] ; then
         echo "BOLD : subj $subj , sess $sess : creating symlinks to t1-structurals (highres registration reference)..."
-        if [ x"$BOLD_REGISTER_TO_SESS" != "x"  ] ; then
-          sess_t1=$BOLD_REGISTER_TO_SESS
-        else 
-          line=`cat $subjdir/config_func2highres.reg | awk '{print $1}' | grep -nx $(subjsess) | cut -d : -f1`
-          sess_t1=`cat $subjdir/config_func2highres.reg | awk '{print $2}' | sed -n ${line}p `
-          if [ $sess_t1 = '.' ] ; then sess_t1="" ; fi # single-session design         
-        fi
+        line=`cat $subjdir/config_func2highres.reg | awk '{print $1}' | grep -nx $(subjsess) | cut -d : -f1`
+        sess_t1=`cat $subjdir/config_func2highres.reg | awk '{print $2}' | sed -n ${line}p `
+        if [ $sess_t1 = '.' ] ; then sess_t1="" ; fi # single-session design   
         t1_brain=$fldr/${subj}${sess_t1}_t1_brain.nii.gz
         t1_struc=$fldr/${subj}${sess_t1}_t1.nii.gz
         feat_t1struc=`ls $subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_STRUC` ; feat_t1brain=`ls $subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_BRAIN`
@@ -2268,7 +2250,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       fi
       
       # preparing alternative example func
-      if [ $BOLD_BET_EXFUNC -eq 1 -a x"$BOLD_REGISTER_TO_SESS" = "x" -a $BOLD_UNBIASED_TEMPLATE -eq 0 ] ; then
+      if [ $BOLD_BET_EXFUNC -eq 1 ] ; then
         mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
         echo "BOLD : subj $subj , sess $sess : betting bold at pos. $mid_pos / $npts and using as example_func..."
         altExFunc=$fldr/exfunc_betted
@@ -2309,7 +2291,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
               sed -i "s|set fmri(st) .*|set fmri(st) $stc_val|g" $conffile
               
               # set alternative example func
-              if [ $BOLD_BET_EXFUNC -eq 1 -o x"$BOLD_REGISTER_TO_SESS" != "x" -o $BOLD_UNBIASED_TEMPLATE -eq 1 ] ; then 
+              if [ $BOLD_BET_EXFUNC -eq 1 ] ; then 
                 sed -i "s|set fmri(alternative_example_func) .*|set fmri(alternative_example_func) \"$altExFunc\"|g" $conffile 
               fi
               
@@ -2469,16 +2451,22 @@ for subj in `cat subjects` ; do
           
           if [ ! -d $featdir ] ; then echo "BOLD : subj $subj , sess $sess : feat-directory '$featdir' not found ! -> breaking loop..." ; break ; fi
           
-          echo "BOLD : subj $subj , sess $sess : creating masks in functional native space using FS's bbreg..."
-          $scriptdir/fs_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $featdir/example_func $featdir $subj $sess
-                
-          echo "BOLD : subj $subj , sess $sess : denoising..."
-          movpar_calcs=$BOLD_DENOISE_USE_MOVPARS
-          $scriptdir/denoise4D.sh $featdir/filtered_func_data "$BOLD_DENOISE_MASKS" $featdir/mc/prefiltered_func_data_mcf.par "$movpar_calcs" $featdir/filtered_func_data_denoised $subj $sess
+          # cleanup prev. bbreg. runs
+          rm -rf $featdir/tmp.bbregister.*
           
+          # display info
+          echo "BOLD : subj $subj , sess $sess : creating masks in functional native space using FS's bbreg..."
+          echo "BOLD : subj $subj , sess $sess : denoising..."
           echo "BOLD : subj $subj , sess $sess : smoothing..."
-          $scriptdir/feat_smooth.sh $featdir/filtered_func_data_denoised $featdir/filtered_func_data_denoised "$BOLD_DENOISE_SMOOTHING_KRNLS" "$BOLD_DENOISE_HPF_CUTOFFS" $TR_bold $subj $sess
-                    
+          
+          # creating command for fsl_sub
+          echo "$scriptdir/fs_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $featdir/example_func $featdir $subj $sess ; \
+          $scriptdir/denoise4D.sh $featdir/filtered_func_data \"$BOLD_DENOISE_MASKS\" $featdir/mc/prefiltered_func_data_mcf.par \"$BOLD_DENOISE_USE_MOVPARS\" $featdir/filtered_func_data_denoised $subj $sess ; \
+          $scriptdir/feat_smooth.sh $featdir/filtered_func_data_denoised $featdir/filtered_func_data_denoised \"$BOLD_DENOISE_SMOOTHING_KRNLS\" \"$BOLD_DENOISE_HPF_CUTOFFS\" $TR_bold $subj $sess" > $featdir/denoise.cmd
+          
+          # executing...
+          fsl_sub -l $logdir -N bold_denoise_$(subjsess) -t $featdir/denoise.cmd                
+          
         done # end stc_val
       done # end sm_krnl
     done # end hpf_cut
@@ -2502,11 +2490,11 @@ if [ $BOLD_STG4 -eq 1 ] ; then
   # carry out substitutions
   if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
   if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
-
+  
   for subj in `cat subjects` ; do
     
     if [ -z "$BOLD_MNI_RESAMPLE_RESOLUTIONS" -o "$BOLD_MNI_RESAMPLE_RESOLUTIONS" = "0" ] ; then echo "BOLD : ERROR : no resampling-resolutions for the MNI-registered BOLDs defined - breaking loop..." ; break ; fi
-    
+
     for sess in `cat ${subj}/sessions_func` ; do
     
       # did we unwarp ?
@@ -2538,44 +2526,92 @@ if [ $BOLD_STG4 -eq 1 ] ; then
               
               for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do
 
-                _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'              
-
-                in_file=$featdir/$(remove_ext $data_file)
-                T1_file=$featdir/reg/highres
-                MNI_file=$featdir/reg/standard
-                out_file=$featdir/reg_standard/$(basename $in_file)_mni${_mni_res}
-                affine=$featdir/reg/example_func2highres.mat
-                warp=$featdir/reg/highres2standard_warp
-                cmd_file=$featdir/mni_write_$(basename $in_file)_res${_mni_res}.cmd
-                log_file=bold_write_MNI_$(basename $in_file)_res${_mni_res}_$(subjsess)
-                   
-                echo "BOLD : subj $subj , sess $sess : writing MNI-registered 4D BOLD '$out_file' to '${featdir}/reg_standard'."
+                _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'
+                                
+                if [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 1 ] ; then
                 
-                echo "featregapply $featdir ; $scriptdir/feat_writeMNI.sh $in_file $T1_file $MNI_file $out_file $mni_res $affine $warp $interp $subj $sess" > $cmd_file
+                  in_file=$featdir/$(remove_ext $data_file)
+                  T1_file=$featdir/reg/longtbrain
+                  MNI_file=$featdir/reg/MNI_brain
+                  out_file=$featdir/reg_standard/$(basename $in_file)_longt_mni${_mni_res}
+                  affine=$featdir/reg/longtbrain2standard.mat
+                  warp=$featdir/reg/longthead2standard_warp
+                  cmd_file=$featdir/mni_write_$(basename $in_file)_longt_res${_mni_res}.cmd
+                  log_file=bold_write_MNI_$(basename $in_file)_longt_res${_mni_res}_$(subjsess)
+                  
+                  echo "BOLD : subj $subj , sess $sess : copying registrations from '$FS_subjdir/$subj/fsl_reg/' to '$featdir/reg/'..."
+                  #cp $FS_subjdir/$subj/fsl_reg/* $featdir/reg/
+                  cp $FS_subjdir/$subj/fsl_reg/longthead2standard_warp.nii.gz $featdir/reg/
+                  cp $FS_subjdir/$subj/fsl_reg/longthead2standard_jac.nii.gz $featdir/reg/
+                  cp $FS_subjdir/$subj/fsl_reg/longthead2standard.nii.gz $featdir/reg/
+                  cp $FS_subjdir/$subj/fsl_reg/longtbrain.nii.gz $featdir/reg/
+                  cp $FS_subjdir/$subj/fsl_reg/longthead.nii.gz $featdir/reg/
+                  cp $FS_subjdir/$subj/fsl_reg/MNI_head.nii.gz $featdir/reg/
+                  cp $FS_subjdir/$subj/fsl_reg/MNI_brain.nii.gz $featdir/reg/
+                  cp $FS_subjdir/$subj/fsl_reg/MNI_mask.nii.gz $featdir/reg/
+                  cp $FS_subjdir/$subj/fsl_reg/longtbrain2standard.mat $featdir/reg/
+                                               
+                  # cleanup prev. bbreg. runs
+                  rm -rf $featdir/reg/tmp.bbregister.*
+                  
+                  echo "BOLD : subj $subj , sess $sess : converting '$(subjsess)_to_${subj}.lta' -> '$(subjsess)_to_${subj}.mat' (FSL-style)..."
+                  echo "BOLD : subj $subj , sess $sess : using FS's bbreg to register '$featdir/example_func.nii.gz' -> FS's structural..."
+                  echo "BOLD : subj $subj , sess $sess : concatenating matrices..."
+                  echo "BOLD : subj $subj , sess $sess : writing MNI-registered 4D BOLD '$out_file' to '$(dirname $out_file)/'."
+                  
+                  # create command for fsl_sub (example_func -> highres)
+                  #echo "tkregister2 --noedit --mov $FS_subjdir/$(subjsess)/mri/norm.mgz --targ $FS_subjdir/$subj/mri/norm_template.mgz --lta $FS_subjdir/$subj/mri/transforms/$(subjsess)_to_${subj}.lta --fslregout $featdir/reg/$(subjsess)_to_${subj}.mat --reg $tmpdir/deleteme.reg.dat ; \
+                  #bbregister --s $(subjsess) --mov $featdir/example_func.nii.gz --init-fsl --reg $featdir/reg/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg/example_func2highres_bbr.mat ; \
+                  #convert_xfm -omat $featdir/reg/example_func2longtbrain.mat -concat $featdir/reg/$(subjsess)_to_${subj}.mat $featdir/reg/example_func2highres_bbr.mat ; \
+                  #$scriptdir/feat_writeMNI.sh $in_file $T1_file $MNI_file $out_file $mni_res $featdir/reg/example_func2longtbrain.mat $warp $interp $subj $sess" > $cmd_file
+                  
+                  # create command for fsl_sub (example_func -> longt-template)
+                  echo "tkregister2 --noedit --mov $FS_subjdir/$(subjsess)/mri/norm.mgz --targ $FS_subjdir/$subj/mri/norm_template.mgz --lta $FS_subjdir/$subj/mri/transforms/$(subjsess)_to_${subj}.lta --fslregout $featdir/reg/$(subjsess)_to_${subj}.mat --reg $tmpdir/deleteme.reg.dat ; \
+                  bbregister --s $subj --mov $featdir/example_func.nii.gz --init-fsl --reg $featdir/reg/example_func2longt_bbr.dat --t2 --fslmat $featdir/reg/example_func2longt_bbr.mat ; \
+                  $scriptdir/feat_writeMNI.sh $in_file $T1_file $MNI_file $out_file $mni_res $featdir/reg/example_func2longt_bbr.mat $warp $interp $subj $sess" > $cmd_file 
+                  
+                  fsl_sub -l $logdir -N $log_file -t $cmd_file 
                 
-                fsl_sub -l $logdir -N $log_file -t $cmd_file 
+                else
                 
-                #echo "featregapply $featdir ; \
-                #flirt -ref $featdir/reg/standard -in $featdir/reg/standard -out $featdir/reg_standard/standard_$_mni_res -applyisoxfm $mni_res ; \
-                #applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=$featdir/reg/highres --out=$featdir/reg_standard/highres_$_mni_res --warp=$featdir/reg/highres2standard_warp  --interp=sinc ; \
-                #imrm $featdir/reg_standard/${out_file}_tmp_\?\?\?\?\.\*
-                #fslsplit $featdir/$in_file $featdir/reg_standard/${out_file}_tmp_ ; \
-                #full_list=\`imglob $featdir/reg_standard/${out_file}_tmp_????.*\` ; \
-                #for i in \$full_list ; do \
-                  #echo processing \$i ; \
-                  #cmd=\"applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=\$i --out=\$i --warp=$featdir/reg/highres2standard_warp --premat=$featdir/reg/example_func2highres.mat --interp=$interp\" ; \
-                  #echo \$cmd ; \
-                  #\$cmd ; \
-                #done ; \
-                #fslmerge -t $featdir/reg_standard/$out_file \$full_list ; \
-                #imrm \$full_list" > $featdir/$cmd_file
-                #fsl_sub -l $logdir -N $log_file -t $featdir/$cmd_file
+                  in_file=$featdir/$(remove_ext $data_file)
+                  T1_file=$featdir/reg/highres
+                  MNI_file=$featdir/reg/standard
+                  out_file=$featdir/reg_standard/$(basename $in_file)_mni${_mni_res}
+                  affine=$featdir/reg/example_func2highres.mat
+                  warp=$featdir/reg/highres2standard_warp
+                  cmd_file=$featdir/mni_write_$(basename $in_file)_res${_mni_res}.cmd
+                  log_file=bold_write_MNI_$(basename $in_file)_res${_mni_res}_$(subjsess)
+                     
+                  echo "BOLD : subj $subj , sess $sess : writing MNI-registered 4D BOLD '$out_file' to '$(dirname $out_file)/'."
+                  
+                  echo "featregapply $featdir ; $scriptdir/feat_writeMNI.sh $in_file $T1_file $MNI_file $out_file $mni_res $affine $warp $interp $subj $sess" > $cmd_file
+                  
+                  fsl_sub -l $logdir -N $log_file -t $cmd_file 
+                  
+                  #echo "featregapply $featdir ; \
+                  #flirt -ref $featdir/reg/standard -in $featdir/reg/standard -out $featdir/reg_standard/standard_$_mni_res -applyisoxfm $mni_res ; \
+                  #applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=$featdir/reg/highres --out=$featdir/reg_standard/highres_$_mni_res --warp=$featdir/reg/highres2standard_warp  --interp=sinc ; \
+                  #imrm $featdir/reg_standard/${out_file}_tmp_\?\?\?\?\.\*
+                  #fslsplit $featdir/$in_file $featdir/reg_standard/${out_file}_tmp_ ; \
+                  #full_list=\`imglob $featdir/reg_standard/${out_file}_tmp_????.*\` ; \
+                  #for i in \$full_list ; do \
+                    #echo processing \$i ; \
+                    #cmd=\"applywarp --ref=$featdir/reg_standard/standard_$_mni_res --in=\$i --out=\$i --warp=$featdir/reg/highres2standard_warp --premat=$featdir/reg/example_func2highres.mat --interp=$interp\" ; \
+                    #echo \$cmd ; \
+                    #\$cmd ; \
+                  #done ; \
+                  #fslmerge -t $featdir/reg_standard/$out_file \$full_list ; \
+                  #imrm \$full_list" > $featdir/$cmd_file
+                  #fsl_sub -l $logdir -N $log_file -t $featdir/$cmd_file  
+                  
+                fi
                 
                 # link...
                 echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-registered 4D BOLD."
                 lname=$(echo "$featdir" | sed "s|"uw[+-0][y0]"|"uw"|g") # remove unwarp direction from link's name
                 ln -sfv ./$(basename $featdir)/reg_standard/$(basename $out_file).nii.gz ${lname%.feat}_$(basename $out_file).nii.gz
-                
+
               done # end mni_res            
             done # end data_file
           done # end stc_val

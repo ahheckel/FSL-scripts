@@ -39,18 +39,18 @@ fi
 subj="$8"  # optional
 sess="$9"  # optional
 
-
+outdir=$(dirname $out)
 
 
 if [ $aff = "none" ] ; then
   echo "`basename $0`: subj $subj , sess $sess : flirting brain '${T1}' -> '${MNI}'..."
-  cmd="flirt -ref ${MNI}  -in $T1 -out ${T1}2standard -omat ${T1}2standard.mat -cost $costf -dof 12 -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -interp trilinear"
+  cmd="flirt -ref ${MNI}  -in $T1 -out $outdir/$(basename $T1)2standard -omat $outdir/$(basename $T1)2standard.mat -cost $costf -dof 12 -searchrx -90 90 -searchry -90 90 -searchrz -90 90 -interp trilinear" #-usesqform"
   echo $cmd ; $cmd
   aff=${T1}2standard.mat
 fi
 
 echo "`basename $0`: subj $subj , sess $sess : fnirting head '${T1head}' -> '${MNIhead}'..."
-cmd="fnirt --in=${T1head} --aff=${aff} --cout=${T1}2standard_warp --iout=${out} --jout=${out}_jac --config=T1_2_MNI152_2mm  --ref=${MNIhead} --refmask=${MNI_mask} --warpres=10,10,10"
+cmd="fnirt --in=${T1head} --aff=${aff} --cout=${outdir}/$(basename $T1head)2standard_warp --iout=${out} --jout=${out}_jac --config=T1_2_MNI152_2mm  --ref=${MNIhead} --refmask=${MNI_mask} --warpres=10,10,10"
 echo $cmd ; $cmd
 
 echo "`basename $0`: subj $subj , sess $sess : '${out}' created."
