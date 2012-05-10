@@ -7,7 +7,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input> <T1-native> <MNI-template> <output> <resolution> <affine: input->T1> <warp: T1->MNI> <interp> <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` <func-input> <T1-native> <MNI-template> <output> <resolution> <affine: input->T1> <warp: T1->MNI> <interp> <subj_idx> <sess_idx>"
     echo ""
     exit 1
 }
@@ -30,11 +30,11 @@ _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'
 
 echo "`basename $0`: subj $subj , sess $sess : output directory: '$outdir'"
 
-echo "`basename $0`: subj $subj , sess $sess : resample MNI-template to a resolution of $mni_res ('$MNI' -> '$outdir/$(basename $MNI)_${_mni_res}')..." 
-flirt -ref $MNI -in $MNI -out $outdir/$(basename $MNI)_${_mni_res} -applyisoxfm $mni_res
+#echo "`basename $0`: subj $subj , sess $sess : resample MNI-template to a resolution of $mni_res ('$MNI' -> '$outdir/$(basename $MNI)_${_mni_res}')..." 
+#flirt -ref $MNI -in $MNI -out $outdir/$(basename $MNI)_${_mni_res} -applyisoxfm $mni_res
 
-echo "`basename $0`: subj $subj , sess $sess : write T1->MNI ('$T1' -> '$outdir/$(basename $T1)${_mni_res}')..." 
-applywarp --ref=$outdir/$(basename $MNI)_${_mni_res} --in=${T1} --out=$outdir/$(basename $T1)_${_mni_res} --warp=${warp}  --interp=sinc
+#echo "`basename $0`: subj $subj , sess $sess : write T1->MNI ('$T1' -> '$outdir/$(basename $T1)${_mni_res}')..." 
+#applywarp --ref=$outdir/$(basename $MNI)_${_mni_res} --in=${T1} --out=$outdir/$(basename $T1)_${_mni_res} --warp=${warp}  --interp=sinc
 
 echo "`basename $0`: subj $subj , sess $sess : write Input->MNI ('$input' -> '$output')..." 
 imrm ${output}_tmp_????.*

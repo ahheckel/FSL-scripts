@@ -213,11 +213,11 @@ BOLD_PTTRN_HIGHRES_BRAIN="*_t1_betted_masked_brain.nii.gz"    # pattern of t1 sk
 BOLD_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                  # pattern of t1 non-skull-stripped image
 BOLD_DENOISE_MASKS='EF_CSF EF_WB EF_WM'                       # masks used for denoising [EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz EF_GM.nii.gz] located in feat-dir (need FS-recons for creation) -> see FS_create_masks.sh ; mind the ' '
 BOLD_DENOISE_USE_MOVPARS='1 3 4 5'                            # mind the ' ' ; 1: orig - 2: squared - 3: abs - 4: 1st deriv. with leading zero - 5: 1st deriv. with trailing zero ; CAVE: cannot take more than 4 motion related modes (4*6=24 regressors -> more lead to fsl_regfilt error !)
-BOLD_DENOISE_SMOOTHING_KRNLS='2'                              # smooth denoised data ; mind the ' '
+BOLD_DENOISE_SMOOTHING_KRNLS='0 2'                            # smooth denoised data ; mind the ' '
 BOLD_DENOISE_HPF_CUTOFFS='100'                                # smooth denoised data ; mind the ' '
 BOLD_REGISTER_TO_MNI=1                                        # enable MNI registration
-BOLD_USE_FS_LONGT_TEMPLATE=1
-BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data_denoised_s2_hpf100 filtered_func_data_denoised_s2_hpf100"
+BOLD_USE_FS_LONGT_TEMPLATE=1                                  # using FS's mid-long template as registration basis for multisession designs
+BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data_denoised_s0_hpf100 filtered_func_data_denoised_s2_hpf100"
 BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                           # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
 BOLD_MNI_RESAMPLE_INTERP="spline"                             # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
 BOLD_FEAT_NO_BROWSER=0                                        # don't open browser window
