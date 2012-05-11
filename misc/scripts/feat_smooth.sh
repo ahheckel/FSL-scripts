@@ -69,7 +69,7 @@ for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
   # high pass filtering (if applicable)
   if [ $dohpf -eq 1 ] ; then
     for hpf_cutoff in $hpf_cutoffs ; do
-      echo "`basename $0`: subj $subj , sess $sess : high pass filtering with cutoff $hpf_cutoff (s) -> ${out}_s${_sm_krnl}_hpf${hpf_cutoff}..."
+      echo "`basename $0`: subj $subj , sess $sess : high pass filtering with cutoff '$hpf_cutoff' (s) -> ${out}_s${_sm_krnl}_hpf${hpf_cutoff}..."
       $(dirname $0)/feat_hpf.sh ${out}_s${_sm_krnl} ${out}_s${_sm_krnl}_hpf${hpf_cutoff} $hpf_cutoff $tr $subj $sess
     done # end hpf_cutoff
     imrm ${out}_s${_sm_krnl}

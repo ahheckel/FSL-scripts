@@ -5,6 +5,9 @@ set -e
 
 trap 'echo "$0 : An ERROR has occured."' ERR # don't exit on trap (!)
 
+# echo date
+date
+
 # define current working directory
 wd=`pwd`
 # check lock
@@ -15,10 +18,7 @@ set +e
 set -e
 
 # remove lock on exit
-trap "rmdir $wd/.lockdir121978 ; echo -e \"\nlock removed.\" ; exit" EXIT
-
-# echo date
-date
+trap "rmdir $wd/.lockdir121978 ; echo -e \"\nlock removed.\n`date`\" ; exit" EXIT
 
 # source environment variables and functions
 source ./globalfuncs
@@ -289,6 +289,172 @@ fi
 
 #########################
 # ----- END SCRATCH -----
+#########################
+
+
+waitIfBusy
+
+
+#########################
+# ----- BEGIN RECON -----
+#########################
+
+# RECON-ALL prepare 
+if [ $RECON_STG1 -eq 1 ] ; then
+  echo "----- BEGIN RECON_STG1 -----"
+  for subj in `cat subjects`; do 
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$FS_subjdir/$(subjsess)/mri/orig
+      mkdir -p $fldr
+      
+      # reorient to please fslview
+      echo "RECON : subj $subj , sess $sess : reorienting T1 to please fslview..." 
+      file=`ls ${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check pattern (!)
+      fslreorient2std $file $fldr/tmp_t1
+      
+      # convert to .mgz
+      echo "RECON : subj $subj , sess $sess : converting T1 to .mgz format..."
+      mri_convert $fldr/tmp_t1.nii.gz $fldr/001.mgz &>$logdir/recon_mri_convert_$(subjsess) # fslreorient2std above is probably useless...
+      rm -f $fldr/tmp_t1.nii.gz
+    done
+  done
+fi
+
+waitIfBusy
+
+# RECON-ALL execute
+if [ $RECON_STG2 -eq 1 ] ; then
+  echo "----- BEGIN RECON_STG2 -----"
+  for subj in `cat subjects`; do 
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$FS_subjdir/$(subjsess)
+      
+      echo "RECON : subj $subj , sess $sess : executing recon-all..."
+      
+      # use CUDA if available...
+      if [ $RECON_USE_CUDA = 1 ] ; then exitflag=0 ; else exitflag=X ; fi
+      
+      # additional switches
+      if [ $RECON_USE_MRITOTAL = 1 ] ; then opts="-use-mritotal" ; else opts="" ; fi # -use-mritotal may give better talairach transforms (!)
+      
+      echo '#!/bin/bash' > $fldr/recon-all_cuda.sh
+      echo 'cudadetect &>/dev/null' >>  $fldr/recon-all_cuda.sh
+      echo "if [ \$? = $exitflag ] ; then recon-all -all -use-gpu -no-isrunning -noappend -clean-tal -tal-check $opts -subjid $(subjsess)" >> $fldr/recon-all_cuda.sh # you may want to remove clean-tal flag (!)
+      echo "else  recon-all -all -no-isrunning -noappend -clean-tal -tal-check $opts -subjid $(subjsess) ; fi" >> $fldr/recon-all_cuda.sh
+      chmod +x $fldr/recon-all_cuda.sh
+      
+      # execute...
+      $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N recon-all_$(subjsess) $fldr/recon-all_cuda.sh
+    done
+  done
+fi
+
+waitIfBusy
+
+if [ $RECON_STG3 -eq 1 ] ; then
+  echo "----- BEGIN RECON_STG3 -----"
+  for subj in `cat subjects`; do
+    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj : single-session design ! Skipping longtitudinal freesurfer stream..." ; continue ; fi
+    
+    # create template dir.
+    fldr=$FS_subjdir/$subj
+    mkdir -p $fldr
+    
+    # init. command line
+    cmd="recon-all -base $subj"
+    
+    # generate command line
+    for sess in `cat ${subj}/sessions_struc` ; do
+      cmd="$cmd -tp $(subjsess)" 
+    done
+    
+    # additional switches
+    if [ $RECON_USE_MRITOTAL = 1 ] ; then opts="-use-mritotal" ; else opts="" ; fi
+    
+    # executing...
+    echo "RECON : subj $subj , sess $sess : executing recon-all - unbiased template generation..."
+    cmd="$cmd -all -no-isrunning -noappend -clean-tal -tal-check $opts"
+    echo $cmd | tee $fldr/recon-all_base.cmd
+    $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N recon-all_base_${subj} -t $fldr/recon-all_base.cmd
+  done
+fi 
+
+waitIfBusy
+
+if [ $RECON_STG4 -eq 1 ] ; then
+  echo "----- BEGIN RECON_STG4 -----"
+  for subj in `cat subjects`; do
+    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj : single-session design ! Skipping longtitudinal freesurfer stream..." ; continue ; fi
+    
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$FS_subjdir/$(subjsess)
+      
+      # generate command line
+      cmd="recon-all -long $(subjsess) $subj -all -no-isrunning -noappend"
+      
+      # executing...
+      echo "RECON : subj $subj , sess $sess : executing recon-all - longtitudinal stream..."
+      echo $cmd | tee $fldr/recon-all_long.cmd
+      $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N recon-all_long_$(subjsess) -t $fldr/recon-all_long.cmd
+    done    
+  done
+fi 
+
+waitIfBusy
+
+if [ $RECON_STG5 -eq 1 ] ; then
+  echo "----- BEGIN RECON_STG5 -----"
+
+  # register Freesurfer's longt. template to FSL'S MNI152
+  for subj in `cat subjects` ; do
+    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj : single-session design ! Skipping..." ; continue ; fi
+        
+    # display info
+    echo "RECON : subj $subj : registering Freesurfer's longtitudinal template to FSL's MNI152 template..."
+    
+    # check
+    if [ ! -f $FS_subjdir/$subj/mri/norm_template.mgz ] ; then "RECON : subj $subj : longtitudinal template not found ! Skipping..." ; continue ; fi
+    
+    # prepare...
+    echo "RECON : subj $subj : preparing..."
+    FS_fldr=$FS_subjdir/$subj/fsl_reg ; mkdir -p $FS_fldr
+    MNI_brain=$FS_fldr/longt_standard.nii.gz
+    MNI_head=$FS_fldr/longt_standard_head.nii.gz
+    MNI_mask=$FS_fldr/longt_standard_mask.nii.gz
+    cp -v $FSL_DIR/data/standard/MNI152_T1_2mm.nii.gz $MNI_head
+    cp -v $FSL_DIR/data/standard/MNI152_T1_2mm_brain.nii.gz $MNI_brain
+    cp -v $FSL_DIR/data/standard/MNI152_T1_2mm_brain_mask_dil.nii.gz $MNI_mask
+    
+    # convert to FSL-format
+    $scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/T1.mgz $FS_fldr/longt_head.nii.gz 0
+    $scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/norm_template.mgz $FS_fldr/longt_brain.nii.gz 0 
+          
+    #MNI_head_LIA=$FS_fldr/standard_head_LIA
+    #MNI_brain_LIA=$FS_fldr/standard_brain_LIA
+    #MNI_mask_LIA=$FS_fldr/standard_mask_LIA      
+    #echo "BOLD : subj $subj : reorienting FSL's MNI152 template LAS -> LIA..."
+    #fslswapdim $FSL_DIR/data/standard/MNI152_T1_2mm RL SI PA ${MNI_head_LIA}
+    #fslswapdim $FSL_DIR/data/standard/MNI152_T1_2mm_brain RL SI PA ${MNI_brain_LIA}
+    #fslswapdim $FSL_DIR/data/standard/MNI152_T1_2mm_brain_mask_dil RL SI PA ${MNI_mask_LIA}      
+    #echo "BOLD : subj $subj : registering Freesurfer longtitudinal template to FSL's MNI152 space..."
+    #$scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/T1.mgz $FS_fldr/longthead.nii.gz 0
+    #$scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/norm_template.mgz $FS_fldr/longtbrain.nii.gz 0
+    #$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longthead $FS_fldr/longtbrain $FS_fldr/longthead2standard "none" "corratio" ${MNI_head_LIA} ${MNI_brain_LIA} ${MNI_mask_LIA} $subj "/"
+    
+    # generate command line
+    cmd="$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longt_head $FS_fldr/longt_brain $FS_fldr/longt_head2longt_standard none corratio $MNI_head $MNI_brain $MNI_mask $subj --"
+    
+    # executing...
+    cmd_file=$FS_subjdir/$subj/recon_longt2MNI152.cmd
+    log_file=recon_longt2MNI152_${subj}
+    echo "RECON : subj $subj : executing '$cmd_file'"
+    echo "$cmd" | tee $cmd_file
+    fsl_sub -l $logdir -N $log_file -t $cmd_file
+  done
+fi
+
+#########################
+# ----- END RECON -----
 #########################
 
 
@@ -1802,165 +1968,6 @@ fi
 waitIfBusy
 
 
-#########################
-# ----- BEGIN RECON -----
-#########################
-
-# RECON-ALL prepare 
-if [ $RECON_STG1 -eq 1 ] ; then
-  echo "----- BEGIN RECON_STG1 -----"
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$FS_subjdir/$(subjsess)/mri/orig
-      mkdir -p $fldr
-      
-      # reorient to please fslview
-      echo "RECON : subj $subj , sess $sess : reorienting T1 to please fslview..." 
-      file=`ls ${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check pattern (!)
-      fslreorient2std $file $fldr/tmp_t1
-      
-      # convert to .mgz
-      echo "RECON : subj $subj , sess $sess : converting T1 to .mgz format..."
-      mri_convert $fldr/tmp_t1.nii.gz $fldr/001.mgz &>$logdir/recon_mri_convert_$(subjsess) # fslreorient2std above is probably useless...
-      rm -f $fldr/tmp_t1.nii.gz
-    done
-  done
-fi
-
-waitIfBusy
-
-# RECON-ALL execute
-if [ $RECON_STG2 -eq 1 ] ; then
-  echo "----- BEGIN RECON_STG2 -----"
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$FS_subjdir/$(subjsess)
-      
-      echo "RECON : subj $subj , sess $sess : executing recon-all..."
-      
-      # use CUDA if available...
-      if [ $RECON_USE_CUDA = 1 ] ; then exitflag=0 ; else exitflag=X ; fi
-      echo '#!/bin/bash' > $fldr/recon-all_cuda.sh
-      echo 'cudadetect &>/dev/null' >>  $fldr/recon-all_cuda.sh
-      echo "if [ \$? = $exitflag ] ; then recon-all -all -use-gpu -no-isrunning -noappend -clean-tal -subjid $(subjsess)" >> $fldr/recon-all_cuda.sh # you may want to remove clean-tal flag (!)
-      echo "else  recon-all -all -no-isrunning -noappend -clean-tal -subjid $(subjsess) ; fi" >> $fldr/recon-all_cuda.sh # -use-mritotal may give better talairach transforms (!)
-      chmod +x $fldr/recon-all_cuda.sh
-      
-      # execute...
-      $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N recon-all_$(subjsess) $fldr/recon-all_cuda.sh
-    done
-  done
-fi
-
-waitIfBusy
-
-if [ $RECON_STG3 -eq 1 ] ; then
-  echo "----- BEGIN RECON_STG3 -----"
-  for subj in `cat subjects`; do
-    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj : single-session design ! Skipping longtitudinal freesurfer stream..." ; continue ; fi
-    
-    # create template dir.
-    fldr=$FS_subjdir/$subj
-    mkdir -p $fldr
-    
-    # init. command line
-    cmd="recon-all -base $subj"
-    
-    # generate command line
-    for sess in `cat ${subj}/sessions_struc` ; do
-      cmd="$cmd -tp $(subjsess)" 
-    done
-    
-    # executing...
-    echo "RECON : subj $subj , sess $sess : executing recon-all - unbiased template generation..."
-    cmd="$cmd -all -no-isrunning -noappend -clean-tal"
-    echo $cmd | tee $fldr/recon-all_base.cmd
-    $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N recon-all_base_${subj} -t $fldr/recon-all_base.cmd
-  done
-fi 
-
-waitIfBusy
-
-if [ $RECON_STG4 -eq 1 ] ; then
-  echo "----- BEGIN RECON_STG4 -----"
-  for subj in `cat subjects`; do
-    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj : single-session design ! Skipping longtitudinal freesurfer stream..." ; continue ; fi
-    
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$FS_subjdir/$(subjsess)
-      
-      # generate command line
-      cmd="recon-all -long $(subjsess) $subj -all -no-isrunning -noappend -clean-tal"
-      
-      # executing...
-      echo "RECON : subj $subj , sess $sess : executing recon-all - longtitudinal stream..."
-      echo $cmd | tee $fldr/recon-all_long.cmd
-      $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N recon-all_long_$(subjsess) -t $fldr/recon-all_long.cmd
-    done    
-  done
-fi 
-
-waitIfBusy
-
-if [ $RECON_STG5 -eq 1 ] ; then
-  echo "----- BEGIN RECON_STG5 -----"
-
-  # register Freesurfer's longt. template to FSL'S MNI152
-  for subj in `cat subjects` ; do
-    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj : single-session design ! Skipping..." ; continue ; fi
-        
-    # display info
-    echo "RECON : subj $subj : registering Freesurfer's longtitudinal template to FSL's MNI152 template..."
-    
-    # check
-    if [ ! -f $FS_subjdir/$subj/mri/norm_template.mgz ] ; then "RECON : subj $subj : longtitudinal template not found ! Skipping..." ; continue ; fi
-    
-    # prepare...
-    echo "RECON : subj $subj : preparing..."
-    FS_fldr=$FS_subjdir/$subj/fsl_reg ; mkdir -p $FS_fldr
-    MNI_brain=$FS_fldr/longt_standard.nii.gz
-    MNI_head=$FS_fldr/longt_standard_head.nii.gz
-    MNI_mask=$FS_fldr/longt_standard_mask.nii.gz
-    cp -v $FSL_DIR/data/standard/MNI152_T1_2mm.nii.gz $MNI_head
-    cp -v $FSL_DIR/data/standard/MNI152_T1_2mm_brain.nii.gz $MNI_brain
-    cp -v $FSL_DIR/data/standard/MNI152_T1_2mm_brain_mask_dil.nii.gz $MNI_mask
-    
-    # convert to FSL-format
-    $scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/T1.mgz $FS_fldr/longt_head.nii.gz 0
-    $scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/norm_template.mgz $FS_fldr/longt_brain.nii.gz 0 
-          
-    #MNI_head_LIA=$FS_fldr/standard_head_LIA
-    #MNI_brain_LIA=$FS_fldr/standard_brain_LIA
-    #MNI_mask_LIA=$FS_fldr/standard_mask_LIA      
-    #echo "BOLD : subj $subj : reorienting FSL's MNI152 template LAS -> LIA..."
-    #fslswapdim $FSL_DIR/data/standard/MNI152_T1_2mm RL SI PA ${MNI_head_LIA}
-    #fslswapdim $FSL_DIR/data/standard/MNI152_T1_2mm_brain RL SI PA ${MNI_brain_LIA}
-    #fslswapdim $FSL_DIR/data/standard/MNI152_T1_2mm_brain_mask_dil RL SI PA ${MNI_mask_LIA}      
-    #echo "BOLD : subj $subj : registering Freesurfer longtitudinal template to FSL's MNI152 space..."
-    #$scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/T1.mgz $FS_fldr/longthead.nii.gz 0
-    #$scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/norm_template.mgz $FS_fldr/longtbrain.nii.gz 0
-    #$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longthead $FS_fldr/longtbrain $FS_fldr/longthead2standard "none" "corratio" ${MNI_head_LIA} ${MNI_brain_LIA} ${MNI_mask_LIA} $subj "/"
-    
-    # generate command line
-    cmd="$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longt_head $FS_fldr/longt_brain $FS_fldr/longt_head2longt_standard none corratio $MNI_head $MNI_brain $MNI_mask $subj --"
-    
-    # executing...
-    cmd_file=$FS_subjdir/$subj/recon_longt2MNI152.cmd
-    log_file=recon_longt2MNI152_${subj}
-    echo "RECON : subj $subj : executing '$cmd_file'"
-    echo "$cmd" | tee $cmd_file
-    fsl_sub -l $logdir -N $log_file -t $cmd_file
-  done
-fi
-
-#########################
-# ----- END RECON -----
-#########################
-
-
-waitIfBusy
-
-
 ###########################
 # ----- BEGIN TRACULA -----
 ###########################
@@ -2400,15 +2407,16 @@ if [ $BOLD_STG3 -eq 1 ] ; then
     if [ x"$BOLD_DENOISE_MASKS" = "x" ] ; then echo "BOLD : subj $subj : ERROR : no masks for signal extraction specified -> no denoising possible -> breaking loop..." ; break ; fi
     
     # substitutions
+    if [ x"$BOLD_DENOISE_SMOOTHING_KRNLS" = "x" ] ; then BOLD_DENOISE_SMOOTHING_KRNLS=0; fi
+    if [ x"$BOLD_DENOISE_HPF_CUTOFFS" = "x" ] ; then BOLD_DENOISE_HPF_CUTOFFS=Inf ; fi
+    if [ x"$BOLD_DENOISE_USE_MOVPARS" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS=0 ; fi
+   
     # mind the \' \' -> necessary, otw. string gets split up when a) being inside double-quotes 
     # (e.g., echo redirection to a cmd-file for fsl_sub) and b) being passed as an argument to a function (!)
     BOLD_DENOISE_MASKS=\'$BOLD_DENOISE_MASKS\'
     BOLD_DENOISE_SMOOTHING_KRNLS=\'$BOLD_DENOISE_SMOOTHING_KRNLS\'
     BOLD_DENOISE_HPF_CUTOFFS=\'$BOLD_DENOISE_HPF_CUTOFFS\'
-    BOLD_DENOISE_USE_MOVPARS=\'$BOLD_DENOISE_USE_MOVPARS\'        
-    if [ x"$BOLD_DENOISE_SMOOTHING_KRNLS" = "x" ] ; then BOLD_DENOISE_SMOOTHING_KRNLS=0; fi
-    if [ x"$BOLD_DENOISE_HPF_CUTOFFS" = "x" ] ; then BOLD_DENOISE_HPF_CUTOFFS=Inf ; fi
-    if [ x"$BOLD_DENOISE_USE_MOVPARS" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS=0 ; fi
+    BOLD_DENOISE_USE_MOVPARS=\'$BOLD_DENOISE_USE_MOVPARS\'   
 
     for sess in `cat ${subj}/sessions_func` ; do
     
@@ -2507,8 +2515,8 @@ if [ $BOLD_STG4 -eq 1 ] ; then
               
               # needful vars
               affine=$featdir/reg_longt/example_func2longt_brain.mat
-              cmd_file=$featdir/bold_reg2longt.cmd
-              log_file=bold_reg2longt_$(subjsess)
+              cmd_file=$featdir/bold_func2longt.cmd
+              log_file=bold_func2longt_$(subjsess)
               sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`              
               
               echo "BOLD : subj $subj , sess $sess : converting '${subj}${sess_t1}_to_${subj}.lta' -> '${subj}${sess_t1}_to_${subj}.mat' (FSL-style)..."
