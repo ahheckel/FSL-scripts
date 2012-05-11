@@ -13,6 +13,7 @@ cp -iv fsl/topup/b02b0.cnf $FSL_DIR/etc/flirtsch/b02b0.cnf
 cp -iv fsl/MNI152*.nii.gz $FSL_DIR/data/standard/
 cp -iv fsl/avg152T1_white_bin.nii.gz $FSL_DIR/data/standard/
 cp -iv fsl/avg152T1_csf_bin.nii.gz $FSL_DIR/data/standard/
+cp -iv scripts/fsl_sub_NOPOSIXLY $FSL_DIR/bin/fsl_sub # patched for freesurfer
 
 
 if [ $1 -eq 64 ] ; then

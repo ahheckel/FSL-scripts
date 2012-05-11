@@ -2,4 +2,5 @@ ToDo:
 
 update imagemagick (compile)
 fsl_sub: comment out POSIXLY_CORRECT=1 <-- consult fsl list
+recon-all -use-mritotal may give better talairach registrations
 

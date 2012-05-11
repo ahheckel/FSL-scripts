@@ -8,7 +8,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <T1-head> <T1-brain> <out> <init-affine|none> [<affine-cost>] [<MNI-template-head> <MNI-template-brain> <MNI-brainmask>] [<subj_idx> <sess_idx>]"
+    echo "Usage: `basename $0` <T1-head> <T1-brain> <out> <init-affine|none> [<affine-cost>] <MNI-template-head> <MNI-template-brain> <MNI-brainmask> <subj_idx> <sess_idx>"
     echo ""
     exit 1
 }

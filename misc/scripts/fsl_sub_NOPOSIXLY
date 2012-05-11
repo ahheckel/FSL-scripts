@@ -137,7 +137,8 @@ fi
 ###########################################################################
 
 # POSIXLY_CORRECT=1 # commented out by HKL
-# export POSIXLY_CORRECT # commented out by HKL
+POSIXLY_CORRECT=0 # added by HKL
+export POSIXLY_CORRECT
 command=`basename $0`
 
 usage ()

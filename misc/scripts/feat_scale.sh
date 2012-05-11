@@ -7,7 +7,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <4dinput> <output> <global|prop> <normmean> <median> <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` <4dinput> <output> <'global'|'prop'> <normmean> <median> <subj_idx> <sess_idx>"
     echo ""
     exit 1
 }

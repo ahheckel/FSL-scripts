@@ -9,7 +9,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <4dinput> <4doutput> <"FWHM kernels"> <"HighPass cutoffs" | none> [<TR>] <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` <4dinput> <4doutput> <"FWHM kernels"> <"HighPass cutoffs" | 'none'> [<TR>] <subj_idx> <sess_idx>"
     echo ""
     exit 1
 }
