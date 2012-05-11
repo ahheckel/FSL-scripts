@@ -2406,9 +2406,9 @@ if [ $BOLD_STG3 -eq 1 ] ; then
     BOLD_DENOISE_SMOOTHING_KRNLS=\'$BOLD_DENOISE_SMOOTHING_KRNLS\'
     BOLD_DENOISE_HPF_CUTOFFS=\'$BOLD_DENOISE_HPF_CUTOFFS\'
     BOLD_DENOISE_USE_MOVPARS=\'$BOLD_DENOISE_USE_MOVPARS\'        
-    if [ x"$BOLD_DENOISE_SMOOTHING_KRNLS" = "x" ] ; then BOLD_DENOISE_SMOOTHING_KRNLS='0'; fi
-    if [ x"$BOLD_DENOISE_HPF_CUTOFFS" = "x" ] ; then BOLD_DENOISE_HPF_CUTOFFS='Inf' ; fi
-    if [ x"$BOLD_DENOISE_USE_MOVPARS" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS='0' ; fi
+    if [ x"$BOLD_DENOISE_SMOOTHING_KRNLS" = "x" ] ; then BOLD_DENOISE_SMOOTHING_KRNLS=0; fi
+    if [ x"$BOLD_DENOISE_HPF_CUTOFFS" = "x" ] ; then BOLD_DENOISE_HPF_CUTOFFS=Inf ; fi
+    if [ x"$BOLD_DENOISE_USE_MOVPARS" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS=0 ; fi
 
     for sess in `cat ${subj}/sessions_func` ; do
     
@@ -2507,8 +2507,8 @@ if [ $BOLD_STG4 -eq 1 ] ; then
               
               # needful vars
               affine=$featdir/reg_longt/example_func2longt_brain.mat
-              cmd_file=$featdir/bold_bbr-longt.cmd
-              log_file=bold_bbr-longt_$(subjsess)
+              cmd_file=$featdir/bold_reg2longt.cmd
+              log_file=bold_reg2longt_$(subjsess)
               sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`              
               
               echo "BOLD : subj $subj , sess $sess : converting '${subj}${sess_t1}_to_${subj}.lta' -> '${subj}${sess_t1}_to_${subj}.mat' (FSL-style)..."
@@ -2525,7 +2525,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
               imrm $featdir/reg_longt/brain ;\
               convert_xfm -omat $affine -concat $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat $featdir/reg_longt/example_func2highres_bbr.mat" > $cmd_file
               
-              fsl_sub -l $logdir -N $log_file -t $cmd_file    
+              $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N $log_file -t $cmd_file    
               
             done # end stc_val
           done # end sm_krnl

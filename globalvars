@@ -212,9 +212,9 @@ BOLD_REGISTER_TO_STRUC_DOF=6                                  # degrees of freed
 BOLD_PTTRN_HIGHRES_BRAIN="*_t1_betted_masked_brain.nii.gz"    # pattern of t1 skull-stripped image
 BOLD_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                  # pattern of t1 non-skull-stripped image
 BOLD_DENOISE_MASKS="EF_CSF EF_WB EF_WM"                       # masks used for denoising [EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz EF_GM.nii.gz] located in feat-dir (need FS-recons for creation) -> see FS_create_masks.sh
-BOLD_DENOISE_USE_MOVPARS="1 3 4 5"                            # 0: none - 1: orig - 2: squared - 3: abs - 4: 1st deriv. with leading zero - 5: 1st deriv. with trailing zero ; CAVE: cannot take more than 4 motion related modes (4*6=24 regressors -> more lead to fsl_regfilt error !)
-BOLD_DENOISE_SMOOTHING_KRNLS="0 2"                            # smooth denoised data
-BOLD_DENOISE_HPF_CUTOFFS="100 200"                            # high-pass filer denoised and smoothed data
+BOLD_DENOISE_USE_MOVPARS=""                            # 0: none - 1: orig - 2: squared - 3: abs - 4: 1st deriv. with leading zero - 5: 1st deriv. with trailing zero ; CAVE: cannot take more than 4 motion related modes (4*6=24 regressors -> more lead to fsl_regfilt error !)
+BOLD_DENOISE_SMOOTHING_KRNLS=""                            # smooth denoised data
+BOLD_DENOISE_HPF_CUTOFFS=""                            # high-pass filer denoised and smoothed data
 BOLD_REGISTER_TO_MNI=1                                        # enable MNI registration
 BOLD_USE_FS_LONGT_TEMPLATE=1                                  # using FS's mid-long template as registration basis for multisession designs
 BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data"              # cycle through 4Ds that are to be resampled in MNI space

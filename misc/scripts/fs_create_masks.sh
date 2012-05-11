@@ -35,7 +35,7 @@ if [ ! -f $SUBJECTS_DIR/$subjID/mri/aparc+aseg.mgz ] ; then echo "`basename $0` 
 #echo "`basename $0` : subj $subj , sess $sess : converting orig.mgz to nifti format..."
 #cmd="mri_convert $SUBJECTS_DIR/$subjID/mri/orig.mgz $outdir/T1_bbr_ref.nii.gz" ; $cmd 1>/dev/null
 
-echo "`basename $0` : subj $subj , sess $sess : registering '$exfunc' to T1..."
+echo "`basename $0` : subj $subj , sess $sess : boundary-based registration '$exfunc' to T1..."
 cmd="bbregister --s $subjID --mov ${exfunc}.nii.gz --init-fsl --reg $outdir/EF2T1_bbr.dat --t2 --fslmat $outdir/EF2T1_bbr.fslmat" ; $cmd 1>/dev/null
 #tkregister2 --mov ${exfunc}.nii.gz --reg $outdir/EF2T1_bbr.dat --surf
 
