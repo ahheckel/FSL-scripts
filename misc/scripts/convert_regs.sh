@@ -23,6 +23,7 @@ outmat="$4"
 out_ext=${outmat##*.}
 in_ext=${inmat##*.}
 
+if [ "$in_ext" = "$out_ext" ] ; then echo "`basename $0` : ERROR : file extension of input and output matrices are the same (*.$out_ext)" ; exit 1 ; fi
 
 if [ "$in_ext" = "dat" ] ; then regin="--reg $inmat" ; fi
 if [ "$in_ext" = "xfm" ] ; then regin="--xfm $inmat" ; fi

@@ -124,7 +124,7 @@ if [ $CHECK_INFOFILES = 1 ] ; then
     fi
   done
 
-  # are bet info-files present ?
+  # are bet info present ?
   if [ ! -f ${subjdir}/config_bet_lowb ] ; then
     read -p "Bet info file for the diffusion images not present in ${subjdir}. Press Key to create the default template."
     for subj in `cat $subjdir/subjects`; do for sess in `cat $subjdir/$subj/sessions_struc` ; do echo "$(subjsess) $BETLOWB_INFO" | tee -a $subjdir/config_bet_lowb ; done ; done
@@ -149,6 +149,43 @@ if [ $CHECK_INFOFILES = 1 ] ; then
     read -p "BOLD-unwarp info file not present in ${subjdir}. Press Key to create the default template."
     for subj in `cat $subjdir/subjects`; do for sess in `cat $subjdir/$subj/sessions_func` ; do echo "$(subjsess) $BOLDUNWARP_INFO" | tee -a $subjdir/config_unwarp_bold ; done ; done
   fi
+  
+  # check aquisition-parameter files
+  if [ ! -f ${subjdir}/config_params_bold ] ; then
+    read -p "BOLD aquisition parameter info file not present in ${subjdir}. Press Key to create a template."
+    printf "#ID\t TR\t TE\t	EES\n" > ${subjdir}/config_params_bold
+    for subj in `cat $subjdir/subjects`; do for sess in `cat $subjdir/$subj/sessions_func` ; do printf "$(subjsess)\t $TR_bold\t $TE_bold\t $EES_bold\n" | tee -a $subjdir/config_params_bold ; done ; done
+  fi    
+  if [ ! -f ${subjdir}/config_params_dwi ] ; then
+    read -p "DWI aquisition parameter info file not present in ${subjdir}. Press Key to create a template."
+    printf "#ID\t TR\t TE\t	EES\t TOPUP-TROT\n" > ${subjdir}/config_params_dwi
+    for subj in `cat $subjdir/subjects`; do for sess in `cat $subjdir/$subj/sessions_struc` ; do printf "$(subjsess)\t $TR_diff\t $TE_diff\t $EES_diff\t $TROT_topup\n" | tee -a $subjdir/config_params_dwi ; done ; done
+  fi
+  
+  # are params defined as global variables ? if vars are empty -> set flag, so that params are retrieved from info files.
+  getTR_bold=0 ; getTE_bold=0 ; getEES_bold=0
+  getTR_diff=0 ; getTE_diff=0 ; getEES_diff=0 ; getTROT_topup=0
+  if [ x$TR_bold = x ] ; then getTR_bold=1 ; fi
+  if [ x$TE_bold = x ] ; then getTE_bold=1 ; fi
+  if [ x$EES_bold = x ] ; then getEES_bold=1 ; fi
+  if [ x$TR_diff = x ] ; then getTR_diff=1 ; fi
+  if [ x$TE_diff = x ] ; then getTE_diff=1 ; fi
+  if [ x$EES_diff = x ] ; then getEES_diff=1 ; fi
+  if [ x$TROT_topup = x ] ; then getTROT_topup=1 ; fi
+  echo "checking aquisition parameter info files..."
+  for subj in `cat $subjdir/subjects`; do 
+    for sess in `cat $subjdir/$subj/sessions_func` ; do
+      #echo "subj $subj , sess $sess : checking '$subjdir/config_params_bold'"
+      defineBOLDparams $subjdir/config_params_bold $subj $sess 
+    done
+  done
+  for subj in `cat $subjdir/subjects`; do 
+    for sess in `cat $subjdir/$subj/sessions_struc` ; do
+      #echo "subj $subj , sess $sess : checking '$subjdir/config_params_dwi'"
+      defineDWIparams $subjdir/config_params_dwi $subj $sess 
+    done
+  done
+  echo "done."
   
   # is registration mapping file present ? 
   if [ ! -f ${subjdir}/config_func2highres.reg ] ; then
@@ -283,7 +320,6 @@ cd $subjdir
 
 if [ $SCRATCH -eq 1 ]; then
   echo "----- BEGIN SCRATCH -----"
-
   exit  
 fi
 
@@ -445,8 +481,8 @@ if [ $RECON_STG5 -eq 1 ] ; then
     cmd="$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longt_head $FS_fldr/longt_brain $FS_fldr/longt_head2longt_standard none corratio $MNI_head $MNI_brain $MNI_mask $subj --"
     
     # executing...
-    cmd_file=$FS_subjdir/$subj/recon_longt2MNI152.cmd
-    log_file=recon_longt2MNI152_${subj}
+    cmd_file=$FS_subjdir/$subj/recon_longt2mni152.cmd
+    log_file=recon_longt2mni152_${subj}
     echo "RECON : subj $subj : executing '$cmd_file'"
     echo "$cmd" | tee $cmd_file
     fsl_sub -l $logdir -N $log_file -t $cmd_file
@@ -468,8 +504,8 @@ waitIfBusy
 # FIELDMAP prepare
 if [ $FIELDMAP_STG1 -eq 1 ]; then
   echo "----- BEGIN FIELDMAP_STG1 -----"
-  for subj in `cat subjects` ; do
-    for sess in `cat ${subj}/sessions_func` ; do   
+  for subj in `cat $subjdir/subjects` ; do
+    for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do  
       fldr=${subj}/${sess}/fm
       
       # create fieldmap directory
@@ -497,8 +533,8 @@ waitIfBusy
 # FIELDMAP create
 if [ $FIELDMAP_STG2 -eq 1 ]; then
   echo "----- BEGIN FIELDMAP_STG2 -----"
-  for subj in `cat subjects` ; do
-    for sess in `cat ${subj}/sessions_func` ; do
+  for subj in `cat $subjdir/subjects` ; do
+    for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do
       fldr=${subj}/${sess}/fm
 
       # get bet threshold
@@ -579,6 +615,9 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
   echo "----- BEGIN TOPUP_STG1 -----"
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do
+    
+      # check if we have aquisition parameters
+      defineDWIparams $subjdir/config_params_dwi $subj $sess
     
       if [ "x$pttrn_diffsplus" = "x" -o "x$pttrn_diffsminus" = "x" -o "x$pttrn_bvalsplus" = "x" -o "x$pttrn_bvalsminus" = "x" -o "x$pttrn_bvecsplus" = "x" -o "x$pttrn_bvecsminus" = "x" ] ; then
         echo "TOPUP : subj $subj , sess $sess : ERROR : file search pattern for blipUp/blipDown DWIs not set..."
@@ -672,8 +711,8 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
         nvol=`fslinfo $file | grep ^dim4 | awk '{print $2}'`
         echo "$file n:${nvol}" | tee -a $fldr/diff.files
         for i in `seq 1 $nvol`; do
-          echo "0 -1 0 $readout_diff" >> $fldr/$(subjsess)_acqparam.txt
-          echo "0 1 0 $readout_diff" >> $fldr/$(subjsess)_acqparam_inv.txt
+          echo "0 -1 0 $trot_topup" >> $fldr/$(subjsess)_acqparam.txt
+          echo "0 1 0 $trot_topup" >> $fldr/$(subjsess)_acqparam_inv.txt
         done
       done
       
@@ -682,8 +721,8 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
         nvol=`fslinfo $file | grep ^dim4 | awk '{print $2}'`
         echo "$file n:${nvol}" | tee -a $fldr/diff.files
         for i in `seq 1 $nvol`; do
-          echo "0 1 0 $readout_diff" >> $fldr/$(subjsess)_acqparam.txt
-          echo "0 -1 0 $readout_diff" >> $fldr/$(subjsess)_acqparam_inv.txt
+          echo "0 1 0 $trot_topup" >> $fldr/$(subjsess)_acqparam.txt
+          echo "0 -1 0 $trot_topup" >> $fldr/$(subjsess)_acqparam_inv.txt
         done
       done
             
@@ -1114,6 +1153,9 @@ if [ $FDT_STG3 -eq 1 ] ; then
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$subjdir/$subj/$sess/fdt
+      
+      # check if we have aquisition parameters
+      defineDWIparams $subjdir/config_params_dwi $subj $sess
       
       # number of volumes in 4D
       echo -n "FDT : counting number of volumes in '$fldr/ec_diff_merged.nii.gz'..."
@@ -2178,6 +2220,10 @@ if [ $BOLD_STG1 -eq 1 ] ; then
     
     for sess in `cat ${subj}/sessions_func` ; do
       
+      # check if we have aquisition parameters
+      defineBOLDparams $subjdir/config_params_bold $subj $sess
+      
+      # define folder
       fldr=$subjdir/$subj/$sess/bold
       
       # create directory
@@ -2228,7 +2274,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       if [ $BOLD_BET_EXFUNC -eq 1 ] ; then
         mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
         echo "BOLD : subj $subj , sess $sess : betting bold at pos. $mid_pos / $npts and using as example_func..."
-        altExFunc=$fldr/exfunc_betted
+        altExFunc=$fldr/example_func_bet
         fslroi $fldr/$bold_lnk $altExFunc $mid_pos 1
         fslmaths $altExFunc $altExFunc -odt float
         bet $altExFunc $altExFunc -f 0.3
@@ -2406,6 +2452,9 @@ if [ $BOLD_STG3 -eq 1 ] ; then
     
     if [ x"$BOLD_DENOISE_MASKS" = "x" ] ; then echo "BOLD : subj $subj : ERROR : no masks for signal extraction specified -> no denoising possible -> breaking loop..." ; break ; fi
     
+    # check if we have aquisition parameters
+    defineBOLDparams $subjdir/config_params_bold $subj $sess
+    
     # substitutions
     if [ x"$BOLD_DENOISE_SMOOTHING_KRNLS" = "x" ] ; then BOLD_DENOISE_SMOOTHING_KRNLS=0; fi
     if [ x"$BOLD_DENOISE_HPF_CUTOFFS" = "x" ] ; then BOLD_DENOISE_HPF_CUTOFFS=Inf ; fi
@@ -2523,6 +2572,11 @@ if [ $BOLD_STG4 -eq 1 ] ; then
               echo "BOLD : subj $subj , sess $sess : using FS's bbreg to register 'example_func.nii.gz' -> FS's structural (ID '${subj}${sess_t1}')..."
               echo "BOLD : subj $subj , sess $sess : writing example_func -> FS's structural..."
               echo "BOLD : subj $subj , sess $sess : concatenating matrices..."
+              
+              #echo "tkregister2 --noedit --mov $FS_subjdir/${subj}${sess_t1}/mri/norm.mgz --targ $FS_subjdir/$subj/mri/norm_template.mgz --lta $FS_subjdir/$subj/mri/transforms/${subj}${sess_t1}_to_${subj}.lta --fslregout $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat --reg $tmpdir/deleteme.reg.dat ;\
+              #fslswapdim $featdir/example_func.nii.gz RL SI PA $featdir/example_func.nii.gz
+              #bbregister --s ${subj}${sess_t1} --mov $featdir/reg_longt/example_func_LIA.nii.gz --init-fsl --reg $featdir/reg_longt/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg_longt/example_func2highres_bbr.mat ;\
+              #convert_xfm -omat $affine -concat $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat $featdir/reg_longt/example_func2highres_bbr.mat" > $cmd_file
               
               echo "tkregister2 --noedit --mov $FS_subjdir/${subj}${sess_t1}/mri/norm.mgz --targ $FS_subjdir/$subj/mri/norm_template.mgz --lta $FS_subjdir/$subj/mri/transforms/${subj}${sess_t1}_to_${subj}.lta --fslregout $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat --reg $tmpdir/deleteme.reg.dat ;\
               bbregister --s ${subj}${sess_t1} --mov $featdir/example_func.nii.gz --init-fsl --reg $featdir/reg_longt/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg_longt/example_func2highres_bbr.mat ;\
@@ -3248,6 +3302,9 @@ if [ $MELODIC_2NDLEV_STG1 -eq 1 ]; then
     done
   done
   
+  # check if we have aquisition parameters
+  defineBOLDparams $subjdir/config_params_bold # assuming that TR is the same for all datasets
+  
   # do some substitutions on the MELODIC template file
   outdir=$fldr/${MELODIC_OUTDIRNAME} # define output directory
   echo "MELODIC_GROUP: counting volumes in '$bold' (assuming that all other inputs have the same number)..."
@@ -3350,6 +3407,9 @@ if [ $MELODIC_CMD_STG1 -eq 1 ]; then
     # shall we bet ?
     opts=""
     if [ $MELODIC_CMD_BET -eq 0 ] ; then opts="--nobet --bgthreshold=10" ; fi
+    
+    # check if we have aquisition parameters
+    defineBOLDparams $subjdir/config_params_bold # assuming that TR is the same for all datasets
     
     # execute
     echo "MELODIC_CMD : executing melodic command line tool:"

@@ -2,6 +2,73 @@
 
 # function declarations
 
+function getAquParams()
+{
+  local conftxt="$1"
+  local col=$2
+  local subj="$3"
+  local sess="$4"
+  local param=""
+  local line=""
+  
+  if [ ! -f $conftxt ] ; then echo "defineBOLDparams(): ERROR: info file '$conftxt' not found. You will need to create that file..." >&2 ; exit 1 ; fi
+  
+  if [ "$3" = "" ] ; then
+  
+    param=`cat $conftxt |  grep -v ^# | sed -n 1p | awk -v column="$col" '{printf("%s\n", $column)}'`
+    if [ "$param" = "." -o x"$param" = "x"] ; then
+      echo "getAquParams(): ERROR: entry in column $col no found..." >&2 ; exit 1
+    else 
+      echo "$param"
+    fi
+    
+  else
+
+    if [ "$sess" = "." ] ; then sess="" ; fi # no multisession design ?
+     
+    line=`cat $conftxt | awk '{print $1}' | grep -nx ${subj}${sess} | cut -d : -f1`  
+    if [ -z $line ] ; then
+      if [ "$sess" != "" ] ; then
+        line=`cat $conftxt | awk '{print $1}' | grep -nx ${subj} | cut -d : -f1`
+        echo "getAquParams(): WARNING: info file ${conftxt}: no entry found for string '${subj}${sess}'; trying to list FI entry for string '${subj}' instead..." >&2
+      fi
+    fi  
+    if [ -z $line ] ; then echo "getAquParams(): ERROR: Unwarp info file ${conftxt}: no entry found for string '${subj}'. Exiting..." >&2 ; exit 1 ; fi
+
+    param=`cat $conftxt |  sed -n ${line}p | awk -v column="$col" '{printf("%s\n", $column)}'`
+   
+    if [ "$param" = "." -o x"$param" = "x" ] ; then
+      echo "getAquParams(): ERROR: entry in column $col no found..." >&2 ; exit 1
+    else 
+      echo "$param"
+    fi
+    
+  fi
+}
+
+function defineBOLDparams()
+{
+  local conftxt="$1"
+  local subj="$2"
+  local sess="$3"
+  
+  if [ $getTR_bold -eq 1 ] ; then echo -n "defineBOLDparams(): subj $subj , sess $sess: TR for BOLDs not set -> retrieving it from infofile '$conftxt': " ; TR_bold=`getAquParams $conftxt 2 $subj $sess` ; echo "$TR_bold" ; fi
+  if [ $getTE_bold -eq 1 ] ; then echo -n "defineBOLDparams(): subj $subj , sess $sess: TE for BOLDs not set -> retrieving it from infofile '$conftxt': " ; TE_bold=`getAquParams $conftxt 3 $subj $sess` ; echo "$TE_bold" ;  fi
+  if [ $getEES_bold -eq 1 ] ; then echo -n "defineBOLDparams(): subj $subj , sess $sess: ESP for BOLDs not set -> retrieving it from infofile '$conftxt': " ; EES_bold=`getAquParams $conftxt 4 $subj $sess` ; echo "$EES_bold" ;  fi
+}
+
+function defineDWIparams()
+{
+  local conftxt="$1"
+  local subj="$2"
+  local sess="$3"
+
+  if [ $getTR_diff -eq 1 ] ; then echo -n "defineDWIparams(): subj $subj , sess $sess: TR for DWIs not set -> retrieving it from infofile '$conftxt': " ; TR_diff=`getAquParams $conftxt 2 $subj $sess` ; echo "$TR_diff" ;  fi
+  if [ $getTE_diff -eq 1 ] ; then echo -n "defineDWIparams(): subj $subj , sess $sess: TE for DWIs not set -> retrieving it from infofile '$conftxt': " ; TE_diff=`getAquParams $conftxt 3 $subj $sess` ; echo "$TE_diff" ;  fi
+  if [ $getEES_diff -eq 1 ] ; then echo -n "defineDWIparams(): subj $subj , sess $sess: ESP for DWIs not set -> retrieving it from infofile '$conftxt': " ; EES_diff=`getAquParams $conftxt 4 $subj $sess` ; echo "$EES_diff" ;  fi
+  if [ $getTROT_topup -eq 1 ] ; then echo -n "defineDWIparams(): subj $subj , sess $sess: Total Readout Time for DWIs (TOPUP) not set -> retrieving it from infofile '$conftxt': " ; TROT_topup=`getAquParams $conftxt 5 $subj $sess` ; echo "$TROT_topup" ;  fi  
+}
+
 function concat_bvecs()
 {
  local file_pttrn=$1
@@ -220,6 +287,8 @@ function getT1Sess4FuncReg()
 
   T1sess=`cat $func2struc_txt | awk '{print $2}' | sed -n ${line}p `
   
+  if [ "$T1sess" = "." ] ; then T1sess="" ; fi 
+  
   echo "$T1sess"
 }
 
@@ -271,25 +340,6 @@ function countVols()
   #done
   #echo $total
 #}
-
-function applyStandardSpaceMaskToT1()
-{
-  local t1="$1" # native t1
-  local t1Brain="$2" # betted brain
-  local t1Masked="$3" # name of standard space masked t1
-  local dest_folder=`dirname $3` # destination folder
-
-  flirt -in ${t1Brain} -ref $FSLDIR/data/standard/MNI152_T1_1mm_brain -out ${dest_folder}/flirted_t1_brain -dof 12 -omat ${dest_folder}/t1_to_MNI
-  convert_xfm -omat ${dest_folder}/MNI_to_t1 -inverse ${dest_folder}/t1_to_MNI
-  flirt -in  $FSLDIR/data/standard/MNI152_T1_1mm_first_brain_mask -out ${dest_folder}/t1_mask -ref $t1 -applyxfm -init ${dest_folder}/MNI_to_t1
-  fslmaths ${dest_folder}/t1_mask -thr 0 -bin  ${dest_folder}/t1_mask -odt char
-  fslmaths ${dest_folder}/t1_mask -mul -1 -add 1 -bin ${dest_folder}/t1_mask_inv
-  fslmaths ${dest_folder}/t1_mask_inv -ero -bin ${dest_folder}/t1_mask_inv_ero
-  fslmaths ${dest_folder}/t1_mask_inv_ero -ero -bin ${dest_folder}/t1_mask_inv_ero2
-  fslmaths ${dest_folder}/t1_mask_inv_ero2 -ero -bin ${dest_folder}/t1_mask_inv_ero3
-  fslmaths ${dest_folder}/t1_mask_inv_ero3 -mul -1 -add 1 -bin ${dest_folder}/t1_mask_ero
-  fslmaths $t1 -mas ${dest_folder}/t1_mask_ero ${t1Masked}
-}
 
 function row2col()
 {
