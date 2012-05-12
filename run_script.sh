@@ -711,8 +711,8 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
         nvol=`fslinfo $file | grep ^dim4 | awk '{print $2}'`
         echo "$file n:${nvol}" | tee -a $fldr/diff.files
         for i in `seq 1 $nvol`; do
-          echo "0 -1 0 $trot_topup" >> $fldr/$(subjsess)_acqparam.txt
-          echo "0 1 0 $trot_topup" >> $fldr/$(subjsess)_acqparam_inv.txt
+          echo "0 -1 0 $TROT_topup" >> $fldr/$(subjsess)_acqparam.txt
+          echo "0 1 0 $TROT_topup" >> $fldr/$(subjsess)_acqparam_inv.txt
         done
       done
       
@@ -721,8 +721,8 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
         nvol=`fslinfo $file | grep ^dim4 | awk '{print $2}'`
         echo "$file n:${nvol}" | tee -a $fldr/diff.files
         for i in `seq 1 $nvol`; do
-          echo "0 1 0 $trot_topup" >> $fldr/$(subjsess)_acqparam.txt
-          echo "0 -1 0 $trot_topup" >> $fldr/$(subjsess)_acqparam_inv.txt
+          echo "0 1 0 $TROT_topup" >> $fldr/$(subjsess)_acqparam.txt
+          echo "0 -1 0 $TROT_topup" >> $fldr/$(subjsess)_acqparam_inv.txt
         done
       done
             
