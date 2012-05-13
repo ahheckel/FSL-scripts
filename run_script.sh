@@ -12,8 +12,10 @@ date
 wd=`pwd`
 # check lock
 set +e
-  echo "creating lock."
-  mkdir $wd/.lockdir121978 &>/dev/null
+  lock="$wd/.lockdir121978"
+  echo "creating lock [ '$lock' ]"
+  mkdir $lock &>/dev/null
+  lock=""
   if [ $? -gt 0 ] ; then echo "$0 : --> another instance is already running - exiting." ; exit ; fi
 set -e
 
@@ -153,7 +155,7 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   # check aquisition-parameter files
   if [ ! -f ${subjdir}/config_aqparams_bold ] ; then
     read -p "BOLD aquisition parameter info file not present in ${subjdir}. Press Key to create a template."
-    printf "#ID\t TR (s)\t TE (ms)\t	EES (ms)\t TOPUP-TROT (s)\n" > ${subjdir}/config_aqparams_bold
+    printf "#ID\t TR (s)\t TE (ms)\t	EES (ms)\n" > ${subjdir}/config_aqparams_bold
     for subj in `cat $subjdir/subjects`; do for sess in `cat $subjdir/$subj/sessions_func` ; do printf "$(subjsess)\t $TR_bold\t $TE_bold\t $EES_bold\n" | tee -a $subjdir/config_aqparams_bold ; done ; done
   fi    
   if [ ! -f ${subjdir}/config_aqparams_dwi ] ; then
@@ -172,7 +174,7 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   if [ x$TE_diff = x ] ; then getTE_diff=1 ; fi
   if [ x$EES_diff = x ] ; then getEES_diff=1 ; fi
   if [ x$TROT_topup = x ] ; then getTROT_topup=1 ; fi
-  echo "checking aquisition parameter info files..."
+  echo "checking aquisition parameters in info files..."
   for subj in `cat $subjdir/subjects`; do 
     for sess in `cat $subjdir/$subj/sessions_func` ; do
       #echo "subj $subj , sess $sess : checking '$subjdir/config_aqparams_bold'"
@@ -251,6 +253,7 @@ for subj in `cat $subjdir/subjects` ; do
     n=$[$n+1]
   done
 done
+echo ""
 echo "***CHECK*** (sleeping 2 seconds)..."
 sleep 2
 
@@ -994,7 +997,7 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
         cp $subjdir/template_makeXfmMatrix.m $fldr/makeXfmMatrix_${i}.m
         
         # define vars
-        rots=`sed -n ${i}p $fldr/$(subjsess)_field_lowb_movpar.txt | cut -d " " -f 7-11` # last three entries are rotations in radians
+        rots=`sed -n ${i}p $fldr/$(subjsess)_field_lowb_movpar.txt | awk '{print $4"  "$5"  "$6}'` # cut -d " " -f 7-11` # last three entries are rotations in radians 
         nscans=`sed -n ${i}p $fldr/diff.files | cut -d : -f 2` # number of scans in run
         fname_mat=$fldr/topup_diffs_merged_${i}.mat # filename with n 4x4 affine matrices
         

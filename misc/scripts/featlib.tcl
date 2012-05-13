@@ -4736,7 +4736,8 @@ proc feat5:flirt { in ref dof search interp existing_mats report init in_weighti
     global FSLDIR logout comout fmri
 
     set out ${in}2$ref
-
+    
+    # added by HKL
     set costfunction "mutualinfo"
     
     # added by HKL
@@ -4978,7 +4979,6 @@ if { $fmri(mc) != 0 } {
 
     #fsl:exec "${FSLDIR}/bin/mcflirt -in $funcdata -out prefiltered_func_data_mcf -mats -plots -refvol $target_vol_number -rmsrel -rmsabs" # removed by HKL
     fsl:exec "${FSLDIR}/bin/mcflirt -in $funcdata -out prefiltered_func_data_mcf -mats -plots -reffile example_func -rmsrel -rmsabs -spline_final" # added by HKL
-    #fsl:exec "${FSLDIR}/bin/mcflirt -in $funcdata -out prefiltered_func_data_mcf -mats -plots -refvol $target_vol_number -rmsrel -rmsabs -spline_final" # added by HKL
     if { ! $fmri(regunwarp_yn) } {
 	set funcdata prefiltered_func_data_mcf
     }
@@ -5126,18 +5126,10 @@ fsl:echo ${FD}/report_prestats.html "<hr><b>FUGUE fieldmap unwarping</b>"
     fsl:exec "${FSLDIR}/bin/convert_xfm -omat FM_2_EF.mat -inverse EF_2_FM.mat"
 
     # put fmap stuff into space of EF_D_example_func
-    # removed by HKL :
     fsl:exec "${FSLDIR}/bin/flirt -in FM_UD_fmap                -ref EF_D_example_func -init FM_2_EF.mat -applyxfm -out EF_UD_fmap"
     fsl:exec "${FSLDIR}/bin/flirt -in FM_UD_fmap_mag_brain      -ref EF_D_example_func -init FM_2_EF.mat -applyxfm -out EF_UD_fmap_mag_brain"
     fsl:exec "${FSLDIR}/bin/flirt -in FM_UD_fmap_mag_brain_mask -ref EF_D_example_func -init FM_2_EF.mat -applyxfm -out EF_UD_fmap_mag_brain_mask"
     fsl:exec "${FSLDIR}/bin/flirt -in FM_UD_fmap_sigloss        -ref EF_D_example_func -init FM_2_EF.mat -applyxfm -out EF_UD_fmap_sigloss"
-    # : removed by HKL
-    ## added by HKL :
-    #fsl:exec "${FSLDIR}/bin/applywarp --in=FM_UD_fmap                --ref=EF_D_example_func --premat=FM_2_EF.mat --out=EF_UD_fmap" # test w/o spline (HKL) - masking ?
-    #fsl:exec "${FSLDIR}/bin/applywarp --in=FM_UD_fmap_mag_brain      --ref=EF_D_example_func --premat=FM_2_EF.mat --out=EF_UD_fmap_mag_brain"  # test w/o spline (HKL)
-    #fsl:exec "${FSLDIR}/bin/applywarp --in=FM_UD_fmap_mag_brain_mask --ref=EF_D_example_func --premat=FM_2_EF.mat --out=EF_UD_fmap_mag_brain_mask" # no splines here (HKL)
-    #fsl:exec "${FSLDIR}/bin/applywarp --in=FM_UD_fmap_sigloss        --ref=EF_D_example_func --premat=FM_2_EF.mat --out=EF_UD_fmap_sigloss" # no splines here (HKL)
-    ## : added by HKL
     fsl:exec "${FSLDIR}/bin/fslmaths EF_UD_fmap_mag_brain_mask -thr 0.5 -bin EF_UD_fmap_mag_brain_mask -odt float"
     fsl:exec "${FSLDIR}/bin/fslmaths EF_UD_fmap_sigloss -thr $siglossthresh EF_UD_fmap_sigloss -odt float"
 

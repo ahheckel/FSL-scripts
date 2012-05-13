@@ -53,8 +53,8 @@ RECON_STG3=0               # RECON-ALL execute longtitudinal stream's template c
 RECON_STG4=0               # RECON-ALL execute longtitudinal processing for each timepoint
 RECON_STG5=0               # RECON-ALL register FS's longtitudinal template to FSL's MNI152 template using fnirt
 
-FIELDMAP_STG1=1            # FIELDMAP prepare
-FIELDMAP_STG2=1            # FIELDMAP create
+FIELDMAP_STG1=0            # FIELDMAP prepare
+FIELDMAP_STG2=0            # FIELDMAP create
 
 TOPUP_STG1=0               # TOPUP prepare
 TOPUP_STG2=0               # TOPUP low-B images: create index and extract
@@ -63,19 +63,19 @@ TOPUP_STG4=0               # TOPUP execute topup
 TOPUP_STG5=0               # TOPUP apply warp
 TOPUP_STG6=0               # TOPUP estimate tensor model
 
-FDT_STG1=1                 # FDT merging
-FDT_STG2=1                 # FDT eddy-correct & extract B0 reference image
-FDT_STG3=1                 # FDT prepare FEAT configuration file for unwarping the DWIs
-FDT_STG4=1                 # FDT execute FEAT & extract unwarped B0 reference image
-FDT_STG5=1                 # FDT estimate tensor model
+FDT_STG1=0                 # FDT merging
+FDT_STG2=0                 # FDT eddy-correct & extract B0 reference image
+FDT_STG3=0                 # FDT prepare FEAT configuration file for unwarping the DWIs
+FDT_STG4=0                 # FDT execute FEAT & extract unwarped B0 reference image
+FDT_STG5=0                 # FDT estimate tensor model
 
 BPX_STG1=0                 # BedpostX - execute
 
-VBM_STG1=1                 # VBM prepare T1
-VBM_STG2=1                 # VBM initial skull strip
-VBM_STG3=1                 # VBM apply standard space mask (SSM)
-VBM_STG4=1                 # VBM final skull strip - bet
-VBM_STG5=1                 # VBM final skull strip - watershed
+VBM_STG1=0                 # VBM prepare T1
+VBM_STG2=0                 # VBM initial skull strip
+VBM_STG3=0                 # VBM apply standard space mask (SSM)
+VBM_STG4=0                 # VBM final skull strip - bet
+VBM_STG5=0                 # VBM final skull strip - watershed
 
 BIASMAP_STG1=0             # create bias map
 BIASMAP_STG2=0             # apply bias map
@@ -141,7 +141,7 @@ PLOT_BOLD_MNIREG_DIRNAMES="preprocBOLD"    # (part of) dirname, where reg_standa
 # overwrite pre-existing subject /session file (to disable set any to "")
 #FIRSTLEV_SUBJECTS="01 02 03 04 flip04 05 flip05 06 flip06 07 flip07 08 09 flip09 10" 
 #FIRSTLEV_SUBJECTS="01 02 03 04 05 06 07 08 09 10" 
-FIRSTLEV_SUBJECTS="01 02" 
+FIRSTLEV_SUBJECTS="02" 
 FIRSTLEV_SESSIONS_FUNC="a b"               
 FIRSTLEV_SESSIONS_STRUC="a c"                
 
