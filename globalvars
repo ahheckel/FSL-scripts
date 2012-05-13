@@ -63,19 +63,19 @@ TOPUP_STG4=0               # TOPUP execute topup
 TOPUP_STG5=0               # TOPUP apply warp
 TOPUP_STG6=0               # TOPUP estimate tensor model
 
-FDT_STG1=0                 # FDT merging
-FDT_STG2=0                 # FDT eddy-correct & extract B0 reference image
-FDT_STG3=0                 # FDT prepare FEAT configuration file for unwarping the DWIs
-FDT_STG4=0                 # FDT execute FEAT & extract unwarped B0 reference image
-FDT_STG5=0                 # FDT estimate tensor model
+FDT_STG1=1                 # FDT merging
+FDT_STG2=1                 # FDT eddy-correct & extract B0 reference image
+FDT_STG3=1                 # FDT prepare FEAT configuration file for unwarping the DWIs
+FDT_STG4=1                 # FDT execute FEAT & extract unwarped B0 reference image
+FDT_STG5=1                 # FDT estimate tensor model
 
 BPX_STG1=0                 # BedpostX - execute
 
-VBM_STG1=0                 # VBM prepare T1
-VBM_STG2=0                 # VBM initial skull strip
-VBM_STG3=0                 # VBM apply standard space mask (SSM)
-VBM_STG4=0                 # VBM final skull strip - bet
-VBM_STG5=0                 # VBM final skull strip - watershed
+VBM_STG1=1                 # VBM prepare T1
+VBM_STG2=1                 # VBM initial skull strip
+VBM_STG3=1                 # VBM apply standard space mask (SSM)
+VBM_STG4=1                 # VBM final skull strip - bet
+VBM_STG5=1                 # VBM final skull strip - watershed
 
 BIASMAP_STG1=0             # create bias map
 BIASMAP_STG2=0             # apply bias map
@@ -86,7 +86,7 @@ TRACULA_STG3=0             # TRACULA execute -bedp
 TRACULA_STG4=0             # TRACULA execute -path
 
 BOLD_STG1=1                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
-BOLD_STG2=0                # BOLD execute FEAT configuration file
+BOLD_STG2=1                # BOLD execute FEAT configuration file
 BOLD_STG3=1                # BOLD denoising (needs Freesurfer recons)
 BOLD_STG4=1                # BOLD write MNI-registered volumes
 
@@ -141,9 +141,9 @@ PLOT_BOLD_MNIREG_DIRNAMES="preprocBOLD"    # (part of) dirname, where reg_standa
 # overwrite pre-existing subject /session file (to disable set any to "")
 #FIRSTLEV_SUBJECTS="01 02 03 04 flip04 05 flip05 06 flip06 07 flip07 08 09 flip09 10" 
 #FIRSTLEV_SUBJECTS="01 02 03 04 05 06 07 08 09 10" 
-FIRSTLEV_SUBJECTS="01 02 03" 
-FIRSTLEV_SESSIONS_FUNC="a b c"               
-FIRSTLEV_SESSIONS_STRUC="c d e"                
+FIRSTLEV_SUBJECTS="01 02" 
+FIRSTLEV_SESSIONS_FUNC="a b"               
+FIRSTLEV_SESSIONS_STRUC="a c"                
 
 # SECOND LEVEL
 #SECONDLEV_SUBJECTS="01 02 03 flip04 flip05 flip06 flip07 08 flip09 10"
@@ -164,14 +164,14 @@ deltaTEphase=0.00246
 PI=$(echo "scale=10; 4*a(1)" | bc -l) # define pi
 
 # TOPUP
-TROT_topup=0.02375         # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 95 / 1000)
-TOPUP_USE_NATIVE=1         # apply TOPUP-warps to native DWI runs
-TOPUP_USE_EC=1             # apply TOPUP-warps to eddy-corrected DWI runs (i.e. runs that have been eddy-corrected to the first B0 volume per run)
+#TROT_topup=0.02975         # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
+#TOPUP_USE_NATIVE=1         # apply TOPUP-warps to native DWI runs
+#TOPUP_USE_EC=1             # apply TOPUP-warps to eddy-corrected DWI runs (i.e. runs that have been eddy-corrected to the first B0 volume per run)
 
 # FDT - unwarp
-TR_diff=11                 # TR of the DWIs (s)
-EES_diff=0.25              # Effective Echo Spacing of the DWIs (ms)
-TE_diff=88                 # TE of the DWIs (ms)
+#TR_diff=11                 # TR of the DWIs (s)
+#EES_diff=0.25              # Effective Echo Spacing of the DWIs (ms)
+#TE_diff=88                 # TE of the DWIs (ms)
 FDT_SIGNLOSS_THRES=100     # signal loss threshold (%)
 FDT_UNWARP_BET_ALTEXFUNC=1 # brain-extract the input alternative example func (i.e. the B0 image)
 FDT_FEAT_NO_BROWSER=0      # don't open browser window

@@ -131,7 +131,7 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   fi
   if [ ! -f ${subjdir}/config_bet_magn ] ; then
     read -p "Bet info file for the magnitude images not present in ${subjdir}. Press Key to create the default template."
-    for subj in `cat $subjdir/subjects`; do for sess in `cat $subjdir/$subj/sessions_func` ; do echo "$(subjsess) $BETMAGN_INFO" | tee -a $subjdir/config_bet_magn ; done ; done
+    for subj in `cat $subjdir/subjects`; do for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do echo "$(subjsess) $BETMAGN_INFO" | tee -a $subjdir/config_bet_magn ; done ; done
   fi
   if [ ! -f ${subjdir}/config_bet_struc0 ] ; then
     read -p "Bet info file for the structural images (prae - std. space masking) not present in ${subjdir}. Press Key to create the default template."
@@ -151,15 +151,15 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   fi
   
   # check aquisition-parameter files
-  if [ ! -f ${subjdir}/config_params_bold ] ; then
+  if [ ! -f ${subjdir}/config_aqparams_bold ] ; then
     read -p "BOLD aquisition parameter info file not present in ${subjdir}. Press Key to create a template."
-    printf "#ID\t TR\t TE\t	EES\n" > ${subjdir}/config_params_bold
-    for subj in `cat $subjdir/subjects`; do for sess in `cat $subjdir/$subj/sessions_func` ; do printf "$(subjsess)\t $TR_bold\t $TE_bold\t $EES_bold\n" | tee -a $subjdir/config_params_bold ; done ; done
+    printf "#ID\t TR (s)\t TE (ms)\t	EES (ms)\t TOPUP-TROT (s)\n" > ${subjdir}/config_aqparams_bold
+    for subj in `cat $subjdir/subjects`; do for sess in `cat $subjdir/$subj/sessions_func` ; do printf "$(subjsess)\t $TR_bold\t $TE_bold\t $EES_bold\n" | tee -a $subjdir/config_aqparams_bold ; done ; done
   fi    
-  if [ ! -f ${subjdir}/config_params_dwi ] ; then
+  if [ ! -f ${subjdir}/config_aqparams_dwi ] ; then
     read -p "DWI aquisition parameter info file not present in ${subjdir}. Press Key to create a template."
-    printf "#ID\t TR\t TE\t	EES\t TOPUP-TROT\n" > ${subjdir}/config_params_dwi
-    for subj in `cat $subjdir/subjects`; do for sess in `cat $subjdir/$subj/sessions_struc` ; do printf "$(subjsess)\t $TR_diff\t $TE_diff\t $EES_diff\t $TROT_topup\n" | tee -a $subjdir/config_params_dwi ; done ; done
+    printf "#ID\t TR (s)\t TE (ms)\t	EES (ms)\t TOPUP-TROT (s)\n" > ${subjdir}/config_aqparams_dwi
+    for subj in `cat $subjdir/subjects`; do for sess in `cat $subjdir/$subj/sessions_struc` ; do printf "$(subjsess)\t $TR_diff\t $TE_diff\t $EES_diff\t $TROT_topup\n" | tee -a $subjdir/config_aqparams_dwi ; done ; done
   fi
   
   # are params defined as global variables ? if vars are empty -> set flag, so that params are retrieved from info files.
@@ -175,14 +175,14 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   echo "checking aquisition parameter info files..."
   for subj in `cat $subjdir/subjects`; do 
     for sess in `cat $subjdir/$subj/sessions_func` ; do
-      #echo "subj $subj , sess $sess : checking '$subjdir/config_params_bold'"
-      defineBOLDparams $subjdir/config_params_bold $subj $sess 
+      #echo "subj $subj , sess $sess : checking '$subjdir/config_aqparams_bold'"
+      defineBOLDparams $subjdir/config_aqparams_bold $subj $sess 
     done
   done
   for subj in `cat $subjdir/subjects`; do 
     for sess in `cat $subjdir/$subj/sessions_struc` ; do
-      #echo "subj $subj , sess $sess : checking '$subjdir/config_params_dwi'"
-      defineDWIparams $subjdir/config_params_dwi $subj $sess 
+      #echo "subj $subj , sess $sess : checking '$subjdir/config_aqparams_dwi'"
+      defineDWIparams $subjdir/config_aqparams_dwi $subj $sess 
     done
   done
   echo "done."
@@ -344,8 +344,8 @@ if [ $RECON_STG1 -eq 1 ] ; then
       mkdir -p $fldr
       
       # reorient to please fslview
-      echo "RECON : subj $subj , sess $sess : reorienting T1 to please fslview..." 
       file=`ls ${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check pattern (!)
+      echo "RECON : subj $subj , sess $sess : reorienting T1 ('$file') to please fslview..."
       fslreorient2std $file $fldr/tmp_t1
       
       # convert to .mgz
@@ -617,7 +617,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
     
       # check if we have aquisition parameters
-      defineDWIparams $subjdir/config_params_dwi $subj $sess
+      defineDWIparams $subjdir/config_aqparams_dwi $subj $sess
     
       if [ "x$pttrn_diffsplus" = "x" -o "x$pttrn_diffsminus" = "x" -o "x$pttrn_bvalsplus" = "x" -o "x$pttrn_bvalsminus" = "x" -o "x$pttrn_bvecsplus" = "x" -o "x$pttrn_bvecsminus" = "x" ] ; then
         echo "TOPUP : subj $subj , sess $sess : ERROR : file search pattern for blipUp/blipDown DWIs not set..."
@@ -1096,7 +1096,7 @@ if [ $FDT_STG1 -eq 1 ] ; then
       # merge diffs...
       echo "FDT : subj $subj , sess $sess : merging diffs..."
       ls $subj/$sess/$pttrn_diffs | tee $fldr/diff.files
-      fsl_sub -l $logdir -N fdt_fslmerge_${subj} fslmerge -t $fldr/diff_merged $(cat $fldr/diff.files)      
+      fsl_sub -l $logdir -N fdt_fslmerge_$(subjsess) fslmerge -t $fldr/diff_merged $(cat $fldr/diff.files)      
     done    
   done
 fi
@@ -1155,7 +1155,7 @@ if [ $FDT_STG3 -eq 1 ] ; then
       fldr=$subjdir/$subj/$sess/fdt
       
       # check if we have aquisition parameters
-      defineDWIparams $subjdir/config_params_dwi $subj $sess
+      defineDWIparams $subjdir/config_aqparams_dwi $subj $sess
       
       # number of volumes in 4D
       echo -n "FDT : counting number of volumes in '$fldr/ec_diff_merged.nii.gz'..."
@@ -2221,7 +2221,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_func` ; do
       
       # check if we have aquisition parameters
-      defineBOLDparams $subjdir/config_params_bold $subj $sess
+      defineBOLDparams $subjdir/config_aqparams_bold $subj $sess
       
       # define folder
       fldr=$subjdir/$subj/$sess/bold
@@ -2453,7 +2453,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
     if [ x"$BOLD_DENOISE_MASKS" = "x" ] ; then echo "BOLD : subj $subj : ERROR : no masks for signal extraction specified -> no denoising possible -> breaking loop..." ; break ; fi
     
     # check if we have aquisition parameters
-    defineBOLDparams $subjdir/config_params_bold $subj $sess
+    defineBOLDparams $subjdir/config_aqparams_bold $subj $sess
     
     # substitutions
     if [ x"$BOLD_DENOISE_SMOOTHING_KRNLS" = "x" ] ; then BOLD_DENOISE_SMOOTHING_KRNLS=0; fi
@@ -3303,7 +3303,7 @@ if [ $MELODIC_2NDLEV_STG1 -eq 1 ]; then
   done
   
   # check if we have aquisition parameters
-  defineBOLDparams $subjdir/config_params_bold # assuming that TR is the same for all datasets
+  defineBOLDparams $subjdir/config_aqparams_bold # assuming that TR is the same for all datasets
   
   # do some substitutions on the MELODIC template file
   outdir=$fldr/${MELODIC_OUTDIRNAME} # define output directory
@@ -3409,7 +3409,7 @@ if [ $MELODIC_CMD_STG1 -eq 1 ]; then
     if [ $MELODIC_CMD_BET -eq 0 ] ; then opts="--nobet --bgthreshold=10" ; fi
     
     # check if we have aquisition parameters
-    defineBOLDparams $subjdir/config_params_bold # assuming that TR is the same for all datasets
+    defineBOLDparams $subjdir/config_aqparams_bold # assuming that TR is the same for all datasets
     
     # execute
     echo "MELODIC_CMD : executing melodic command line tool:"

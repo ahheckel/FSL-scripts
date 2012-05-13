@@ -52,9 +52,11 @@ function defineBOLDparams()
   local subj="$2"
   local sess="$3"
   
-  if [ $getTR_bold -eq 1 ] ; then echo -n "defineBOLDparams(): subj $subj , sess $sess: TR for BOLDs not set -> retrieving it from infofile '$conftxt': " ; TR_bold=`getAquParams $conftxt 2 $subj $sess` ; echo "$TR_bold" ; fi
-  if [ $getTE_bold -eq 1 ] ; then echo -n "defineBOLDparams(): subj $subj , sess $sess: TE for BOLDs not set -> retrieving it from infofile '$conftxt': " ; TE_bold=`getAquParams $conftxt 3 $subj $sess` ; echo "$TE_bold" ;  fi
-  if [ $getEES_bold -eq 1 ] ; then echo -n "defineBOLDparams(): subj $subj , sess $sess: ESP for BOLDs not set -> retrieving it from infofile '$conftxt': " ; EES_bold=`getAquParams $conftxt 4 $subj $sess` ; echo "$EES_bold" ;  fi
+  if [ $getTR_bold -eq 1 -o $getTE_bold -eq 1 -o $getEES_bold -eq 1 ] ; then echo -n "defineBOLDparams(): subj $subj , sess $sess: " ; fi
+  
+  if [ $getTR_bold -eq 1 ] ; then TR_bold=`getAquParams $conftxt 2 $subj $sess` ; echo -n "TR = $TR_bold  " ; fi
+  if [ $getTE_bold -eq 1 ] ; then TE_bold=`getAquParams $conftxt 3 $subj $sess` ; echo -n "TE = $TE_bold  " ;  fi
+  if [ $getEES_bold -eq 1 ] ; then EES_bold=`getAquParams $conftxt 4 $subj $sess` ; echo "ESP = $EES_bold" ;  fi
 }
 
 function defineDWIparams()
@@ -62,11 +64,13 @@ function defineDWIparams()
   local conftxt="$1"
   local subj="$2"
   local sess="$3"
+  
+  if [ $getTR_diff -eq 1 -o $getTE_diff -eq 1 -o $getEES_diff -eq 1 -o $getTROT_topup -eq 1 ] ; then echo -n "defineDWIparams(): subj $subj , sess $sess: " ; fi
 
-  if [ $getTR_diff -eq 1 ] ; then echo -n "defineDWIparams(): subj $subj , sess $sess: TR for DWIs not set -> retrieving it from infofile '$conftxt': " ; TR_diff=`getAquParams $conftxt 2 $subj $sess` ; echo "$TR_diff" ;  fi
-  if [ $getTE_diff -eq 1 ] ; then echo -n "defineDWIparams(): subj $subj , sess $sess: TE for DWIs not set -> retrieving it from infofile '$conftxt': " ; TE_diff=`getAquParams $conftxt 3 $subj $sess` ; echo "$TE_diff" ;  fi
-  if [ $getEES_diff -eq 1 ] ; then echo -n "defineDWIparams(): subj $subj , sess $sess: ESP for DWIs not set -> retrieving it from infofile '$conftxt': " ; EES_diff=`getAquParams $conftxt 4 $subj $sess` ; echo "$EES_diff" ;  fi
-  if [ $getTROT_topup -eq 1 ] ; then echo -n "defineDWIparams(): subj $subj , sess $sess: Total Readout Time for DWIs (TOPUP) not set -> retrieving it from infofile '$conftxt': " ; TROT_topup=`getAquParams $conftxt 5 $subj $sess` ; echo "$TROT_topup" ;  fi  
+  if [ $getTR_diff -eq 1 ] ; then TR_diff=`getAquParams $conftxt 2 $subj $sess` ; echo -n "TR = $TR_diff  " ;  fi
+  if [ $getTE_diff -eq 1 ] ; then TE_diff=`getAquParams $conftxt 3 $subj $sess` ; echo -n "TE = $TE_diff  " ;  fi
+  if [ $getEES_diff -eq 1 ] ; then EES_diff=`getAquParams $conftxt 4 $subj $sess` ; echo -n "ESP = $EES_diff  " ;  fi
+  if [ $getTROT_topup -eq 1 ] ; then TROT_topup=`getAquParams $conftxt 5 $subj $sess` ; echo "TROT = $TROT_topup" ;  fi  
 }
 
 function concat_bvecs()
