@@ -46,8 +46,16 @@ mkdir -p $wdir
 
 cd $wdir
 
+  echo "`basename $0`: generate mask for fmap_mag (accounting for the fact that either mag or phase might have been masked in some pre-processing before being enter to FEAT)"
   fslmaths FM_UD_fmap_mag FM_UD_fmap_mag_brain
   fslmaths FM_UD_fmap_mag -bin FM_UD_fmap_mag_brain_mask -odt short
+  
+  echo "`basename $0`: remask by the non-zero voxel mask of the fmap_rads image (as prelude may have masked this differently before)"
+  echo "  NB: need to use cluster to fill in holes where fmap=0"
+  fslmaths FM_UD_fmap -abs -bin -mas FM_UD_fmap_mag_brain_mask -mul -1 -add 1 -bin FM_UD_fmap_mag_brain_mask_inv
+  cluster -i FM_UD_fmap_mag_brain_mask_inv -t 0.5 --no_table -o FM_UD_fmap_mag_brain_mask_idx
+  maxidx=`fslstats FM_UD_fmap_mag_brain_mask_idx -R | awk '{ print \$2 }'`
+  fslmaths FM_UD_fmap_mag_brain_mask_idx -thr $maxidx -bin -mul -1 -add 1 -bin -mas FM_UD_fmap_mag_brain_mask FM_UD_fmap_mag_brain_mask
 
   echo "`basename $0`: refine mask (remove edge voxels where signal is poor)"
   fslmaths FM_UD_fmap -sub `fslstats FM_UD_fmap -k FM_UD_fmap_mag_brain_mask -P 50` -mas FM_UD_fmap_mag_brain_mask FM_UD_fmap
@@ -104,4 +112,4 @@ echo "`basename $0`: save results"
 fslmerge -t ${out}_check $wdir/EF_UD_fmap_mag_brain $wdir/example_func $wdir/EF_UD_fmap_mag_brain $wdir/example_func_orig_distorted $wdir/example_func
 immv $wdir/example_func ${out}
 immv $wdir/EF_UD_warp ${out}_warp
-immv $wdir/FM_UD_fmap_sigloss ${out}_sigloss
+immv $wdir/EF_UD_fmap_sigloss ${out}_sigloss

@@ -71,11 +71,11 @@ FDT_STG5=0                 # FDT estimate tensor model
 
 BPX_STG1=0                 # BedpostX - execute
 
-VBM_STG1=0                 # VBM prepare T1
-VBM_STG2=0                 # VBM initial skull strip
-VBM_STG3=0                 # VBM apply standard space mask (SSM)
-VBM_STG4=0                 # VBM final skull strip - bet
-VBM_STG5=0                 # VBM final skull strip - watershed
+VBM_STG1=1                 # VBM prepare T1
+VBM_STG2=1                 # VBM initial skull strip
+VBM_STG3=1                 # VBM apply standard space mask (SSM)
+VBM_STG4=1                 # VBM final skull strip - bet
+VBM_STG5=1                 # VBM final skull strip - watershed
 
 BIASMAP_STG1=0             # create bias map
 BIASMAP_STG2=0             # apply bias map
@@ -141,7 +141,7 @@ PLOT_BOLD_MNIREG_DIRNAMES="preprocBOLD"    # (part of) dirname, where reg_standa
 # overwrite pre-existing subject /session file (to disable set any to "")
 #FIRSTLEV_SUBJECTS="01 02 03 04 flip04 05 flip05 06 flip06 07 flip07 08 09 flip09 10" 
 #FIRSTLEV_SUBJECTS="01 02 03 04 05 06 07 08 09 10" 
-FIRSTLEV_SUBJECTS="02" 
+FIRSTLEV_SUBJECTS="01" 
 FIRSTLEV_SESSIONS_FUNC="a b"               
 FIRSTLEV_SESSIONS_STRUC="a c"                
 
