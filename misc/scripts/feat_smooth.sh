@@ -32,15 +32,15 @@ sess="$6"  # optional
 echo "`basename $0`: subj $subj , sess $sess : smoothing $data with [ $BOLD_SMOOTHING_KRNLS ] (FWHM) kernels -> ${out}_[${BOLD_SMOOTHING_KRNLS}] ..." 
 
 # making mask
-$(dirname $0)/feat_mask.sh ${data} $(dirname ${out})/susan_mask $subj $sess
-susan_int=`cat $(dirname ${out})/susan_mask_vals |  awk '{print $5}'`
-median_intensity=`cat $(dirname ${out})/susan_mask_vals |  awk '{print $4}'`
+$(dirname $0)/feat_mask.sh ${data} ${out}_susan_mask $subj $sess
+median_intensity=`cat ${out}_susan_mask_vals |  awk '{print $4}'`
+susan_int=`cat ${out}_susan_mask_vals |  awk '{print $5}'`
 
 echo "`basename $0`: subj $subj , sess $sess : masking `basename ${data}` -> `basename ${out}_thresh`..."
-fslmaths ${data} -mas $(dirname $out)/susan_mask ${out}_thresh
+fslmaths ${data} -mas ${out}_susan_mask ${out}_thresh
 
-echo "`basename $0`: subj $subj , sess $sess : generating mean from `basename ${out}_thres` -> susan_mean_func..."
-fslmaths ${out}_thresh -Tmean $(dirname $out)/susan_mean_func
+echo "`basename $0`: subj $subj , sess $sess : generating mean from `basename ${out}_thres` -> *_susan_mean_func..."
+fslmaths ${out}_thresh -Tmean ${out}_susan_mean_func
 
 # smoothing
 for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
@@ -52,13 +52,13 @@ for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
     imcp ${out}_thresh ${out}_smooth
   else
     echo "`basename $0`: subj $subj , sess $sess : FWHM: $sm_krnl - sigma: $smoothsigma"
-    cmd="susan ${out}_thresh $susan_int $smoothsigma 3 1 1 $(dirname $out)/susan_mean_func $susan_int ${out}_smooth"
+    cmd="susan ${out}_thresh $susan_int $smoothsigma 3 1 1 ${out}_susan_mean_func $susan_int ${out}_smooth"
     echo "`basename $0`: subj $subj , sess $sess : executing command: $cmd"
     $cmd
   fi
   
   echo "`basename $0`: subj $subj , sess $sess : masking `basename ${out}_smooth` -> `basename ${out}_smooth`..."
-  fslmaths ${out}_smooth -mas $(dirname $out)/susan_mask ${out}_smooth
+  fslmaths ${out}_smooth -mas ${out}_susan_mask ${out}_smooth
   
   # global mean scaling
   normmean=10000
@@ -78,6 +78,6 @@ done # end sm_krnl
 
 # cleanup
 echo "`basename $0`: subj $subj , sess $sess : cleanup..."
-imrm ${out}_intnorm ${out}_smooth ${out}_bet ${out}_thresh ${out}_smooth_usan_size $(dirname $out)/susan_mean_func
+imrm ${out}_intnorm ${out}_smooth ${out}_bet ${out}_thresh ${out}_smooth_usan_size ${out}_susan_mean_func
 
 echo "`basename $0`: subj $subj , sess $sess : done."

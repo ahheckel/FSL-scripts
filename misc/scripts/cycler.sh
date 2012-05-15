@@ -31,10 +31,10 @@ if [ "$a3" = "" ] ; then a3="1" ; fi
 if [ "$a4" = "" ] ; then a4="1" ; fi
 
 
-cmd=`echo $cmd | sed 's|@^^^^|\$LLL|g'`
-cmd=`echo $cmd | sed 's|@^^^|\$KKK|g'`
-cmd=`echo $cmd | sed 's|@^^|\$JJJ|g'`
-cmd=`echo $cmd | sed 's|@^|\$III|g'`
+cmd=`echo $cmd | sed 's|@^^^^|\${LLL}|g'`
+cmd=`echo $cmd | sed 's|@^^^|\${KKK}|g'`
+cmd=`echo $cmd | sed 's|@^^|\${JJJ}|g'`
+cmd=`echo $cmd | sed 's|@^|\${III}|g'`
 
 export III JJJ KKK LLL
 

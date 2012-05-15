@@ -1,6 +1,6 @@
 ToDo:
 
 update imagemagick (compile)
-fsl_sub: comment out POSIXLY_CORRECT=1 <-- consult fsl list
+fsl_sub: comment out POSIXLY_CORRECT=1 <-- consult fsl list, but seems to give problems with "feat"
 recon-all -use-mritotal may give better talairach registrations
 

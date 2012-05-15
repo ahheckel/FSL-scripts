@@ -2479,7 +2479,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
       
       if [ $BOLD_UNWARP -eq 1 ] ; then uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; else uw_dir=00 ; fi
       
-      for hpf_cut in Inf ; do
+      for hpf_cut in $BOLD_HPF_CUTOFFS ; do # it may be better to do temporal filtering first, then denoise (not the other way around) (?)
         for sm_krnl in 0 ; do # denoising only with non-smoothed data -> smoothing carried out at the end.
           for stc_val in $BOLD_SLICETIMING_VALUES ; do
             
@@ -2675,7 +2675,18 @@ if [ $BOLD_STG4 -eq 1 ] ; then
                 echo "BOLD : subj $subj , sess $sess : writing MNI-registered 4D BOLD '$(basename $out_file)' to '$(dirname $out_file)/'."
                                 
                 # create command for fsl_sub
-                echo "$scriptdir/feat_writeMNI.sh $in_file $T1_file $MNI_file $out_file $mni_res $affine $warp $interp $subj $sess" > $cmd_file
+                ## mask result to remove spline / sinc related oscillations outside the brain...
+                if [ $interp = "spline" -o $interp = "sinc" ] ; then  
+                  cmd_mask="$scriptdir/feat_mask.sh ${out_file} ${out_file}_mask $subj $sess; \
+                  fslmaths $out_file -mas ${out_file}_mask $out_file;\
+                  median_intensity=\`cat ${out_file}_mask_vals |  awk '{print \$4}'\` ;\
+                  $scriptdir/feat_scale.sh ${out_file} ${out_file} global 10000 \$median_intensity $subj $sess"
+                else
+                  cmd_mask=""
+                fi
+                
+                echo "$scriptdir/feat_writeMNI.sh $in_file $T1_file $MNI_file $out_file $mni_res $affine $warp $interp $subj $sess ;\
+                $cmd_mask" > $cmd_file
                 
                 fsl_sub -l $logdir -N $log_file -t $cmd_file 
                 
