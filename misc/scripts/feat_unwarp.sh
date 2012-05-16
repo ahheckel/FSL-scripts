@@ -9,7 +9,7 @@ trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exi
     
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input func> <fmap> <fmap-magn brain> <uw-dir x/y/z/x-/y-/z-> <TE> <ESP> <out> <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` <input func> <fmap> <fmap-magn brain> <uw-dir x/y/z/x-/y-/z-> <TE> <ESP> <out>"
     echo ""
     exit 1
 }

@@ -481,7 +481,7 @@ if [ $RECON_STG5 -eq 1 ] ; then
     #$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longthead $FS_fldr/longtbrain $FS_fldr/longthead2standard "none" "corratio" ${MNI_head_LIA} ${MNI_brain_LIA} ${MNI_mask_LIA} $subj "/"
     
     # generate command line
-    cmd="$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longt_head $FS_fldr/longt_brain $FS_fldr/longt_head2longt_standard none corratio $MNI_head $MNI_brain $MNI_mask $subj --"
+    cmd="$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longt_head $FS_fldr/longt_brain $FS_fldr/longt_head2longt_standard none corratio $scriptdir/LIA_to_LAS_conformed.mat $MNI_head $MNI_brain $MNI_mask $subj --"
     
     # executing...
     cmd_file=$FS_subjdir/$subj/recon_longt2mni152.cmd
@@ -2449,7 +2449,19 @@ waitIfBusy
 
 # BOLD denoise
 if [ $BOLD_STG3 -eq 1 ] ; then
-  echo "----- BEGIN BOLD_STG3 -----"
+  echo "----- BEGIN BOLD_STG3 -----"  
+    
+  # substitutions
+  if [ x"$BOLD_DENOISE_SMOOTHING_KRNLS" = "x" ] ; then BOLD_DENOISE_SMOOTHING_KRNLS=0; fi
+  if [ x"$BOLD_DENOISE_HPF_CUTOFFS" = "x" ] ; then BOLD_DENOISE_HPF_CUTOFFS=Inf ; fi
+  if [ x"$BOLD_DENOISE_USE_MOVPARS" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS=0 ; fi
+ 
+  # mind the \' \' -> necessary, otw. string gets split up when a) being inside double-quotes 
+  # (e.g., echo redirection to a cmd-file for fsl_sub) and b) being passed as an argument to a function (!)
+  BOLD_DENOISE_MASKS=\'$BOLD_DENOISE_MASKS\'
+  BOLD_DENOISE_SMOOTHING_KRNLS=\'$BOLD_DENOISE_SMOOTHING_KRNLS\'
+  BOLD_DENOISE_HPF_CUTOFFS=\'$BOLD_DENOISE_HPF_CUTOFFS\'
+  BOLD_DENOISE_USE_MOVPARS=\'$BOLD_DENOISE_USE_MOVPARS\'   
   
   for subj in `cat subjects` ; do
     
@@ -2457,18 +2469,6 @@ if [ $BOLD_STG3 -eq 1 ] ; then
     
     # check if we have aquisition parameters
     defineBOLDparams $subjdir/config_aqparams_bold $subj $sess
-    
-    # substitutions
-    if [ x"$BOLD_DENOISE_SMOOTHING_KRNLS" = "x" ] ; then BOLD_DENOISE_SMOOTHING_KRNLS=0; fi
-    if [ x"$BOLD_DENOISE_HPF_CUTOFFS" = "x" ] ; then BOLD_DENOISE_HPF_CUTOFFS=Inf ; fi
-    if [ x"$BOLD_DENOISE_USE_MOVPARS" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS=0 ; fi
-   
-    # mind the \' \' -> necessary, otw. string gets split up when a) being inside double-quotes 
-    # (e.g., echo redirection to a cmd-file for fsl_sub) and b) being passed as an argument to a function (!)
-    BOLD_DENOISE_MASKS=\'$BOLD_DENOISE_MASKS\'
-    BOLD_DENOISE_SMOOTHING_KRNLS=\'$BOLD_DENOISE_SMOOTHING_KRNLS\'
-    BOLD_DENOISE_HPF_CUTOFFS=\'$BOLD_DENOISE_HPF_CUTOFFS\'
-    BOLD_DENOISE_USE_MOVPARS=\'$BOLD_DENOISE_USE_MOVPARS\'   
 
     for sess in `cat ${subj}/sessions_func` ; do
     
@@ -3118,6 +3118,7 @@ if [ $TBSS_STG4 -eq 1 ] ; then
           for sess in $TBSS_INCLUDED_SESSIONS ; do
             fname=$(subjsess)_dti_${FA_type}_FA.nii.gz
             if [ ! -d $FS_subjdir/$(subjsess)/dmri.bedpostX ] ; then echo "TBSSX: ERROR: directory '$FS_subjdir/$(subjsess)/dmri.bedpostX' not found  - you must run the TRACULA stream first..." ; exit ; fi
+            echo "TBSSX: copying..."
             cp -v $FS_subjdir/$(subjsess)/dmri.bedpostX/dyads1.nii.gz D1/$fname
             cp -v $FS_subjdir/$(subjsess)/dmri.bedpostX/dyads2.nii.gz D2/$fname
             cp -v $FS_subjdir/$(subjsess)/dmri.bedpostX/mean_f1samples.nii.gz F1/$fname
