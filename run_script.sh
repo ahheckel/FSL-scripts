@@ -2540,9 +2540,13 @@ if [ $BOLD_STG4 -eq 1 ] ; then
       
         echo "BOLD : subj $subj , sess $sess : performing boundary-based registration of func -> FS's longtitudinal anatomical template..."
         
+        # single session design ?
         if [ $sess = "." ] ; then echo "BOLD : subj $subj , sess $sess : single-session design -> skipping..." ; continue ; fi
-        if [ ! -f $FS_subjdir/$(subjsess)/mri/aparc+aseg.mgz ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : aparc+aseg.mgz not found ! You must run recon-all first. Continuing ..." ; continue ; fi
-     
+        
+        # retrieving corresponding session with structural scan
+        sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`              
+        if [ ! -f $FS_subjdir/${subj}${sess_t1}/mri/aparc+aseg.mgz ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : aparc+aseg.mgz not found ! You must run recon-all first. Continuing ..." ; continue ; fi
+         
         # did we unwarp ?
         if [ $BOLD_UNWARP -eq 1 ] ; then uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; else uw_dir=00 ; fi
               
