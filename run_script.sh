@@ -2472,11 +2472,11 @@ if [ $BOLD_STG3 -eq 1 ] ; then
 
     for sess in `cat ${subj}/sessions_func` ; do
     
-      if [ ! -f $FS_subjdir/$(subjsess)/mri/aparc+aseg.mgz ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : aparc+aseg.mgz not found ! You must run recon-all first. Continuing ..." ; continue ; fi
-      
       fldr=$subjdir/$subj/$sess/bold
       sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
       
+      if [ ! -f $FS_subjdir/${subj}${sess_t1}/mri/aparc+aseg.mgz ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : aparc+aseg.mgz not found ! You must run recon-all first. Continuing ..." ; continue ; fi
+
       if [ $BOLD_UNWARP -eq 1 ] ; then uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; else uw_dir=00 ; fi
       
       for hpf_cut in $BOLD_HPF_CUTOFFS ; do # it may be better to do temporal filtering first, then denoise (not the other way around) (?)
