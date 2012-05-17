@@ -28,6 +28,21 @@ nvol=`fslinfo  $input | grep ^dim4 | awk '{print $2}'`
 mid=$(echo "scale=0 ; $nvol / 2" | bc)
 fslroi $input ${output}_example_func $mid 1
 
+
+  cmd="convertwarp --ref=${output}_example_func --shiftmap=${shiftmap} --shiftdir=${uwdir} --out=${output}_WARP1 --relout"
+  echo $cmd
+  $cmd
+  
+  
+  cmd="convertwarp --ref=${FSL_DIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --warp1=${f2mni_warp} --premat=${f2t1_mat} --out=${output}_WARP2 --relout"
+  echo $cmd
+  $cmd
+  
+ 
+  cmd="convertwarp --ref=${FSL_DIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --warp1=${output}_WARP1  --warp2=${output}_WARP2 --out=${output}_WARP --relout" 
+  echo $cmd
+  $cmd  
+
 imrm ${output}_tmp_????.*
 fslsplit $input ${output}_tmp_
 full_list=`imglob ${output}_tmp_????.*`
@@ -36,17 +51,8 @@ for file in $full_list ; do
   i=`zeropad $i 4`
   
   echo "processing $file"
-  
-  cmd="convertwarp --ref=${output}_example_func --shiftmap=${shiftmap} --shiftdir=${uwdir} --out=${output}_WARP1_${i} --relout"
-  echo $cmd
-  $cmd
-  cmd="convertwarp --ref=${FSL_DIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --warp1=${f2mni_warp} --premat=${f2t1_mat} --out=${output}_WARP2_${i} --relout"
-  echo $cmd
-  $cmd
-  cmd="convertwarp --ref=${FSL_DIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --warp1=${output}_WARP1_${i}  --warp2=${output}_WARP2_${i} --premat=${mcdir}/MAT_${i} --out=${output}_WARP_${i} --relout" 
-  echo $cmd
-  $cmd  
-  cmd="applywarp --ref=${FSL_DIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --in=${file} --warp=${output}_WARP_${i} --rel --out=${file} --interp=trilinear"
+ 
+  cmd="applywarp --ref=${FSL_DIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --in=${file} --warp=${output}_WARP --premat=${mcdir}/MAT_${i} --rel --out=${file} --interp=spline"
   echo $cmd
   $cmd
   
@@ -55,9 +61,9 @@ done
 echo "`basename $0`: merge outputs...."
 fslmerge -t $output $full_list
 imrm $full_list
-imrm ${output}_WARP1_????
-imrm ${output}_WARP2_????
-imrm ${output}_WARP_????
+imrm ${output}_WARP1
+imrm ${output}_WARP2
+imrm ${output}_WARP
 
 
 echo "`basename $0` : done."
