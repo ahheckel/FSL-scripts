@@ -1,5 +1,5 @@
 #!/bin/bash
-# make fieldmap
+# writes func -> standard space w/o intermediary write-outs.
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
