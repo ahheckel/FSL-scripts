@@ -63,11 +63,11 @@ TOPUP_STG4=0               # TOPUP execute topup
 TOPUP_STG5=0               # TOPUP apply warp
 TOPUP_STG6=0               # TOPUP estimate tensor model
 
-FDT_STG1=0                 # FDT merging
-FDT_STG2=0                 # FDT eddy-correct & extract B0 reference image
-FDT_STG3=0                 # FDT prepare FEAT configuration file for unwarping the DWIs
-FDT_STG4=0                 # FDT execute FEAT & extract unwarped B0 reference image
-FDT_STG5=0                 # FDT estimate tensor model
+FDT_STG1=1                 # FDT merging
+FDT_STG2=1                 # FDT eddy-correct & extract B0 reference image
+FDT_STG3=1                 # FDT prepare FEAT configuration file for unwarping the DWIs
+FDT_STG4=1                 # FDT execute FEAT & extract unwarped B0 reference image
+FDT_STG5=1                 # FDT estimate tensor model
 
 BPX_STG1=0                 # BedpostX - execute
 
@@ -85,10 +85,10 @@ TRACULA_STG2=0             # TRACULA execute -prep
 TRACULA_STG3=0             # TRACULA execute -bedp
 TRACULA_STG4=0             # TRACULA execute -path
 
-BOLD_STG1=1                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
-BOLD_STG2=1                # BOLD execute FEAT configuration file
-BOLD_STG3=1                # BOLD denoising (needs Freesurfer recons)
-BOLD_STG4=1                # BOLD write MNI-registered volumes
+BOLD_STG1=0                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
+BOLD_STG2=0                # BOLD execute FEAT configuration file
+BOLD_STG3=0                # BOLD denoising (needs Freesurfer recons)
+BOLD_STG4=0                # BOLD write MNI-registered volumes
 
 ########################################################################
 # enable second level analyses #########################################
@@ -174,6 +174,7 @@ PI=$(echo "scale=10; 4*a(1)" | bc -l) # define pi
 #TE_diff=88                 # TE of the DWIs (ms)
 FDT_SIGNLOSS_THRES=100     # signal loss threshold (%)
 FDT_UNWARP_BET_ALTEXFUNC=1 # brain-extract the input alternative example func (i.e. the B0 image)
+FDT_EC_TEST=1              # don't apply eddy-correction
 FDT_FEAT_NO_BROWSER=0      # don't open browser window
 
 # BPX

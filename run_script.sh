@@ -1123,13 +1123,16 @@ if [ $FDT_STG2 -eq 1 ] ; then
       # get B0 index
       b0img=`getB0Index $subj/$sess/"$pttrn_bvals" $fldr/ec_ref.idx | cut -d " " -f 1` ; min=`getB0Index $subj/$sess/"$pttrn_bvals" $fldr/ec_ref.idx | cut -d " " -f 2`
 
+      # eddy-correct in test mode ? (don't apply eddy_correction)
+      if [ $FDT_EC_TEST -eq 1 ] ; then ectest="-t" ; echo "FDT : subj $subj , sess $sess : NOTE: eddy_correct is in testing mode." ; else ectest="" ; fi
+      
       # eddy-correct
       echo "FDT : subj $subj , sess $sess : eddy_correct is using volume no. $b0img as B0 (val:${min})..."
       
       # creating task file for fsl_sub, the deletions are needed to avoid accumulations when sge is doing a re-run on error
       echo "rm -f $fldr/ec_diff_merged_*.nii.gz ; \
             rm -f $fldr/ec_diff_merged.ecclog ; \
-            $scriptdir/eddy_correct.sh $fldr/diff_merged $fldr/ec_diff_merged $b0img mutualinfo trilinear" > $fldr/fdt_ec.cmd
+            $scriptdir/eddy_correct.sh $ectest $fldr/diff_merged $fldr/ec_diff_merged $b0img mutualinfo trilinear" > $fldr/fdt_ec.cmd
       fsl_sub -l $logdir -N fdt_eddy_correct_$(subjsess) -t $fldr/fdt_ec.cmd
       
     done

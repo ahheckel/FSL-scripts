@@ -6,10 +6,13 @@ set -e # added by HKL
 
 Usage() {
     echo ""
-    echo "Usage: eddy_correct <4dinput> <4doutput> <reference_no> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline(=default),trilinear,nearestneighbour,sinc}>"
+    echo "Usage: eddy_correct [-t] <4dinput> <4doutput> <reference_no> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}>"
     echo ""
     exit 1
 }
+
+noec=0
+if [ "$1" = "-t" ] ; then noec=1 ; echo "`basename $0` : test-mode." ; shift ; fi
 
 [ "$3" = "" ] && Usage
 
@@ -41,14 +44,21 @@ rm -f ${output}.ecclog # added by HKL to avoid accumulation on re-run
 for i in $full_list ; do
 echo processing $i
     echo processing $i >> ${output}.ecclog
-    if [ "$interp" = "spline" ] ; then
-      ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -cost $cost > ${output}.ecclog.tmp # added by HKL
-      cat ${output}.ecclog.tmp | sed -n '3,6'p > ${output}.ecclog.tmp.applywarp # added by HKL
-      ${FSLDIR}/bin/applywarp --ref=${output}_ref --in=$i --out=$i --premat=${output}.ecclog.tmp.applywarp --interp=spline # added by HKL
-      ${FSLDIR}/bin/fslmaths $i -abs $i # added by HKL
-      rm ${output}.ecclog.tmp.applywarp # added by HKL
+    if [ $noec != 1 ] ; then      
+      if [ "$interp" = "spline" ] ; then
+        ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -cost $cost > ${output}.ecclog.tmp # added by HKL
+        cat ${output}.ecclog.tmp | sed -n '3,6'p > ${output}.ecclog.tmp.applywarp # added by HKL
+        ${FSLDIR}/bin/applywarp --ref=${output}_ref --in=$i --out=$i --premat=${output}.ecclog.tmp.applywarp --interp=spline # added by HKL
+        ${FSLDIR}/bin/fslmaths $i -abs $i # added by HKL
+        rm ${output}.ecclog.tmp.applywarp # added by HKL
+      else
+        ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -out $i -nosearch -paddingsize 1 -cost $cost -interp $interp > ${output}.ecclog.tmp # added by HKL
+      fi
     else
-      ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -out $i -nosearch -paddingsize 1 -cost $cost -interp $interp > ${output}.ecclog.tmp # added by HKL
+      echo "" >> ${output}.ecclog.tmp
+      echo "Final result:" >> ${output}.ecclog.tmp
+      cat $FSL_DIR/etc/flirtsch/ident.mat >> ${output}.ecclog.tmp
+      echo "" >> ${output}.ecclog.tmp 
     fi
 cat ${output}.ecclog.tmp >> ${output}.ecclog ; rm ${output}.ecclog.tmp # added by HKL
 done
