@@ -47,6 +47,12 @@ pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
 
 SCRATCH=0                  # execute scratchpad and exit
 
+RECON_STG1=1               # RECON-ALL prepare (copy and convert T1 nifti)
+RECON_STG2=1               # RECON-ALL execute cross-sectional stream
+RECON_STG3=1               # RECON-ALL execute longtitudinal stream's template creation
+RECON_STG4=1               # RECON-ALL execute longtitudinal processing for each timepoint
+RECON_STG5=1               # RECON-ALL register FS's longtitudinal template to FSL's MNI152 template using fnirt
+
 FIELDMAP_STG1=1            # FIELDMAP prepare
 FIELDMAP_STG2=1            # FIELDMAP create
 
@@ -63,7 +69,7 @@ FDT_STG3=1                 # FDT prepare FEAT configuration file for unwarping t
 FDT_STG4=1                 # FDT execute FEAT & extract unwarped B0 reference image
 FDT_STG5=1                 # FDT estimate tensor model
 
-BPX_STG1=1                 # BedpostX - execute 
+BPX_STG1=1                 # BedpostX - execute
 
 VBM_STG1=1                 # VBM prepare T1
 VBM_STG2=1                 # VBM initial skull strip
@@ -74,18 +80,13 @@ VBM_STG5=1                 # VBM final skull strip - watershed
 BIASMAP_STG1=0             # create bias map
 BIASMAP_STG2=0             # apply bias map
 
-RECON_STG1=1               # RECON-ALL prepare (copy and convert T1 nifti)
-RECON_STG2=1               # RECON-ALL execute cross-sectional stream
-RECON_STG3=1               # RECON-ALL execute longtitudinal stream's template creation
-RECON_STG4=1               # RECON-ALL execute longtitudinal processing for each timepoint
-
 TRACULA_STG1=0             # TRACULA prepare
 TRACULA_STG2=0             # TRACULA execute -prep
 TRACULA_STG3=0             # TRACULA execute -bedp
 TRACULA_STG4=0             # TRACULA execute -path
 
-BOLD_STG1=1                # BOLD (ICA) prepare FEAT configuration file for motion correction and unwarping, etc.
-BOLD_STG2=1                # BOLD (ICA) execute FEAT configuration file
+BOLD_STG1=1                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
+BOLD_STG2=1                # BOLD execute FEAT configuration file
 BOLD_STG3=1                # BOLD denoising (needs Freesurfer recons)
 BOLD_STG4=1                # BOLD write MNI-registered volumes
 
@@ -111,7 +112,7 @@ MELODIC_CMD_STG1=1         # MELODIC use melodic-command line tool (optional)
 DUALREG_STG1=1             # DUALREG prepare for randomie
 DUALREG_STG2=1             # DUALREG randomise
 
-PSEUDOSWI_STG1=1           # PSEUDOSWI register fieldmap to MNI (needs feat unwarp) (!)
+PSEUDOSWI_STG1=0           # PSEUDOSWI register fieldmap to MNI (needs feat unwarp) (!)
 
 ########################################################################
 # plots ################################################################
@@ -151,12 +152,16 @@ SECONDLEV_SESSIONS_STRUC="a c e"
 # first level analyses -------------------------------------------------
 #-----------------------------------------------------------------------
 
+# RECON-ALL
+RECON_USE_CUDA=0           # use CUDA for recon-all, if available
+RECON_USE_MRITOTAL=1       # may improve talairach registration
+
 # FIELDMAP
 deltaTEphase=0.00246
 PI=$(echo "scale=10; 4*a(1)" | bc -l) # define pi
 
 # TOPUP
-readout_diff=0.02375       # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 95 / 1000)
+TROT_topup=0.02975         # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
 TOPUP_USE_NATIVE=1         # apply TOPUP-warps to native DWI runs
 TOPUP_USE_EC=1             # apply TOPUP-warps to eddy-corrected DWI runs (i.e. runs that have been eddy-corrected to the first B0 volume per run)
 
@@ -166,6 +171,7 @@ EES_diff=0.25              # Effective Echo Spacing of the DWIs (ms)
 TE_diff=88                 # TE of the DWIs (ms)
 FDT_SIGNLOSS_THRES=100     # signal loss threshold (%)
 FDT_UNWARP_BET_ALTEXFUNC=1 # brain-extract the input alternative example func (i.e. the B0 image)
+FDT_EC_TEST=1              # don't apply eddy-correction
 FDT_FEAT_NO_BROWSER=1      # don't open browser window
 
 # BPX
@@ -193,30 +199,30 @@ TRACULA_USE_TOPUP_NOEC_BVECROT=0 # use TOPUP corrected merged DWI files with cor
 TRACULA_USE_TOPUP_EC_BVECROT=1   # use TOPUP corrected & eddy-corrected merged DWI files with corrected b-vectors
 
 # BOLD - preproc
-TR_bold=3.330              # TR (s)
-EES_bold=0.23333           # Effective Echo Spacing (ms)
-TE_bold=30                 # TE (ms)
-BOLD_FEATDIR_PREFIX="preprocBOLD"                           # prefix for .feat output directory
-BOLD_REGISTER_TO_SESS=""
-BOLD_UNBIASED_TEMPLATE=0
-BOLD_BET=1                                                  # enable betting
-BOLD_BET_EXFUNC=0                                           # bet example func (middle of the 4D) (default 0)
-BOLD_HPF_CUTOFFS="100"                                 		# enter "Inf" to switch off high-pass filter
-BOLD_SMOOTHING_KRNLS="0"                     	            # enter "0" to swith off smoothing (note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes) ; mind the ' '
-BOLD_SLICETIMING_VALUES="0"                                 # enter correction method (see .fsf file); "0" to switch off slice timing correction
-BOLD_UNWARP=1                                               # enable unwarping
-BOLD_SIGNLOSS_THRES=10 	                                    # signal loss threshold (%) (default: 10)
-BOLD_REGISTER_TO_STRUC_DOF=6                                # degrees of freedom when registering bold -> T1
-BOLD_PTTRN_HIGHRES_BRAIN="*_t1_betted_masked_brain.nii.gz"  # pattern of t1 skull-stripped image
-BOLD_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                # pattern of t1 non-skull-stripped image
-BOLD_DENOISE_MASKS='EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz'  # masks used for denoising [EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz EF_GM.nii.gz] located in feat-dir (need FS-recons for creation) -> see FS_create_masks.sh ; mind the ' '
-BOLD_DENOISE_USE_MOVPARS='1'
-BOLD_DENOISE_SMOOTHING_KRNLS='2 4'                          # smooth denoised data ; mind the ' '
-BOLD_REGISTER_TO_MNI=1                                      # enable MNI registration
-BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data_denoised_s2    filtered_func_data_denoised_s4"
-BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                         # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes
-BOLD_MNI_RESAMPLE_INTERP="spline"                           # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
-BOLD_FEAT_NO_BROWSER=1                                      # don't open browser window
+TR_bold=3.330                                                 # TR (s)
+EES_bold=0.23333                                              # Effective Echo Spacing (ms)
+TE_bold=30                                                    # TE (ms)
+BOLD_FEATDIR_PREFIX="preprocBOLD"                             # prefix for .feat output directory
+BOLD_BET_EXFUNC=0                                             # bet example func (middle of the 4D) (default 0)
+BOLD_UNWARP=1                                                 # enable unwarping
+BOLD_SIGNLOSS_THRES=10 	                                      # signal loss threshold (%) (default: 10)
+BOLD_SLICETIMING_VALUES="0"                                   # enter correction method (see .fsf file); "0" to switch off slice timing correction
+BOLD_BET=1                                                    # enable betting
+BOLD_SMOOTHING_KRNLS="0"                                      # enter "0" to swith off smoothing (note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes)
+BOLD_HPF_CUTOFFS="100"                                        # enter "Inf" or "" to switch off high-pass filter
+BOLD_REGISTER_TO_STRUC_DOF=6                                  # degrees of freedom when registering bold -> T1
+BOLD_PTTRN_HIGHRES_BRAIN="*_t1_betted_masked_brain.nii.gz"    # pattern of t1 skull-stripped image
+BOLD_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                  # pattern of t1 non-skull-stripped image
+BOLD_DENOISE_MASKS="EF_CSF EF_WB EF_WM"                       # masks used for denoising [EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz EF_GM.nii.gz] located in feat-dir (need FS-recons for creation) -> see FS_create_masks.sh
+BOLD_DENOISE_USE_MOVPARS="1"                                  # 0: none - 1: orig - 2: squared - 3: abs - 4: 1st deriv. with leading zero - 5: 1st deriv. with trailing zero ; CAVE: cannot take more than 4 motion related modes (4*6=24 regressors -> more lead to fsl_regfilt error !)
+BOLD_DENOISE_SMOOTHING_KRNLS="2 4"                            # smooth denoised data
+BOLD_DENOISE_HPF_CUTOFFS="Inf"                                # high-pass filer denoised and smoothed data, but it may be better to do hpf before not after denoising... (?) (!)
+BOLD_REGISTER_TO_MNI=1                                        # enable MNI registration
+BOLD_USE_FS_LONGT_TEMPLATE=1                                  # using FS's mid-long template as unbiased registration basis for multisession designs
+BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data      filtered_func_data_denoised_s2_hpfInf    filtered_func_data_denoised_s4_hpfInf"              # cycle through 4Ds that are to be resampled in MNI space
+BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                           # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
+BOLD_MNI_RESAMPLE_INTERP="trilinear"                          # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
+BOLD_FEAT_NO_BROWSER=1                                        # don't open browser window
 
 #-----------------------------------------------------------------------
 # second level analyses ------------------------------------------------
@@ -255,7 +261,7 @@ VBM_DELETE_PREV_RUNS=1                            # delete previously created 2n
 # MELODIC GUI
 MELODIC_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS                  # subjects to be included in the ICA analysis
 MELODIC_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC             # sessions to be included in the ICA analysis
-MELODIC_INPUT_FILE="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_mni2.nii.gz" # filename of input file (in 'bold' subdirectory)
+MELODIC_INPUT_FILE="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_hpfInf_longt_mni2.nii.gz" # filename of input file (in 'bold' subdirectory)
 MELODIC_OUTDIRNAME="MELODIC-GUI01"                             # output directory (ommit '.gica' suffix)
 MELODIC_PTTRN_HIGHRES_BRAIN="*_t1_betted_masked_brain.nii.gz"  # pattern of t1 skull-stripped image
 MELODIC_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                # pattern of t1 non skull-stripped image
@@ -268,7 +274,7 @@ MELODIC_TEMPLATE_FILENAME="template_ICA.fsf"                   # template filena
 # MELODIC_CMD (optional)
 MELODIC_CMD_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS               # subjects to be included in the ICA analysis
 MELODIC_CMD_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions to be included in the ICA analysis
-MELODIC_CMD_INPUT_FILES="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_mni2.nii.gz    preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_mni4.nii.gz"   # preprocBOLD_mni_uw_mc_bold_hpf100_s4_stc0_res4.nii.gz preprocBOLD_mni_uw_mc_bold_hpf100_s2_stc0_res2.nii.gz"  # filename of input file (in 'bold' subdirectory)
+MELODIC_CMD_INPUT_FILES="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_hpfInf_longt_mni2.nii.gz    preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_hpfInf_longt_mni4.nii.gz"   # preprocBOLD_mni_uw_mc_bold_hpf100_s4_stc0_res4.nii.gz preprocBOLD_mni_uw_mc_bold_hpf100_s2_stc0_res2.nii.gz"  # filename of input file (in 'bold' subdirectory)
 MELODIC_CMD_OUTDIR_PREFIX="MELODIC-CMD01"                       # output directory pre-fix (dir-name is composed as: ${MELODIC_OUTDIR_PREFIX}_${MELODIC_INPUT_FILE}.gica)
 MELODIC_CMD_BET=0                                               # enable betting
 MELODIC_CMD_DELETE_PREV_RUNS=1                                  # delete previously created melodic directories and files; if set, no questions will be asked (!)
@@ -276,7 +282,7 @@ MELODIC_CMD_DELETE_PREV_RUNS=1                                  # delete previou
 # DUALREG
 DUALREG_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS               # subjects that should be used with dualreg
 DUALREG_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions that should be used with dualreg
-DUALREG_INPUT_ICA_DIRNAMES="MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_mni2    MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_mni4" # where the ICs reside ; ommit suffix '.gica'
+DUALREG_INPUT_ICA_DIRNAMES="MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_hpfInf_longt_mni2    MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_hpfInf_longt_mni4" # where the ICs reside ; ommit suffix '.gica'
 DUALREG_IC_FILENAMES="melodic_IC.nii.gz"                    # 4D file with the IC of interest; it is to be found in the DUALREG_INPUT_ICA_DIRNAMES directories
 DUALREG_OUTDIR_PREFIX="dr"                                  # output directory pre-fix (dir-name is composed as: ${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAMES}_${DUALREG_IC_FILENAMES})
 DUALREG_NPERM=5000                                          # number of permutations
@@ -296,5 +302,4 @@ BETSTRUC1_INFO="0.10 na na na"  # default bet values for t1 structurals (CoG na)
 DWIUNWARP_INFO="+y"             # default direction values for unwarping DWIs (default: -y)
 BOLDUNWARP_INFO="+y"            # default direction values for unwarping BOLDs (default: -y)
 CHECK_CONSISTENCY_DIFFS=1       # checks number of bvals/bvecs entries at startup
-RECON_USE_CUDA=0                # use CUDA for recon-all, if available
 RANDOMISE_PARALLEL=1            # use randomise_parallel for clusters

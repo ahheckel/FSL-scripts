@@ -61,7 +61,7 @@ TOPUP_STG2=0               # TOPUP low-B images: create index and extract
 TOPUP_STG3=0               # TOPUP merge B0 images
 TOPUP_STG4=0               # TOPUP execute topup
 TOPUP_STG5=0               # TOPUP apply warp
-TOPUP_STG6=0               # TOPUP estimate tensor model
+TOPUP_STG6=1               # TOPUP estimate tensor model
 
 FDT_STG1=1                 # FDT merging
 FDT_STG2=1                 # FDT eddy-correct & extract B0 reference image
@@ -164,9 +164,9 @@ deltaTEphase=0.00246
 PI=$(echo "scale=10; 4*a(1)" | bc -l) # define pi
 
 # TOPUP
-#TROT_topup=0.02975         # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
-#TOPUP_USE_NATIVE=1         # apply TOPUP-warps to native DWI runs
-#TOPUP_USE_EC=1             # apply TOPUP-warps to eddy-corrected DWI runs (i.e. runs that have been eddy-corrected to the first B0 volume per run)
+TROT_topup=0.02975         # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
+TOPUP_USE_NATIVE=1         # apply TOPUP-warps to native DWI runs
+TOPUP_USE_EC=1             # apply TOPUP-warps to eddy-corrected DWI runs (i.e. runs that have been eddy-corrected to the first B0 volume per run)
 
 # FDT - unwarp
 #TR_diff=11                 # TR of the DWIs (s)
