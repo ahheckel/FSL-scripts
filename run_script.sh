@@ -36,10 +36,12 @@ SECONDLEV_SUBJECTS_SESSIONS_STRUC=$(echo $SECONDLEV_SUBJECTS_SESSIONS_STRUC | ro
 BOLD_SLICETIMING_VALUES=$(echo $BOLD_SLICETIMING_VALUES | row2col | sort -u)
 BOLD_SMOOTHING_KRNLS=$(echo $BOLD_SMOOTHING_KRNLS | row2col | sort -u)
 BOLD_HPF_CUTOFFS=$(echo $BOLD_HPF_CUTOFFS | row2col | sort -u)
-BOLD_DENOISE_MASKS=$(echo $BOLD_DENOISE_MASKS | row2col | sort -u)
 BOLD_DENOISE_SMOOTHING_KRNLS=$(echo $BOLD_DENOISE_SMOOTHING_KRNLS | row2col | sort -u)
 BOLD_DENOISE_HPF_CUTOFFS=$(echo $BOLD_DENOISE_HPF_CUTOFFS | row2col | sort -u)
-BOLD_DENOISE_USE_MOVPARS=$(echo $BOLD_DENOISE_USE_MOVPARS | row2col | sort -u)
+BOLD_DENOISE_MASKS_NAT=$(echo $BOLD_DENOISE_MASKS_NAT | row2col | sort -u)
+BOLD_DENOISE_MASKS_MNI=$(echo $BOLD_DENOISE_MASKS_MNI | row2col | sort -u)
+BOLD_DENOISE_USE_MOVPARS_NAT=$(echo $BOLD_DENOISE_USE_MOVPARS_NAT | row2col | sort -u)
+BOLD_DENOISE_USE_MOVPARS_MNI=$(echo $BOLD_DENOISE_USE_MOVPARS_MNI | row2col | sort -u)
 BOLD_MNI_RESAMPLE_FUNCDATAS=$(echo $BOLD_MNI_RESAMPLE_FUNCDATAS | row2col | sort -u)
 BOLD_MNI_RESAMPLE_RESOLUTIONS=$(echo $BOLD_MNI_RESAMPLE_RESOLUTIONS | row2col | sort -u)
 TBSS_INCLUDED_SUBJECTS=$(echo $TBSS_INCLUDED_SUBJECTS | row2col | sort -u)
@@ -329,65 +331,7 @@ cd $subjdir
 if [ $SCRATCH -eq 1 ]; then
   echo "----- BEGIN SCRATCH -----"
   
-  for subj in `cat subjects` ; do
-    for sess in `cat ${subj}/sessions_func` ; do      
-    
-      for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-        for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
-          for stc_val in $BOLD_SLICETIMING_VALUES ; do
-
-            if [ $BOLD_UNWARP -eq 1 ] ; then uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; else uw_dir=00 ; fi
-            
-            if [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 1 ] ; then
-              ltag="_longt"   
-            else
-              ltag=""            
-            fi
-     
-            # define feat-dir.
-            _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
-            featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.feat
-            
-            # check feat-dir.
-            if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
-
-            # execute...
-            for mni_res in 2 ; do
-              
-              data_file=filtered_func_data${ltag}_mni${mni_res}.nii.gz
-              if [ $(imtest $featdir/reg_standard/$data_file) != 1 ] ; then
-                  echo "BOLD : subj $subj , sess $sess : WARNING : volume '$featdir/reg_standard/$data_file' not found -> this file cannot be denoised. Continuing loop..."
-                  continue
-              fi
-      
-              # create $featdir/noise
-              mkdir -p $featdir/reg_standard/noise
-              
-              # copy masks (1000 connectomes)
-              echo "BOLD : subj $subj , sess $sess : copying 1000 connectome masks..."
-              cp -v $FSL_DIR/data/standard/avg152T1_csf_bin.nii.gz $featdir/reg_standard/noise/MNI_CSF.nii.gz
-              cp -v $FSL_DIR/data/standard/avg152T1_white_bin.nii.gz $featdir/reg_standard/noise/MNI_WM.nii.gz
-              cp -v $FSL_DIR/data/standard/avg152T1_brain_bin.nii.gz $featdir/reg_standard/noise/MNI_WB.nii.gz # <-- should be based on the mni registered bold!
-   
-              echo "BOLD : subj $subj , sess $sess : denoising in MNI space using 1000 connectome masks..."
-            
-              # creating command for fsl_sub
-              ln -sf ../$data_file $featdir/reg_standard/noise/$data_file
-              echo "$scriptdir/denoise4D.sh $featdir/reg_standard/noise/${data_file} 'MNI_CSF MNI_WM MNI_WB' $featdir/mc/prefiltered_func_data_mcf.par '1 2 3 4' $featdir/reg_standard/noise/$(remove_ext $data_file)_denoised $subj $sess ; \
-              immv $featdir/reg_standard/noise/$(remove_ext $data_file)_denoised $featdir/reg_standard/" > $featdir/bold_denoise_mni.cmd
-           
-              # executing...
-              fsl_sub -l $logdir -N bold_denoise_mni_$(subjsess) -t $featdir/bold_denoise_mni.cmd
-                
-            done # end mni_res
-    
-          done # end stc_val
-        done # end sm_krnl
-      done # end hpf_cut
-
-    done # end sess
-  done # end subj
-  
+ 
   exit  
 fi
 
@@ -2522,18 +2466,18 @@ if [ $BOLD_STG3 -eq 1 ] ; then
   # substitutions
   if [ x"$BOLD_DENOISE_SMOOTHING_KRNLS" = "x" ] ; then BOLD_DENOISE_SMOOTHING_KRNLS=0; fi
   if [ x"$BOLD_DENOISE_HPF_CUTOFFS" = "x" ] ; then BOLD_DENOISE_HPF_CUTOFFS=Inf ; fi
-  if [ x"$BOLD_DENOISE_USE_MOVPARS" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS=0 ; fi
+  if [ x"$BOLD_DENOISE_USE_MOVPARS_NAT" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS_NAT=0 ; fi
  
   # mind the \' \' -> necessary, otw. string gets split up when a) being inside double-quotes 
   # (e.g., echo redirection to a cmd-file for fsl_sub) and b) being passed as an argument to a function (!)
-  BOLD_DENOISE_MASKS=\'$BOLD_DENOISE_MASKS\'
+  BOLD_DENOISE_MASKS_NAT=\'$BOLD_DENOISE_MASKS_NAT\'
   BOLD_DENOISE_SMOOTHING_KRNLS=\'$BOLD_DENOISE_SMOOTHING_KRNLS\'
   BOLD_DENOISE_HPF_CUTOFFS=\'$BOLD_DENOISE_HPF_CUTOFFS\'
-  BOLD_DENOISE_USE_MOVPARS=\'$BOLD_DENOISE_USE_MOVPARS\'   
+  BOLD_DENOISE_USE_MOVPARS_NAT=\'$BOLD_DENOISE_USE_MOVPARS_NAT\'   
   
   for subj in `cat subjects` ; do
     
-    if [ x"$BOLD_DENOISE_MASKS" = "x" ] ; then echo "BOLD : subj $subj : ERROR : no masks for signal extraction specified -> no denoising possible -> breaking loop..." ; break ; fi
+    if [ x"$BOLD_DENOISE_MASKS_NAT" = "x" ] ; then echo "BOLD : subj $subj : ERROR : no masks for signal extraction specified -> no denoising possible -> breaking loop..." ; break ; fi
     
     # check if we have aquisition parameters
     defineBOLDparams $subjdir/config_aqparams_bold $subj $sess
@@ -2569,7 +2513,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
             mkdir -p $featdir/noise
             ln -sf ../filtered_func_data.nii.gz $featdir/noise/filtered_func_data.nii.gz
             echo "$scriptdir/fs_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $featdir/example_func $featdir/noise $subj $sess ; \
-            $scriptdir/denoise4D.sh $featdir/noise/filtered_func_data "$BOLD_DENOISE_MASKS" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS" $featdir/noise/filtered_func_data_denoised $subj $sess ; \
+            $scriptdir/denoise4D.sh $featdir/noise/filtered_func_data "$BOLD_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS_NAT" $featdir/noise/filtered_func_data_denoised $subj $sess ; \
             $scriptdir/feat_smooth.sh $featdir/noise/filtered_func_data_denoised $featdir/filtered_func_data_denoised "$BOLD_DENOISE_SMOOTHING_KRNLS" "$BOLD_DENOISE_HPF_CUTOFFS" $TR_bold $subj $sess" > $featdir/bold_denoise.cmd
             
             # executing...
@@ -2774,8 +2718,102 @@ if [ $BOLD_STG4 -eq 1 ] ; then
       done # end hpf_cut
     
     done
-  done
+  done    
+fi
+
+
+waitIfBusy
+
+
+if [ $BOLD_STG5 -eq 1 ]; then
+  echo "----- BEGIN BOLD_STG5 -----"
+   
+  # carry out substitutions
+  if [ x"$BOLD_DENOISE_USE_MOVPARS_MNI" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS_NAT=0 ; fi
+  if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
+  if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
+  
+  for subj in `cat subjects` ; do
+  
+    if [ x"$BOLD_DENOISE_MASKS_MNI" = "x" ] ; then echo "BOLD : subj $subj : ERROR : no masks for signal extraction in MNI space specified -> no denoising possible -> breaking loop..." ; break ; fi
+
+    for sess in `cat ${subj}/sessions_func` ; do      
     
+      for hpf_cut in $BOLD_HPF_CUTOFFS ; do
+        for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+          for stc_val in $BOLD_SLICETIMING_VALUES ; do
+
+            if [ $BOLD_UNWARP -eq 1 ] ; then uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; else uw_dir=00 ; fi
+            
+            if [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 1 ] ; then
+              ltag="_longt"   
+            else
+              ltag=""            
+            fi
+     
+            # define feat-dir.
+            _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
+            featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.feat
+            
+            # check feat-dir.
+            if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
+            
+            # create $featdir/noise
+            noisedir=$featdir/reg_standard/noise
+            mkdir -p $noisedir
+            
+            # estimate nuisance regressors on resolution 2
+            mni_res=2       
+            data_file=filtered_func_data${ltag}_mni${mni_res}.nii.gz
+            if [ $(imtest $featdir/reg_standard/$data_file) != 1 ] ; then
+                echo "BOLD : subj $subj , sess $sess : WARNING : volume '$featdir/reg_standard/$data_file' not found -> this file cannot be denoised. Continuing loop..."
+                continue
+            fi
+            echo "BOLD : subj $subj , sess $sess : estimating nuisance regressors from '$data_file'..."
+            # copy masks (1000 connectomes)
+            echo "BOLD : subj $subj , sess $sess : creating masks..."
+            echo "BOLD : subj $subj , sess $sess : masking 1000 connectome WM/CSF masks with whole-brain mask..."
+            ln -sf ../$data_file $noisedir/$data_file
+            fslmaths $noisedir/$data_file -Tmin $noisedir/min
+            bet $noisedir/min $noisedir/min -f 0.3
+            fslmaths $noisedir/min -thr 0 -bin -ero $noisedir/MNI_WB.nii.gz
+            fslmaths $FSL_DIR/data/standard/avg152T1_csf_bin.nii.gz   -mas $noisedir/MNI_WB.nii.gz $noisedir/MNI_CSF.nii.gz
+            fslmaths $FSL_DIR/data/standard/avg152T1_white_bin.nii.gz -mas $noisedir/MNI_WB.nii.gz $noisedir/MNI_WM.nii.gz
+            imrm $noisedir/min            
+            # estimate nuisance regressors
+            $scriptdir/denoise4D.sh -m $noisedir/${data_file} "$BOLD_DENOISE_MASKS_MNI" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS_MNI" $noisedir/$(remove_ext $data_file)_denoised $subj $sess 
+   
+            
+            for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do
+              
+              data_file=filtered_func_data${ltag}_mni${mni_res}.nii.gz
+              data_ref=filtered_func_data${ltag}_mni2.nii.gz # the file we derived the nuisance regressors from
+              cmd_file=${featdir}/bold_denoise_$(remove_ext $data_file).cmd
+              
+              echo "BOLD : subj $subj , sess $sess : denoising '$data_file' in MNI space using 1000 connectome masks and nusiance matrix '$(remove_ext $data_ref)_denoised_nuisance_meants_proc.mat' ..."
+                          
+              # creating command for fsl_sub
+              ln -sf ../$data_file $noisedir/$data_file
+              echo "$scriptdir/rem_noise.sh $noisedir/${data_file} $noisedir/$(remove_ext $data_ref)_denoised_nuisance_meants_proc.mat $noisedir/$(remove_ext $data_file)_denoised $subj $sess ; \
+              immv $noisedir/$(remove_ext $data_file)_denoised $featdir/reg_standard/" > $cmd_file
+           
+              # executing...
+              ln -sf ../$data_file $noisedir/$data_file
+              fsl_sub -l $logdir -N bold_denoise_mni${mni_res}_$(subjsess) -t $cmd_file
+              
+              # creating link...
+              echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-denoised 4D BOLD."
+              lname=$(echo "$featdir" | sed "s|"uw[+-0][y0]"|"uw"|g") # remove unwarp direction from link's name
+              ln -sfv ./$(basename $featdir)/reg_standard/$(remove_ext $data_file)_denoised.nii.gz ${lname%.feat}_$(remove_ext $data_file)_denoised.nii.gz
+                
+            done # end mni_res
+    
+          done # end stc_val
+        done # end sm_krnl
+      done # end hpf_cut
+
+    done # end sess
+  done # end subj    
 fi
 
 ######################

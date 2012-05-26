@@ -7,7 +7,8 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input4D> <"mask1 mask2 ..."> <movpar> <movpar_calcs 0:none|1:orig|2:^2|3:abs|4:diff+|5:diff-> <output> <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` -m <input4D> <"mask1 mask2 ..."> <movpar> <movpar_calcs 0:none|1:orig|2:^2|3:abs|4:diff+|5:diff-> <output> <subj_idx> <sess_idx>"
+    echo "        Options:     -m      just create confound matrix, don't denoise"
     echo ""
     exit 1
 }
@@ -20,6 +21,13 @@ function row2col()
 }
 
 if [ x$(which octave) = "x" ] ; then echo "`basename $0` : ERROR : OCTAVE does not seem to be installed on your system ! Exiting..." ; exit 1 ; fi
+
+if [ "$1" = "-m" ] ; then 
+  denoise=0
+  shift
+else
+  denoise=1
+fi
 
 [ "$5" = "" ] && Usage
 input=$(remove_ext "$1")
@@ -113,23 +121,25 @@ paste -d " " $ts_list_proc $movpar_proc $ones > ${confounds%.mat}_proc.mat
 paste -d " " $ts_list $movpar $ones > $confounds
 
 # denoise
-echo "`basename $0` : subj $subj , sess $sess : denoising..."
-#cmd="fsl_glm -i $input -d ${confounds%.mat}_proc.mat --demean --out_res=${output}"
-#echo $cmd ; $cmd
-#fslmaths $input -Tmean ${input}_mean
-#fslmaths ${output} -add ${input}_mean ${output} # otw. speckled results...
+if [ $denoise -eq 1 ] ; then
+  echo "`basename $0` : subj $subj , sess $sess : denoising..."
+  #cmd="fsl_glm -i $input -d ${confounds%.mat}_proc.mat --demean --out_res=${output}"
+  #echo $cmd ; $cmd
+  #fslmaths $input -Tmean ${input}_mean
+  #fslmaths ${output} -add ${input}_mean ${output} # otw. speckled results...
 
-if [ x$movpar = "x" ] ; then 
-  n_movpar=0
-else
-  n_movpar=$(awk '{print NF}' $movpar_proc | sort -nu | head -n 1)
+  if [ x$movpar = "x" ] ; then 
+    n_movpar=0
+  else
+    n_movpar=$(awk '{print NF}' $movpar_proc | sort -nu | head -n 1)
+  fi
+  n_masks=$(echo $masks | wc -w)
+  n_total=$(echo "scale=0; $n_movpar + $n_masks + 1" | bc) # add 1 for the mean regressor (!)
+  comps=$(echo `seq 1 $n_total` | sed "s| |","|g")
+
+  cmd="fsl_regfilt -i $input -o ${output} -d ${confounds%.mat}_proc.mat -f $comps"
+  echo $cmd | tee ${output}.cmd ; $cmd
 fi
-n_masks=$(echo $masks | wc -w)
-n_total=$(echo "scale=0; $n_movpar + $n_masks + 1" | bc) # add 1 for the mean regressor (!)
-comps=$(echo `seq 1 $n_total` | sed "s| |","|g")
-
-cmd="fsl_regfilt -i $input -o ${output} -d ${confounds%.mat}_proc.mat -f $comps"
-echo $cmd | tee ${output}.cmd ; $cmd
 
 # cleanup
 rm -f $ones $ts_list_proc $movpar_proc
