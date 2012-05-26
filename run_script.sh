@@ -257,6 +257,11 @@ echo ""
 echo "***CHECK*** (sleeping 2 seconds)..."
 sleep 2
 
+# check SGE
+echo ""
+qstat -f
+echo ""
+
 # dos2unix bval/bvec textfiles (just in case...)
 echo "Ensuring UNIX line endings in bval-/bvec textfiles..."
 for subj in `cat $subjdir/subjects` ; do
@@ -323,6 +328,66 @@ cd $subjdir
 
 if [ $SCRATCH -eq 1 ]; then
   echo "----- BEGIN SCRATCH -----"
+  
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_func` ; do      
+    
+      for hpf_cut in $BOLD_HPF_CUTOFFS ; do
+        for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+          for stc_val in $BOLD_SLICETIMING_VALUES ; do
+
+            if [ $BOLD_UNWARP -eq 1 ] ; then uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; else uw_dir=00 ; fi
+            
+            if [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 1 ] ; then
+              ltag="_longt"   
+            else
+              ltag=""            
+            fi
+     
+            # define feat-dir.
+            _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
+            featdir=$subjdir/$subj/$sess/bold/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.feat
+            
+            # check feat-dir.
+            if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
+
+            # execute...
+            for mni_res in 2 ; do
+              
+              data_file=filtered_func_data${ltag}_mni${mni_res}.nii.gz
+              if [ $(imtest $featdir/reg_standard/$data_file) != 1 ] ; then
+                  echo "BOLD : subj $subj , sess $sess : WARNING : volume '$featdir/reg_standard/$data_file' not found -> this file cannot be denoised. Continuing loop..."
+                  continue
+              fi
+      
+              # create $featdir/noise
+              mkdir -p $featdir/reg_standard/noise
+              
+              # copy masks (1000 connectomes)
+              echo "BOLD : subj $subj , sess $sess : copying 1000 connectome masks..."
+              cp -v $FSL_DIR/data/standard/avg152T1_csf_bin.nii.gz $featdir/reg_standard/noise/MNI_CSF.nii.gz
+              cp -v $FSL_DIR/data/standard/avg152T1_white_bin.nii.gz $featdir/reg_standard/noise/MNI_WM.nii.gz
+              cp -v $FSL_DIR/data/standard/avg152T1_brain_bin.nii.gz $featdir/reg_standard/noise/MNI_WB.nii.gz # <-- should be based on the mni registered bold!
+   
+              echo "BOLD : subj $subj , sess $sess : denoising in MNI space using 1000 connectome masks..."
+            
+              # creating command for fsl_sub
+              ln -sf ../$data_file $featdir/reg_standard/noise/$data_file
+              echo "$scriptdir/denoise4D.sh $featdir/reg_standard/noise/${data_file} 'MNI_CSF MNI_WM MNI_WB' $featdir/mc/prefiltered_func_data_mcf.par '1 2 3 4' $featdir/reg_standard/noise/$(remove_ext $data_file)_denoised $subj $sess ; \
+              immv $featdir/reg_standard/noise/$(remove_ext $data_file)_denoised $featdir/reg_standard/" > $featdir/bold_denoise_mni.cmd
+           
+              # executing...
+              fsl_sub -l $logdir -N bold_denoise_mni_$(subjsess) -t $featdir/bold_denoise_mni.cmd
+                
+            done # end mni_res
+    
+          done # end stc_val
+        done # end sm_krnl
+      done # end hpf_cut
+
+    done # end sess
+  done # end subj
+  
   exit  
 fi
 

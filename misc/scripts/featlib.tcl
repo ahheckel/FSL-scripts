@@ -4750,10 +4750,8 @@ proc feat5:flirt { in ref dof search interp existing_mats report init in_weighti
 
 	if { $in != "highres" && $ref == "standard" && [ imtest highres2standard_warp ] } {
 	    fsl:exec "${FSLDIR}/bin/applywarp --ref=$ref --in=$in --out=$out --warp=highres2standard_warp --premat=${in}2highres.mat"
-	    #fsl:exec "${FSLDIR}/bin/applywarp --ref=$ref --in=$in --out=$out --warp=highres2standard_warp --premat=${in}2highres.mat --interp=spline" # added by HKL
 	} else {
 	    fsl:exec "${FSLDIR}/bin/flirt -ref $ref -in $in -out $out -applyxfm -init ${out}.mat -interp $interp"
-	    #fsl:exec "${FSLDIR}/bin/applywarp --ref=$ref --in=$in --out=$out --premat=${out}.mat --interp=spline" # added by HKL
 	}
 
     } else {
@@ -4762,9 +4760,8 @@ proc feat5:flirt { in ref dof search interp existing_mats report init in_weighti
 	    set dof "6 -schedule ${FSLDIR}/etc/flirtsch/sch3Dtrans_3dof"
 	}
 
-	fsl:exec "${FSLDIR}/bin/flirt -ref $ref -in $in -out $out -omat ${out}.mat -cost $costfunction -dof $dof -searchrx -$search $search -searchry -$search $search -searchrz -$search $search -interp $interp $init $in_weighting"
-	#fsl:exec "${FSLDIR}/bin/flirt -ref $ref -in $in -omat ${out}.mat -cost $costfunction -dof $dof -searchrx -$search $search -searchry -$search $search -searchrz -$search $search $init $in_weighting" # added by HKL
-	#fsl:exec "${FSLDIR}/bin/applywarp --ref=$ref --in=$in --out=$out --premat=${out}.mat --interp=spline" # added by HKL
+  #fsl:exec "${FSLDIR}/bin/flirt -ref $ref -in $in -out $out -omat ${out}.mat -cost corratio -dof $dof -searchrx -$search $search -searchry -$search $search -searchrz -$search $search -interp $interp $init $in_weighting"
+	fsl:exec "${FSLDIR}/bin/flirt -ref $ref -in $in -out $out -omat ${out}.mat -cost $costfunction -dof $dof -searchrx -$search $search -searchry -$search $search -searchrz -$search $search -interp $interp $init $in_weighting" # costfunction variable added by HKL
 
 	if { $out == "highres2standard" && $fmri(regstandard_nonlinear_yn) } {
 	    immv highres2standard highres2standard_linear
@@ -4978,7 +4975,6 @@ if { $fmri(mc) != 0 } {
     "
 
     fsl:exec "${FSLDIR}/bin/mcflirt -in $funcdata -out prefiltered_func_data_mcf -mats -plots -refvol $target_vol_number -rmsrel -rmsabs"
-    #fsl:exec "${FSLDIR}/bin/mcflirt -in $funcdata -out prefiltered_func_data_mcf -mats -plots -reffile example_func -rmsrel -rmsabs -spline_final" # added by HKL
     if { ! $fmri(regunwarp_yn) } {
 	set funcdata prefiltered_func_data_mcf
     }
@@ -5122,7 +5118,7 @@ fsl:echo ${FD}/report_prestats.html "<hr><b>FUGUE fieldmap unwarping</b>"
     fsl:exec "${FSLDIR}/bin/fugue -i FM_UD_fmap_sigloss             --loadfmap=FM_UD_fmap --mask=FM_UD_fmap_mag_brain_mask --dwell=$dwell -w FM_D_fmap_sigloss             --nokspace --unwarpdir=$fmri(unwarp_dir)"
     fsl:exec "${FSLDIR}/bin/fslmaths FM_D_fmap_sigloss -thr $siglossthresh FM_D_fmap_sigloss"
     #fsl:exec "${FSLDIR}/bin/flirt -in EF_D_example_func -ref FM_D_fmap_mag_brain_siglossed -omat EF_2_FM.mat -o grot -dof 6 -refweight FM_D_fmap_sigloss"
-    fsl:exec "${FSLDIR}/bin/flirt -in EF_D_example_func -ref FM_D_fmap_mag_brain_siglossed -omat EF_2_FM.mat -o grot -dof 6 -refweight FM_D_fmap_sigloss -cost mutualinfo" # added by HKL
+    fsl:exec "${FSLDIR}/bin/flirt -in EF_D_example_func -ref FM_D_fmap_mag_brain_siglossed -omat EF_2_FM.mat -o grot -dof 6 -refweight FM_D_fmap_sigloss -cost mutualinfo" # mutualinfo added by HKL
     fsl:exec "${FSLDIR}/bin/convert_xfm -omat FM_2_EF.mat -inverse EF_2_FM.mat"
 
     # put fmap stuff into space of EF_D_example_func
@@ -5142,6 +5138,8 @@ fsl:echo ${FD}/report_prestats.html "<hr><b>FUGUE fieldmap unwarping</b>"
     # apply warp to EF_D_example_func and save unwarp-shiftmap then convert to unwarp-warpfield
     fsl:exec "${FSLDIR}/bin/fugue --loadfmap=EF_UD_fmap --dwell=$dwell --mask=EF_UD_fmap_mag_brain_mask -i EF_D_example_func -u EF_UD_example_func --unwarpdir=$fmri(unwarp_dir) --saveshift=EF_UD_shift"
     fsl:exec "${FSLDIR}/bin/convertwarp -s EF_UD_shift -o EF_UD_warp -r EF_D_example_func --shiftdir=$fmri(unwarp_dir)"
+    fsl:exec "${FSLDIR}/bin/convertwarp -s EF_UD_shift -o _warp_+y -r EF_D_example_func --shiftdir=y" # added by HKL
+    fsl:exec "${FSLDIR}/bin/convertwarp -s EF_UD_shift -o _warp_-y -r EF_D_example_func --shiftdir=y-" # added by HKL
 
     # create report pic for shift extent
     set shiftminmax [ fsl:exec "${FSLDIR}/bin/fslstats EF_UD_shift -R -P 1 -P 99" ]
@@ -5186,7 +5184,9 @@ cd $FD
 
 immv example_func example_func_orig_distorted
 fsl:exec "${FSLDIR}/bin/applywarp -i example_func_orig_distorted -o example_func -w unwarp/EF_UD_warp -r example_func_orig_distorted --abs"
-#fsl:exec "${FSLDIR}/bin/applywarp -i example_func_orig_distorted -o example_func -w unwarp/EF_UD_warp -r example_func_orig_distorted --abs --interp=spline" # added by HKL
+fsl:exec "${FSLDIR}/bin/applywarp -i example_func_orig_distorted -o unwarp/example_func_uw+y -w unwarp/_warp_+y -r example_func_orig_distorted --abs" # added by HKL
+fsl:exec "${FSLDIR}/bin/applywarp -i example_func_orig_distorted -o unwarp/example_func_uw-y -w unwarp/_warp_-y -r example_func_orig_distorted --abs" # added by HKL
+#imrm unwarp/_warp_+y unwarp/_warp_-y # added by HKL
 
 # now either apply unwarping one vol at a time (including applying individual mcflirt transforms at same time),
 # or if mcflirt transforms don't exist, just apply warp to 4D $funcdata
@@ -5195,13 +5195,11 @@ if { [ file exists mc/prefiltered_func_data_mcf.mat/MAT_0000 ] } {
     for { set i 0 } { $i < $total_volumes } { incr i 1 } {
 	set pad [format %04d $i]
 	fsl:exec "${FSLDIR}/bin/applywarp -i grot$pad -o grot$pad --premat=mc/prefiltered_func_data_mcf.mat/MAT_$pad -w unwarp/EF_UD_warp -r example_func --abs --mask=unwarp/EF_UD_fmap_mag_brain_mask"
-	#fsl:exec "${FSLDIR}/bin/applywarp -i grot$pad -o grot$pad --premat=mc/prefiltered_func_data_mcf.mat/MAT_$pad -w unwarp/EF_UD_warp -r example_func --abs --mask=unwarp/EF_UD_fmap_mag_brain_mask --interp=spline" # added by HKL
     }
     fsl:exec "${FSLDIR}/bin/fslmerge -t prefiltered_func_data_unwarp [ imglob grot* ]"
     fsl:exec "/bin/rm -f grot*"
 } else {
-	fsl:exec "${FSLDIR}/bin/applywarp -i $funcdata -o prefiltered_func_data_unwarp -w unwarp/EF_UD_warp -r example_func --abs --mask=unwarp/EF_UD_fmap_mag_brain_mask"
-    #fsl:exec "${FSLDIR}/bin/applywarp -i $funcdata -o prefiltered_func_data_unwarp -w unwarp/EF_UD_warp -r example_func --abs --mask=unwarp/EF_UD_fmap_mag_brain_mask --interp=spline" # added by HKL
+    fsl:exec "${FSLDIR}/bin/applywarp -i $funcdata -o prefiltered_func_data_unwarp -w unwarp/EF_UD_warp -r example_func --abs --mask=unwarp/EF_UD_fmap_mag_brain_mask"
 }
 
 set funcdata prefiltered_func_data_unwarp

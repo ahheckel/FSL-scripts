@@ -45,7 +45,7 @@ pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
 # enable 1st level processing streams ##################################
 ########################################################################
 
-SCRATCH=0                  # execute scratchpad and exit
+SCRATCH=1                  # execute scratchpad and exit
 
 RECON_STG1=0               # RECON-ALL prepare (copy and convert T1 nifti)
 RECON_STG2=0               # RECON-ALL execute cross-sectional stream
@@ -61,13 +61,13 @@ TOPUP_STG2=0               # TOPUP low-B images: create index and extract
 TOPUP_STG3=0               # TOPUP merge B0 images
 TOPUP_STG4=0               # TOPUP execute topup
 TOPUP_STG5=0               # TOPUP apply warp
-TOPUP_STG6=1               # TOPUP estimate tensor model
+TOPUP_STG6=0               # TOPUP estimate tensor model
 
-FDT_STG1=1                 # FDT merging
-FDT_STG2=1                 # FDT eddy-correct & extract B0 reference image
-FDT_STG3=1                 # FDT prepare FEAT configuration file for unwarping the DWIs
-FDT_STG4=1                 # FDT execute FEAT & extract unwarped B0 reference image
-FDT_STG5=1                 # FDT estimate tensor model
+FDT_STG1=0                 # FDT merging
+FDT_STG2=0                 # FDT eddy-correct & extract B0 reference image
+FDT_STG3=0                 # FDT prepare FEAT configuration file for unwarping the DWIs
+FDT_STG4=0                 # FDT execute FEAT & extract unwarped B0 reference image
+FDT_STG5=0                 # FDT estimate tensor model
 
 BPX_STG1=0                 # BedpostX - execute
 
@@ -85,10 +85,10 @@ TRACULA_STG2=0             # TRACULA execute -prep
 TRACULA_STG3=0             # TRACULA execute -bedp
 TRACULA_STG4=0             # TRACULA execute -path
 
-BOLD_STG1=0                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
-BOLD_STG2=0                # BOLD execute FEAT configuration file
-BOLD_STG3=0                # BOLD denoising (needs Freesurfer recons)
-BOLD_STG4=0                # BOLD write MNI-registered volumes
+BOLD_STG1=1                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
+BOLD_STG2=1                # BOLD execute FEAT configuration file
+BOLD_STG3=1                # BOLD denoising (needs Freesurfer recons)
+BOLD_STG4=1                # BOLD write MNI-registered volumes
 
 ########################################################################
 # enable second level analyses #########################################
@@ -205,14 +205,14 @@ TRACULA_USE_TOPUP_EC_BVECROT=0   # use TOPUP corrected & eddy-corrected merged D
 TR_bold=3.330                                                 # TR (s)
 EES_bold=0.23333                                              # Effective Echo Spacing (ms)
 TE_bold=30                                                    # TE (ms)
-BOLD_FEATDIR_PREFIX="SESSA"                                   # prefix for .feat output directory
+BOLD_FEATDIR_PREFIX="smooth"                                   # prefix for .feat output directory
 BOLD_BET_EXFUNC=0                                             # bet example func (middle of the 4D) (default 0)
-BOLD_UNWARP=1                                                 # enable unwarping
+BOLD_UNWARP=0                                                 # enable unwarping
 BOLD_SIGNLOSS_THRES=10 	                                      # signal loss threshold (%) (default: 10)
 BOLD_SLICETIMING_VALUES="0"                                   # enter correction method (see .fsf file); "0" to switch off slice timing correction
 BOLD_BET=1                                                    # enable betting
 BOLD_SMOOTHING_KRNLS="0"                                      # enter "0" to swith off smoothing (note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes)
-BOLD_HPF_CUTOFFS="Inf"                                    # enter "Inf" or "" to switch off high-pass filter
+BOLD_HPF_CUTOFFS="100"                                    # enter "Inf" or "" to switch off high-pass filter
 BOLD_REGISTER_TO_STRUC_DOF=6                                  # degrees of freedom when registering bold -> T1
 BOLD_PTTRN_HIGHRES_BRAIN="*_t1_betted_masked_brain.nii.gz"    # pattern of t1 skull-stripped image
 BOLD_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                  # pattern of t1 non-skull-stripped image
