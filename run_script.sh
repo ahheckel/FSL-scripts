@@ -769,7 +769,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
           # create a task file for fsl_sub, which is needed to avoid accumulations when SGE does a re-run on error
           echo "rm -f $fldr/ec_diffs_merged_${i}*.nii.gz ; \
                 rm -f $fldr/ec_diffs_merged_${i}.ecclog ; \
-                $scriptdir/eddy_correct.sh $dwifile $fldr/ec_diffs_merged_${i} $b0img mutualinfo trilinear" > $fldr/topup_ec_${i}.cmd
+                $scriptdir/eddy_correct.sh $dwifile $fldr/ec_diffs_merged_${i} $b0img 12 mutualinfo trilinear" > $fldr/topup_ec_${i}.cmd
           
           # eddy-correct
           echo "TOPUP : subj $subj , sess $sess : eddy_correction of '$dwifile' (ec_diffs_merged_${i}) is using volume no. $b0img as B0 (val:${min})..."
@@ -1141,7 +1141,7 @@ if [ $FDT_STG2 -eq 1 ] ; then
       # creating task file for fsl_sub, the deletions are needed to avoid accumulations when sge is doing a re-run on error
       echo "rm -f $fldr/ec_diff_merged_*.nii.gz ; \
             rm -f $fldr/ec_diff_merged.ecclog ; \
-            $scriptdir/eddy_correct.sh $ectest $fldr/diff_merged $fldr/ec_diff_merged $b0img mutualinfo trilinear" > $fldr/fdt_ec.cmd
+            $scriptdir/eddy_correct.sh $ectest $fldr/diff_merged $fldr/ec_diff_merged $b0img 12 mutualinfo trilinear" > $fldr/fdt_ec.cmd
       fsl_sub -l $logdir -N fdt_eddy_correct_$(subjsess) -t $fldr/fdt_ec.cmd
       
     done
@@ -2465,7 +2465,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
     
   # substitutions
   if [ x"$BOLD_DENOISE_SMOOTHING_KRNLS" = "x" ] ; then BOLD_DENOISE_SMOOTHING_KRNLS=0; fi
-  if [ x"$BOLD_DENOISE_HPF_CUTOFFS" = "x" ] ; then BOLD_DENOISE_HPF_CUTOFFS=Inf ; fi
+  if [ x"$BOLD_DENOISE_HPF_CUTOFFS" = "x" ] ; then BOLD_DENOISE_HPF_CUTOFFS=none ; fi
   if [ x"$BOLD_DENOISE_USE_MOVPARS_NAT" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS_NAT=0 ; fi
  
   # mind the \' \' -> necessary, otw. string gets split up when a) being inside double-quotes 
@@ -2735,7 +2735,7 @@ if [ $BOLD_STG5 -eq 1 ]; then
   
   for subj in `cat subjects` ; do
   
-    if [ x"$BOLD_DENOISE_MASKS_MNI" = "x" ] ; then echo "BOLD : subj $subj : ERROR : no masks for signal extraction in MNI space specified -> no denoising possible -> breaking loop..." ; break ; fi
+    if [ x"$BOLD_DENOISE_MASKS_MNI" = "x" ] ; then echo "BOLD : subj $subj : ERROR : no masks for nuisance extraction in MNI space specified -> no denoising possible -> breaking loop..." ; break ; fi
 
     for sess in `cat ${subj}/sessions_func` ; do      
     
@@ -2766,7 +2766,7 @@ if [ $BOLD_STG5 -eq 1 ]; then
             mni_res=2       
             data_file=filtered_func_data${ltag}_mni${mni_res}.nii.gz
             if [ $(imtest $featdir/reg_standard/$data_file) != 1 ] ; then
-                echo "BOLD : subj $subj , sess $sess : WARNING : volume '$featdir/reg_standard/$data_file' not found -> this file cannot be denoised. Continuing loop..."
+                echo "BOLD : subj $subj , sess $sess : WARNING : estimating nuisance regressors : volume '$featdir/reg_standard/$data_file' not found. Continuing loop..."
                 continue
             fi
             echo "BOLD : subj $subj , sess $sess : estimating nuisance regressors from '$data_file'..."

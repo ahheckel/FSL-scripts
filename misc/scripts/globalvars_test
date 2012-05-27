@@ -217,10 +217,10 @@ BOLD_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                  # pattern of t1 no
 BOLD_DENOISE_MASKS_NAT="EF_CSF EF_WB EF_WM"                   # masks used for denoising [EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz EF_GM.nii.gz] located in feat-dir (need FS-recons for creation) -> see FS_create_masks.sh
 BOLD_DENOISE_USE_MOVPARS_NAT="1 2 4 5"                        # 0: none - 1: orig - 2: squared - 3: abs - 4: 1st deriv. with leading zero - 5: 1st deriv. with trailing zero ; CAVE: cannot take more than 4 motion related modes (4*6=24 regressors -> more lead to fsl_regfilt error !)
 BOLD_DENOISE_SMOOTHING_KRNLS="2 4"                            # smooth denoised data
-BOLD_DENOISE_HPF_CUTOFFS="Inf"                                # high-pass filer denoised and smoothed data, but it may be better to do hpf before not after denoising... (?) (!)
+BOLD_DENOISE_HPF_CUTOFFS=""                                   # high-pass filer denoised and smoothed data, but it may be better to do hpf before not after denoising... (?) (!)
 BOLD_REGISTER_TO_MNI=1                                        # enable MNI registration
 BOLD_USE_FS_LONGT_TEMPLATE=1                                  # using FS's mid-long template as unbiased registration basis for multisession designs
-BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data      filtered_func_data_denoised_s2_hpfInf    filtered_func_data_denoised_s4_hpfInf"              # cycle through 4Ds that are to be resampled in MNI space
+BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data      filtered_func_data_denoised_s2      filtered_func_data_denoised_s4"              # cycle through 4Ds that are to be resampled in MNI space
 BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                           # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
 BOLD_MNI_RESAMPLE_INTERP="trilinear"                          # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
 BOLD_DENOISE_MASKS_MNI="MNI_CSF MNI_WB MNI_WM"                # masks used for denoising in MNI space
@@ -264,7 +264,7 @@ VBM_DELETE_PREV_RUNS=1                            # delete previously created 2n
 # MELODIC GUI
 MELODIC_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS                  # subjects to be included in the ICA analysis
 MELODIC_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC             # sessions to be included in the ICA analysis
-MELODIC_INPUT_FILE="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_hpfInf_longt_mni2.nii.gz" # filename of input file (in 'bold' subdirectory)
+MELODIC_INPUT_FILE="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_longt_mni2.nii.gz" # filename of input file (in 'bold' subdirectory)
 MELODIC_OUTDIRNAME="MELODIC-GUI01"                             # output directory (ommit '.gica' suffix)
 MELODIC_PTTRN_HIGHRES_BRAIN="*_t1_betted_masked_brain.nii.gz"  # pattern of t1 skull-stripped image
 MELODIC_PTTRN_HIGHRES_STRUC="*_t1_struc.nii.gz"                # pattern of t1 non skull-stripped image
@@ -277,7 +277,7 @@ MELODIC_TEMPLATE_FILENAME="template_ICA.fsf"                   # template filena
 # MELODIC_CMD (optional)
 MELODIC_CMD_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS               # subjects to be included in the ICA analysis
 MELODIC_CMD_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions to be included in the ICA analysis
-MELODIC_CMD_INPUT_FILES="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_hpfInf_longt_mni2.nii.gz    preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_hpfInf_longt_mni4.nii.gz"   # preprocBOLD_mni_uw_mc_bold_hpf100_s4_stc0_res4.nii.gz preprocBOLD_mni_uw_mc_bold_hpf100_s2_stc0_res2.nii.gz"  # filename of input file (in 'bold' subdirectory)
+MELODIC_CMD_INPUT_FILES="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_longt_mni2.nii.gz    preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_longt_mni4.nii.gz"   # preprocBOLD_mni_uw_mc_bold_hpf100_s4_stc0_res4.nii.gz preprocBOLD_mni_uw_mc_bold_hpf100_s2_stc0_res2.nii.gz"  # filename of input file (in 'bold' subdirectory)
 MELODIC_CMD_OUTDIR_PREFIX="MELODIC-CMD01"                       # output directory pre-fix (dir-name is composed as: ${MELODIC_OUTDIR_PREFIX}_${MELODIC_INPUT_FILE}.gica)
 MELODIC_CMD_BET=0                                               # enable betting
 MELODIC_CMD_DELETE_PREV_RUNS=1                                  # delete previously created melodic directories and files; if set, no questions will be asked (!)
@@ -285,7 +285,7 @@ MELODIC_CMD_DELETE_PREV_RUNS=1                                  # delete previou
 # DUALREG
 DUALREG_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS               # subjects that should be used with dualreg
 DUALREG_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions that should be used with dualreg
-DUALREG_INPUT_ICA_DIRNAMES="MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_hpfInf_longt_mni2    MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_hpfInf_longt_mni4" # where the ICs reside ; ommit suffix '.gica'
+DUALREG_INPUT_ICA_DIRNAMES="MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_longt_mni2    MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_longt_mni4" # where the ICs reside ; ommit suffix '.gica'
 DUALREG_IC_FILENAMES="melodic_IC.nii.gz"                    # 4D file with the IC of interest; it is to be found in the DUALREG_INPUT_ICA_DIRNAMES directories
 DUALREG_OUTDIR_PREFIX="dr"                                  # output directory pre-fix (dir-name is composed as: ${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAMES}_${DUALREG_IC_FILENAMES})
 DUALREG_NPERM=5000                                          # number of permutations

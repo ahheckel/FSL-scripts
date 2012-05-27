@@ -6,7 +6,7 @@ set -e # added by HKL
 
 Usage() {
     echo ""
-    echo "Usage: eddy_correct [-t] <4dinput> <4doutput> <reference_no> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}>"
+    echo "Usage: eddy_correct [-t] <4dinput> <4doutput> <reference_no> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}>"
     echo ""
     exit 1
 }
@@ -19,18 +19,21 @@ if [ "$1" = "-t" ] ; then noec=1 ; echo "`basename $0` : test-mode." ; shift ; f
 input=`${FSLDIR}/bin/remove_ext ${1}`
 output=`${FSLDIR}/bin/remove_ext ${2}`
 ref=${3}
-cost=${4}
-interp=${5}
+dof=${4}
+cost=${5}
+interp=${6}
 full_list=""
 
-if [ "$4" = "" ] ; then cost="mutualinfo" ; fi
-if [ "$5" = "" ] ; then interp="trilinear" ; fi
+if [ "$4" = "" ] ; then dof=12 ; fi
+if [ "$5" = "" ] ; then cost="mutualinfo" ; fi
+if [ "$6" = "" ] ; then interp="trilinear" ; fi
 
 if [ `${FSLDIR}/bin/imtest $input` -eq 0 ];then
 echo "Input does not exist or is not in a supported format"
     exit 1
 fi
 
+echo "dof: $dof"
 echo "cost: $cost"
 echo "interp: $interp"
 
@@ -46,13 +49,13 @@ echo processing $i
     echo processing $i >> ${output}.ecclog
     if [ $noec != 1 ] ; then      
       if [ "$interp" = "spline" ] ; then
-        ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -cost $cost > ${output}.ecclog.tmp # added by HKL
+        ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost > ${output}.ecclog.tmp # added by HKL
         cat ${output}.ecclog.tmp | sed -n '3,6'p > ${output}.ecclog.tmp.applywarp # added by HKL
         ${FSLDIR}/bin/applywarp --ref=${output}_ref --in=$i --out=$i --premat=${output}.ecclog.tmp.applywarp --interp=spline # added by HKL
         ${FSLDIR}/bin/fslmaths $i -abs $i # added by HKL
         rm ${output}.ecclog.tmp.applywarp # added by HKL
       else
-        ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -out $i -nosearch -paddingsize 1 -cost $cost -interp $interp > ${output}.ecclog.tmp # added by HKL
+        ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -out $i -nosearch -paddingsize 1 -dof $dof -cost $cost -interp $interp > ${output}.ecclog.tmp # added by HKL
       fi
     else
       echo "" >> ${output}.ecclog.tmp
