@@ -769,7 +769,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
           # create a task file for fsl_sub, which is needed to avoid accumulations when SGE does a re-run on error
           echo "rm -f $fldr/ec_diffs_merged_${i}*.nii.gz ; \
                 rm -f $fldr/ec_diffs_merged_${i}.ecclog ; \
-                $scriptdir/eddy_correct.sh $dwifile $fldr/ec_diffs_merged_${i} $b0img 12 mutualinfo trilinear" > $fldr/topup_ec_${i}.cmd
+                $scriptdir/eddy_correct.sh $dwifile $fldr/ec_diffs_merged_${i} $b0img $TOPUP_EC_DOF mutualinfo trilinear" > $fldr/topup_ec_${i}.cmd
           
           # eddy-correct
           echo "TOPUP : subj $subj , sess $sess : eddy_correction of '$dwifile' (ec_diffs_merged_${i}) is using volume no. $b0img as B0 (val:${min})..."
@@ -1141,7 +1141,7 @@ if [ $FDT_STG2 -eq 1 ] ; then
       # creating task file for fsl_sub, the deletions are needed to avoid accumulations when sge is doing a re-run on error
       echo "rm -f $fldr/ec_diff_merged_*.nii.gz ; \
             rm -f $fldr/ec_diff_merged.ecclog ; \
-            $scriptdir/eddy_correct.sh $ectest $fldr/diff_merged $fldr/ec_diff_merged $b0img 12 mutualinfo trilinear" > $fldr/fdt_ec.cmd
+            $scriptdir/eddy_correct.sh $ectest $fldr/diff_merged $fldr/ec_diff_merged $b0img $FDT_EC_DOF mutualinfo trilinear" > $fldr/fdt_ec.cmd
       fsl_sub -l $logdir -N fdt_eddy_correct_$(subjsess) -t $fldr/fdt_ec.cmd
       
     done
