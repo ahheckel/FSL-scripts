@@ -103,7 +103,7 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   if [ ! -f ${subjdir}/subjects ] ; then 
     echo "Subjects file not present - proposal:"
     cd  $subjdir
-      files=`find ./?* -maxdepth 1 -type d | sort | cut -d / -f 2`
+      files=`find ./?* -maxdepth 0 -type d | sort | cut -d / -f 2 | grep -v FS_subj | grep -v FS_sess`
       for i in $files ; do echo $i ; done
       read -p "Press Key to accept these entries, otherwise abort with Conrol-C..."
       echo $files | row2col > subjects
@@ -530,6 +530,7 @@ if [ $FIELDMAP_STG1 -eq 1 ]; then
       # split magnitude
       echo "FIELDMAP : subj $subj , sess $sess : extracting magnitude image ${fm_m}..."
       fslroi $fm_m ${fldr}/magn 0 1 # extract first of the two magnitude images, do not fsl_sub (!)
+      #fslmaths $fm_m -Tmean ${fldr}/magn # the mean has better SNR
 
       # betting magnitude (with variable FI thresholds)
       for f in 0.50 0.40 0.30 ; do
@@ -1178,7 +1179,7 @@ if [ $FDT_STG3 -eq 1 ] ; then
       echo " ${npts}."
       if [ $n -gt 0 ] ; then
         if [ ! $npts -eq $_npts ] ; then
-          "FDT : WARNING : Number of volumes does not match with previous image file in the loop!" 
+          echo "FDT : subj $subj , sess $sess : WARNING : Number of volumes does not match with previous image file in the loop!" 
         fi
       fi
       _npts=$npts

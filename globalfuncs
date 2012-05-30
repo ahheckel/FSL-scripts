@@ -57,7 +57,8 @@ function defineBOLDparams()
   if [ $getTR_bold -eq 1 ] ; then TR_bold=`getAquParams $conftxt 2 $subj $sess` ; echo -n "TR = $TR_bold  " ; fi
   if [ $getTE_bold -eq 1 ] ; then TE_bold=`getAquParams $conftxt 3 $subj $sess` ; echo -n "TE = $TE_bold  " ;  fi
   if [ $getEES_bold -eq 1 ] ; then EES_bold=`getAquParams $conftxt 4 $subj $sess` ; echo -n "ESP = $EES_bold  " ;  fi
-  echo ""
+  
+  if [ $getTR_bold -eq 1 -o $getTE_bold -eq 1 -o $getEES_bold -eq 1 ] ; then echo "" ; fi
 }
 
 function defineDWIparams()
@@ -72,7 +73,8 @@ function defineDWIparams()
   if [ $getTE_diff -eq 1 ] ; then TE_diff=`getAquParams $conftxt 3 $subj $sess` ; echo -n "TE = $TE_diff  " ;  fi
   if [ $getEES_diff -eq 1 ] ; then EES_diff=`getAquParams $conftxt 4 $subj $sess` ; echo -n "ESP = $EES_diff  " ;  fi
   if [ $getTROT_topup -eq 1 ] ; then TROT_topup=`getAquParams $conftxt 5 $subj $sess` ; echo -n "TROT = $TROT_topup  " ;  fi
-  echo ""
+  
+  if [ $getTR_diff -eq 1 -o $getTE_diff -eq 1 -o $getEES_diff -eq 1 -o $getTROT_topup -eq 1 ] ; then echo "" ; fi
 }
 
 function concat_bvecs()
