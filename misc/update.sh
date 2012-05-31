@@ -13,7 +13,8 @@ cp -iv fsl/topup/b02b0.cnf $FSL_DIR/etc/flirtsch/b02b0.cnf
 cp -iv fsl/MNI152*.nii.gz $FSL_DIR/data/standard/
 cp -iv fsl/avg152T1_white_bin.nii.gz $FSL_DIR/data/standard/
 cp -iv fsl/avg152T1_csf_bin.nii.gz $FSL_DIR/data/standard/
-cp -iv scripts/fsl_sub_NOPOSIXLY $FSL_DIR/bin/fsl_sub # patched for freesurfer
+cp -iv scripts/featlib.tcl $FSL_DIR/tcl/featlib.tcl
+#cp -iv scripts/fsl_sub_NOPOSIXLY $FSL_DIR/bin/fsl_sub # patched for freesurfer 
 
 
 if [ $1 -eq 64 ] ; then
@@ -33,3 +34,9 @@ if [ $1 -eq 32 ] ; then
   cp -iv fsl/tbss_x/swap_subjectwise_32 $FSL_DIR/bin/swap_subjectwise
 
 fi
+chmod +x $FSL_DIR/bin/topup
+chmod +x $FSL_DIR/bin/applytopup
+chmod +x $FSL_DIR/bin/swap_voxelwise
+chmod +x $FSL_DIR/bin/swap_subjectwise
+chmod +x $FSL_DIR/bin/tbss_x
+chmod +x $FREESURFER_HOME/bin/trac-all

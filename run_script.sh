@@ -103,7 +103,7 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   if [ ! -f ${subjdir}/subjects ] ; then 
     echo "Subjects file not present - proposal:"
     cd  $subjdir
-      files=`find ./?* -maxdepth 0 -type d | sort | cut -d / -f 2 | grep -v FS_subj | grep -v FS_sess`
+      files=`find ./?* -maxdepth 0 -type d | sort | cut -d / -f 2 | grep -v $(basename $FS_subjdir) | grep -v $(basename $FS_sessdir)`
       for i in $files ; do echo $i ; done
       read -p "Press Key to accept these entries, otherwise abort with Conrol-C..."
       echo $files | row2col > subjects
