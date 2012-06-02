@@ -5,8 +5,8 @@
 ########################################################################
 
 studydir=`pwd` # (!)
-scriptdir=$studydir/misc/scripts
-tmpltdir=$studydir/misc/templates
+scriptdir=$studydir/rsc/scripts
+tmpltdir=$studydir/rsc/templates
 subjdir=$studydir/subj
 grpdir=$studydir/grp
 tbssdir=$grpdir/tbss

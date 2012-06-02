@@ -19,7 +19,7 @@ cp $src/globalfuncs $dst
 cp $src/globalvars $dst
 cp $src/globalfuncs $dst
 #cp $src/grp/template_* $dst/grp
-cp -Lr ~/misc $dst/
+cp -Lr ~/rsc $dst/
 cp -r $src/grp/glm $dst/grp/
 cp $src/reset.sh $dst
 cd  $(dirname $dst) ; tar -czvf $(basename $dst).tar.gz $(basename $dst)
@@ -40,7 +40,7 @@ cp $src/globalvars $dst
 cp $src/globalfuncs $dst
 #cp $src/grp/template_* $dst/grp
 cp -r $src/grp/glm $dst/grp/
-cp -Lr ~/misc $dst/
+cp -Lr ~/rsc $dst/
 cp $src/subj/subjects.all $dst/subj/subjects
 cp $src/convertfiles.sh $dst/
 cp $src/reset.sh $dst
@@ -62,6 +62,6 @@ cp $src/globalvars $dst/globalvars_neurospin
 cp /home/andi/kira_data/globalvars $dst/globalvars_kira
 #cp $src/grp/template_* $dst/grp
 cp $src/grp/glm/tbss/*.cmd $dst/grp/glm/tbss/
-cp -Lr ~/misc $dst/
+cp -Lr ~/rsc $dst/
 cd  $(dirname $dst) ; tar -czvf skel_script.tar.gz $(basename $dst) ; rm -f $destroot/skel_script.tar.gz ;  mv -f skel_script.tar.gz $destroot/
 

@@ -242,7 +242,14 @@ if [ ! "x$pttrn_strucs" = "x" ] ; then checklist=$checklist" "$pttrn_strucs; fi
 if [ ! "x$pttrn_fmaps" = "x" ] ; then checklist=$checklist" "$pttrn_fmaps; fi
 if [ ! "x$pttrn_bolds" = "x" ] ; then checklist=$checklist" "$pttrn_bolds; fi
 # header line
-printf "                         DWI  BVAL BVEC STRC FMAP BOLD \n"
+for subj in `cat $subjdir/subjects` ; do
+  for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do
+    nchars=`printf "%3i subj %s , sess %s :" 1 $subj $sess`
+    nchars=${#nchars}
+    break
+  done
+done
+printf "%${nchars}s   DWI  BVAL BVEC STRC FMAP BOLD \n"
 # cycle through...
 n=1
 for subj in `cat $subjdir/subjects` ; do

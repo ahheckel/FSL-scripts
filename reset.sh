@@ -9,6 +9,7 @@ find ./ -name fm -type d | xargs rm -r
 find ./ -name fdt -type d | xargs rm -r
 find ./ -name topup -type d | xargs rm -r
 find ./ -name bold -type d | xargs rm -r
+find ./ -name bpx -type d | xargs rm -r
 find ./ -name "*tmp*.nii.gz" -type f | xargs rm
 find ./ -name "*test*.nii.gz" -type f | xargs rm
 find ./ -name "*nodif*.nii.gz" | xargs rm

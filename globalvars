@@ -5,8 +5,8 @@
 ########################################################################
 
 studydir=`pwd` # (!)
-scriptdir=$studydir/misc/scripts
-tmpltdir=$studydir/misc/templates
+scriptdir=$studydir/rsc/scripts
+tmpltdir=$studydir/rsc/templates
 subjdir=$studydir/subj
 grpdir=$studydir/grp
 tbssdir=$grpdir/tbss
@@ -167,7 +167,6 @@ PI=$(echo "scale=10; 4*a(1)" | bc -l) # define pi
 TOPUP_USE_NATIVE=1         # apply TOPUP-warps to native DWI runs
 TOPUP_USE_EC=1             # apply TOPUP-warps to eddy-corrected DWI runs (i.e. runs that have been eddy-corrected to the first B0 volume per run)
 TOPUP_EC_DOF=6             # degrees of freedom used by eddy-correction
-
 
 # FDT - unwarp
 #TR_diff=11                 # TR of the DWIs (s)
