@@ -6,6 +6,7 @@
 
 studydir=`pwd` # (!)
 scriptdir=$studydir/misc/scripts
+tmpltdir=$studydir/misc/templates
 subjdir=$studydir/subj
 grpdir=$studydir/grp
 tbssdir=$grpdir/tbss
@@ -275,7 +276,7 @@ MELODIC_BET=0                                                  # enable betting
 MELODIC_SMOOTH=4.0                                             # smoothing kernel width in mm
 MELODIC_REGSTD_RESOLUTION=4.0                                  # resampling resolution of normalised volumes volumes
 MELODIC_HIGHPASS_CUTOFF=100                                    # high-pass filter cutoff value
-MELODIC_TEMPLATE_FILENAME="template_ICA.fsf"                   # template filename
+MELODIC_TEMPLATE_FILENAME="template_gICA.fsf"                  # template filename
 
 # MELODIC_CMD (optional)
 MELODIC_CMD_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS               # subjects to be included in the ICA analysis

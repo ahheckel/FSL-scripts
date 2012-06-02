@@ -206,19 +206,19 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   fi
   
   # are template files present?
-  if [ ! -f ${subjdir}/template_tracula.rc ] ; then
+  if [ ! -f ${tmpltdir}/template_tracula.rc ] ; then
     read -p "TRACULA template file not found. You may need to create that file..."  
   fi
-  if [ ! -f ${subjdir}/template_preprocBOLD.fsf ] ; then
+  if [ ! -f ${tmpltdir}/template_preprocBOLD.fsf ] ; then
     read -p "FEAT template file for BOLD preprocessing not found. You may need to create that file..."  
   fi
-  if [ ! -f ${subjdir}/template_unwarpDWI.fsf ] ; then
+  if [ ! -f ${tmpltdir}/template_unwarpDWI.fsf ] ; then
     read -p "FEAT template file for DWI unwarping not found. You may need to create that file..."  
   fi
-  if [ ! -f ${subjdir}/template_makeXfmMatrix.m ] ; then 
+  if [ ! -f ${tmpltdir}/template_makeXfmMatrix.m ] ; then 
     read -p "WARNING: OCTAVE file 'template_makeXfmMatrix.m' not found. You will need that file for TOPUP-related b-vector correction. Press key to continue..."
   fi
-  if [ ! -f ${grpdir}/template_ICA.fsf ] ; then
+  if [ ! -f ${tmpltdir}/template_ICA.fsf ] ; then
     read -p "WARNING: MELODIC template file not found. You may need to create that file..." 
   fi
 fi
@@ -1004,7 +1004,7 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
       # rotate bvecs to compensate for TOPUP 6 parameter rigid-body correction using OCTAVE (for each run)
       for i in `seq -f %03g 001 $(cat $fldr/diff.files | wc -l)` ; do # for each run do...        
         # copy OCTAVE template
-        cp $subjdir/template_makeXfmMatrix.m $fldr/makeXfmMatrix_${i}.m
+        cp $tmpltdir/template_makeXfmMatrix.m $fldr/makeXfmMatrix_${i}.m
         
         # define vars
         rots=`sed -n ${i}p $fldr/$(subjsess)_field_lowb_movpar.txt | awk '{print $4"  "$5"  "$6}'` # cut -d " " -f 7-11` # last three entries are rotations in radians 
@@ -1209,7 +1209,7 @@ if [ $FDT_STG3 -eq 1 ] ; then
         if [ $uw_dir = "+y" ] ; then dir=y ; fi
               
         echo "FDT : subj $subj , sess $sess : unwarping - creating config file $conffile"
-        cp template_unwarpDWI.fsf $conffile
+        cp $tmpltdir/template_unwarpDWI.fsf $conffile
    
         sed -i "s|set fmri(outputdir) \"X\"|set fmri(outputdir) \"$fldr/unwarpDWI_${uw_dir}\"|g" $conffile # set output dir
         sed -i "s|set fmri(tr) X|set fmri(tr) $TR_diff|g" $conffile # set TR
@@ -2033,7 +2033,7 @@ waitIfBusy
 # TRACULA prepare 
 if [ $TRACULA_STG1 -eq 1 ] ; then
   echo "----- BEGIN TRACULA_STG1 -----"
-  if [ ! -f template_tracula.rc ] ; then echo "TRACULA : template file not found. Exiting..." ; exit ; fi
+  if [ ! -f $tmpltdir/template_tracula.rc ] ; then echo "TRACULA : template file not found. Exiting..." ; exit ; fi
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
     
@@ -2049,7 +2049,7 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
             
       # copy config-template to FS folder
       echo "TRACULA : subj $subj , sess $sess : creating config file ${fldr}/tracula.rc" 
-      cp template_tracula.rc $fldr/tracula.rc
+      cp $tmpltdir/template_tracula.rc $fldr/tracula.rc
       
       # substitute TRACULA configuration
       sed -i "s|setenv SUBJECTS_DIR X|setenv SUBJECTS_DIR $FS_subjdir|g" $fldr/tracula.rc
@@ -2306,7 +2306,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
               conffile=$fldr/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.fsf        
                        
               echo "BOLD : subj $subj , sess $sess : FEAT pre-processing - creating config file $conffile"
-              cp template_preprocBOLD.fsf $conffile
+              cp $tmpltdir/template_preprocBOLD.fsf $conffile
              
               sed -i "s|set fmri(outputdir) \"X\"|set fmri(outputdir) \"${conffile%.fsf}\"|g" $conffile # set output dir
               sed -i "s|set fmri(tr) X|set fmri(tr) $TR_bold|g" $conffile # set TR
@@ -3377,7 +3377,7 @@ if [ $MELODIC_2NDLEV_STG1 -eq 1 ]; then
   echo "----- BEGIN MELODIC_2NDLEV_STG1 -----"
   fldr=$grpdir/melodic ; mkdir -p $fldr
   conffile=$fldr/${MELODIC_OUTDIRNAME}_$(remove_ext $MELODIC_INPUT_FILE).fsf
-  templateICA=$grpdir/$MELODIC_TEMPLATE_FILENAME
+  templateICA=$tmpltdir/$MELODIC_TEMPLATE_FILENAME
   
   echo "MELODIC_GROUP: creating MELODIC configuration file '$conffile'..."
  
