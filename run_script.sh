@@ -218,7 +218,7 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   if [ ! -f ${tmpltdir}/template_makeXfmMatrix.m ] ; then 
     read -p "WARNING: OCTAVE file 'template_makeXfmMatrix.m' not found. You will need that file for TOPUP-related b-vector correction. Press key to continue..."
   fi
-  if [ ! -f ${tmpltdir}/template_ICA.fsf ] ; then
+  if [ ! -f ${tmpltdir}/template_gICA.fsf ] ; then
     read -p "WARNING: MELODIC template file not found. You may need to create that file..." 
   fi
 fi
@@ -3377,7 +3377,7 @@ if [ $MELODIC_2NDLEV_STG1 -eq 1 ]; then
   echo "----- BEGIN MELODIC_2NDLEV_STG1 -----"
   fldr=$grpdir/melodic ; mkdir -p $fldr
   conffile=$fldr/${MELODIC_OUTDIRNAME}_$(remove_ext $MELODIC_INPUT_FILE).fsf
-  templateICA=$tmpltdir/$MELODIC_TEMPLATE_FILENAME
+  templateICA=$tmpltdir/template_gICA.fsf
   
   echo "MELODIC_GROUP: creating MELODIC configuration file '$conffile'..."
  
