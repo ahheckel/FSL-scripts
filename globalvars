@@ -48,8 +48,8 @@ pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
 
 SCRATCH=0                  # execute scratchpad and exit
 
-RECON_STG1=1               # RECON-ALL prepare (copy and convert T1 nifti)
-RECON_STG2=1               # RECON-ALL execute cross-sectional stream
+RECON_STG1=0               # RECON-ALL prepare (copy and convert T1 nifti)
+RECON_STG2=0               # RECON-ALL execute cross-sectional stream
 RECON_STG3=0               # RECON-ALL execute longtitudinal stream's template creation
 RECON_STG4=0               # RECON-ALL execute longtitudinal processing for each timepoint
 RECON_STG5=0               # RECON-ALL register FS's longtitudinal template to FSL's MNI152 template using fnirt
@@ -72,7 +72,7 @@ FDT_STG5=0                 # FDT estimate tensor model
 
 BPX_STG1=0                 # BedpostX - execute
 
-VBM_STG1=0                 # VBM prepare T1
+VBM_STG1=1                 # VBM prepare T1
 VBM_STG2=0                 # VBM initial skull strip
 VBM_STG3=0                 # VBM apply standard space mask (SSM)
 VBM_STG4=0                 # VBM final skull strip - bet
@@ -88,9 +88,9 @@ TRACULA_STG4=0             # TRACULA execute -path
 
 BOLD_STG1=0                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
 BOLD_STG2=0                # BOLD execute FEAT configuration file
-BOLD_STG3=1                # BOLD denoising in native space (needs Freesurfer recons)
-BOLD_STG4=1                # BOLD write MNI-registered volumes
-BOLD_STG5=1                # BOLD denoising in MNI-space
+BOLD_STG3=0                # BOLD denoising in native space (needs Freesurfer recons)
+BOLD_STG4=0                # BOLD write MNI-registered volumes
+BOLD_STG5=0                # BOLD denoising in MNI-space
 
 ########################################################################
 # enable second level analyses #########################################
@@ -102,9 +102,9 @@ TBSS_STG3=0                # TBSS permutation testing
 TBSS_STG4=0                # TBSSX prepare - needs BedpostX (!)
 TBSS_STG5=0                # TBSSX permutation testing
 
-VBM_2NDLEV_STG1=0          # VBM prepare 
-VBM_2NDLEV_STG2=0          # VBM smooth
-VBM_2NDLEV_STG3=0          # VBM permutation testing
+VBM_2NDLEV_STG1=1          # VBM prepare 
+VBM_2NDLEV_STG2=1          # VBM smooth
+VBM_2NDLEV_STG3=1          # VBM permutation testing
 
 MELODIC_2NDLEV_STG1=0      # MELODIC create *.fsf file 
 MELODIC_2NDLEV_STG2=0      # MELODIC create sym-links to t1-structurals
@@ -143,12 +143,12 @@ SGE_ROOT=""                    # set SGE_ROOT to empty, if no cluster, otherwise
 # overwrite pre-existing subject /session file (to disable set any to "")
 FIRSTLEV_SUBJECTS="01" 
 FIRSTLEV_SESSIONS_FUNC="d"               
-FIRSTLEV_SESSIONS_STRUC="e"                
+FIRSTLEV_SESSIONS_STRUC="a c"                
 
 # SECOND LEVEL
-SECONDLEV_SUBJECTS="01 02 03"
+SECONDLEV_SUBJECTS="01"
 SECONDLEV_SESSIONS_FUNC="a"                
-SECONDLEV_SESSIONS_STRUC="a"     
+SECONDLEV_SESSIONS_STRUC="a c"     
 
 #-----------------------------------------------------------------------
 # first level analyses -------------------------------------------------
@@ -156,11 +156,11 @@ SECONDLEV_SESSIONS_STRUC="a"
 
 # RECON-ALL
 RECON_USE_CUDA=0           # use CUDA for recon-all, if available
-RECON_USE_MRITOTAL=1       # may improve talairach registration
+RECON_USE_MRITOTAL=1       # may improve Talairach registration
 
 # FIELDMAP
 deltaTEphase=0.00246       # in seconds
-PI=$(echo "scale=10; 4*a(1)" | bc -l) # define pi
+PI=3.1415926532            # =$(echo "scale=10; 4*a(1)" | bc -l) # define pi
 
 # TOPUP
 TROT_topup=0.02975         # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
@@ -256,12 +256,12 @@ TBSS_USE_TOPUP_EC_BVECROT=0                       # use FA maps from TOPUP-corre
 # VBM
 VBM_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included in the VBM analysis
 VBM_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_STRUC   # subjects to be included in the VBM analysis
-VBM_OUTDIRNAME="vbm_01"                           # name of output directory
-VBM_PTTRN_BRAIN="*_t1_betted_masked_brain.nii.gz" # search pattern for brain-extracted structurals
-VBM_PTTRN_STRUC="*_t1_struc.nii.gz"               # search pattern for original structurals (w/o skull-strip)
+VBM_OUTDIRNAME="vbm_FS"                           # name of output directory
+VBM_PTTRN_BRAIN="*_FS_brain.nii.gz"               # search pattern for brain-extracted structurals
+VBM_PTTRN_STRUC="*_FS_struc.nii.gz"               # search pattern for original structurals (w/o skull-strip)
 VBM_SMOOTHING_KRNL="2 3 4"                        # cycle through some smoothing kernels
 VBM_Z_TRANSFORM=1                                 # z-transform grey matter 4D
-VBM_RANDOMISE_NPERM=1000                          # number of permutations (!)
+VBM_RANDOMISE_NPERM=500                           # number of permutations (!)
 VBM_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked (!)
 
 # MELODIC (GUI)
