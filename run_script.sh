@@ -2602,19 +2602,22 @@ if [ $BOLD_STG4 -eq 1 ] ; then
               echo "BOLD : subj $subj , sess $sess : writing example_func -> FS's structural..."
               echo "BOLD : subj $subj , sess $sess : concatenating matrices..."
               
-              #echo "tkregister2 --noedit --mov $FS_subjdir/${subj}${sess_t1}/mri/norm.mgz --targ $FS_subjdir/$subj/mri/norm_template.mgz --lta $FS_subjdir/$subj/mri/transforms/${subj}${sess_t1}_to_${subj}.lta --fslregout $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat --reg $tmpdir/deleteme.reg.dat ;\
-              #fslswapdim $featdir/example_func.nii.gz RL SI PA $featdir/example_func.nii.gz
-              #bbregister --s ${subj}${sess_t1} --mov $featdir/reg_longt/example_func_LIA.nii.gz --init-fsl --reg $featdir/reg_longt/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg_longt/example_func2highres_bbr.mat ;\
-              #convert_xfm -omat $affine -concat $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat $featdir/reg_longt/example_func2highres_bbr.mat" > $cmd_file
-              
-              echo "tkregister2 --noedit --mov $FS_subjdir/${subj}${sess_t1}/mri/norm.mgz --targ $FS_subjdir/$subj/mri/norm_template.mgz --lta $FS_subjdir/$subj/mri/transforms/${subj}${sess_t1}_to_${subj}.lta --fslregout $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat --reg $tmpdir/deleteme.reg.dat ;\
-              bbregister --s ${subj}${sess_t1} --mov $featdir/example_func.nii.gz --init-fsl --reg $featdir/reg_longt/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg_longt/example_func2highres_bbr.mat ;\
-              mri_convert $FS_subjdir/${subj}${sess_t1}/mri/brain.mgz $featdir/reg_longt/brain.nii.gz ;\
+              echo "bbregister --s ${subj} --mov $featdir/example_func.nii.gz --init-fsl --reg $featdir/reg_longt/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg_longt/example_func2highres_bbr.mat ;\
+              mri_convert $FS_subjdir/${subj}/mri/brain.mgz $featdir/reg_longt/brain.nii.gz ;\
               flirt -in $featdir/example_func.nii.gz -ref $featdir/reg_longt/brain.nii.gz -init $featdir/reg_longt/example_func2highres_bbr.mat -applyxfm -out $featdir/reg_longt/example_func2highres_bbr ;\
               fslreorient2std $featdir/reg_longt/brain $featdir/reg_longt/highres ;\
               fslreorient2std $featdir/reg_longt/example_func2highres_bbr $featdir/reg_longt/example_func2highres_bbr ;\
               imrm $featdir/reg_longt/brain ;\
-              convert_xfm -omat $affine -concat $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat $featdir/reg_longt/example_func2highres_bbr.mat" > $cmd_file
+              cp $featdir/reg_longt/example_func2highres_bbr.mat $affine" > $cmd_file
+              
+              #echo "tkregister2 --noedit --mov $FS_subjdir/${subj}${sess_t1}/mri/norm.mgz --targ $FS_subjdir/$subj/mri/norm_template.mgz --lta $FS_subjdir/$subj/mri/transforms/${subj}${sess_t1}_to_${subj}.lta --fslregout $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat --reg $tmpdir/deleteme.reg.dat ;\
+              #bbregister --s ${subj}${sess_t1} --mov $featdir/example_func.nii.gz --init-fsl --reg $featdir/reg_longt/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg_longt/example_func2highres_bbr.mat ;\
+              #mri_convert $FS_subjdir/${subj}${sess_t1}/mri/brain.mgz $featdir/reg_longt/brain.nii.gz ;\
+              #flirt -in $featdir/example_func.nii.gz -ref $featdir/reg_longt/brain.nii.gz -init $featdir/reg_longt/example_func2highres_bbr.mat -applyxfm -out $featdir/reg_longt/example_func2highres_bbr ;\
+              #fslreorient2std $featdir/reg_longt/brain $featdir/reg_longt/highres ;\
+              #fslreorient2std $featdir/reg_longt/example_func2highres_bbr $featdir/reg_longt/example_func2highres_bbr ;\
+              #imrm $featdir/reg_longt/brain ;\
+              #convert_xfm -omat $affine -concat $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat $featdir/reg_longt/example_func2highres_bbr.mat" > $cmd_file
               
               $scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N $log_file -t $cmd_file    
               

@@ -52,7 +52,7 @@ RECON_STG1=0               # RECON-ALL prepare (copy and convert T1 nifti)
 RECON_STG2=0               # RECON-ALL execute cross-sectional stream
 RECON_STG3=0               # RECON-ALL execute longtitudinal stream's template creation
 RECON_STG4=0               # RECON-ALL execute longtitudinal processing for each timepoint
-RECON_STG5=0               # RECON-ALL register FS's longtitudinal template to FSL's MNI152 template using fnirt
+RECON_STG5=1               # RECON-ALL register FS's longtitudinal template to FSL's MNI152 template using fnirt
 
 FIELDMAP_STG1=0            # FIELDMAP prepare
 FIELDMAP_STG2=0            # FIELDMAP create
@@ -86,11 +86,11 @@ TRACULA_STG2=0             # TRACULA execute -prep
 TRACULA_STG3=0             # TRACULA execute -bedp
 TRACULA_STG4=0             # TRACULA execute -path
 
-BOLD_STG1=0                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
-BOLD_STG2=0                # BOLD execute FEAT configuration file
-BOLD_STG3=0                # BOLD denoising in native space (needs Freesurfer recons)
-BOLD_STG4=0                # BOLD write MNI-registered volumes
-BOLD_STG5=0                # BOLD denoising in MNI-space
+BOLD_STG1=1                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
+BOLD_STG2=1                # BOLD execute FEAT configuration file
+BOLD_STG3=1                # BOLD denoising in native space (needs Freesurfer recons)
+BOLD_STG4=1                # BOLD write MNI-registered volumes
+BOLD_STG5=1                # BOLD denoising in MNI-space
 
 ########################################################################
 # enable second level analyses #########################################
