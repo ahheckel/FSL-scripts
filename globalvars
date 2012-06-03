@@ -48,8 +48,8 @@ pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
 
 SCRATCH=0                  # execute scratchpad and exit
 
-RECON_STG1=0               # RECON-ALL prepare (copy and convert T1 nifti)
-RECON_STG2=0               # RECON-ALL execute cross-sectional stream
+RECON_STG1=1               # RECON-ALL prepare (copy and convert T1 nifti)
+RECON_STG2=1               # RECON-ALL execute cross-sectional stream
 RECON_STG3=0               # RECON-ALL execute longtitudinal stream's template creation
 RECON_STG4=0               # RECON-ALL execute longtitudinal processing for each timepoint
 RECON_STG5=0               # RECON-ALL register FS's longtitudinal template to FSL's MNI152 template using fnirt
@@ -64,8 +64,8 @@ TOPUP_STG4=0               # TOPUP execute topup
 TOPUP_STG5=0               # TOPUP apply warp
 TOPUP_STG6=0               # TOPUP estimate tensor model
 
-FDT_STG1=1                 # FDT merging
-FDT_STG2=1                 # FDT eddy-correct & extract B0 reference image
+FDT_STG1=0                 # FDT merging
+FDT_STG2=0                 # FDT eddy-correct & extract B0 reference image
 FDT_STG3=0                 # FDT prepare FEAT configuration file for unwarping the DWIs
 FDT_STG4=0                 # FDT execute FEAT & extract unwarped B0 reference image
 FDT_STG5=0                 # FDT estimate tensor model
@@ -137,13 +137,13 @@ PLOT_BOLD_MNIREG_DIRNAMES="preprocBOLD"    # (part of) dirname, where reg_standa
 ########################################################################
 
 # SGE CLUSTER
-#SGE_ROOT=""                    # set SGE_ROOT to empty, if no cluster, otherwise comment this line out (!)
+SGE_ROOT=""                    # set SGE_ROOT to empty, if no cluster, otherwise comment this line out (!)
 
 # FIRST LEVEL
 # overwrite pre-existing subject /session file (to disable set any to "")
 FIRSTLEV_SUBJECTS="01" 
-FIRSTLEV_SESSIONS_FUNC="a"               
-FIRSTLEV_SESSIONS_STRUC="a"                
+FIRSTLEV_SESSIONS_FUNC="d"               
+FIRSTLEV_SESSIONS_STRUC="e"                
 
 # SECOND LEVEL
 SECONDLEV_SUBJECTS="01 02 03"
@@ -159,19 +159,19 @@ RECON_USE_CUDA=0           # use CUDA for recon-all, if available
 RECON_USE_MRITOTAL=1       # may improve talairach registration
 
 # FIELDMAP
-deltaTEphase=0.00246
+deltaTEphase=0.00246       # in seconds
 PI=$(echo "scale=10; 4*a(1)" | bc -l) # define pi
 
 # TOPUP
-#TROT_topup=0.02975         # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
+TROT_topup=0.02975         # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
 TOPUP_USE_NATIVE=1         # apply TOPUP-warps to native DWI runs
-TOPUP_USE_EC=1             # apply TOPUP-warps to eddy-corrected DWI runs (i.e. runs that have been eddy-corrected to the first B0 volume per run)
+TOPUP_USE_EC=0             # apply TOPUP-warps to eddy-corrected DWI runs (i.e. runs that have been eddy-corrected to the first B0 volume per run)
 TOPUP_EC_DOF=6             # degrees of freedom used by eddy-correction
 
 # FDT - unwarp
-#TR_diff=11                 # TR of the DWIs (s)
-#EES_diff=0.25              # Effective Echo Spacing of the DWIs (ms)
-#TE_diff=88                 # TE of the DWIs (ms)
+TR_diff=11                 # TR of the DWIs (s)
+EES_diff=0.25              # Effective Echo Spacing of the DWIs (ms)
+TE_diff=88                 # TE of the DWIs (ms)
 FDT_EC_TEST=1              # don't apply eddy-correction
 FDT_EC_DOF=6               # degrees of freedom used by eddy-correction
 FDT_SIGNLOSS_THRES=100     # signal loss threshold (%)

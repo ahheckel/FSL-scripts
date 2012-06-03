@@ -2497,7 +2497,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
       fldr=$subjdir/$subj/$sess/bold
       sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
       
-      if [ ! -f $FS_subjdir/${subj}${sess_t1}/mri/aparc+aseg.mgz ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : aparc+aseg.mgz not found ! You must run recon-all first. Continuing ..." ; continue ; fi
+      if [ ! -f $FS_subjdir/${subj}${sess_t1}/mri/aparc+aseg.mgz ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : aparc+aseg.mgz not found in '${FS_subjdir}/${subj}${sess_t1}/mri' ! You must run recon-all first. Continuing ..." ; continue ; fi
 
       if [ $BOLD_UNWARP -eq 1 ] ; then uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; else uw_dir=00 ; fi
       
