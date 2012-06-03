@@ -15,9 +15,8 @@ cp $src/subj/subjects.all $dst/subj/subjects
 cp $src/subj/config_* $dst/subj
 #cp $src/subj/template_* $dst/subj
 cp $src/run_script.sh $dst
-cp $src/globalfuncs $dst
+#cp $src/globalfuncs $dst
 cp $src/globalvars $dst
-cp $src/globalfuncs $dst
 #cp $src/grp/template_* $dst/grp
 cp -Lr ~/rsc $dst/
 cp -r $src/grp/glm $dst/grp/
@@ -35,9 +34,8 @@ mkdir -p $dst/grp/glm/tbss
 cp $src/subj/config_* $dst/subj
 #cp $src/subj/template_* $dst/subj
 cp $src/run_script.sh $dst
-cp $src/globalfuncs $dst
+#cp $src/globalfuncs $dst
 cp $src/globalvars $dst
-cp $src/globalfuncs $dst
 #cp $src/grp/template_* $dst/grp
 cp -r $src/grp/glm $dst/grp/
 cp -Lr ~/rsc $dst/
@@ -56,7 +54,7 @@ mkdir -p $dst/subj
 mkdir -p $dst/grp/glm/tbss
 #cp $src/subj/template_* $dst/subj
 cp $src/run_script.sh $dst
-cp $src/globalfuncs $dst
+#cp $src/globalfuncs $dst
 cp $src/globalvars $dst
 cp $src/globalvars $dst/globalvars_neurospin
 cp /home/andi/kira_data/globalvars $dst/globalvars_kira

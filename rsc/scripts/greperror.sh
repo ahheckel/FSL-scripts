@@ -14,7 +14,7 @@ else
 fi
 
 for i in warn error segfault fault rejected oops denied fail cannot critical panic usage ; do
-    grep -i -n -R  $i $dir --color=auto | grep -v default
+    grep -i -n -R  $i $dir --color=always | grep -v default
 done
 
 echo "`basename $0`: done."

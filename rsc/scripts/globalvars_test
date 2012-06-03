@@ -176,7 +176,6 @@ FDT_EC_TEST=0              # don't apply eddy-correction
 FDT_EC_DOF=6               # degrees of freedom used by eddy-correction
 FDT_SIGNLOSS_THRES=100     # signal loss threshold (%)
 FDT_UNWARP_BET_ALTEXFUNC=1 # brain-extract the input alternative example func (i.e. the B0 image)
-FDT_EC_TEST=1              # don't apply eddy-correction
 FDT_FEAT_NO_BROWSER=1      # don't open browser window
 
 # BPX

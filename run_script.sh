@@ -23,8 +23,8 @@ set -e
 trap "rmdir $wd/.lockdir121978 ; echo -e \"\nlock removed.\n`date`\" ; exit" EXIT
 
 # source environment variables and functions
-source ./globalfuncs
 source ./globalvars
+source $scriptdir/globalfuncs
 
 # remove duplicates in string arrays (to avoid collisions on the cluster)
 FIRSTLEV_SUBJECTS=$(echo $FIRSTLEV_SUBJECTS | row2col | sort -u)
@@ -267,9 +267,11 @@ echo "***CHECK*** (sleeping 2 seconds)..."
 sleep 2
 
 # check SGE
-echo ""
-qstat -f
-echo ""
+if [ x"$SGE_ROOT" != "x" ] ; then 
+  echo ""
+  qstat -f
+  echo ""
+fi
 
 # dos2unix bval/bvec textfiles (just in case...)
 echo "Ensuring UNIX line endings in bval-/bvec textfiles..."
@@ -399,7 +401,7 @@ if [ $RECON_STG2 -eq 1 ] ; then
       chmod +x $fldr/recon-all_cuda.sh
       
       # execute...
-      $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N recon-all_$(subjsess) $fldr/recon-all_cuda.sh
+      $scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N recon-all_$(subjsess) $fldr/recon-all_cuda.sh
     done
   done
 fi
@@ -430,7 +432,7 @@ if [ $RECON_STG3 -eq 1 ] ; then
     echo "RECON : subj $subj , sess $sess : executing recon-all - unbiased template generation..."
     cmd="$cmd -all -no-isrunning -noappend -clean-tal -tal-check $opts"
     echo $cmd | tee $fldr/recon-all_base.cmd
-    $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N recon-all_base_${subj} -t $fldr/recon-all_base.cmd
+    $scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N recon-all_base_${subj} -t $fldr/recon-all_base.cmd
   done
 fi 
 
@@ -450,7 +452,7 @@ if [ $RECON_STG4 -eq 1 ] ; then
       # executing...
       echo "RECON : subj $subj , sess $sess : executing recon-all - longtitudinal stream..."
       echo $cmd | tee $fldr/recon-all_long.cmd
-      $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N recon-all_long_$(subjsess) -t $fldr/recon-all_long.cmd
+      $scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N recon-all_long_$(subjsess) -t $fldr/recon-all_long.cmd
     done    
   done
 fi 
@@ -2174,7 +2176,7 @@ if [ $TRACULA_STG2 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$FS_subjdir/$(subjsess)
       echo "TRACULA : subj $subj , sess $sess : executing trac-all -prep command:"
-      echo "$scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N trac-all-prep_$(subjsess) trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc" | tee $fldr/trac-all_prep.cmd
+      echo "$scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N trac-all-prep_$(subjsess) trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc" | tee $fldr/trac-all_prep.cmd
       #echo "trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc -log $logdir/trac-all-prep_$(subjsess)_$$" | tee $fldr/trac-all_prep.cmd 
       . $fldr/trac-all_prep.cmd
       # note: the eddy correct log file is obviously overwritten on re-run by trac-all -prep, that's what we want (eddy_correct per se would append on .log from broken runs, that's bad)
@@ -2191,7 +2193,7 @@ if [ $TRACULA_STG3 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$FS_subjdir/$(subjsess)
       echo "TRACULA : subj $subj , sess $sess : executing trac-all -bedp command:"
-      #echo "$scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N trac-all-bedp_$(subjsess) trac-all -no-isrunning -noappendlog -bedp -c $fldr/tracula.rc" | tee $fldr/trac-all_bedp.cmd
+      #echo "$scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N trac-all-bedp_$(subjsess) trac-all -no-isrunning -noappendlog -bedp -c $fldr/tracula.rc" | tee $fldr/trac-all_bedp.cmd
       echo "trac-all -no-isrunning -noappendlog -bedp -c $fldr/tracula.rc -log $logdir/trac-all-bedp_$(subjsess)_$$ " | tee $fldr/trac-all_bedp.cmd # bedpostx is self-submitting (!)
       . $fldr/trac-all_bedp.cmd
     done
@@ -2207,7 +2209,7 @@ if [ $TRACULA_STG4 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$FS_subjdir/$(subjsess)
       echo "subj $subj , sess $sess : executing trac-all -path command:"
-      echo "$scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N trac-all-paths_$(subjsess) trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc" | tee $fldr/trac-all_path.cmd
+      echo "$scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N trac-all-paths_$(subjsess) trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc" | tee $fldr/trac-all_path.cmd
       #echo "trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc -log $logdir/trac-all-paths_$(subjsess)_$$" | tee $fldr/trac-all_path.cmd
       . $fldr/trac-all_path.cmd
     done
@@ -2525,7 +2527,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
             $scriptdir/feat_smooth.sh $featdir/noise/filtered_func_data_denoised $featdir/filtered_func_data_denoised "$BOLD_DENOISE_SMOOTHING_KRNLS" "$BOLD_DENOISE_HPF_CUTOFFS" $TR_bold $subj $sess" > $featdir/bold_denoise.cmd
             
             # executing...
-            $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N bold_denoise_$(subjsess) -t $featdir/bold_denoise.cmd
+            $scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N bold_denoise_$(subjsess) -t $featdir/bold_denoise.cmd
             
           done # end stc_val
         done # end sm_krnl
@@ -2614,7 +2616,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
               imrm $featdir/reg_longt/brain ;\
               convert_xfm -omat $affine -concat $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat $featdir/reg_longt/example_func2highres_bbr.mat" > $cmd_file
               
-              $scriptdir/fsl_sub_NOPOSIXLY -l $logdir -N $log_file -t $cmd_file    
+              $scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N $log_file -t $cmd_file    
               
             done # end stc_val
           done # end sm_krnl

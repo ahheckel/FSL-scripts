@@ -1,6 +1,17 @@
 #!/bin/bash
-if [ $# -lt 4 ] ; then echo "Enter analysis type (tbss, vbm, dualreg...), directory, file search pattern (e.g., \"*_corrp_*\"), threshold and whether you wish to check filtered results with fslview !" ; exit ; fi
 
+trap 'echo "$0 : An ERROR has occured."' ERR
+
+
+Usage() {
+    echo ""
+    echo "Usage: `basename $0` <tbss|vbm> <dir> <search-pttrn> <thres> <fslview 1|0>"
+    echo "Example: `basename $0` vbm ./stats \"*_corrp_*\" 0.95 1"
+    echo ""
+    exit 1
+}
+
+if [ $# -lt 4 ] ; then Usage ; fi
 anal=$1
 dir=$2
 pttrn=$3
@@ -22,7 +33,9 @@ for f in $files ; do
   cluster --in=$f -t $thres --mm > $tmpfile
   nl=$(cat $tmpfile | wc -l)
   if [ $nl -gt 1 ] ; then
+    echo "------------------------------" | tee -a $logfile
     echo "${f}:" | tee -a $logfile
+    echo "------------------------------" | tee -a $logfile
     collect=$collect" "$f
     for i in `seq 2 $nl` ; do
       line=$(cat $tmpfile | sed -n ${i}p)
@@ -38,21 +51,24 @@ for f in $files ; do
       if [ $anal = "tbss" ] ; then
         JHU1=$(atlasquery  -a "JHU ICBM-DTI-81 White-Matter Labels" -c ${x},${y},${z} | cut -d ">" -f 4)
         JHU2=$(atlasquery  -a "JHU White-Matter Tractography Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)      
-        printf '\t %5.3f t/f=%4.2f (%5i) at [ %5.1f %5.1f %5.1f ] (mm) \t JHU1:  %s \n' $max $tval $size $x $y $z "$JHU1" | tee -a $logfile
-        printf '\t\t\t\t\t\t\t\t JHU2: %s\n' "$JHU2" | tee -a $logfile
+        printf '   %5.3f t/f=%4.2f (%5i) at [ %5.1f %5.1f %5.1f ] (mm) \n' $max $tval $size $x $y $z
+        printf '\t JHU1: %s\n' "$JHU1" | tee -a $logfile
+        printf '\t JHU2: %s\n' "$JHU2" | tee -a $logfile
       fi
       if [ $anal = "vbm" ] ; then
         HAV1=$(atlasquery  -a "Harvard-Oxford Cortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         HAV2=$(atlasquery  -a "Harvard-Oxford Subcortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         TAL=$(atlasquery  -a "Talairach Daemon Labels" -c ${x},${y},${z} | cut -d ">" -f 4)
-        printf '\t %5.3f t/f=%4.2f (%5i) at [ %5.1f %5.1f %5.1f ] (mm) \t TAL:  %s \n' $max $tval $size $x $y $z "$TAL" | tee -a $logfile
-        printf '\t\t\t\t\t\t\t\t HAV1: %s \n' "$HAV1" | tee -a $logfile
-        printf '\t\t\t\t\t\t\t\t HAV2: %s \n' "$HAV2" | tee -a $logfile
+        printf '   %5.3f t/f=%4.2f (%5i) at [ %5.1f %5.1f %5.1f ] (mm) \n' $max $tval $size $x $y $z
+        printf '\t TAL:  %s \n' "$TAL" | tee -a $logfile
+        printf '\t HAV1: %s \n' "$HAV1" | tee -a $logfile
+        printf '\t HAV2: %s \n' "$HAV2" | tee -a $logfile
       fi      
     done
   else
+    echo "------------------------------" | tee -a $logfile
     echo "${f}:" | tee -a $logfile  
-    echo -e "\t \t ---" | tee -a $logfile  
+    echo "------------------------------" | tee -a $logfile
   fi
 done
 
@@ -79,6 +95,8 @@ if [ $anal = "vbm" ] ; then
     done
   fi
 fi
+
+echo "`basename $0`: done."
 
 
 
