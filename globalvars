@@ -61,7 +61,7 @@ TOPUP_STG1=0               # TOPUP prepare
 TOPUP_STG2=0               # TOPUP low-B images: create index and extract
 TOPUP_STG3=0               # TOPUP merge B0 images
 TOPUP_STG4=0               # TOPUP execute topup
-TOPUP_STG5=0               # TOPUP apply warp
+TOPUP_STG5=1               # TOPUP apply warp
 TOPUP_STG6=0               # TOPUP estimate tensor model
 
 FDT_STG1=0                 # FDT merging

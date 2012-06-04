@@ -40,7 +40,7 @@ cmd="bbregister --s $subjID --mov ${exfunc}.nii.gz --init-fsl --reg $outdir/EF2T
 #tkregister2 --mov ${exfunc}.nii.gz --reg $outdir/EF2T1_bbr.dat --surf
 
 echo "`basename $0` : subj $subj , sess $sess : extracting binary labels from FS segmentation (note that WM-mask is eroded a bit)..."
-cmd="mri_binarize --i $SUBJECTS_DIR/$subjID/mri/aparc+aseg.mgz --match $WM_labels --erode 2   --o $outdir/T1_WM.nii.gz" ; $cmd 1>/dev/null
+cmd="mri_binarize --i $SUBJECTS_DIR/$subjID/mri/aparc+aseg.mgz --match $WM_labels --erode 1   --o $outdir/T1_WM.nii.gz" ; $cmd 1>/dev/null
 cmd="mri_binarize --i $SUBJECTS_DIR/$subjID/mri/aparc+aseg.mgz --match $CSF_labels --o $outdir/T1_CSF.nii.gz" ; $cmd 1>/dev/null
 cmd="mri_binarize --i $SUBJECTS_DIR/$subjID/mri/aseg.mgz --match $GMctx_labels $GMsubctx_labels --o $outdir/T1_GM.nii.gz" ; $cmd 1>/dev/null
  
