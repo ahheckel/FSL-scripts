@@ -2553,7 +2553,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
   if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
   if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
   
-  if [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 1 ] ; then
+  if [ $BOLD_USE_FS_LONGT_TEMPLATE -ge 1 ] ; then
     for subj in `cat subjects` ; do
 
       if [ ! -f $FS_subjdir/${subj}/mri/aparc+aseg.mgz ] ; then echo "BOLD : subj $subj : ERROR : aparc+aseg.mgz not found ! You must run recon-all (longtitudinal) first. Continuing ..." ; continue ; fi
@@ -2597,29 +2597,35 @@ if [ $BOLD_STG4 -eq 1 ] ; then
               log_file=bold_func2longt_$(subjsess)
               sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`              
               
-              echo "BOLD : subj $subj , sess $sess : converting '${subj}${sess_t1}_to_${subj}.lta' -> '${subj}${sess_t1}_to_${subj}.mat' (FSL-style)..."
-              echo "BOLD : subj $subj , sess $sess : using FS's bbreg to register 'example_func.nii.gz' -> FS's structural (ID '${subj}${sess_t1}')..."
-              echo "BOLD : subj $subj , sess $sess : writing example_func -> FS's structural..."
-              echo "BOLD : subj $subj , sess $sess : concatenating matrices..."
+              if [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 1 ] ; then
+                echo "BOLD : subj $subj , sess $sess : converting '${subj}${sess_t1}_to_${subj}.lta' -> '${subj}${sess_t1}_to_${subj}.mat' (FSL-style)..."
+                echo "BOLD : subj $subj , sess $sess : using FS's bbreg to register 'example_func.nii.gz' -> FS's structural (ID '${subj}${sess_t1}')..."
+                echo "BOLD : subj $subj , sess $sess : writing example_func -> FS's structural..."
+                echo "BOLD : subj $subj , sess $sess : concatenating matrices..."
+                
+                echo "tkregister2 --noedit --mov $FS_subjdir/${subj}${sess_t1}/mri/norm.mgz --targ $FS_subjdir/$subj/mri/norm_template.mgz --lta $FS_subjdir/$subj/mri/transforms/${subj}${sess_t1}_to_${subj}.lta --fslregout $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat --reg $tmpdir/deleteme.reg.dat ;\
+                bbregister --s ${subj}${sess_t1} --mov $featdir/example_func.nii.gz --init-fsl --reg $featdir/reg_longt/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg_longt/example_func2highres_bbr.mat ;\
+                mri_convert $FS_subjdir/${subj}${sess_t1}/mri/brain.mgz $featdir/reg_longt/brain.nii.gz ;\
+                flirt -in $featdir/example_func.nii.gz -ref $featdir/reg_longt/brain.nii.gz -init $featdir/reg_longt/example_func2highres_bbr.mat -applyxfm -out $featdir/reg_longt/example_func2highres_bbr ;\
+                fslreorient2std $featdir/reg_longt/brain $featdir/reg_longt/highres ;\
+                fslreorient2std $featdir/reg_longt/example_func2highres_bbr $featdir/reg_longt/example_func2highres_bbr ;\
+                imrm $featdir/reg_longt/brain ;\
+                convert_xfm -omat $affine -concat $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat $featdir/reg_longt/example_func2highres_bbr.mat" > $cmd_file                
+                
+              elif [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 2 ] ; then
+                echo "BOLD : subj $subj , sess $sess : using FS's bbreg to register 'example_func.nii.gz' -> FS's structural (ID '${subj}')..."
+                echo "BOLD : subj $subj , sess $sess : writing example_func -> FS's structural..."
+                              
+                echo "bbregister --s ${subj} --mov $featdir/example_func.nii.gz --init-fsl --reg $featdir/reg_longt/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg_longt/example_func2highres_bbr.mat ;\
+                mri_convert $FS_subjdir/${subj}/mri/brain.mgz $featdir/reg_longt/brain.nii.gz ;\
+                flirt -in $featdir/example_func.nii.gz -ref $featdir/reg_longt/brain.nii.gz -init $featdir/reg_longt/example_func2highres_bbr.mat -applyxfm -out $featdir/reg_longt/example_func2highres_bbr ;\
+                fslreorient2std $featdir/reg_longt/brain $featdir/reg_longt/highres ;\
+                fslreorient2std $featdir/reg_longt/example_func2highres_bbr $featdir/reg_longt/example_func2highres_bbr ;\
+                imrm $featdir/reg_longt/brain ;\
+                cp $featdir/reg_longt/example_func2highres_bbr.mat $affine" > $cmd_file              
+              fi
               
-              #echo "bbregister --s ${subj} --mov $featdir/example_func.nii.gz --init-fsl --reg $featdir/reg_longt/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg_longt/example_func2highres_bbr.mat ;\
-              #mri_convert $FS_subjdir/${subj}/mri/brain.mgz $featdir/reg_longt/brain.nii.gz ;\
-              #flirt -in $featdir/example_func.nii.gz -ref $featdir/reg_longt/brain.nii.gz -init $featdir/reg_longt/example_func2highres_bbr.mat -applyxfm -out $featdir/reg_longt/example_func2highres_bbr ;\
-              #fslreorient2std $featdir/reg_longt/brain $featdir/reg_longt/highres ;\
-              #fslreorient2std $featdir/reg_longt/example_func2highres_bbr $featdir/reg_longt/example_func2highres_bbr ;\
-              #imrm $featdir/reg_longt/brain ;\
-              #cp $featdir/reg_longt/example_func2highres_bbr.mat $affine" > $cmd_file
-              
-              echo "tkregister2 --noedit --mov $FS_subjdir/${subj}${sess_t1}/mri/norm.mgz --targ $FS_subjdir/$subj/mri/norm_template.mgz --lta $FS_subjdir/$subj/mri/transforms/${subj}${sess_t1}_to_${subj}.lta --fslregout $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat --reg $tmpdir/deleteme.reg.dat ;\
-              bbregister --s ${subj}${sess_t1} --mov $featdir/example_func.nii.gz --init-fsl --reg $featdir/reg_longt/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg_longt/example_func2highres_bbr.mat ;\
-              mri_convert $FS_subjdir/${subj}${sess_t1}/mri/brain.mgz $featdir/reg_longt/brain.nii.gz ;\
-              flirt -in $featdir/example_func.nii.gz -ref $featdir/reg_longt/brain.nii.gz -init $featdir/reg_longt/example_func2highres_bbr.mat -applyxfm -out $featdir/reg_longt/example_func2highres_bbr ;\
-              fslreorient2std $featdir/reg_longt/brain $featdir/reg_longt/highres ;\
-              fslreorient2std $featdir/reg_longt/example_func2highres_bbr $featdir/reg_longt/example_func2highres_bbr ;\
-              imrm $featdir/reg_longt/brain ;\
-              convert_xfm -omat $affine -concat $featdir/reg_longt/${subj}${sess_t1}_to_${subj}.mat $featdir/reg_longt/example_func2highres_bbr.mat" > $cmd_file
-              
-              $scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N $log_file -t $cmd_file    
+              $scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N $log_file -t $cmd_file
               
             done # end stc_val
           done # end sm_krnl
