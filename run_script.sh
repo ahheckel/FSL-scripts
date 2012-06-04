@@ -961,6 +961,12 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : merging topup-corrected & eddy-corrected DWIs..."
         fslmerge -t $fldr/$(subjsess)_topup_corr_ec_merged $(imglob $fldr/*_topup_corr_ec)
       fi
+      
+      # remove negative values
+      echo "TOPUP : subj $subj , sess $sess : zeroing negative values in topup-corrected DWIs..."
+      if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then fslmaths $fldr/$(subjsess)_topup_corr_merged -thr 0 $fldr/$(subjsess)_topup_corr_merged ; fi
+      if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then fslmaths $fldr/$(subjsess)_topup_corr_ec_merged -thr 0 $fldr/$(subjsess)_topup_corr_ec_merged ; fi
+            
     done
   done
 fi
