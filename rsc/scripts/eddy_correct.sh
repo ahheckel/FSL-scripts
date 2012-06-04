@@ -52,7 +52,8 @@ echo processing $i
         ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost > ${output}.ecclog.tmp # added by HKL
         cat ${output}.ecclog.tmp | sed -n '3,6'p > ${output}.ecclog.tmp.applywarp # added by HKL
         ${FSLDIR}/bin/applywarp --ref=${output}_ref --in=$i --out=$i --premat=${output}.ecclog.tmp.applywarp --interp=spline # added by HKL
-        ${FSLDIR}/bin/fslmaths $i -abs $i # added by HKL
+        #${FSLDIR}/bin/fslmaths $i -abs $i # added by HKL
+        ${FSLDIR}/bin/fslmaths $i -thr 0 $i # added by HKL
         rm ${output}.ecclog.tmp.applywarp # added by HKL
       else
         ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -out $i -nosearch -paddingsize 1 -dof $dof -cost $cost -interp $interp > ${output}.ecclog.tmp # added by HKL
