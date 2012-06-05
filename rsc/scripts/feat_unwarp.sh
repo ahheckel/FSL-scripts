@@ -101,8 +101,7 @@ cd $wdir
   fugue --loadfmap=EF_UD_fmap --dwell=$dwell --mask=EF_UD_fmap_mag_brain_mask -i EF_D_example_func -u EF_UD_example_func --unwarpdir=$unwarp_dir --saveshift=EF_UD_shift
   convertwarp -s EF_UD_shift -o EF_UD_warp -r EF_D_example_func --shiftdir=$unwarp_dir
   
-  ###apply warping and motion correction to example_func and 4D data
-
+  # apply warping to example_func
   immv example_func example_func_orig_distorted
   applywarp -i example_func_orig_distorted -o example_func -w EF_UD_warp -r example_func_orig_distorted --abs
  
@@ -111,5 +110,6 @@ cd $sdir
 echo "`basename $0`: save results"
 fslmerge -t ${out}_check $wdir/EF_UD_fmap_mag_brain $wdir/example_func $wdir/EF_UD_fmap_mag_brain $wdir/example_func_orig_distorted $wdir/example_func
 immv $wdir/example_func ${out}
+immv $wdir/EF_UD_shift ${out}_shift
 immv $wdir/EF_UD_warp ${out}_warp
 immv $wdir/EF_UD_fmap_sigloss ${out}_sigloss
