@@ -2,19 +2,22 @@
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <dir>"
+    echo "Usage: `basename $0` <path>"
     echo ""
     exit 1
 }
 
+searchpath=""
 if [ "$1" = "" ] ; then
-  dir="./"
+  searchpath="./"
 else
-  dir="$1"
+  for i in $@ ; do
+    searchpath=$searchpath" "$i
+  done
 fi
 
 for i in warn error segfault fault rejected oops denied fail cannot critical panic usage ; do
-    grep -i -n -R  $i $dir --color=always | grep -v -i default
+    grep -i -n -R  $i $searchpath --color=always | grep -v -i default
 done
 
 echo "`basename $0`: done."

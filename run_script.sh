@@ -14,9 +14,9 @@ wd=`pwd`
 set +e
   lock="$wd/.lockdir121978"
   echo "creating lock [ '$lock' ]"
-  mkdir $lock &>/dev/null
-  lock=""
+  mkdir $lock &>/dev/null  
   if [ $? -gt 0 ] ; then echo "$0 : --> another instance is already running - exiting." ; exit ; fi
+  lock=""
 set -e
 
 # remove lock on exit
@@ -1695,12 +1695,15 @@ if [ $VBM_STG1 -eq 1 ] ; then
       # also obtain skull-stripped volumes from FREESURFER, if available
       if [ -f $FS_subjdir/$(subjsess)/mri/brain.mgz ] ; then
         echo "VBM PREPROC : subj $subj , sess $sess : obtaining skull-stripped FREESURFER volumes (-> '$(subjsess)_FS_brain.nii.gz' & '$(subjsess)_FS_struc.nii.gz')..."
-        mri_convert $FS_subjdir/$(subjsess)/mri/brain.mgz $fldr/$(subjsess)_FS_brain.nii.gz
-        mri_convert $FS_subjdir/$(subjsess)/mri/T1.mgz $fldr/$(subjsess)_FS_struc.nii.gz
+        mri_convert $FS_subjdir/$(subjsess)/mri/brain.mgz $fldr/$(subjsess)_FS_brain.nii.gz -odt float
+        mri_convert $FS_subjdir/$(subjsess)/mri/nu.mgz $fldr/$(subjsess)_FS_struc.nii.gz -odt float
+        fslmaths $fldr/$(subjsess)_FS_brain.nii.gz -bin $fldr/$(subjsess)_FS_brain_mask.nii.gz 
+        fslmaths $fldr/$(subjsess)_FS_struc.nii.gz -mas $fldr/$(subjsess)_FS_brain_mask.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz
         fslreorient2std $fldr/$(subjsess)_FS_brain.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz
         fslreorient2std $fldr/$(subjsess)_FS_struc.nii.gz $fldr/$(subjsess)_FS_struc.nii.gz
+        fslreorient2std $fldr/$(subjsess)_FS_brain_mask.nii.gz $fldr/$(subjsess)_FS_brain_mask.nii.gz
       else
-        echo "VBM PREPROC : subj $subj , sess $sess : FREESURFER processed MRIs not found."
+        echo "VBM PREPROC : subj $subj , sess $sess : no FREESURFER processed MRIs found."
       fi
     done
   done
@@ -3372,7 +3375,7 @@ if [ $VBM_2NDLEV_STG3 -eq 1 ] ; then
   echo "----- BEGIN VBM_2NDLEV_STG3 -----"
   echo "VBM_2NDLEV : copying GLM designs..."
   for krnl in $VBM_SMOOTHING_KRNL ; do
-    statdirs=`find $vbmdir -maxdepth 2 -mindepth 2 -type d  | sort | grep stats_s${krnl} || true` # added '|| true' to avoid abortion by 'set -e' statement
+    statdirs=`find $vbmdir/${VBM_OUTDIRNAME} -maxdepth 1 -mindepth 1 -type d  | sort | grep stats_s${krnl} || true` # added '|| true' to avoid abortion by 'set -e' statement
     if [ "x$statdirs" = "x" ] ; then echo "VBM_2NDLEV : no stats directories found - continuing loop..." ; continue ; fi
     
     for i in $statdirs ; do

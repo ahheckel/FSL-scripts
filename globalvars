@@ -61,7 +61,7 @@ TOPUP_STG1=0               # TOPUP prepare
 TOPUP_STG2=0               # TOPUP low-B images: create index and extract
 TOPUP_STG3=0               # TOPUP merge B0 images
 TOPUP_STG4=0               # TOPUP execute topup
-TOPUP_STG5=1               # TOPUP apply warp
+TOPUP_STG5=0               # TOPUP apply warp
 TOPUP_STG6=0               # TOPUP estimate tensor model
 
 FDT_STG1=0                 # FDT merging
@@ -72,7 +72,7 @@ FDT_STG5=0                 # FDT estimate tensor model
 
 BPX_STG1=0                 # BedpostX - execute
 
-VBM_STG1=0                 # VBM prepare T1
+VBM_STG1=1                 # VBM prepare T1
 VBM_STG2=0                 # VBM initial skull strip
 VBM_STG3=0                 # VBM apply standard space mask (SSM)
 VBM_STG4=0                 # VBM final skull strip - bet
