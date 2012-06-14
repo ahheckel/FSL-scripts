@@ -1706,8 +1706,8 @@ if [ $VBM_STG1 -eq 1 ] ; then
       # also obtain skull-stripped volumes from FREESURFER, if available
       if [ -f $FS_subjdir/$(subjsess)/mri/brain.mgz ] ; then
         echo "VBM PREPROC : subj $subj , sess $sess : obtaining skull-stripped FREESURFER volumes (-> '$(subjsess)_FS_brain.nii.gz' & '$(subjsess)_FS_struc.nii.gz')..."
-        mri_convert $FS_subjdir/$(subjsess)/mri/brain.mgz $fldr/$(subjsess)_FS_brain.nii.gz -odt short
-        mri_convert $FS_subjdir/$(subjsess)/mri/nu.mgz $fldr/$(subjsess)_FS_struc.nii.gz -odt short
+        mri_convert $FS_subjdir/$(subjsess)/mri/brain.mgz $fldr/$(subjsess)_FS_brain.nii.gz -odt float
+        mri_convert $FS_subjdir/$(subjsess)/mri/nu.mgz $fldr/$(subjsess)_FS_struc.nii.gz -odt float
         fslmaths $fldr/$(subjsess)_FS_brain.nii.gz -bin $fldr/$(subjsess)_FS_brain_mask.nii.gz 
         fslmaths $fldr/$(subjsess)_FS_struc.nii.gz -mas $fldr/$(subjsess)_FS_brain_mask.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz
         fslreorient2std $fldr/$(subjsess)_FS_brain.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz
@@ -1726,7 +1726,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
     for subj in `cat subjects`; do 
       for sess in `cat ${subj}/sessions_struc` ; do
         fldr=$subjdir/$subj/$sess/vbm
-        mri_convert $fldr/t1_nu_struc.mnc $fldr/$(subjsess)_t1_nu_struc.nii.gz &>$logdir/vbm01_mri_convert02_$(subjsess) -odt short
+        mri_convert $fldr/t1_nu_struc.mnc $fldr/$(subjsess)_t1_nu_struc.nii.gz &>$logdir/vbm01_mri_convert02_$(subjsess) -odt float
         rm -f $fldr/tmp.mnc
         rm -f $fldr/t1_nu_struc.mnc
         ln -sf $(subjsess)_t1_nu_struc.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz
