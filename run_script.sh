@@ -227,8 +227,19 @@ fi
 errflag=0
 for infofile in config_bet_magn config_bet_lowb config_bet_struc0 config_bet_struc1 config_unwarp_dwi config_unwarp_bold config_func2highres.reg ; do
   for subj in `cat $subjdir/subjects` ; do
-      line=$(cat $subjdir/$infofile | grep $subj || true)
-      if [ "x$line" = "x" ] ; then errflag=1 ; echo "WARNING : '$infofile' : enty for subject '$subj' not found ! This may or may not be a problem depending on your setup." ; fi
+      line=$(cat $subjdir/$infofile | awk '{print $1}' | grep ^$subj || true)
+      if [ "x$line" = "x" ] ; then 
+        errflag=1
+        echo "WARNING : '$infofile' : entry for subject '$subj' not found ! This may or may not be a problem depending on your setup."
+        
+        if [ $infofile = "config_bet_magn" ] ; then read -p "Press key to add default value." ; echo "$subj $BETMAGN_INFO" | tee -a ${subjdir}/$infofile ; fi
+        if [ $infofile = "config_bet_lowb" ] ; then read -p "Press key to add default value." ; echo "$subj $BETLOWB_INFO" | tee -a ${subjdir}/$infofile ; fi
+        if [ $infofile = "config_bet_struc0" ] ; then read -p "Press key to add default value." ; echo "$subj $BETSTRUC0_INFO" | tee -a ${subjdir}/$infofile ; fi
+        if [ $infofile = "config_bet_struc1" ] ; then read -p "Press key to add default value." ; echo "$subj $BETSTRUC1_INFO" | tee -a ${subjdir}/$infofile ; fi
+        if [ $infofile = "config_unwarp_dwi" ] ; then read -p "Press key to add default value." ; echo "$subj $DWIUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
+        if [ $infofile = "config_unwarp_bold" ] ; then read -p "Press key to add default value." ; echo "$subj $BOLDUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
+        if [ $infofile = "config_func2highres.reg" -a "$(cat ${subjdir}/${subj}/sessions_* | sort | uniq)" = "." ] ; then read -p "Press key to add default value." ; echo "$subj ." | tee -a ${subjdir}/$infofile ; fi
+      fi
   done
 done
 if [ $errflag -eq 1 ] ; then echo "***CHECK*** (sleeping 2 seconds)..." ; sleep 2 ; fi
@@ -316,14 +327,14 @@ mkdir -p $glmdir_vbm
 # create freesurfer subjects dir
 for subj in `cat $subjdir/subjects`; do 
   for sess in `cat $subjdir/$subj/sessions_struc` ; do
-    mkdir -p $FS_sessdir/$(subjsess)
+    mkdir -p $FS_subjdir/$(subjsess)
   done   
 done
 
-# create freesurfer session dir
+# create freesurfer sessions dir
 for subj in `cat $subjdir/subjects`; do 
   for sess in `cat $subjdir/$subj/sessions_func` ; do
-    mkdir -p $FS_subjdir/$(subjsess)
+    mkdir -p $FS_sessdir/$(subjsess)
   done   
 done
 
@@ -1695,8 +1706,8 @@ if [ $VBM_STG1 -eq 1 ] ; then
       # also obtain skull-stripped volumes from FREESURFER, if available
       if [ -f $FS_subjdir/$(subjsess)/mri/brain.mgz ] ; then
         echo "VBM PREPROC : subj $subj , sess $sess : obtaining skull-stripped FREESURFER volumes (-> '$(subjsess)_FS_brain.nii.gz' & '$(subjsess)_FS_struc.nii.gz')..."
-        mri_convert $FS_subjdir/$(subjsess)/mri/brain.mgz $fldr/$(subjsess)_FS_brain.nii.gz -odt float
-        mri_convert $FS_subjdir/$(subjsess)/mri/nu.mgz $fldr/$(subjsess)_FS_struc.nii.gz -odt float
+        mri_convert $FS_subjdir/$(subjsess)/mri/brain.mgz $fldr/$(subjsess)_FS_brain.nii.gz -odt short
+        mri_convert $FS_subjdir/$(subjsess)/mri/nu.mgz $fldr/$(subjsess)_FS_struc.nii.gz -odt short
         fslmaths $fldr/$(subjsess)_FS_brain.nii.gz -bin $fldr/$(subjsess)_FS_brain_mask.nii.gz 
         fslmaths $fldr/$(subjsess)_FS_struc.nii.gz -mas $fldr/$(subjsess)_FS_brain_mask.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz
         fslreorient2std $fldr/$(subjsess)_FS_brain.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz
@@ -1715,7 +1726,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
     for subj in `cat subjects`; do 
       for sess in `cat ${subj}/sessions_struc` ; do
         fldr=$subjdir/$subj/$sess/vbm
-        mri_convert $fldr/t1_nu_struc.mnc $fldr/$(subjsess)_t1_nu_struc.nii.gz &>$logdir/vbm01_mri_convert02_$(subjsess)
+        mri_convert $fldr/t1_nu_struc.mnc $fldr/$(subjsess)_t1_nu_struc.nii.gz &>$logdir/vbm01_mri_convert02_$(subjsess) -odt short
         rm -f $fldr/tmp.mnc
         rm -f $fldr/t1_nu_struc.mnc
         ln -sf $(subjsess)_t1_nu_struc.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz

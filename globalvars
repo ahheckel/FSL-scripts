@@ -142,8 +142,8 @@ SGE_ROOT=""                    # set SGE_ROOT to empty, if no cluster, otherwise
 # FIRST LEVEL
 # overwrite pre-existing subject /session file (to disable set any to "")
 FIRSTLEV_SUBJECTS="01" 
-FIRSTLEV_SESSIONS_FUNC="a"               
-FIRSTLEV_SESSIONS_STRUC="a c"                
+FIRSTLEV_SESSIONS_FUNC="."               
+FIRSTLEV_SESSIONS_STRUC="a"                
 
 # SECOND LEVEL
 SECONDLEV_SUBJECTS="01"
