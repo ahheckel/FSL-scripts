@@ -86,11 +86,11 @@ TRACULA_STG2=0             # TRACULA execute -prep
 TRACULA_STG3=0             # TRACULA execute -bedp
 TRACULA_STG4=0             # TRACULA execute -path
 
-BOLD_STG1=1                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
-BOLD_STG2=1                # BOLD execute FEAT configuration file
-BOLD_STG3=1                # BOLD denoising in native space (needs Freesurfer recons)
-BOLD_STG4=1                # BOLD write MNI-registered volumes
-BOLD_STG5=1                # BOLD denoising in MNI-space
+BOLD_STG1=0                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
+BOLD_STG2=0                # BOLD execute FEAT configuration file
+BOLD_STG3=0                # BOLD denoising in native space (needs Freesurfer recons)
+BOLD_STG4=0                # BOLD write MNI-registered volumes
+BOLD_STG5=0                # BOLD denoising in MNI-space
 
 ########################################################################
 # enable second level analyses #########################################
@@ -103,8 +103,8 @@ TBSS_STG4=0                # TBSSX prepare - needs BedpostX (!)
 TBSS_STG5=0                # TBSSX permutation testing
 
 VBM_2NDLEV_STG1=1          # VBM prepare 
-VBM_2NDLEV_STG2=1          # VBM smooth
-VBM_2NDLEV_STG3=1          # VBM permutation testing
+VBM_2NDLEV_STG2=0          # VBM smooth
+VBM_2NDLEV_STG3=0          # VBM permutation testing
 
 MELODIC_2NDLEV_STG1=0      # MELODIC create *.fsf file 
 MELODIC_2NDLEV_STG2=0      # MELODIC create sym-links to t1-structurals
@@ -141,14 +141,14 @@ SGE_ROOT=""                    # set SGE_ROOT to empty, if no cluster, otherwise
 
 # FIRST LEVEL
 # overwrite pre-existing subject /session file (to disable set any to "")
-FIRSTLEV_SUBJECTS="01" 
+FIRSTLEV_SUBJECTS="01 02 03 04 05 06 07 08 09 10" 
 FIRSTLEV_SESSIONS_FUNC="."               
-FIRSTLEV_SESSIONS_STRUC="a"                
+FIRSTLEV_SESSIONS_STRUC="a c e"                
 
 # SECOND LEVEL
-SECONDLEV_SUBJECTS="01"
+SECONDLEV_SUBJECTS="01 02 03 04 05 06 07 08 09 10"
 SECONDLEV_SESSIONS_FUNC="a"                
-SECONDLEV_SESSIONS_STRUC="a c"     
+SECONDLEV_SESSIONS_STRUC="a c e"     
 
 #-----------------------------------------------------------------------
 # first level analyses -------------------------------------------------
