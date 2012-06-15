@@ -220,6 +220,33 @@ imrm ${out}tmp_????
 cmd="fslview ${out}magn_merged -l "Blue-Lightblue" ${out}merged"
 echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
 
+######################
+# check BOLD->T1 bbreg
+######################
+file=bold/SESSA_uw+y_st0_s0_hpfInf.feat/reg_longt/example_func2highres_bbr.nii.gz ; file2=$(dirname $file)/highres.nii.gz ; out=chk/EF_bold_
+subj=$(find ./subj -mindepth 1 -maxdepth 1 -type d | grep -v FS_ | sort)
+sess="a b c d e"
+
+mkdir -p $(dirname $out) ; imrm ${out}tmp_????
+files=""; files2="";
+c=1 ; for i in $subj ; do
+  for j in $sess ; do 
+    if [ -f $i/$j/$file -a -f $i/$j/$file2 ] ; then
+      echo "$(zeropad $c 3) $i $j : found."
+      files=$files" "$i/$j/$file
+      files2=$files2" "$i/$j/$file2
+      c=$[$c+1]
+    else
+      echo "    $i $j : not found."
+    fi
+  done
+done ; c=0
+fslmerge -t ${out}bold_bbreg $files 2>/dev/null
+fslmerge -t ${out}T1 $files2 2>/dev/null
+imrm ${out}tmp_????
+cmd="fslview ${out}bold_bbreg  ${out}T1"
+echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
+
 
 ##################
 # check dwi unwarp
@@ -334,8 +361,10 @@ done
 ###############################################
 # check FREESURFER's surfaces and segmentations
 ###############################################
-subj=$(find ./subj/FS_subj -mindepth 1 -maxdepth 1 -type d | grep -v '.long.' | sort)
-SUBJECTS_DIR=./subj/FS_subj
+d=./subj/FS_subj
+subj="$d/01a $d/02"
+#subj=$(find $d -mindepth 1 -maxdepth 1 -type d | grep -v '.long.' | sort)
+SUBJECTS_DIR=$d
 
 paths="" ; c=1
 for i in $subj ; do
@@ -356,11 +385,29 @@ for i in $paths ; do
 done
 
 
+#################################
+# check longt. VBM using freeview
+#################################
+subj=01
+base=./subj/FS_subj/${subj}
+a=./subj/FS_subj/${subj}a.long.${subj}
+b=./subj/FS_subj/${subj}c.long.${subj}
+c=./subj/FS_subj/${subj}e.long.${subj}
+
+freeview -v $base/mri/norm.mgz \
+         -f $a/surf/lh.pial:edgecolor=red \
+            $a/surf/lh.white:edgecolor=blue \
+            $b/surf/lh.pial:edgecolor=255,128,128 \
+            $b/surf/lh.white:edgecolor=lightblue \
+            $c/surf/lh.pial:edgecolor=255,128,0 \
+            $c/surf/lh.white:edgecolor=white \
+
+
+
 
 ############
 # check TBSS
 ############
-
 statdirs=$(find ./grp/tbss/ -name "stats_*" -type d | sort)
 out=chk/tbss.cmd
 
