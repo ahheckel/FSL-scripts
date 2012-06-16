@@ -34,11 +34,11 @@ files=""
 c=1 ; for i in $subj ; do
   for j in $sess ; do 
     if [ -f $i/$j/$file ] ; then
-      echo "$(zeropad $c 3) $i/$j/$file found."
+      echo "$(zeropad $c 3) found: $i/$j/$file"
       files=$files" "$i/$j/$file
       c=$[$c+1]
     else
-      echo "    $i/$j/$file not found."
+      echo "    not found: $i/$j/$file"
     fi
   done
 done ; c=0
