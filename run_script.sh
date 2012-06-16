@@ -3807,6 +3807,8 @@ if [ $PSEUDOSWI_STG1 -eq 1 ]; then
       EF_2_T1=`find $subjdir/$subj/$sess/ -name example_func2highres.mat -type f | grep ".ica" | grep "/reg/" | xargs ls -rt | grep example_func2highres.mat | grep -v /fdt/ | tail -n 1` # should be adapted (!)
       T1_2_MNI=`dirname $EF_2_T1`/highres2standard_warp.nii.gz
       
+      if [ ! -f $FM_2_EF ] ; then echo "PSEUDOSWI : subj $subj , sess $sess : file '$FM_2_EF' not found - continuing loop..." ; continue ; fi
+      if [ ! -f $EF_2_T1 ] ; then echo "PSEUDOSWI : subj $subj , sess $sess : file '$EF_2_T1' not found - continuing loop..." ; continue ; fi
       if [ ! -f $T1_2_MNI ] ; then echo "PSEUDOSWI : subj $subj , sess $sess : file '$T1_2_MNI' not found - continuing loop..." ; continue ; fi
       
       echo "PSEUDOSWI : subj $subj , sess $sess : fieldmap->bold:  $FM_2_EF"

@@ -220,6 +220,7 @@ imrm ${out}tmp_????
 cmd="fslview ${out}magn_merged -l "Blue-Lightblue" ${out}merged"
 echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
 
+
 ######################
 # check BOLD->T1 bbreg
 ######################
@@ -276,6 +277,59 @@ fslmerge -t ${out}magn_merged $files2 2>/dev/null
 imrm ${out}tmp_????
 cmd="fslview ${out}magn_merged -l "Blue-Lightblue" ${out}merged"
 echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
+
+
+#############
+# pSWI -> MNI
+#############
+_subj=$(find ./subj -mindepth 1 -maxdepth 1 -type d | grep -v FS_ | sort)
+_sess="a b c d e"
+out=pseudoSWI_MNI
+subdir=SESSA_uw+y_st0_s0_hpfInf.feat
+_FM_2_EF=bold/$subdir/unwarp/FM_2_EF.mat
+_EF_2_T1=bold/$subdir/reg_longt/example_func2longt_brain.mat
+  #_EF_2_T1=bold/$subdir/reg/example_func2highres.mat
+_T1_2_MNI=bold/$subdir/reg_longt/longt_head2longt_standard_warp.nii.gz
+  #_T1_2_MNI=bold/$subdir/reg/highres2standard_warp.nii.gz
+
+c=1 ; for subj in $_subj ; do
+  for sess in $_sess ; do
+    fldr=$subj/$sess/fm
+    fmap=$fldr/uphase_rad_filt.nii.gz
+    fmap0=$fldr/fmap_rads_masked.nii.gz
+    magn=$fldr/magn.nii.gz
+    
+    FM_2_EF=$subj/$sess/$_FM_2_EF
+    EF_2_T1=$subj/$sess/$_EF_2_T1
+    T1_2_MNI=$subj/$sess/$_T1_2_MNI
+    
+    err=0
+    if [ ! -f $FM_2_EF ] ; then echo "$subj $sess : '$FM_2_EF' not found." ; err=1 ; fi
+    if [ ! -f $EF_2_T1 ] ; then echo "$subj $sess : '$EF_2_T1' not found." ; err=1 ;  fi
+    if [ ! -f $T1_2_MNI ] ; then echo "$subj $sess : '$T1_2_MNI' not found." ; err=1 ;  fi
+    if [ ! -f $magn ] ; then echo "$subj $sess : '$magn' not found." ; err=1 ; fi
+    if [ $err -eq 1 ] ; then continue ; fi
+    
+    c=$[$c+1]    
+    echo "$(zeropad $c 3) $subj $sess : found."
+    
+    echo "            subj $subj , sess $sess : fieldmap->bold:  $FM_2_EF"
+    echo "            subj $subj , sess $sess : bold->T1:        $EF_2_T1"
+    echo "            subj $subj , sess $sess : T1->MNI:         $T1_2_MNI"
+      
+    echo "            subj $subj , sess $sess : concatenate matrices..."
+    convert_xfm -omat $fldr/fm_to_t1.mat -concat $EF_2_T1 $FM_2_EF
+    
+    echo "            subj $subj , sess $sess : apply transform to `basename $fmap`..."
+    applywarp --ref=$FSLDIR/data/standard/MNI152_T1_2mm_brain --in=$fmap --out=$fldr/${out} --warp=$T1_2_MNI --premat=$fldr/fm_to_t1.mat
+    
+    #echo "            subj $subj , sess $sess : apply transform to `basename $fmap0`..."
+    #applywarp --ref=$FSLDIR/data/standard/MNI152_T1_2mm_brain --in=$fmap0 --out=$fldr/fmap_MNI --warp=$T1_2_MNI --premat=$fldr/fm_to_t1.mat
+    
+    #echo "            subj $subj , sess $sess : apply transform to `basename $magn`..."
+    #applywarp --ref=$FSLDIR/data/standard/MNI152_T1_2mm_brain --in=$magn --out=$fldr/magn_brain_MNI --warp=$T1_2_MNI --premat=$fldr/fm_to_t1.mat
+  done
+done ; c=0
 
 
 ##########################
