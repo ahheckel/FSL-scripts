@@ -167,6 +167,7 @@ TROT_topup=0.02975         # total readout time in seconds (EES_diff * (PhaseEnc
 TOPUP_USE_NATIVE=1         # apply TOPUP-warps to native DWI runs
 TOPUP_USE_EC=0             # apply TOPUP-warps to eddy-corrected DWI runs (i.e. runs that have been eddy-corrected to the first B0 volume per run)
 TOPUP_EC_DOF=6             # degrees of freedom used by eddy-correction
+TOPUP_EC_COST=mutualinfo   # cost-function used by eddy-correction
 
 # FDT - unwarp
 TR_diff=11                 # TR of the DWIs (s)
@@ -174,6 +175,7 @@ EES_diff=0.25              # Effective Echo Spacing of the DWIs (ms)
 TE_diff=88                 # TE of the DWIs (ms)
 FDT_EC_TEST=1              # don't apply eddy-correction
 FDT_EC_DOF=6               # degrees of freedom used by eddy-correction
+FDT_EC_COST=mutualinfo     # cost-function used by eddy-correction
 FDT_SIGNLOSS_THRES=100     # signal loss threshold (%)
 FDT_UNWARP_BET_ALTEXFUNC=1 # brain-extract the input alternative example func (i.e. the B0 image)
 FDT_FEAT_NO_BROWSER=0      # don't open browser window
