@@ -687,13 +687,31 @@ function prepareVBM()
           
           for struc in $strucs ; do cp -v ${struc}.nii.gz ./$(basename $struc | cut -d _ -f1)_struc.nii.gz ; done
           for brain in $brains ; do cp -v ${brain}.nii.gz ./$(basename $brain | cut -d _ -f1)_struc_brain.nii.gz ; done
-        else
-          for subj in $VBM_INCLUDED_SUBJECTS ; do
-            for sess in $VBM_INCLUDED_SESSIONS ; do
-              cp -v $subjdir/$subj/$sess/vbm/$pttrn_files_struc $destdir/$(subjsess)_struc.nii.gz
-              cp -v $subjdir/$subj/$sess/vbm/$pttrn_files_brain $destdir/$(subjsess)_struc_brain.nii.gz
+        else        
+          if [ $VBM_USE_FS_LONGT -eq 1 ] ; then
+            cp $scriptdir/LIA_to_LAS_conformed.mat $destdir/
+            for subj in $VBM_INCLUDED_SUBJECTS ; do
+              mri_convert $FS_subjdir/$subj/mri/nu.mgz $destdir/${subj}_longt-struc.nii.gz -odt float
+              mri_convert $FS_subjdir/$subj/mri/brain.mgz $destdir/${subj}_longt-struc_brain.nii.gz
+              fslmaths $destdir/${subj}_longt-struc_brain.nii.gz -bin $destdir/${subj}_longt-brainmask -odt char ;
+              fslmaths $destdir/${subj}_longt-struc.nii.gz -mas $destdir/${subj}_longt-brainmask $destdir/${subj}_longt-struc_brain.nii.gz
+              cp $FS_subjdir/$subj/mri/transforms/*_to_${subj}.lta $destdir/
+              for sess in $VBM_INCLUDED_SESSIONS ; do
+                mri_convert --conform $subjdir/$subj/$sess/vbm/$(subjsess)_t1_nu_struc.nii.gz $destdir/$(subjsess)_struc.nii.gz -odt float
+                #mri_convert $FS_subjdir/$(subjsess)/mri/nu.mgz $destdir/$(subjsess)_struc.nii.gz -odt float
+                mri_convert $FS_subjdir/$(subjsess)/mri/brain.mgz $destdir/$(subjsess)_struc_brain.nii.gz
+                fslmaths $destdir/$(subjsess)_struc_brain.nii.gz -bin $destdir/$(subjsess)_brainmask -odt char ;
+                fslmaths $destdir/$(subjsess)_struc.nii.gz -mas $destdir/$(subjsess)_brainmask $destdir/$(subjsess)_struc_brain.nii.gz              
+              done
             done
-          done
+          else
+            for subj in $VBM_INCLUDED_SUBJECTS ; do
+              for sess in $VBM_INCLUDED_SESSIONS ; do            
+                cp -v $subjdir/$subj/$sess/vbm/$pttrn_files_struc $destdir/$(subjsess)_struc.nii.gz
+                cp -v $subjdir/$subj/$sess/vbm/$pttrn_files_brain $destdir/$(subjsess)_struc_brain.nii.gz
+              done
+            done
+          fi
         fi
       else
         echo "prepareVBM(): listing structural volumes in vbm-directory <${destdir}>:"
@@ -712,17 +730,27 @@ function prepareVBM()
       echo "prepareVBM(): deleting contents of <$destdir/struc>..."
       rm -f ./struc/*
       echo "prepareVBM(): moving files to <$destdir/struc>..."
-      mv -v ./*.nii.gz ./struc/ 
+      mv -v ./*.* ./struc/
 
       # nonlinear registration (=recommended)
-      echo "prepareVBM(): executing 'fslvbm_2_template -n'..."
-      fslvbm_2_template -n
+      if [ $VBM_USE_FS_LONGT -eq 1 ] ; then
+        echo "prepareVBM(): executing 'longt_fslvbm_2_template.sh -n'..."
+        $scriptdir/longt_fslvbm_2_template.sh -n
+      else
+        echo "prepareVBM(): executing 'fslvbm_2_template -n'..."
+        fslvbm_2_template -n
+      fi
 
       waitIfBusy # ...because fslvbm_2_template uses fsl_sub
 
       # may need to run 'Glm' before in order to create design... (but seems to work - ignore errors in fslvbm3b.e* in stats folder inasmuch they are related to a failing randomise call [there are no design files in that folder])
-      echo "prepareVBM(): executing 'fslvbm_3_proc'..."
-      fslvbm_3_proc # (!)
+      if [ $VBM_USE_FS_LONGT -eq 1 ] ; then
+        echo "prepareVBM(): executing 'longt_fslvbm_3_proc.sh'..."
+        $scriptdir/longt_fslvbm_3_proc.sh
+      else
+        echo "prepareVBM(): executing 'fslvbm_3_proc'..."
+        fslvbm_3_proc # (!)
+      fi
 
       waitIfBusy # ...because fslvbm_3_proc uses fsl_sub
   cd $wd

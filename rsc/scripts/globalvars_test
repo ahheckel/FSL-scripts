@@ -257,6 +257,7 @@ TBSS_USE_TOPUP_EC_BVECROT=1                       # use FA maps from TOPUP-corre
 VBM_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included in the VBM analysis
 VBM_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_STRUC   # subjects to be included in the VBM analysis
 VBM_OUTDIRNAME="vbm_01"                           # name of output directory
+VBM_USE_FS_LONGT=0                                # use FREESURFER'S longtitudinal template
 VBM_PTTRN_BRAIN="*_FS_brain.nii.gz" # search pattern for brain-extracted structurals
 VBM_PTTRN_STRUC="*_FS_struc.nii.gz"               # search pattern for original structurals (w/o skull-strip)
 VBM_SMOOTHING_KRNL="2 3 4"                        # cycle through some smoothing kernels
