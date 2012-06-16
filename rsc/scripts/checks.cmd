@@ -223,7 +223,7 @@ echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
 ######################
 # check BOLD->T1 bbreg
 ######################
-file=bold/SESSA_uw+y_st0_s0_hpfInf.feat/reg_longt/example_func2highres_bbr.nii.gz ; file2=$(dirname $file)/highres.nii.gz ; out=chk/EF_bold_
+file=bold/preprocBOLD_uw+y_st0_s0_hpf100.feat/reg_longt/example_func2highres_bbr.nii.gz ; file2=$(dirname $file)/highres.nii.gz ; out=chk/EF_bold_
 subj=$(find ./subj -mindepth 1 -maxdepth 1 -type d | grep -v FS_ | sort)
 sess="a b c d e"
 

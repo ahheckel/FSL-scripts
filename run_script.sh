@@ -1720,20 +1720,22 @@ if [ $VBM_STG1 -eq 1 ] ; then
     done    
   fi
   
+  waitIfBusy
+  
   # also obtain skull-stripped volumes from FREESURFER, if available
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
       if [ -f $FS_subjdir/$(subjsess)/mri/brain.mgz ] ; then
         fldr=$subjdir/$subj/$sess/vbm
         echo "VBM PREPROC : subj $subj , sess $sess : applying FREESURFER brain-mask to '$(subjsess)_t1_struc.nii.gz' (-> '$(subjsess)_FS_brain.nii.gz' & '$(subjsess)_FS_struc.nii.gz')..."
-        mri_convert $FS_subjdir/$(subjsess)/mri/brain.mgz $fldr/$(subjsess)_FS_brain.nii.gz -odt float &>$logdir/vbm01_mri_convertFS01_$(subjsess)
-        #mri_convert $FS_subjdir/$(subjsess)/mri/nu.mgz $fldr/$(subjsess)_FS_struc.nii.gz -odt float
-        fslmaths $fldr/$(subjsess)_FS_brain.nii.gz -bin $fldr/$(subjsess)_FS_brain_mask.nii.gz 
-        mri_convert --conform $fldr/$(subjsess)_t1_struc.nii.gz $fldr/$(subjsess)_FS_struc.nii.gz -odt float &>$logdir/vbm01_mri_convertFS02_$(subjsess)
-        fslmaths $fldr/$(subjsess)_FS_struc.nii.gz -mas $fldr/$(subjsess)_FS_brain_mask.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz
-        fslreorient2std $fldr/$(subjsess)_FS_brain.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz
-        fslreorient2std $fldr/$(subjsess)_FS_struc.nii.gz $fldr/$(subjsess)_FS_struc.nii.gz
-        fslreorient2std $fldr/$(subjsess)_FS_brain_mask.nii.gz $fldr/$(subjsess)_FS_brain_mask.nii.gz
+        echo "mri_convert $FS_subjdir/$(subjsess)/mri/brain.mgz $fldr/$(subjsess)_FS_brain.nii.gz -odt float ;\
+        fslmaths $fldr/$(subjsess)_FS_brain.nii.gz -bin $fldr/$(subjsess)_FS_brain_mask.nii.gz ;\
+        mri_convert --conform $fldr/$(subjsess)_t1_struc.nii.gz $fldr/$(subjsess)_FS_struc.nii.gz -odt float ;\
+        fslmaths $fldr/$(subjsess)_FS_struc.nii.gz -mas $fldr/$(subjsess)_FS_brain_mask.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz ;\
+        fslreorient2std $fldr/$(subjsess)_FS_brain.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz ;\
+        fslreorient2std $fldr/$(subjsess)_FS_struc.nii.gz $fldr/$(subjsess)_FS_struc.nii.gz ;\
+        fslreorient2std $fldr/$(subjsess)_FS_brain_mask.nii.gz $fldr/$(subjsess)_FS_brain_mask.nii.gz" > $fldr/vbm_FSbrainmask.cmd
+        fsl_sub -l $logdir -N vbm_FSbrainmask_$(subjsess) -t $fldr/vbm_FSbrainmask.cmd
       else
         echo "VBM PREPROC : subj $subj , sess $sess : no FREESURFER processed MRIs found."
       fi
