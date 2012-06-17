@@ -78,9 +78,6 @@ VBM_STG3=0                 # VBM apply standard space mask (SSM)
 VBM_STG4=0                 # VBM final skull strip - bet
 VBM_STG5=0                 # VBM final skull strip - watershed
 
-BIASMAP_STG1=0             # create bias map
-BIASMAP_STG2=0             # apply bias map
-
 TRACULA_STG1=0             # TRACULA prepare
 TRACULA_STG2=0             # TRACULA execute -prep
 TRACULA_STG3=0             # TRACULA execute -bedp
@@ -113,8 +110,6 @@ MELODIC_CMD_STG1=1         # MELODIC use melodic-command line tool (optional)
 
 DUALREG_STG1=1             # DUALREG prepare for randomie
 DUALREG_STG2=1             # DUALREG randomise
-
-PSEUDOSWI_STG1=0           # PSEUDOSWI register fieldmap to MNI (needs feat unwarp) (!)
 
 ########################################################################
 # plots ################################################################

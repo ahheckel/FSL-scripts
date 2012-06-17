@@ -72,14 +72,11 @@ FDT_STG5=0                 # FDT estimate tensor model
 
 BPX_STG1=0                 # BedpostX - execute
 
-VBM_STG1=1                 # VBM prepare T1
+VBM_STG1=0                 # VBM prepare T1
 VBM_STG2=0                 # VBM initial skull strip
 VBM_STG3=0                 # VBM apply standard space mask (SSM)
 VBM_STG4=0                 # VBM final skull strip - bet
 VBM_STG5=0                 # VBM final skull strip - watershed
-
-BIASMAP_STG1=0             # create bias map
-BIASMAP_STG2=0             # apply bias map
 
 TRACULA_STG1=0             # TRACULA prepare
 TRACULA_STG2=0             # TRACULA execute -prep
@@ -102,7 +99,7 @@ TBSS_STG3=0                # TBSS permutation testing
 TBSS_STG4=0                # TBSSX prepare - needs BedpostX (!)
 TBSS_STG5=0                # TBSSX permutation testing
 
-VBM_2NDLEV_STG1=1          # VBM prepare 
+VBM_2NDLEV_STG1=0          # VBM prepare 
 VBM_2NDLEV_STG2=0          # VBM smooth
 VBM_2NDLEV_STG3=0          # VBM permutation testing
 
@@ -113,8 +110,6 @@ MELODIC_CMD_STG1=0         # MELODIC use melodic-command line tool (optional)
 
 DUALREG_STG1=0             # DUALREG prepare for randomie
 DUALREG_STG2=0             # DUALREG randomise
-
-PSEUDOSWI_STG1=0           # PSEUDOSWI register fieldmap to MNI (needs feat unwarp) (!)
 
 ########################################################################
 # plots ################################################################
@@ -137,12 +132,12 @@ PLOT_BOLD_MNIREG_DIRNAMES="preprocBOLD"    # (part of) dirname, where reg_standa
 ########################################################################
 
 # SGE CLUSTER
-SGE_ROOT=""                    # set SGE_ROOT to empty, if no cluster, otherwise comment this line out (!)
+#SGE_ROOT=""                    # set SGE_ROOT to empty, if no cluster, otherwise comment this line out (!)
 
 # FIRST LEVEL
 # overwrite pre-existing subject /session file (to disable set any to "")
 FIRSTLEV_SUBJECTS="01 02 03 04 05 06 07 08 09 10" 
-FIRSTLEV_SESSIONS_FUNC="."               
+FIRSTLEV_SESSIONS_FUNC="a"               
 FIRSTLEV_SESSIONS_STRUC="a c e"                
 
 # SECOND LEVEL

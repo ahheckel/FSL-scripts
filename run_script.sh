@@ -935,7 +935,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         blipup=`ls $subjdir/$subj/$sess/$pttrn_diffsplus | sed -n ${i}p`
         
         n=`printf %03i $i`
-        echo "fsl_sub -l $logdir -N topup_applytopup_$(subjsess) applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
+        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
       done
       
       # generate commando with eddy-correction
@@ -948,20 +948,33 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         blipup=$fldr/ec_diffs_merged_$(printf %03i $j)
         
         n=`printf %03i $i`
-        echo "fsl_sub -l $logdir -N topup_applytopup_ec_$(subjsess) applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
+        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
       done
-      
-      # execute...
+    done
+  done
+  
+  # execute...
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=${subjdir}/${subj}/${sess}/topup
+  
       if [ $TOPUP_USE_NATIVE -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : applying warps to native DWIs..."
-        . $fldr/applytopup.cmd
+        fsl_sub -l $logdir -N topup_applytopup_$(subjsess) -t $fldr/applytopup.cmd
       fi
       if [ $TOPUP_USE_EC -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : applying warps to eddy-corrected DWIs..."
-        . $fldr/applytopup_ec.cmd
+        fsl_sub -l $logdir -N topup_applytopup_ec_$(subjsess) -t $fldr/applytopup_ec.cmd
       fi
+    done
+  done
        
-      waitIfBusy
+  waitIfBusy
+      
+  # merge corrected files and remove negative values
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=${subjdir}/${subj}/${sess}/topup
       
       # merge corrected files
       if [ $TOPUP_USE_NATIVE -eq 1 ] ; then
@@ -977,9 +990,8 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       echo "TOPUP : subj $subj , sess $sess : zeroing negative values in topup-corrected DWIs..."
       if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_merged -thr 0 $fldr/$(subjsess)_topup_corr_merged ; fi
       if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_ec_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_ec_merged -thr 0 $fldr/$(subjsess)_topup_corr_ec_merged ; fi
-            
     done
-  done
+  done    
 fi
 
 waitIfBusy
@@ -1939,126 +1951,6 @@ fi
 #############################
 # ----- END VBM PREPROC -----
 #############################
-
-
-waitIfBusy
-
-
-###########################
-# ----- BEGIN BIASMAP -----
-###########################
-  
-# BIASMAP creating bias map if applicable
-if [ $BIASMAP_STG1 -eq 1 ] ; then
-  echo "----- BEGIN BIASMAP_STG1 -----"
-  # search pattern for anatomicals set ?
-  if [ -z $pttrn_strucs ] ; then echo "BIASMAP : search pattern for anatomical files not set - exiting..." ; exit ; fi
-  
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do    
-      # mkdir
-      fldr=$subj/$sess/bias ; mkdir -p $fldr
-      
-      # prepare
-      src0=`ls $subjdir/$subj/$sess/$pttrn_strucs | head -n 1`
-      mask=$subjdir/$subj/$sess/vbm/$(subjsess)_t1_betted_masked_brain_mask.nii.gz
-      if [ ! -f $mask ] ; then echo "BIASMAP : subj $subj , sess $sess : $mask not found; you must run the VBM stream first - continuing loop..." ; continue ; fi
-      ln -sf $mask $fldr/t1_mask.nii.gz
-      echo "BIASMAP : subj $subj , sess $sess : skull-stripping $src0 using `basename $mask`..."
-      fslreorient2std $src0 $fldr/t1_biased
-      fslmaths $fldr/t1_biased -mas $fldr/t1_mask.nii.gz $fldr/t1_biased_brain -odt float
-      
-      # creating biasmap using fsl-fast...          
-      echo "BIASMAP : subj $subj , sess $sess : creating bias map using fsl-fast..."
-      fsl_sub -l $logdir -N bias_fast_$(subjsess) fast -v -b $fldr/t1_biased_brain.nii.gz  
-      
-      # check if prescan unbiased scan is presumably available
-      n_strucs=`ls $subjdir/$subj/$sess/$pttrn_strucs | wc -l`
-      if [ $n_strucs -gt 1 ] ; then 
-        echo "BIASMAP : subj $subj , sess $sess : $n_strucs t1 images found. Asuming the last one is prescan-unbiased. Creating bias map by division..."
-      else 
-        echo "BIASMAP : subj $subj , sess $sess : only $n_strucs t1 images found - cannot create pre-scan based bias-map. Continuing loop..."
-        continue
-      fi
-      
-      # create biasmap based on pre-scan unbiased...
-      src1=`ls $subjdir/$subj/$sess/$pttrn_strucs | tail -n 1`      
-
-      fslreorient2std $src1 $fldr/t1_prescan_unbiased
-      fslmaths $fldr/t1_prescan_unbiased -mas $fldr/t1_mask.nii.gz $fldr/t1_prescan_unbiased_brain -odt float
-      
-      echo "BIASMAP : subj $subj , sess $sess : applying non-uniformity correction to (putatively) pre-scan unbiased T1 volume `basename $src1`..."
-      mri_convert $fldr/t1_prescan_unbiased_brain.nii.gz $fldr/t1_prescan_unbiased_brain.mnc &>$logdir/bias_mri_convert01_$(subjsess) 
-      nu_correct -clobber $fldr/t1_prescan_unbiased_brain.mnc  $fldr/t1_prescan_unbiased_nuc_brain.mnc  &>$logdir/bias_nu_correct_$(subjsess) 
-      
-      echo "BIASMAP : subj $subj , sess $sess : creating bias map by division..."
-      mri_convert $fldr/t1_prescan_unbiased_nuc_brain.mnc $fldr/t1_unbiased_brain.nii.gz &>$logdir/bias_mri_convert02_$(subjsess) 
-      fslmaths $fldr/t1_unbiased_brain -div $fldr/t1_biased_brain $fldr/t1_biasmap
-       
-      # cleanup
-      imrm $fldr/t1_biased
-      imrm $fldr/t1_prescan_unbiased
-      imrm $fldr/t1_prescan_unbiased_brain
-      rm $fldr/t1_prescan_unbiased_nuc_brain.mnc    
-      rm $fldr/t1_prescan_unbiased_nuc_brain.imp      
-    
-    done
-  done
-  
-  waitIfBusy
-  
-  # fsl-fast's biasmap: take reciproc...
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$subj/$sess/bias
-      
-      # does fsl-fast output exist ?
-      if [ ! -f $fldr/t1_biased_brain_bias.nii.gz ] ; then echo "BIASMAP : subj $subj , sess $sess : $fldr/t1_biased_brain_bias.nii.gz not found; has fsl's fast finished ? Continuing loop..." ; continue ; fi
-      
-      # take reciproc
-      fslmaths $fldr/t1_biased_brain_bias.nii.gz -recip $fldr/t1_biasmap_fast.nii.gz
-      
-      # cleanup
-      imrm $fldr/t1_biased
-    done
-  done
-fi
-
-waitIfBusy
-
-# BIASMAP applying bias map
-if [ $BIASMAP_STG2 -eq 1 ] ; then
-  echo "----- BEGIN BIASMAP_STG2 -----"
-  for subj in `cat subjects`; do 
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$subjdir/$subj/$sess/bias   
-      
-      bold=`find $subjdir/$subj/$sess/ -maxdepth 1 -name "*feat*" -type d | sort | tail -n 1`/filtered_func_data.nii.gz # must be adapted (!)
-      mat=`find $(dirname $bold) -maxdepth 1 -name "*ica*" -type d | sort | tail -n 1`/reg/example_func2highres.mat # must be adapted (!)
-      
-      if [ -z $bold -o ! -f $bold ] ; then echo "BIASMAP : subj $subj , sess $sess : filtered_func_data.nii.gz not found in latest FEAT directory - continuing loop..." ; continue ; fi
-      if [ -z $mat -o ! -f $mat ] ; then echo "BIASMAP : subj $subj , sess $sess : transformation matrix func -> highres not found in latest ICA (Melodic) directory - continuing loop..." ; continue ; fi
-      
-      ln -sf $mat $fldr/bold_to_t1
-      ln -sf $bold $fldr/filtered_func.nii.gz
-      
-      echo "BIASMAP : subj $subj , sess $sess : inverting transformation matrix func -> highres ($mat)..."
-      convert_xfm -omat $fldr/t1_to_bold -inverse $fldr/bold_to_t1
-      
-      echo "BIASMAP : subj $subj , sess $sess : resampling bias-map..."
-      flirt -in $fldr/t1_biasmap_fast -out $fldr/t1_biasmap_fast_bold -ref $fldr/filtered_func -applyxfm -init $fldr/t1_to_bold
-      flirt -in $fldr/t1_biasmap  -out $fldr/t1_biasmap_bold -ref $fldr/filtered_func -applyxfm -init $fldr/t1_to_bold
-
-      echo "BIASMAP : subj $subj , sess $sess : applying bias-map..."
-      fsl_sub -l $logdir -N bias_fslmaths fslmaths $fldr/filtered_func -mul $fldr/t1_biasmap_bold $fldr/filtered_func_unbiased
-      fsl_sub -l $logdir -N bias_fslmaths fslmaths $fldr/filtered_func -mul $fldr/t1_biasmap_fast_bold $fldr/filtered_func_unbiased_fast
-    done
-  done
-fi
-
-#########################
-# ----- END BIASMAP -----
-#########################
 
 
 waitIfBusy
@@ -3782,57 +3674,6 @@ fi
 #########################
 # ----- END DUALREG -----
 #########################
-
-
-waitIfBusy
-
-
-#############################
-# ----- BEGIN PSEUDOSWI -----
-#############################
-
-# PSEUDOSWI register fieldmap to MNI
-if [ $PSEUDOSWI_STG1 -eq 1 ]; then
-  echo "----- BEGIN PSEUDOSWI_STG1 -----"
-  for subj in `cat $subjdir/subjects` ; do
-    for sess in `cat $subjdir/$subj/sessions_func` ; do
-      fldr=$subjdir/$subj/$sess/fm
-      fmap=$fldr/uphase_rad_filt
-      fmap0=$fldr/fmap_rads_masked
-      magn=$fldr/magn
-      
-      echo "PSEUDOSWI : subj $subj , sess $sess : registering `basename $fmap` and brain magnitude to MNI template - using transforms from latest .feat and .ica directories."
-      
-      FM_2_EF=`find $subjdir/$subj/$sess/ -name FM_2_EF.mat -type f | grep ".feat" | grep "/unwarp/" | xargs ls -rt | grep FM_2_EF.mat | grep -v /fdt/ | tail -n 1` # should be adapted (!)
-      EF_2_T1=`find $subjdir/$subj/$sess/ -name example_func2highres.mat -type f | grep ".ica" | grep "/reg/" | xargs ls -rt | grep example_func2highres.mat | grep -v /fdt/ | tail -n 1` # should be adapted (!)
-      T1_2_MNI=`dirname $EF_2_T1`/highres2standard_warp.nii.gz
-      
-      if [ ! -f $FM_2_EF ] ; then echo "PSEUDOSWI : subj $subj , sess $sess : file '$FM_2_EF' not found - continuing loop..." ; continue ; fi
-      if [ ! -f $EF_2_T1 ] ; then echo "PSEUDOSWI : subj $subj , sess $sess : file '$EF_2_T1' not found - continuing loop..." ; continue ; fi
-      if [ ! -f $T1_2_MNI ] ; then echo "PSEUDOSWI : subj $subj , sess $sess : file '$T1_2_MNI' not found - continuing loop..." ; continue ; fi
-      
-      echo "PSEUDOSWI : subj $subj , sess $sess : fieldmap->bold:  $FM_2_EF"
-      echo "PSEUDOSWI : subj $subj , sess $sess : bold->T1:        $EF_2_T1"
-      echo "PSEUDOSWI : subj $subj , sess $sess : T1->MNI:         $T1_2_MNI"
-        
-      echo "PSEUDOSWI : subj $subj , sess $sess : concatenate matrices..."
-      convert_xfm -omat $fldr/fm_to_t1.mat -concat $EF_2_T1 $FM_2_EF
-      
-      echo "PSEUDOSWI : subj $subj , sess $sess : apply transform to `basename $fmap`..."
-      applywarp --ref=$FSLDIR/data/standard/MNI152_T1_2mm_brain --in=$fmap --out=$fldr/pseudoSWI_MNI --warp=$T1_2_MNI --premat=$fldr/fm_to_t1.mat
-      
-      echo "PSEUDOSWI : subj $subj , sess $sess : apply transform to `basename $fmap0`..."
-      applywarp --ref=$FSLDIR/data/standard/MNI152_T1_2mm_brain --in=$fmap0 --out=$fldr/fmap_MNI --warp=$T1_2_MNI --premat=$fldr/fm_to_t1.mat
-      
-      echo "PSEUDOSWI : subj $subj , sess $sess : apply transform to `basename $magn`..."
-      applywarp --ref=$FSLDIR/data/standard/MNI152_T1_2mm_brain --in=$magn --out=$fldr/magn_brain_MNI --warp=$T1_2_MNI --premat=$fldr/fm_to_t1.mat
-    done
-  done
-fi
-
-###########################
-# ----- END PSEUDOSWI -----
-###########################
 
 
 waitIfBusy
