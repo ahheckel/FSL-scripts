@@ -58,7 +58,7 @@ FIELDMAP_STG1=0            # FIELDMAP prepare
 FIELDMAP_STG2=0            # FIELDMAP create
 
 TOPUP_STG1=0               # TOPUP prepare
-TOPUP_STG2=0               # TOPUP low-B images: create index and extract
+TOPUP_STG2=1               # TOPUP low-B images: create index and extract
 TOPUP_STG3=0               # TOPUP merge B0 images
 TOPUP_STG4=0               # TOPUP execute topup
 TOPUP_STG5=0               # TOPUP apply warp
@@ -239,7 +239,7 @@ TBSS_BPX_INDIR_PREFIX="bpx"                       # prefix of BedpostX input dir
 TBSS_OUTDIR_PREFIX="tbss"                         # prefix of output directory
 TBSS_THRES="0.2 0.3 0.4"                          # cycle through some skeleton-threshold values
 TBSS_Z_TRANSFORM=1                                # z-transform FA skeletons
-TBSS_RANDOMISE_NPERM=10                           # number of permutations (!)
+TBSS_RANDOMISE_NPERM=10                           # number of permutations
 TBSS_DELETE_PREV_RUNS=1                           # delete previously created TBSS directories and files; if set, no questions will be asked (!)
 # NOTE: if you use BedpostX files from TRACULA for TBSSX, then you should chose the (*single*) appropriate switch from below to ensure proper naming
 TBSS_USE_NOEC=0                                   # use FA maps from non eddy-corrected DWIs
@@ -259,7 +259,7 @@ VBM_PTTRN_BRAIN="*_FS_brain.nii.gz"               # search pattern for brain-ext
 VBM_PTTRN_STRUC="*_FS_struc.nii.gz"               # search pattern for original structurals (w/o skull-strip)
 VBM_SMOOTHING_KRNL="2 3 4"                        # cycle through some smoothing kernels
 VBM_Z_TRANSFORM=1                                 # z-transform grey matter 4D
-VBM_RANDOMISE_NPERM=500                           # number of permutations (!)
+VBM_RANDOMISE_NPERM=500                           # number of permutations
 VBM_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked (!)
 
 # MELODIC (GUI)

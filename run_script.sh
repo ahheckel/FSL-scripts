@@ -855,6 +855,24 @@ if [ $TOPUP_STG2 -eq 1 ] ; then
         line=`echo "$b0idx + 1" | bc -l`
         cat $fldr/$(subjsess)_acqparam.txt | sed -n ${line}p >> $fldr/$(subjsess)_acqparam_lowb.txt
         cat $fldr/$(subjsess)_acqparam_inv.txt | sed -n ${line}p >> $fldr/$(subjsess)_acqparam_lowb_inv.txt
+      done
+          
+      # creating index file for topup (only the first low-B image per dwi file)
+      echo "TOPUP : subj $subj , sess $sess : creating index file for TOPUP (only the first low-B image in each dwi-file)..." 
+      c=0 ; _nvol=0 ; nvol=0
+      rm -f $fldr/$(subjsess)_acqparam_lowb_1st.txt ; rm -f $fldr/$(subjsess)_acqparam_lowb_1st_inv.txt # clean-up previous runs...
+      for i in $(cat $fldr/bval.files) ; do
+        _min=`row2col $i | getMin`
+        _idx=`getIdx $i $_min` ;  _idx=$(echo $_idx | cut -d " " -f 1) ; _idx=$(echo "$_idx + 1" | bc -l)
+        if [ $c -gt 0 ] ; then
+          _nvol=$(cat $fldr/diff.files | sed -n ${c}p | cut -d ":" -f 2-) ;
+        fi
+        nvol=$(( $nvol + $_nvol ))
+        _line=$(echo "$nvol + $_idx" | bc -l)
+        
+        cat $fldr/$(subjsess)_acqparam.txt | sed -n ${_line}p >> $fldr/$(subjsess)_acqparam_lowb_1st.txt
+        cat $fldr/$(subjsess)_acqparam_inv.txt | sed -n ${_line}p >> $fldr/$(subjsess)_acqparam_lowb_1st_inv.txt
+        c=$[$c+1]
       done   
       
       # extract B0 images
@@ -935,7 +953,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         blipup=`ls $subjdir/$subj/$sess/$pttrn_diffsplus | sed -n ${i}p`
         
         n=`printf %03i $i`
-        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
+        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
       done
       
       # generate commando with eddy-correction
@@ -948,7 +966,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         blipup=$fldr/ec_diffs_merged_$(printf %03i $j)
         
         n=`printf %03i $i`
-        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
+        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
       done
     done
   done
