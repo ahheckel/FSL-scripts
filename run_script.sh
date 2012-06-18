@@ -77,6 +77,7 @@ if [ "x$FIRSTLEV_SUBJECTS" != "x" -a "x$FIRSTLEV_SESSIONS_FUNC" != "x" -a "x$FIR
     echo "creating structural session file for subject '$subj': "[ $FIRSTLEV_SESSIONS_STRUC ]""
     echo $FIRSTLEV_SESSIONS_STRUC | row2col > ${subjdir}/$subj/sessions_struc
   done
+  echo ""
 fi
 
 # ----- CHECKS -----
@@ -223,26 +224,64 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   fi
 fi
 
-# all subjects registered in infofiles ?
-errflag=0
-for infofile in config_bet_magn config_bet_lowb config_bet_struc0 config_bet_struc1 config_unwarp_dwi config_unwarp_bold config_func2highres.reg ; do
+# are all subjects registered in infofiles ?
+errpause=0
+# ...in func. infofiles
+for infofile in config_bet_magn config_unwarp_bold config_func2highres.reg ; do
   for subj in `cat $subjdir/subjects` ; do
-      line=$(cat $subjdir/$infofile | awk '{print $1}' | grep ^$subj || true)
+    errflag=0
+    
+    for sess in `cat $subjdir/$subj/sessions_func` ; do
+      if [ $sess = "." ] ; then sess="" ; fi
+      
+      line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
       if [ "x$line" = "x" ] ; then 
         errflag=1
-        echo "WARNING : '$infofile' : entry for subject '$subj' not found ! This may or may not be a problem depending on your setup."
-        
+        #echo "WARNING : '$infofile' : entry for id '$(subjsess)' not found ! This may or may not be a problem depending on your setup."
+      fi
+    done
+    
+    if [ $errflag -eq 1 ] ; then
+      line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx ${subj} || true)
+      if [ "x$line" = "x" ] ; then 
+        errpause=1
+        echo "WARNING : '$infofile' : entry for subject '${subj}' not found ! This may or may not be a problem depending on your setup."
         if [ $infofile = "config_bet_magn" ] ; then read -p "Press key to add default value." ; echo "$subj $BETMAGN_INFO" | tee -a ${subjdir}/$infofile ; fi
+        if [ $infofile = "config_unwarp_bold" ] ; then read -p "Press key to add default value." ; echo "$subj $DWIUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
+        if [ $infofile = "config_func2highres.reg" -a "$(cat ${subjdir}/${subj}/sessions_* | sort | uniq)" = "." ] ; then read -p "Press key to add default value." ; echo "$subj ." | tee -a ${subjdir}/$infofile ; fi
+      fi
+    fi    
+  done
+done
+# ...in struc. infofiles
+for infofile in config_bet_lowb config_bet_struc0 config_bet_struc1 config_unwarp_dwi ; do
+  for subj in `cat $subjdir/subjects` ; do
+    errflag=0
+    
+    for sess in `cat $subjdir/$subj/sessions_struc` ; do
+      if [ $sess = "." ] ; then sess="" ; fi
+      
+      line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
+      if [ "x$line" = "x" ] ; then 
+        errflag=1
+        #echo "WARNING : '$infofile' : entry for id '$(subjsess)' not found ! This may or may not be a problem depending on your setup."
+      fi
+    done
+    
+    if [ $errflag -eq 1 ] ; then
+      line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx ${subj} || true)
+      if [ "x$line" = "x" ] ; then
+        errpause=1
+        echo "WARNING : '$infofile' : entry for subject '${subj}' not found ! This may or may not be a problem depending on your setup."
         if [ $infofile = "config_bet_lowb" ] ; then read -p "Press key to add default value." ; echo "$subj $BETLOWB_INFO" | tee -a ${subjdir}/$infofile ; fi
         if [ $infofile = "config_bet_struc0" ] ; then read -p "Press key to add default value." ; echo "$subj $BETSTRUC0_INFO" | tee -a ${subjdir}/$infofile ; fi
         if [ $infofile = "config_bet_struc1" ] ; then read -p "Press key to add default value." ; echo "$subj $BETSTRUC1_INFO" | tee -a ${subjdir}/$infofile ; fi
         if [ $infofile = "config_unwarp_dwi" ] ; then read -p "Press key to add default value." ; echo "$subj $DWIUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
-        if [ $infofile = "config_unwarp_bold" ] ; then read -p "Press key to add default value." ; echo "$subj $BOLDUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
-        if [ $infofile = "config_func2highres.reg" -a "$(cat ${subjdir}/${subj}/sessions_* | sort | uniq)" = "." ] ; then read -p "Press key to add default value." ; echo "$subj ." | tee -a ${subjdir}/$infofile ; fi
       fi
+    fi    
   done
 done
-if [ $errflag -eq 1 ] ; then echo "***CHECK*** (sleeping 2 seconds)..." ; sleep 2 ; fi
+if [ $errpause -eq 1 ] ; then echo "***CHECK*** (sleeping 2 seconds)..." ; sleep 2 ; fi
 
 # list files for each subject and session
 checklist=""
@@ -273,7 +312,6 @@ for subj in `cat $subjdir/subjects` ; do
     n=$[$n+1]
   done
 done
-echo ""
 echo "***CHECK*** (sleeping 2 seconds)..."
 sleep 2
 
@@ -857,7 +895,7 @@ if [ $TOPUP_STG2 -eq 1 ] ; then
         cat $fldr/$(subjsess)_acqparam_inv.txt | sed -n ${line}p >> $fldr/$(subjsess)_acqparam_lowb_inv.txt
       done
           
-      # creating index file for topup (only the first low-B image per dwi file)
+      # creating index file for topup (only the first low-B image in each dwi file)
       echo "TOPUP : subj $subj , sess $sess : creating index file for TOPUP (only the first low-B image in each dwi-file)..." 
       c=0 ; _nvol=0 ; nvol=0
       rm -f $fldr/$(subjsess)_acqparam_lowb_1st.txt ; rm -f $fldr/$(subjsess)_acqparam_lowb_1st_inv.txt # clean-up previous runs...

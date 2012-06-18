@@ -58,7 +58,7 @@ FIELDMAP_STG1=0            # FIELDMAP prepare
 FIELDMAP_STG2=0            # FIELDMAP create
 
 TOPUP_STG1=0               # TOPUP prepare
-TOPUP_STG2=1               # TOPUP low-B images: create index and extract
+TOPUP_STG2=0               # TOPUP low-B images: create index and extract
 TOPUP_STG3=0               # TOPUP merge B0 images
 TOPUP_STG4=0               # TOPUP execute topup
 TOPUP_STG5=0               # TOPUP apply warp
