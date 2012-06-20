@@ -15,7 +15,7 @@ Usage() {
 
 [ "$1" = "" ] && Usage
 file=`remove_ext "$1"`
-if [ x$2 = "x" ] ; then n_b0=4 ; else n_b0=$2 ; fi
+if [ x"$2" = "x" ] ; then n_b0=4 ; else n_b0=$2 ; fi
 
 nvols=`fslinfo  $file | grep ^dim4 | awk '{print $2}'`
 intb0=$(scale=0; echo "$nvols / $n_b0" | bc)
@@ -23,7 +23,7 @@ intb0=$(scale=0; echo "$nvols / $n_b0" | bc)
 vals=""
 vecs=""
 for i in `seq 1 $nvols` ; do
-  if [ $i -eq 1 -a $n_bo -gt 0 ] ; then
+  if [ $i -eq 1 -a $n_b0 -gt 0 ] ; then
     vals=0
     vecs=0.5
   elif [ $i -le $n_b0 ] ; then
