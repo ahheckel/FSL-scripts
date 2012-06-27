@@ -8,7 +8,8 @@ source $(dirname $0)/globalfuncs
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <out-dir> <dwi-plus> <dwi-minus> <TotalReadoutTime(s)> <use noec> <use ec> [<dof> <costfunction>] <subj> <sess>"
+    echo "Usage: `basename $0` <out-dir> <dwi-plus> <dwi-minus> <TotalReadoutTime(s)> <no ec> <use ec> [<dof> <costfunction>] <subj> <sess>"
+    echo "Example: topup.sh topupdir dwi+.nii.gz dwi-.nii.gz 0.023 1 1 6 corratio 01 a"
     echo ""
     exit 1
 }
@@ -29,7 +30,7 @@ subj=$7
 sess=$8
 
 # defines vars
-if [ x"$subj" = "x" ] ; then subj="." ; fi
+if [ x"$subj" = "x" ] ; then subj="_" ; fi
 if [ x"$sess" = "x" ] ; then sess="." ; fi
 mkdir -p $outdir
 echo $subj > $outdir/.subjects

@@ -7,7 +7,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <4doutput> <\"subdir/filename\"> <subjectsdir> <\"01 02 ...\"> <\"sessa sessb ...\">"
+    echo "Usage: `basename $0` <4doutput> <\"subdir/filename\"> <subjectsdir> <\"01 02 ...\"|-> <\"sessa sessb ...\">"
     echo ""
     exit 1
 }
@@ -42,6 +42,11 @@ c=1 ; for i in $subj ; do
     fi
   done
 done ; c=0
+
+set +e
+read -p "Press key..."
+set -e
+
 echo "merging..."
 cmd="fslmerge -t ${out} $files"
 echo $cmd ; $cmd
