@@ -10,6 +10,7 @@ Usage() {
     echo ""
     echo "Usage: `basename $0` <out-dir> <isBOLD: 0|1> [n_dummyB0] <dwi-plus> <dwi-minus> <TotalReadoutTime(s)> <no ec: 0|1> <use ec: 0|1> [<dof> <costfunction>] <subj> <sess>"
     echo "Example: topup.sh topupdir 0 dwi+.nii.gz dwi-.nii.gz 0.023 1 1 12 corratio 01 a"
+    echo "         topup.sh topupdir 1 4 bold+.nii.gz bold-.nii.gz 0.023 1 1 6 mutualinfo 01 a"
     echo ""
     exit 1
 }
