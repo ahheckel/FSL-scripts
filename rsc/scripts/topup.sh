@@ -1,8 +1,8 @@
 #!/bin/bash
 
-trap 'echo "$0 : An ERROR has occured."' ERR
-
 set -e
+
+trap 'echo "$0 : An ERROR has occured."' ERR
 
 source $(dirname $0)/globalfuncs
 
@@ -35,6 +35,8 @@ fi
 subj=$8
 sess=$9
 
+echo "`basename $0`: starting TOPUP..."
+
 # defines vars
 if [ x"$subj" = "x" ] ; then subj="_" ; fi
 if [ x"$sess" = "x" ] ; then sess="." ; fi
@@ -61,8 +63,10 @@ for i in $(ls $pttrn_diffsplus) ; do
   
   #if [ ! -f $(dirname $pttrn_diffsplus)/$i_bval -a ! -f $(dirname $pttrn_diffsplus)/$i_bvec ] ; then
   if [ $isBOLD -eq 1 ] ; then
-      echo "'$i_bval' and '$i_bvec' not found..."
-      echo " - creating dummy files."
+      #echo "'$i_bval' and '$i_bvec' not found..."
+      echo "`basename $0`: isBOLD=1 -> creating dummy files."
+      if [ -f $i_bval ] ; then echo "`basename $0`: WARNING: '$i_bval' already exists - will overwrite..." ; fi
+      if [ -f $i_bvec ] ; then echo "`basename $0`: WARNING: '$i_bvec' already exists - will overwrite..." ; fi
       cmd="$(dirname $0)/dummy_bvalbvec.sh $i $n_b0"
       echo $cmd ; $cmd
   fi
@@ -73,8 +77,10 @@ for i in $(ls $pttrn_diffsminus) ; do
   
   #if [ ! -f $(dirname $pttrn_diffsminus)/$i_bval -a ! -f $(dirname $pttrn_diffsminus)/$i_bvec ] ; then
   if [ $isBOLD -eq 1 ] ; then
-      echo "'$i_bval' and '$i_bvec' not found..."
-      echo "- creating dummy files."
+      #echo "'$i_bval' and '$i_bvec' not found..."
+      echo "`basename $0`: isBOLD=1 -> creating dummy files."
+      if [ -f $i_bval ] ; then echo "`basename $0`: WARNING: '$i_bval' already exists - will overwrite..." ; fi
+      if [ -f $i_bvec ] ; then echo "`basename $0`: WARNING: '$i_bvec' already exists - will overwrite..." ; fi
       cmd="$(dirname $0)/dummy_bvalbvec.sh $i $n_b0"
       echo $cmd ; $cmd
   fi
@@ -97,26 +103,25 @@ TOPUP_STG5=1
 TOPUP_STG6=0  
 
 # display info
-echo "`basename $0`: starting TOPUP..."
-echo "TROT=$TROT_topup"
-echo "TOPUP_USE_NATIVE=$TOPUP_USE_NATIVE"
-echo "TOPUP_USE_EC=$TOPUP_USE_EC"
+echo "`basename $0`: TROT=$TROT_topup"
+echo "`basename $0`: TOPUP_USE_NATIVE=$TOPUP_USE_NATIVE"
+echo "`basename $0`: TOPUP_USE_EC=$TOPUP_USE_EC"
 if [ $TOPUP_USE_EC -eq 1 ] ; then
-  echo "TOPUP_EC_DOF=$TOPUP_EC_DOF"
-  echo "TOPUP_EC_COST=$TOPUP_EC_COST"
+  echo "`basename $0`: TOPUP_EC_DOF=$TOPUP_EC_DOF"
+  echo "`basename $0`: TOPUP_EC_COST=$TOPUP_EC_COST"
 fi
-echo "n_dwi- : $n_dwi_m"
-echo "n_dwi+ : $n_dwi_p"
-echo "n_bval-: $n_bval_m"
-echo "n_bval+: $n_bval_p"
-echo "n_bvec-: $n_bvec_m"
-echo "n_bvec+: $n_bvec_p"
-echo "TOPUP_STG1=$TOPUP_STG1"
-echo "TOPUP_STG2=$TOPUP_STG2"
-echo "TOPUP_STG3=$TOPUP_STG3"               
-echo "TOPUP_STG4=$TOPUP_STG4"               
-echo "TOPUP_STG5=$TOPUP_STG5"                              
-echo "TOPUP_STG6=$TOPUP_STG6"                              
+echo "`basename $0`: n_dwi- : $n_dwi_m"
+echo "`basename $0`: n_dwi+ : $n_dwi_p"
+echo "`basename $0`: n_bval-: $n_bval_m"
+echo "`basename $0`: n_bval+: $n_bval_p"
+echo "`basename $0`: n_bvec-: $n_bvec_m"
+echo "`basename $0`: n_bvec+: $n_bvec_p"
+echo "`basename $0`: TOPUP_STG1=$TOPUP_STG1"
+echo "`basename $0`: TOPUP_STG2=$TOPUP_STG2"
+echo "`basename $0`: TOPUP_STG3=$TOPUP_STG3"               
+echo "`basename $0`: TOPUP_STG4=$TOPUP_STG4"               
+echo "`basename $0`: TOPUP_STG5=$TOPUP_STG5"                              
+echo "`basename $0`: TOPUP_STG6=$TOPUP_STG6"                              
 
 # TOPUP prepare
 if [ $TOPUP_STG1 -eq 1 ] ; then
@@ -353,7 +358,7 @@ if [ $TOPUP_STG2 -eq 1 ] ; then
       # extract B0 images
       lowbs=""
       for b0idx in $b0idces ; do    
-        echo "TOPUP : subj $subj , sess $sess : found B0 images in merged diff. at pos. $b0idx (val:${min}) - extracting..."
+        echo "TOPUP : subj $subj , sess $sess : found B0 image in merged diff. at pos. $b0idx (val:${min}) - extracting..."
         lowb="$fldr/b${min}_`printf '%05i' $b0idx`"
         fsl_sub -l $logdir -N topup_fslroi_$(subjsess) fslroi $fldr/diffs_merged $lowb $b0idx 1
         lowbs=$lowbs" "$lowb
@@ -380,7 +385,7 @@ if [ $TOPUP_STG3 -eq 1 ] ; then
       if [ ! -f $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
       
       # merge B0 images
-      echo "TOPUP : subj $subj , sess $sess : merging low-B images..."
+      echo "TOPUP : subj $subj , sess $sess : merging low-B volumes..."
       fsl_sub -l $logdir -N topup_fslmerge_$(subjsess) fslmerge -t $fldr/$(subjsess)_lowb_merged $(cat $fldr/lowb.files)
       
     done
@@ -399,8 +404,8 @@ if [ $TOPUP_STG4 -eq 1 ] ; then
       if [ ! -f $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
       
       # execute TOPUP
-      echo "TOPUP : subj $subj , sess $sess : executing TOPUP on merged low-b volumes..."
-      echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb" > $fldr/topup.cmd
+      echo "TOPUP : subj $subj , sess $sess : executing TOPUP on merged low-B volumes..."
+      echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/$(subjsess)_field_lowb_hz" > $fldr/topup.cmd
       . $fldr/topup.cmd
      
     done

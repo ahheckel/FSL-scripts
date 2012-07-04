@@ -1,10 +1,9 @@
-
 #!/bin/bash
 # creating pseudo bval/bvec files
 
-trap 'echo "$0 : An ERROR has occured."' ERR
-
 set -e
+
+trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""

@@ -916,7 +916,7 @@ if [ $TOPUP_STG2 -eq 1 ] ; then
       # extract B0 images
       lowbs=""
       for b0idx in $b0idces ; do    
-        echo "TOPUP : subj $subj , sess $sess : found B0 images in merged diff. at pos. $b0idx (val:${min}) - extracting..."
+        echo "TOPUP : subj $subj , sess $sess : found B0 image in merged diff. at pos. $b0idx (val:${min}) - extracting..."
         lowb="$fldr/b${min}_`printf '%05i' $b0idx`"
         fsl_sub -l $logdir -N topup_fslroi_$(subjsess) fslroi $fldr/diffs_merged $lowb $b0idx 1
         lowbs=$lowbs" "$lowb
@@ -943,7 +943,7 @@ if [ $TOPUP_STG3 -eq 1 ] ; then
       if [ ! -f $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
       
       # merge B0 images
-      echo "TOPUP : subj $subj , sess $sess : merging low-B images..."
+      echo "TOPUP : subj $subj , sess $sess : merging low-B volumes..."
       fsl_sub -l $logdir -N topup_fslmerge_$(subjsess) fslmerge -t $fldr/$(subjsess)_lowb_merged $(cat $fldr/lowb.files)
       
     done
@@ -962,8 +962,8 @@ if [ $TOPUP_STG4 -eq 1 ] ; then
       if [ ! -f $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
       
       # execute TOPUP
-      echo "TOPUP : subj $subj , sess $sess : executing TOPUP on merged low-b volumes..."
-      echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb" > $fldr/topup.cmd
+      echo "TOPUP : subj $subj , sess $sess : executing TOPUP on merged low-B volumes..."
+      echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/$(subjsess)_field_lowb_hz" > $fldr/topup.cmd
       . $fldr/topup.cmd
      
     done

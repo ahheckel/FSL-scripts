@@ -1,9 +1,9 @@
 #!/bin/bash
 # The FEAT way of scaling.
 
-trap 'echo "$0 : An ERROR has occured."' ERR
-
 set -e
+
+trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
