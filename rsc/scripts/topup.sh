@@ -4,6 +4,7 @@ set -e
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
+# source commonly used functions
 source $(dirname $0)/globalfuncs
 
 Usage() {
@@ -15,7 +16,7 @@ Usage() {
     exit 1
 }
 
-[ "$6" = "" ] && Usage
+[ "$7" = "" ] && Usage
 outdir="$1"
 isBOLD=$2
 if [ $isBOLD -eq 1 ] ; then
@@ -24,17 +25,18 @@ if [ $isBOLD -eq 1 ] ; then
 fi
 pttrn_diffsplus="$3"
 pttrn_diffsminus="$4"
-TROT_topup=$5         # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
+TROT_topup=$5 # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
 TOPUP_USE_NATIVE=$6
 TOPUP_USE_EC=$7
 if [ $TOPUP_USE_EC -eq 1 ] ; then
   TOPUP_EC_DOF=$8 # degrees of freedom used by eddy-correction
-  TOPUP_EC_COST=$9  # cost-function used by eddy-correction
+  TOPUP_EC_COST=$9 # cost-function used by eddy-correction
   shift 2
 fi
-subj=$8
-sess=$9
+subj=$8 # optional
+sess=$9 # optional
 
+# display info
 echo "`basename $0`: starting TOPUP..."
 
 # defines vars
@@ -59,11 +61,9 @@ ls $pttrn_diffsplus 1>/dev/null
 ls $pttrn_diffsminus 1>/dev/null
 for i in $(ls $pttrn_diffsplus) ; do
   i_bval=`remove_ext ${i}`_bvals
-  i_bvec=`remove_ext ${i}`_bvecs
-  
+  i_bvec=`remove_ext ${i}`_bvecs  
   #if [ ! -f $(dirname $pttrn_diffsplus)/$i_bval -a ! -f $(dirname $pttrn_diffsplus)/$i_bvec ] ; then
   if [ $isBOLD -eq 1 ] ; then
-      #echo "'$i_bval' and '$i_bvec' not found..."
       echo "`basename $0`: isBOLD=1 -> creating dummy files."
       if [ -f $i_bval ] ; then echo "`basename $0`: WARNING: '$i_bval' already exists - will overwrite..." ; fi
       if [ -f $i_bvec ] ; then echo "`basename $0`: WARNING: '$i_bvec' already exists - will overwrite..." ; fi
@@ -73,8 +73,7 @@ for i in $(ls $pttrn_diffsplus) ; do
 done
 for i in $(ls $pttrn_diffsminus) ; do
   i_bval=`remove_ext ${i}`_bvals
-  i_bvec=`remove_ext ${i}`_bvecs
-  
+  i_bvec=`remove_ext ${i}`_bvecs  
   #if [ ! -f $(dirname $pttrn_diffsminus)/$i_bval -a ! -f $(dirname $pttrn_diffsminus)/$i_bvec ] ; then
   if [ $isBOLD -eq 1 ] ; then
       #echo "'$i_bval' and '$i_bvec' not found..."
@@ -102,7 +101,7 @@ TOPUP_STG4=1
 TOPUP_STG5=1               
 TOPUP_STG6=0  
 
-# display info
+# display some info
 echo "`basename $0`: TROT=$TROT_topup"
 echo "`basename $0`: TOPUP_USE_NATIVE=$TOPUP_USE_NATIVE"
 echo "`basename $0`: TOPUP_USE_EC=$TOPUP_USE_EC"
