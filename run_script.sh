@@ -963,7 +963,7 @@ if [ $TOPUP_STG4 -eq 1 ] ; then
       
       # execute TOPUP
       echo "TOPUP : subj $subj , sess $sess : executing TOPUP on merged low-B volumes..."
-      echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/$(subjsess)_field_lowb_hz" > $fldr/topup.cmd
+      echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/$(subjsess)_fieldHz_lowb --iout=$fldr/$(subjsess)_unwarped_lowb" > $fldr/topup.cmd
       . $fldr/topup.cmd
      
     done

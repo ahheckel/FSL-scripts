@@ -16,8 +16,8 @@ else
   done
 fi
 
-for i in warn error segfault fault rejected oops denied fail cannot critical panic usage ; do
-    grep -i -I -n -H -R  $i $searchpath --color=always | grep -v -i default
+for i in warn error segfault fault rejected oops denied fail cannot critical panic usage exception ; do
+    grep -i -I -n -H -R  $i $searchpath | grep -v -i default | grep -i -I -n -H -R  $i $searchpath --color=auto 
 done
 
 echo "`basename $0`: done."
