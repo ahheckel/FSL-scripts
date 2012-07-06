@@ -44,7 +44,7 @@ sess="$5"
 c=1 ; for i in $subj ; do
   for j in $sess ; do 
     if [ -f $i/$j/$file ] ; then
-      echo "$(zeropad $c 3) found: $i/$j/$file"
+      echo "$(zeropad $c 3) found: $i/$j/$file" 
       c=$[$c+1]
     else
       echo "    not found: $i/$j/$file"
@@ -59,23 +59,27 @@ set -e
 mkdir -p $(dirname $out)
 files=""
 rm -f $wdir/*
+rm -f ${out}.list
 c=1 ; for i in $subj ; do
   for j in $sess ; do 
     if [ -f $i/$j/$file ] ; then
       if [ $doextr -eq 1 ] ; then
-        echo "$(zeropad $c 3) found: $i/$j/$file - extracting at pos. $idx..."
+        echo "$(zeropad $c 3) found: $i/$j/$file - extracting at pos. $idx..." | tee -a ${out}.list
         _file=$(zeropad $c 3)_extracted_${idx}
         fslroi $i/$j/$file $wdir/$_file $idx 1
         files=$files" "$wdir/$_file
       elif [ $domean -eq 1 ] ; then
-        echo "$(zeropad $c 3) found: $i/$j/$file - creating mean..."
+        echo "$(zeropad $c 3) found: $i/$j/$file - creating mean..." | tee -a ${out}.list
         _file=$(zeropad $c 3)_mean
         fslmaths $i/$j/$file -Tmean $wdir/$_file
         files=$files" "$wdir/$_file
       else
+        echo "$(zeropad $c 3) found: $i/$j/$file" >> ${out}.list
         files=$files" "$i/$j/$file
       fi
       c=$[$c+1]
+    else
+      echo "    not found: $i/$j/$file" >> ${out}.list
     fi
   done
 done ; c=0

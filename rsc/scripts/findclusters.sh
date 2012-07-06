@@ -80,7 +80,8 @@ if [ $anal = "tbss" ] ; then
       statsdir=$(dirname $f);
       if [ "$statsdir" = "." ] ; then statsdir=".." ; else statsdir=$(dirname $(dirname $f)) ; fi
       res=$(fslinfo $f | grep pixdim1 | awk {'print $2'}) ; res=$(printf '%.0f' $res)
-      fslview ${FSL_DIR}/data/standard/MNI152_T1_${res}mm_brain $statsdir/mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $f -l "Red" -b 0.75,0.9
+      fslview $statsdir/mean_FA.nii.gz $statsdir/mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $f -l "Red" -b 0.75,0.9
+      #fslview ${FSL_DIR}/data/standard/MNI152_T1_${res}mm_brain $statsdir/mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $f -l "Red" -b 0.75,0.9
     done
   fi
 fi
@@ -91,7 +92,7 @@ if [ $anal = "vbm" ] ; then
       statsdir=$(dirname $f);
       if [ "$statsdir" = "." ] ; then statsdir=".." ; else statsdir=$(dirname $(dirname $f)) ; fi
       res=$(fslinfo $f | grep pixdim1 | awk {'print $2'}) ; res=$(printf '%.0f' $res)
-      fslview ${FSL_DIR}/data/standard/MNI152_T1_${res}mm_brain $f -l "Red" -b 0.75,0.9
+      fslview $statsdir/mean_GM_mod_merg_smoothed.nii.gz $f -l "Red" -b 0.75,0.9
     done
   fi
 fi

@@ -83,7 +83,7 @@ TRACULA_STG2=0             # TRACULA execute -prep
 TRACULA_STG3=0             # TRACULA execute -bedp
 TRACULA_STG4=0             # TRACULA execute -path
 
-BOLD_STG1=0                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
+BOLD_STG1=1                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
 BOLD_STG2=0                # BOLD execute FEAT configuration file
 BOLD_STG3=0                # BOLD denoising in native space (needs Freesurfer recons)
 BOLD_STG4=0                # BOLD write MNI-registered volumes
@@ -207,7 +207,7 @@ BOLD_FEATDIR_PREFIX="smooth"                                  # prefix for .feat
 BOLD_BET_EXFUNC=0                                             # bet example func (middle of the 4D) (default 0)
 BOLD_UNWARP=0                                                 # enable unwarping
 BOLD_SIGNLOSS_THRES=10 	                                      # signal loss threshold (%) (default: 10)
-BOLD_SLICETIMING_VALUES="0"                                   # enter correction method (see .fsf file); "0" to switch off slice timing correction
+BOLD_SLICETIMING_VALUES="3"                                   # enter correction method (see .fsf file); "0" to switch off slice timing correction; "3" creates a sliceorder file (SIEMENS interleaved)
 BOLD_BET=1                                                    # enable betting
 BOLD_SMOOTHING_KRNLS="0"                                      # enter "0" to swith off smoothing (note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes)
 BOLD_HPF_CUTOFFS="100"                                        # enter "Inf" or "" to switch off high-pass filter

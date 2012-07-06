@@ -2311,7 +2311,11 @@ if [ $BOLD_STG1 -eq 1 ] ; then
               sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 1|g" $conffile # overwrite on re-run
               
               # set slice timing correction method
-              sed -i "s|set fmri(st) .*|set fmri(st) $stc_val|g" $conffile
+              sed -i "s|set fmri(st) .*|set fmri(st) $stc_val|g" $conffile              
+              if [ $stc_val -eq 3 ] ; then
+                $scriptdir/getsliceorderSIEMENS_interleaved.sh $fldr/$bold_lnk $fldr/sliceorder.txt
+                sed -i "s|set fmri(st_file) .*|set fmri(st_file) $fldr/sliceorder.txt|g" $conffile
+              fi
               
               # set alternative example func
               if [ $BOLD_BET_EXFUNC -eq 1 ] ; then 
