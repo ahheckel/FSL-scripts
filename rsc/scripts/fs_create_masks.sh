@@ -23,7 +23,7 @@ sess="$6"  # optional
 
 GMctx_labels="3 42"
 GMsubctx_labels="4 10 11 12 13 17 18 26 28 43 49 50 51 52 53 54 58 60"    
-CSF_labels="4 5 14 15 43 44 24" # (no basal cisterns / subarachnoidal space in FS labeled segementations found) (!)
+CSF_labels="4 5 14 15 43 44 24" # (no basal cisterns / subarachnoidal space in FS labeled segmentations found) (!)
 WM_labels="2 41 7 46" # include cerebellar WM also (7 46) ? (?)
 
 ## delete unfinished bbreg runs

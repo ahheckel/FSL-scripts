@@ -7,8 +7,8 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` -m <input4D> <"mask1 mask2 ..."> <movpar> <movpar_calcs 0:none|1:orig|2:^2|3:abs|4:diff+|5:diff-> <output> <subj_idx> <sess_idx>"
-    echo "        Options:     -m      just create confound matrix, don't denoise"
+    echo "Usage: `basename $0` [-m] <input4D> <"mask1 mask2 ..." |none> <movpar|none> <movpar_calcs 0:none|1:orig|2:^2|3:abs|4:diff+|5:diff-> <output> <subj_idx> <sess_idx>"
+    echo "        Options:      -m     just create confound matrix, don't denoise"
     echo ""
     exit 1
 }
@@ -45,24 +45,26 @@ formula2="output_precision(8); c" # formula2="c-mean(c)" # for movpars
 
 ts_list=""
 ts_list_proc=""
-for mask in $masks ; do
-  mask=$indir/$mask 
-  ts=${output}_$(basename $(remove_ext $mask))_meants
-  echo "`basename $0` : subj $subj , sess $sess : extracting timecourse for '$mask' -> '$ts'..."
-  
-  if [ $(imtest $mask) -eq 0 ] ; then echo "`basename $0` : subj $subj , sess $sess : ERROR: '$mask' not found - exiting..." ; exit 1 ; fi
-  
-  fslmeants -i $input -m $mask -o $ts
-  
-  # process using octave
-  rm -f ${ts}_proc
-  vals=$(cat $ts)
-  c=$(octave -q --eval "c=[$vals] ; $formula1")
-  echo $c | cut -d "=" -f 2- |  row2col > ${ts}_proc
+if [ "$masks" != "none" ] ; then 
+  for mask in $masks ; do
+    mask=$indir/$mask 
+    ts=${output}_$(basename $(remove_ext $mask))_meants
+    echo "`basename $0` : subj $subj , sess $sess : extracting timecourse for '$mask' -> '$ts'..."
+    
+    if [ $(imtest $mask) -eq 0 ] ; then echo "`basename $0` : subj $subj , sess $sess : ERROR: '$mask' not found - exiting..." ; exit 1 ; fi
+    
+    fslmeants -i $input -m $mask -o $ts
+    
+    # process using octave
+    rm -f ${ts}_proc
+    vals=$(cat $ts)
+    c=$(octave -q --eval "c=[$vals] ; $formula1")
+    echo $c | cut -d "=" -f 2- |  row2col > ${ts}_proc
 
-  ts_list=$ts_list" "${ts}
-  ts_list_proc=$ts_list_proc" "${ts}_proc
-done
+    ts_list=$ts_list" "${ts}
+    ts_list_proc=$ts_list_proc" "${ts}_proc
+  done
+fi
 
 if [ "$movpar_calcs" != 0 ] ; then 
   if [ ! -f $movpar ] ; then 
@@ -112,8 +114,10 @@ else
 fi
 
 ones=$outdir/ones
-for i in $ts_list ; do n=$(cat $i | wc -l) ; break ; done
+#for i in $ts_list ; do n=$(cat $i | wc -l) ; break ; done
+n=`fslinfo  $input| grep ^dim4 | awk '{print $2}'`
 c=$(octave -q --eval "ones($n,1)") ; echo $c | cut -d "=" -f 2- |  row2col > $ones
+
 
 confounds="${output}_nuisance_meants.mat"
 echo "`basename $0` : subj $subj , sess $sess : creating nuisance matrix '$confounds' and '${confounds%.mat}_proc.mat'..."
@@ -133,7 +137,11 @@ if [ $denoise -eq 1 ] ; then
   else
     n_movpar=$(awk '{print NF}' $movpar_proc | sort -nu | head -n 1)
   fi
-  n_masks=$(echo $masks | wc -w)
+  if [ "$masks" = "none" ] ; then
+    n_masks=0
+  else
+    n_masks=$(echo $masks | wc -w)
+  fi
   n_total=$(echo "scale=0; $n_movpar + $n_masks + 1" | bc) # add 1 for the mean regressor (!)
   comps=$(echo `seq 1 $n_total` | sed "s| |","|g")
 

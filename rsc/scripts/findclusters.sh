@@ -25,7 +25,7 @@ tmpfile="./findClusters.tmp"
 rm -f $logfile
 rm -f $tmpfile
 
-files=`find $dir -name "$pttrn" | grep -v SEED | $(dirname $0)/sort8 -V`
+files=`find $dir -name "$pttrn" | grep -v SEED | $(dirname $0)/bin/sort8 -V`
 
 echo "*** thres > $thres ***" | tee -a $logfile
 

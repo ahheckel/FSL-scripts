@@ -44,6 +44,9 @@ BOLD_DENOISE_USE_MOVPARS_NAT=$(echo $BOLD_DENOISE_USE_MOVPARS_NAT | row2col | so
 BOLD_DENOISE_USE_MOVPARS_MNI=$(echo $BOLD_DENOISE_USE_MOVPARS_MNI | row2col | sort -u)
 BOLD_MNI_RESAMPLE_FUNCDATAS=$(echo $BOLD_MNI_RESAMPLE_FUNCDATAS | row2col | sort -u)
 BOLD_MNI_RESAMPLE_RESOLUTIONS=$(echo $BOLD_MNI_RESAMPLE_RESOLUTIONS | row2col | sort -u)
+ALFF_DENOISE_MASKS_NAT=$(echo $ALFF_DENOISE_MASKS_NAT | row2col | sort -u)
+ALFF_DENOISE_USE_MOVPARS_NAT=$(echo $ALFF_DENOISE_USE_MOVPARS_NAT | row2col | sort -u)
+ALFF_RESAMPLING_RESOLUTIONS=$(echo $ALFF_RESAMPLING_RESOLUTIONS | row2col | sort -u)
 TBSS_INCLUDED_SUBJECTS=$(echo $TBSS_INCLUDED_SUBJECTS | row2col | sort -u)
 TBSS_INCLUDED_SESSIONS=$(echo $TBSS_INCLUDED_SESSIONS | row2col | sort -u)
 TBSS_THRES=$(echo $TBSS_THRES | row2col | sort -u)
@@ -389,6 +392,8 @@ cd $subjdir
 if [ $SCRATCH -eq 1 ]; then
   echo "----- BEGIN SCRATCH -----"
   
+
+
  
   exit  
 fi
@@ -2701,7 +2706,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
                   cmd_mask=""
                 fi
                 
-                echo "$scriptdir/feat_writeMNI.sh $in_file $T1_file $MNI_file $out_file $mni_res $affine $warp $interp $subj $sess ;\
+                echo "$scriptdir/feat_writeMNI.sh $in_file $MNI_file $out_file $mni_res $affine $warp $interp $subj $sess ;\
                 $cmd_mask" > $cmd_file
                 
                 fsl_sub -l $logdir -N $log_file -t $cmd_file 
@@ -3114,6 +3119,167 @@ fi
 waitIfBusy
 
 
+########################
+# ----- BEGIN ALFF -----
+########################
+
+if [ $ALFF_STG1 -eq 1 ] ; then
+  echo "----- BEGIN ALFF_STG1 -----"
+
+  sm=$ALFF_SMOOTHING_KERNEL
+  ALFF_DENOISE_MASKS_NAT=\'$ALFF_DENOISE_MASKS_NAT\'
+  ALFF_DENOISE_USE_MOVPARS_NAT=\'$ALFF_DENOISE_USE_MOVPARS_NAT\'
+  jid="1"
+  
+
+  # prepare & create masks for denoising
+  #cmd=$fldr/alff_fs_create_masks.cmd
+  #rm -f $cmd
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_func` ; do      
+      # declare vars
+      out=$fldr/$(subjsess)
+      uwdir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; featdir=$subjdir/$subj/$sess/$(echo "$ALFF_FEATDIR" | sed "s|??|$uwdir|g")
+
+      # check
+      if [ ! -d $featdir ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: directory '$featdir' not found - exiting..." ; exit ; fi
+      
+      # mkdir
+      fldr=$subjdir/$subj/$sess/alff
+      mkdir -p $fldr
+
+      # copy files
+      echo "ALFF : subj $subj , sess $sess : linking bold 4D from './bold/$(basename $featdir)'..."
+      #cp -v bold100.nii.gz $fldr/filtered_func_data.nii.gz
+      if [ ! -f $featdir/filtered_func_data.nii.gz ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: file '$featdir/filtered_func_data.nii.gz' not found - exiting..." ; exit ; fi
+      ln -sfv ../bold/$(basename $featdir)/filtered_func_data.nii.gz $fldr/filtered_func_data.nii.gz
+      cp -v $featdir/example_func.nii.gz $fldr
+    
+      echo "ALFF : subj $subj , sess $sess : copying denoise_masks from './bold/$(basename $featdir)/noise'..."
+      mkdir -p $fldr/noise/
+      cp -v $featdir/noise/EF_*.nii.gz $fldr/noise/
+      #echo "ALFF : subj $subj , sess $sess : creating denoise_masks..."
+      #sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
+      #echo "    $scriptdir/fs_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $fldr/example_func $fldr/noise $subj $sess" >> $cmd
+      #tail $cmd
+    done
+  done
+  #jid=`fsl_sub -l $logdir -N $(basename $cmd) -j $jid -t $cmd`
+
+  # denoise
+  cmd=$fldr/alff_denoise4D.cmd ; rm -f $cmd
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_func` ; do
+      # declare vars
+      uwdir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; featdir=$subjdir/$subj/$sess/$(echo "$ALFF_FEATDIR" | sed "s|??|$uwdir|g")
+      fldr=$subjdir/$subj/$sess/alff    
+      
+      # create cmd
+      echo "ALFF : subj $subj , sess $sess : denoising..."
+      mkdir -p $fldr/noise ; ln -sf ../filtered_func_data.nii.gz $fldr/noise/filtered_func_data.nii.gz
+      echo "    $scriptdir/denoise4D.sh $fldr/noise/filtered_func_data "$ALFF_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$ALFF_DENOISE_USE_MOVPARS_NAT" $fldr/noise/filtered_func_data_denoised $subj $sess" >> $cmd
+      #tail $cmd
+    done
+  done
+  echo "ALFF : executing cmd-list..."
+  cat -nb $cmd
+  jid=`fsl_sub -l $logdir -N $(basename $cmd) -j $jid -t $cmd`
+
+  # mask & smooth
+  cmd=$fldr/alff_feat_smooth.cmd ; rm -f $cmd
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_func` ; do
+      # declare vars
+      fldr=$subjdir/$subj/$sess/alff
+      sm=$ALFF_SMOOTHING_KERNEL ; hpf=$ALFF_HPF_CUTOFF
+      
+      # create cmd
+      echo "ALFF : subj $subj , sess $sess : smoothing..."
+      echo "    $scriptdir/feat_smooth.sh $fldr/noise/filtered_func_data_denoised $fldr/filtered_func_data_denoised $sm $hpf $TR_bold $subj $sess" >> $cmd
+      #tail $cmd
+    done
+  done
+  echo "ALFF : executing cmd-list..."
+  cat -nb $cmd
+  jid=`fsl_sub -l $logdir -N $(basename $cmd) -j $jid -t $cmd`
+
+fi
+
+
+waitIfBusy
+
+
+if [ $ALFF_STG2 -eq 1 ] ; then
+  echo "----- BEGIN ALFF_STG2 -----"
+  
+  # create (f)ALFF
+  cmd=$fldr/alff_createALFF.cmd ; rm -f $cmd
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_func` ; do
+      # declare vars
+      fldr=$subjdir/$subj/$sess/alff
+      out=$fldr/$(subjsess)
+      sm=$ALFF_SMOOTHING_KERNEL ; hpf=$ALFF_HPF_CUTOFF
+      
+      # create cmd
+      echo "ALFF : subj $subj , sess $sess : eroding brain-mask..." # this is perhaps not so good (!)
+      echo "ALFF : subj $subj , sess $sess : creating ALFF maps..."
+      echo "    fslmaths $fldr/example_func -bin $fldr/mask ; $scriptdir/createALFF.sh ${out} $fldr/filtered_func_data_denoised_s${sm}_hpf{$hpf} $fldr/mask $TR_bold $ALFF_BANDPASS" >> $cmd
+    done
+  done
+  echo "ALFF : subj $subj , sess $sess : executing cmd-list..."
+  cat -nb $cmd
+  jid=`fsl_sub -l $logdir -N $(basename $cmd) -t $cmd`
+fi
+
+
+waitIfBusy
+
+
+if [ $ALFF_STG3 -eq 1 ] ; then
+  echo "----- BEGIN ALFF_STG3 -----"
+  
+  # check
+  if [ ! -f $affine ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$affine' not found. Exiting..." ; exit ; fi
+  if [ ! -f $warp ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$warp' not found. Exiting..." ; exit ; fi
+  
+  # register to MNI space
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_func` ; do
+      # declare vars
+      fldr=$subjdir/$subj/$sess/alff
+      out=$fldr/$(subjsess)
+      uwdir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; featdir=$subjdir/$subj/$sess/$(echo "$ALFF_FEATDIR" | sed "s|??|$uwdir|g")
+      affine=$featdir/$ALFF_MNI_AFFINE
+      warp=$featdir/$ALFF_MNI_WARP
+      interp=trilinear            
+      MNI_file=$FSL_DIR/data/standard/MNI152_T1_2mm_brain.nii.gz
+      
+      # copy template
+      cp $MNI_file $fldr/standard.nii.gz
+      
+      # create cmd
+      for mni_res in $ALFF_RESAMPLING_RESOLUTIONS ; do
+        echo "ALFF : subj $subj , sess $sess : registering ALFF maps to MNI space at resolution '$mni_res'..."
+        cmd="    flirt -ref $fldr/standard -in $fldr/standard -out $fldr/standard_${mni_res} -applyisoxfm $mni_res"
+        echo $cmd ; $cmd
+        cmd="    applywarp --ref=$fldr/standard_${mni_res} --in=${out}_ALFF_Z.nii.gz --out=${out}_ALFF_Z_mni${mni_res} --warp=${warp} --premat=${affine} --interp=${interp}"
+        echo $cmd ; $cmd
+        cmd="    applywarp --ref=$fldr/standard_${mni_res} --in=${out}_fALFF_Z.nii.gz --out=${out}_fALFF_Z_mni${mni_res} --warp=${warp} --premat=${affine} --interp=${interp}"
+        echo $cmd ; $cmd
+      done    
+    done
+  done  
+fi
+
+######################
+# ----- END ALFF -----
+######################
+
+
+waitIfBusy
+
+
 #####################################
 #####################################
 # ----- BEGIN 2nLevel Analyses -----#
@@ -3362,6 +3528,29 @@ fi
 #####################
 # ----- END VBM -----
 #####################
+
+
+waitIfBusy
+
+
+###############################
+# ----- BEGIN ALFF_2NDLEV -----
+###############################
+
+if [ $ALFF_2NDLEV_STG1 -eq 1 ] ; then
+  echo "----- BEGIN ALFF_2NDLEV_STG1 -----"
+  echo "ALFF_2NDLEV : copying GLM designs..."
+
+  echo "ALFF_2NDLEV : copying GLM designs to $i"
+  cat $glmdir_alff/designs | xargs -I{} cp -r $glmdir_alff/{} $i; cp $glmdir_alff/designs $i
+  echo "ALFF_2NDLEV : starting permutations..."
+  _randomise $i alff "GM_mod_merg_smoothed" "-m ../GM_mask -d design.mat -t design.con -e design.grp -T -V -D -x -n $ALFF_RANDOMISE_NPERM" 0 GM_mask.nii.gz $RANDOMISE_PARALLEL
+  
+fi
+
+#############################
+# ----- END ALFF_2NDLEV -----
+#############################
 
 
 waitIfBusy

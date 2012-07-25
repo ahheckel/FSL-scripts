@@ -20,6 +20,7 @@ output=$(remove_ext "$3")
 subj="$4"  # optional
 sess="$5"  # optional
 
+echo "`basename $0` : subj $subj , sess $sess : removing nuisance regressors..."
 
 n_cols=$(awk '{print NF}' $matrix | sort -nu | head -n 1)
 comps=$(echo `seq 1 $n_cols` | sed "s| |","|g")

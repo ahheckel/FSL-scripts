@@ -7,7 +7,8 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input4D> <output4D> <mc mat-dir> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> <func_to_T1 mat> <T1_to_MNI warp>"
+    echo "Usage: `basename $0` <input4D> <output4D> <mc mat-dir> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> <func_to_T1 mat> <T1_to_MNI warp> <interp>"
+    echo "Example: `basename $0` bold mni_bold ./mc/prefiltered_func_data_mcf.mat/ ./unwarp/EF_UD_shift.nii.gz y ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz spline"
     echo ""
     exit 1
 }
@@ -21,6 +22,8 @@ shiftmap="$4"
 uwdir="$5"
 f2t1_mat="$6"
 f2mni_warp="$7"
+interp="$8"
+if [ x"$interp" = "x" ] ; then interp="trilinear" ; fi
 
 echo "`basename $0` : write func -> standard space w/o intermediary write-outs..."
 
@@ -52,7 +55,7 @@ for file in $full_list ; do
   
   echo "processing $file"
  
-  cmd="applywarp --ref=${FSL_DIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --in=${file} --warp=${output}_WARP --premat=${mcdir}/MAT_${i} --rel --out=${file} --interp=spline"
+  cmd="applywarp --ref=${FSL_DIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --in=${file} --warp=${output}_WARP --premat=${mcdir}/MAT_${i} --rel --out=${file} --interp=${interp}"
   echo $cmd
   $cmd
   

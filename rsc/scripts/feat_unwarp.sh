@@ -4,12 +4,12 @@ set -e
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
-wdir=`pwd`/.unwarp$$
-trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
+#wdir=`pwd`/.unwarp$$
+#trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
     
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input func> <fmap> <fmap-magn brain> <uw-dir x/y/z/x-/y-/z-> <TE> <ESP> <out>"
+    echo "Usage: `basename $0` <input func> <fmap> <fmap-magn brain> <uw-dir x/y/z/x-/y-/z-> <TE> <ESP> <outdir>"
     echo ""
     exit 1
 }
@@ -25,6 +25,7 @@ dwell=$6 #0.23
 out="$7"
 
 signallossthresh=10
+wdir=$out ; mkdir -p $wdir
 sdir=`pwd`
 
 # FM = space of fieldmap
@@ -37,7 +38,7 @@ echo "`basename $0`: Total original volumes = $total_volumes"
 
 mkdir -p $wdir    
   
-  echo "`basename $0`: copy in unwarp input files into '$wdir' subdir"
+  echo "`basename $0`: copy in unwarp input files into '$wdir' subdir."
   #fslmaths ../example_func EF_D_example_func
   fslroi $funcdata $wdir/example_func $(echo "$total_volumes / 2" | bc) 1
   fslmaths $wdir/example_func $wdir/EF_D_example_func -odt float
@@ -108,8 +109,10 @@ cd $wdir
 cd $sdir
     
 echo "`basename $0`: save results"
-fslmerge -t ${out}_check $wdir/EF_UD_fmap_mag_brain $wdir/example_func $wdir/EF_UD_fmap_mag_brain $wdir/example_func_orig_distorted $wdir/example_func
-immv $wdir/example_func ${out}
-immv $wdir/EF_UD_shift ${out}_shift
-immv $wdir/EF_UD_warp ${out}_warp
-immv $wdir/EF_UD_fmap_sigloss ${out}_sigloss
+fslmerge -t $wdir/check $wdir/EF_UD_fmap_mag_brain $wdir/example_func $wdir/EF_UD_fmap_mag_brain $wdir/example_func_orig_distorted $wdir/example_func
+#immv $wdir/example_func ${out}
+#immv $wdir/EF_UD_shift ${out}_shift
+#immv $wdir/EF_UD_warp ${out}_warp
+#immv $wdir/EF_UD_fmap_sigloss ${out}_sigloss
+
+echo "`basename $0`: done."

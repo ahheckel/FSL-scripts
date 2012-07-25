@@ -7,35 +7,27 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <func-input> <T1-native> <MNI-template> <output> <resolution> <affine: input->T1> <warp: T1->MNI> <interp> <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` <func-input> <MNI-template> <output> <resolution> <affine: input->T1> <warp: T1->MNI> <interp> <subj_idx> <sess_idx>"
     echo ""
     exit 1
 }
 
 
-[ "$8" = "" ] && Usage
+[ "$7" = "" ] && Usage
 input=$(remove_ext "$1")
-T1=$(remove_ext "$2")
-MNI=$(remove_ext "$3")
-output=$(remove_ext "$4")
-mni_res=$5
-affine=$6
-warp=$7
-interp="$8"
-subj="$9"  # optional
-sess="${10}"  # optional
+MNI=$(remove_ext "$2")
+output=$(remove_ext "$3")
+mni_res=$4
+affine=$5
+warp=$6
+interp="$7"
+subj="$8"  # optional
+sess="${9}"  # optional
 
 outdir=$(dirname $output)
 _mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'            
 
 echo "`basename $0`: subj $subj , sess $sess : output directory: '$outdir'"
-
-# commented out so as to make parallelisation safer
-#echo "`basename $0`: subj $subj , sess $sess : resample MNI-template to a resolution of $mni_res ('$MNI' -> '$outdir/$(basename $MNI)_${_mni_res}')..." 
-#flirt -ref $MNI -in $MNI -out $outdir/$(basename $MNI)_${_mni_res} -applyisoxfm $mni_res
-
-#echo "`basename $0`: subj $subj , sess $sess : write T1->MNI ('$T1' -> '$outdir/$(basename $T1)${_mni_res}')..." 
-#applywarp --ref=$outdir/$(basename $MNI)_${_mni_res} --in=${T1} --out=$outdir/$(basename $T1)_${_mni_res} --warp=${warp}  --interp=sinc
 
 echo "`basename $0`: subj $subj , sess $sess : write Input->MNI ('$input' -> '$output')..." 
 imrm ${output}_tmp_????.*
