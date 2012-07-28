@@ -63,7 +63,10 @@ for file in $full_list ; do
 done
 echo "`basename $0`: merge outputs...."
 fslmerge -t $output $full_list
+outdir=$(dirname $output)
+fslroi $output $outdir/example_func $mid 1
 imrm $full_list
+imrm ${output}_example_func
 imrm ${output}_WARP1
 imrm ${output}_WARP2
 imrm ${output}_WARP
