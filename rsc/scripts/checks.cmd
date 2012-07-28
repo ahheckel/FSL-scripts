@@ -93,7 +93,7 @@ file=filtered_func_data_longt_mni2.nii.gz ; subdir=bold/SESSA_uw+y_st0_s0_hpfInf
 mkdir -p $(dirname $out)
 files=$(find ./subj -name $file | grep /$subdir/reg_standard/ | sort)
 c=1; for i in $files ; do echo "$(zeropad $c 3) $i" ; c=$[$c+1] ; done ; c=0 
-extract_merge.sh $out 0 "$files"
+extractmerge.sh $out 0 "$files"
 cmd="fslview ${out} $FSL_DIR/data/standard/avg152T1_csf_bin.nii.gz -l "Blue" -t 0.5 $FSL_DIR/data/standard/avg152T1_white_bin.nii.gz -l "Yellow" -t 0.5" 
 echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
 
@@ -114,7 +114,7 @@ c=1 ; for i in $subj ; do
       f_WM=$f_WM" "$i/$j/$subdir/reg_standard/noise/MNI_WM
       f_CSF=$f_CSF" "$i/$j/$subdir/reg_standard/noise/MNI_CSF
       f_WB=$f_WB" "$i/$j/$subdir/reg_standard/noise/EF_WB
-      extract_merge.sh ${out}tmp_$(zeropad $c 4) 0 "$i/$j/$subdir/reg_standard/$file"
+      extractmerge.sh ${out}tmp_$(zeropad $c 4) 0 "$i/$j/$subdir/reg_standard/$file"
       f_bold=$f_bold" "${out}tmp_$(zeropad $c 4)
       c=$[$c+1]
     else
@@ -204,7 +204,7 @@ c=1 ; for i in $subj ; do
   for j in $sess ; do 
     if [ -f $i/$j/$file -a -f $i/$j/$file2 ] ; then
       echo "$(zeropad $c 3) $i $j : found."
-      extract_merge.sh ${out}tmp_$(zeropad $c 4) 0 "$i/$j/$file"
+      extractmerge.sh ${out}tmp_$(zeropad $c 4) 0 "$i/$j/$file"
       files=$files" "${out}tmp_$(zeropad $c 4)
       #files=$files" "$i/$j/$file
       files2=$files2" "$i/$j/$file2
@@ -262,7 +262,7 @@ c=1 ; for i in $subj ; do
   for j in $sess ; do 
     if [ -f $i/$j/$file -a -f $i/$j/$file2 ] ; then
       echo "$(zeropad $c 3) $i $j : found."
-      extract_merge.sh ${out}tmp_$(zeropad $c 4) 0 "$i/$j/$file"
+      extractmerge.sh ${out}tmp_$(zeropad $c 4) 0 "$i/$j/$file"
       files=$files" "${out}tmp_$(zeropad $c 4)
       #files=$files" "$i/$j/$file
       files2=$files2" "$i/$j/$file2

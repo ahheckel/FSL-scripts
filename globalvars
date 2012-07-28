@@ -15,6 +15,7 @@ dregdir=$grpdir/dualreg
 glmdir=$grpdir/glm
 glmdir_tbss=$glmdir/tbss
 glmdir_vbm=$glmdir/vbm
+glmdir_alff=$glmdir/alff
 glmdir_dr=$glmdir/dualreg
 logdir=$studydir/logs 
 tmpdir=$studydir/.tmp

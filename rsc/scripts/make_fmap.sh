@@ -7,7 +7,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <magn> <deltaphase> <deltaTEphase> <fi-thresh> <output> <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` <magn img> <deltaphase img> <deltaTEphase(s)> <fi-thresh> <output> <subj_idx> <sess_idx>"
     echo ""
     exit 1
 }
@@ -21,7 +21,7 @@ out=`remove_ext "$5"`
 subj="$6"  # optional
 sess="$7"  # optional
 
-outdir=`dirname $out`
+outdir=`dirname $out` ; mkdir -p $outdir
 PI=$(echo "scale=10; 4*a(1)" | bc -l) # define pi
 
 # FIELDMAP prepare

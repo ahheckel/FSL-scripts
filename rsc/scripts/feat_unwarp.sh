@@ -14,7 +14,7 @@ Usage() {
     exit 1
 }
 
-[ "$6" = "" ] && Usage    
+[ "$7" = "" ] && Usage    
   
 funcdata="$1"
 fmap="$2"
@@ -100,16 +100,24 @@ cd $wdir
   
   echo "`basename $0`: apply warp to EF_D_example_func and save unwarp-shiftmap then convert to unwarp-warpfield"
   fugue --loadfmap=EF_UD_fmap --dwell=$dwell --mask=EF_UD_fmap_mag_brain_mask -i EF_D_example_func -u EF_UD_example_func --unwarpdir=$unwarp_dir --saveshift=EF_UD_shift
-  convertwarp -s EF_UD_shift -o EF_UD_warp -r EF_D_example_func --shiftdir=$unwarp_dir
+  #fugue --loadfmap=EF_UD_fmap --dwell=$dwell --mask=EF_UD_fmap_mag_brain_mask -i EF_D_example_func -u EF_UD_example_func --unwarpdir=y --saveshift=EF_UD_shift+ # added by HKL
+  #fugue --loadfmap=EF_UD_fmap --dwell=$dwell --mask=EF_UD_fmap_mag_brain_mask -i EF_D_example_func -u EF_UD_example_func --unwarpdir=y- --saveshift=EF_UD_shift- # added by HKL
+  convertwarp -s EF_UD_shift -o EF_UD_warp -r EF_D_example_func --shiftdir=$unwarp_dir  
+  convertwarp -s EF_UD_shift+ -o _warp_+y -r EF_D_example_func --shiftdir=y # added by HKL
+  convertwarp -s EF_UD_shift- -o _warp_-y -r EF_D_example_func --shiftdir=y- # added by HKL
   
   # apply warping to example_func
   immv example_func example_func_orig_distorted
   applywarp -i example_func_orig_distorted -o example_func -w EF_UD_warp -r example_func_orig_distorted --abs
+  applywarp -i example_func_orig_distorted -o example_func_uw+y -w _warp_+y -r example_func_orig_distorted --abs # added by HKL
+  applywarp -i example_func_orig_distorted -o example_func_uw-y -w _warp_-y -r example_func_orig_distorted --abs # added by HKL
+ 
  
 cd $sdir
     
-echo "`basename $0`: save results"
-fslmerge -t $wdir/check $wdir/EF_UD_fmap_mag_brain $wdir/example_func $wdir/EF_UD_fmap_mag_brain $wdir/example_func_orig_distorted $wdir/example_func
+#echo "`basename $0`: save results"
+#fslmerge -t $wdir/check $wdir/EF_UD_fmap_mag_brain $wdir/example_func $wdir/EF_UD_fmap_mag_brain $wdir/example_func_orig_distorted $wdir/example_func
+imrm $wdir/grot
 #immv $wdir/example_func ${out}
 #immv $wdir/EF_UD_shift ${out}_shift
 #immv $wdir/EF_UD_warp ${out}_warp
