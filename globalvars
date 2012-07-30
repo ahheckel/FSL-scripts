@@ -54,7 +54,7 @@ RECON_STG1=0               # RECON-ALL prepare (copy and convert T1 nifti)
 RECON_STG2=0               # RECON-ALL execute cross-sectional stream
 RECON_STG3=0               # RECON-ALL execute longtitudinal stream's template creation
 RECON_STG4=0               # RECON-ALL execute longtitudinal processing for each timepoint
-RECON_STG5=0               # RECON-ALL register FS's longtitudinal template to FSL's MNI152 template using fnirt
+RECON_STG5=1               # RECON-ALL register FS's longtitudinal template to FSL's MNI152 template using fnirt
 
 FIELDMAP_STG1=0            # FIELDMAP prepare
 FIELDMAP_STG2=0            # FIELDMAP create

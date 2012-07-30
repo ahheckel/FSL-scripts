@@ -517,15 +517,26 @@ waitIfBusy
 if [ $RECON_STG5 -eq 1 ] ; then
   echo "----- BEGIN RECON_STG5 -----"
 
-  # register Freesurfer's longt. template to FSL'S MNI152
+  # register Freesurfer's longt. template (if applicable) or brain.mgz to FSL'S MNI152
   for subj in `cat subjects` ; do
-    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj : single-session design ! Skipping..." ; continue ; fi
-        
-    # display info
-    echo "RECON : subj $subj : registering Freesurfer's longtitudinal template to FSL's MNI152 template..."
-    
+            
     # check
-    if [ ! -f $FS_subjdir/$subj/mri/norm_template.mgz ] ; then "RECON : subj $subj : longtitudinal template not found ! Skipping..." ; continue ; fi
+    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then 
+      echo "RECON : subj $subj : single-session design !"
+      template=$FS_subjdir/$subj/mri/brain.mgz
+      if [ -f $template ] ; then
+        echo "RECON : subj $subj : registering Freesurfer's brain.mgz to FSL's MNI152 template..."
+      else
+        echo "RECON : subj $subj : ERROR : '$template' not found ! Exiting..." ; exit 1
+      fi
+    else
+      template=$FS_subjdir/$subj/mri/norm_template.mgz
+      if [ -f $template ] ; then
+        echo "RECON : subj $subj : registering Freesurfer's longtitudinal template (norm_template.mgz) to FSL's MNI152 template..."
+      else
+        echo "RECON : subj $subj : ERROR : longtitudinal template not found ! Exiting..." ; exit 1
+      fi
+    fi
     
     # prepare...
     echo "RECON : subj $subj : preparing..."
@@ -539,7 +550,7 @@ if [ $RECON_STG5 -eq 1 ] ; then
     
     # convert to FSL-format
     $scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/T1.mgz $FS_fldr/longt_head.nii.gz 0
-    $scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/norm_template.mgz $FS_fldr/longt_brain.nii.gz 0 
+    $scriptdir/fs_convert.sh $template $FS_fldr/longt_brain.nii.gz 0 
           
     #MNI_head_LIA=$FS_fldr/standard_head_LIA
     #MNI_brain_LIA=$FS_fldr/standard_brain_LIA
@@ -2550,7 +2561,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
         echo "BOLD : subj $subj , sess $sess : performing boundary-based registration of func -> FS's longtitudinal anatomical template..."
         
         # single session design ?
-        if [ $sess = "." ] ; then echo "BOLD : subj $subj , sess $sess : single-session design -> skipping..." ; continue ; fi
+        if [ $sess = "." -a $BOLD_USE_FS_LONGT_TEMPLATE -eq 1 ] ; then echo "BOLD : subj $subj , sess $sess : single-session design -> skipping..." ; continue ; fi
         
         # retrieving corresponding session with structural scan
         sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`              
