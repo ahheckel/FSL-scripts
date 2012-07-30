@@ -3180,6 +3180,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       echo "ALFF : subj $subj , sess $sess : applying motion-correction and unwarp shiftmap in ./bold/$(basename $featdir)'..."
       echo "ALFF : subj $subj , sess $sess : despiking (using AFNI's 3dDespike)..."
       echo "ALFF : subj $subj , sess $sess : detrending (using AFNI's 3dTcat)..."
+      #echo "ALFF : subj $subj , sess $sess : despiking (using FSL's fslmaths -bptp)..."
       #echo "ALFF : subj $subj , sess $sess : applying slicetiming correction..."
       
       # with afni despike/detrend        
