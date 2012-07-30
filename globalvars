@@ -11,6 +11,7 @@ subjdir=$studydir/subj
 grpdir=$studydir/grp
 tbssdir=$grpdir/tbss
 vbmdir=$grpdir/vbm
+alffdir=$grpdir/alff
 dregdir=$grpdir/dualreg
 glmdir=$grpdir/glm
 glmdir_tbss=$glmdir/tbss
@@ -150,7 +151,7 @@ FIRSTLEV_SESSIONS_STRUC="a c e"
 
 # SECOND LEVEL
 SECONDLEV_SUBJECTS="01 02 03 04 05 06 07 08 09 10"
-SECONDLEV_SESSIONS_FUNC="a"                
+SECONDLEV_SESSIONS_FUNC="a b c d e"                
 SECONDLEV_SESSIONS_STRUC="a c e"     
 
 #-----------------------------------------------------------------------
@@ -283,9 +284,10 @@ VBM_RANDOMISE_NPERM=500                           # number of permutations
 VBM_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked (!)
 
 #ALFF
-ALFF_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included in the VBM analysis
-ALFF_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_STRUC   # subjects to be included in the VBM analysis
+ALFF_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included
+ALFF_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC    # subjects to be included
 ALFF_OUTDIRNAME="alff_01"                          # name of output directory
+ALFF_RESOLUTIONS="2 4"                             # cycle through var. resolutions
 ALFF_RANDOMISE_NPERM=500                           # number of permutations
 ALFF_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked (!)
 
@@ -331,5 +333,5 @@ BETSTRUC0_INFO="0.30 na na na"  # default bet values for t1 structurals (CoG na)
 BETSTRUC1_INFO="0.10 na na na"  # default bet values for t1 structurals (CoG na) - final skullstrip (SSM)
 DWIUNWARP_INFO="+y"             # default direction values for unwarping DWIs (default: -y)
 BOLDUNWARP_INFO="+y"            # default direction values for unwarping BOLDs (default: -y)
-CHECK_CONSISTENCY_DIFFS=1       # checks number of bvals/bvecs entries at startup
+CHECK_CONSISTENCY_DIFFS=0       # checks number of bvals/bvecs entries at startup
 RANDOMISE_PARALLEL=1            # use randomise_parallel for clusters

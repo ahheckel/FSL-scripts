@@ -11,10 +11,12 @@ subjdir=$studydir/subj
 grpdir=$studydir/grp
 tbssdir=$grpdir/tbss
 vbmdir=$grpdir/vbm
+alffdir=$grpdir/alff
 dregdir=$grpdir/dualreg
 glmdir=$grpdir/glm
 glmdir_tbss=$glmdir/tbss
 glmdir_vbm=$glmdir/vbm
+glmdir_alff=$glmdir/alff
 glmdir_dr=$glmdir/dualreg
 logdir=$studydir/logs 
 tmpdir=$studydir/.tmp
@@ -89,6 +91,10 @@ BOLD_STG3=1                # BOLD denoising (needs Freesurfer recons)
 BOLD_STG4=1                # BOLD write MNI-registered volumes
 BOLD_STG5=1                # BOLD denoise MNI-registered volumes
 
+ALFF_STG1=0
+ALFF_STG2=0
+ALFF_STG3=0
+
 ########################################################################
 # enable second level analyses #########################################
 ########################################################################
@@ -110,6 +116,8 @@ MELODIC_CMD_STG1=1         # MELODIC use melodic-command line tool (optional)
 
 DUALREG_STG1=1             # DUALREG prepare for randomie
 DUALREG_STG2=1             # DUALREG randomise
+
+ALFF_2NDLEV_STG1=0
 
 ########################################################################
 # plots ################################################################
@@ -218,14 +226,26 @@ BOLD_DENOISE_MASKS_NAT="EF_CSF EF_WB EF_WM"                   # masks used for d
 BOLD_DENOISE_USE_MOVPARS_NAT="1 2 4"                        # 0: none - 1: orig - 2: squared - 3: abs - 4: 1st deriv. with leading zero - 5: 1st deriv. with trailing zero ; CAVE: cannot take more than 4 motion related modes (4*6=24 regressors -> more lead to fsl_regfilt error !)
 BOLD_DENOISE_SMOOTHING_KRNLS="2 4"                            # smooth denoised data
 BOLD_DENOISE_HPF_CUTOFFS=""                                   # high-pass filer denoised and smoothed data, but it may be better to do hpf before not after denoising... (?) (!)
-BOLD_REGISTER_TO_MNI=2                                        # enable MNI registration
-BOLD_USE_FS_LONGT_TEMPLATE=1                                  # using FS's mid-long template as unbiased registration basis for multisession designs (0: off / 1: bold->t1->long.template / 2: bold->long.template)
+BOLD_REGISTER_TO_MNI=1                                        # enable MNI registration
+BOLD_USE_FS_LONGT_TEMPLATE=2                                  # using FS's mid-long template as unbiased registration basis for multisession designs (0: off / 1: bold->t1->long.template / 2: bold->long.template)
 BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data      filtered_func_data_denoised_s2      filtered_func_data_denoised_s4"              # cycle through 4Ds that are to be resampled in MNI space
 BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                           # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
 BOLD_MNI_RESAMPLE_INTERP="trilinear"                          # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
 BOLD_DENOISE_MASKS_MNI="MNI_CSF MNI_WB MNI_WM"                # masks used for denoising in MNI space
-BOLD_DENOISE_USE_MOVPARS_MNI="1 2 4"                        # see above
+BOLD_DENOISE_USE_MOVPARS_MNI="1 2 4"                          # see above
 BOLD_FEAT_NO_BROWSER=1                                        # don't open browser window
+
+# ALFF
+#ALFF_DENOISE_MASKS_NAT="EF_CSF EF_WB EF_WM"
+ALFF_DENOISE_MASKS_NAT="none"
+ALFF_DENOISE_USE_MOVPARS_NAT="1"
+ALFF_SMOOTHING_KERNEL=6
+ALFF_HPF_CUTOFF=100
+ALFF_BANDPASS="0.01,0.1"
+ALFF_FEATDIR="bold/preprocBOLD_uw??_st0_s0_hpfInf.feat"
+ALFF_MNI_AFFINE="reg_longt/example_func2longt_brain.mat"
+ALFF_MNI_WARP="reg_longt/longt_head2longt_standard_warp.nii.gz"
+ALFF_RESAMPLING_RESOLUTIONS="2 4"
 
 #-----------------------------------------------------------------------
 # second level analyses ------------------------------------------------
@@ -261,6 +281,14 @@ VBM_SMOOTHING_KRNL="2 3 4"                        # cycle through some smoothing
 VBM_Z_TRANSFORM=1                                 # z-transform grey matter 4D
 VBM_RANDOMISE_NPERM=5000                          # number of permutations (!)
 VBM_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked (!)
+
+#ALFF
+ALFF_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included in the VBM analysis
+ALFF_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_STRUC   # subjects to be included in the VBM analysis
+ALFF_OUTDIRNAME="alff_01"                          # name of output directory
+ALFF_RESOLUTIONS="2 4"                             # cycle through var. resolutions
+ALFF_RANDOMISE_NPERM=500                           # number of permutations
+ALFF_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked (!)
 
 # MELODIC GUI
 MELODIC_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS                  # subjects to be included in the ICA analysis

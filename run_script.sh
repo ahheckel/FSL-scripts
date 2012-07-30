@@ -343,6 +343,7 @@ for subj in `cat $subjdir/subjects` ; do
     done
   done
 done
+echo "...done."
 
 # check bvals, bvecs and diff. files for consistent number of entries
 if [ $CHECK_CONSISTENCY_DIFFS = 1 ] ; then
@@ -3130,11 +3131,8 @@ if [ $ALFF_STG1 -eq 1 ] ; then
   ALFF_DENOISE_MASKS_NAT=\'$ALFF_DENOISE_MASKS_NAT\'
   ALFF_DENOISE_USE_MOVPARS_NAT=\'$ALFF_DENOISE_USE_MOVPARS_NAT\'
   jid="1"
-  
 
   # prepare
-  cmd=$fldr/alff_prep.cmd
-  rm -f $cmd
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_func` ; do      
       # declare vars
@@ -3147,34 +3145,18 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       # mkdir
       fldr=$subjdir/$subj/$sess/alff
       mkdir -p $fldr
+      
+      # define cmd
+      cmd=$fldr/alff_prepare.cmd ; rm -f $cmd
             
       ## copy files
-      echo "ALFF : subj $subj , sess $sess : copying link to bold..."
-      cp -v $(dirname $featdir)/bold.nii $fldr/
+      echo "ALFF : subj $subj , sess $sess : copying link to bold4D..."
+      cp -Pv $(dirname $featdir)/bold.nii $fldr/
       
       # apply motion correction and unwarping
       if [ $uwdir = -y ] ; then  _uwdir=y- ; fi
       if [ $uwdir = +y ] ; then  _uwdir=y ; fi
-      echo "ALFF : subj $subj , sess $sess : applying motion-correction and unwarp shiftmap in ./bold/$(basename $featdir)'..."
-      #$scriptdir/apply_mc+unwarp.sh $(dirname $featdir)/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir
 
-      ##cp -v bold100.nii.gz $fldr/filtered_func_data.nii.gz
-      #if [ ! -f $featdir/filtered_func_data.nii.gz ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: file '$featdir/filtered_func_data.nii.gz' not found - exiting..." ; exit ; fi
-      #ln -sfv ../bold/$(basename $featdir)/filtered_func_data.nii.gz $fldr/filtered_func_data.nii.gz
-      #cp -v $featdir/example_func.nii.gz $fldr
-      
-      # despike
-      rm -f $fldr/_tmp.nii.gz $fldr/__tmp.nii.gz
-      echo "ALFF : subj $subj , sess $sess : despiking (using AFNI's 3dDespike)..."
-      #$scriptdir/bin/3dDespike -prefix _tmp.nii.gz $fldr/filtered_func_data.nii.gz
-      
-      # detrend
-      echo "ALFF : subj $subj , sess $sess : detrending (using AFNI's 3dTcat)..."
-      #$scriptdir/bin/3dTcat -rlt+ -prefix __tmp.nii.gz $fldr/_tmp.nii.gz
-      
-      # cleanup
-      #rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ; mv $fldr/__tmp.nii.gz $fldr/pp_filtered_func_data.nii.gz
-      
       echo "ALFF : subj $subj , sess $sess : copying denoise_masks from './bold/$(basename $featdir)/noise'..."
       mkdir -p $fldr/noise/
       cp -v $featdir/noise/EF_*.nii.gz $fldr/noise/
@@ -3183,55 +3165,83 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       #echo "    $scriptdir/fs_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $fldr/example_func $fldr/noise $subj $sess" >> $cmd
       #tail $cmd
       
-      # create cmd
-      cmd="$scriptdir/apply_mc+unwarp.sh $(dirname $featdir)/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir;\
-      $scriptdir/bin/3dDespike -prefix _tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
-      $scriptdir/bin/3dTcat -rlt+ -prefix __tmp.nii.gz $fldr/_tmp.nii.gz ; \
-      rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ; mv $fldr/__tmp.nii.gz $fldr/filtered_func_data.nii.gz" >> $cmd
+      #create cmd      
+      echo "ALFF : subj $subj , sess $sess : applying motion-correction and unwarp shiftmap in ./bold/$(basename $featdir)'..."
+      echo "ALFF : subj $subj , sess $sess : despiking (using AFNI's 3dDespike)..."
+      echo "ALFF : subj $subj , sess $sess : detrending (using AFNI's 3dTcat)..."
+      #echo "ALFF : subj $subj , sess $sess : applying slicetiming correction..."
       
+      # with afni despike/detrend        
+      #3dTstat -mean -prefix $fldr/_m.nii.gz $fldr/_tmp.nii.gz ; 3dDetrend -polort 2 -prefix $fldr/_dm.nii.gz $fldr/_m.nii.gz ; 3dcalc -a $fldr/_m.nii.gz  -b $fldr/_dm.nii.gz  -expr 'a+b' -prefix $fldr/__tmp.nii.gz ; rm -f $fldr/_m.nii.gz $fldr/_dm.nii.gz ;
+      echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir ;\
+      3dDespike -prefix $fldr/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
+      3dTcat -rlt+ -prefix $fldr/__tmp.nii.gz $fldr/_tmp.nii.gz ; \
+      rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ;\
+      mv $fldr/__tmp.nii.gz $fldr/filtered_func_data.nii.gz" > $cmd
+      
+      ## with slicetiming correction      
+      #echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir ;\
+      #$scriptdir/getsliceorderSIEMENS_interleaved.sh $fldr/filtered_func_data.nii.gz $fldr/sliceorder.txt ; slicetimer -i $fldr/filtered_func_data.nii.gz --out=$fldr/_tmp.nii.gz -r $TR_bold --ocustom=$fldr/sliceorder.txt ;\
+      #$scriptdir/feat_hpf.sh $fldr/_tmp.nii.gz $fldr/__tmp.nii.gz $ALFF_HPF_CUTOFF $TR_bold $subj $sess ;\
+      #rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ;\
+      #mv $fldr/__tmp.nii.gz $fldr/filtered_func_data.nii.gz" > $cmd
+      
+      ## w/o slicetiming correction      
+      #echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir ;\
+      #$scriptdir/feat_hpf.sh $fldr/filtered_func_data.nii.gz $fldr/__tmp.nii.gz $ALFF_HPF_CUTOFF $TR_bold $subj $sess ;\
+      #rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ;\
+      #mv $fldr/__tmp.nii.gz $fldr/filtered_func_data.nii.gz" > $cmd
+      
+      echo "ALFF : execute cmd:"
+      cat -nb $cmd        
+      jid=`fsl_sub -l $logdir -N $(basename $cmd) -t $cmd`
     done
   done
-  echo "ALFF : executing cmd-list..."
-  cat -nb $cmd
-  jid=`fsl_sub -l $logdir -N $(basename $cmd) -j $jid -t $cmd`
+
+  waitIfBusy
 
   # denoise
-  cmd=$fldr/alff_denoise.cmd ; rm -f $cmd
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_func` ; do
       # declare vars
       uwdir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; featdir=$subjdir/$subj/$sess/$(echo "$ALFF_FEATDIR" | sed "s|??|$uwdir|g")
-      fldr=$subjdir/$subj/$sess/alff    
+      fldr=$subjdir/$subj/$sess/alff
+      
+      cmd=$fldr/alff_denoise.cmd ; rm -f $cmd
       
       # create cmd
       echo "ALFF : subj $subj , sess $sess : denoising..."
       mkdir -p $fldr/noise ; ln -sf ../filtered_func_data.nii.gz $fldr/noise/filtered_func_data.nii.gz
-      echo "    $scriptdir/denoise4D.sh $fldr/noise/filtered_func_data "$ALFF_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$ALFF_DENOISE_USE_MOVPARS_NAT" $fldr/noise/filtered_func_data_denoised $subj $sess" >> $cmd
+      echo "    $scriptdir/denoise4D.sh $fldr/noise/filtered_func_data "$ALFF_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$ALFF_DENOISE_USE_MOVPARS_NAT" $fldr/noise/filtered_func_data_denoised $subj $sess" > $cmd
       #tail $cmd
+      
+      echo "ALFF : execute cmd:"
+      cat -nb $cmd        
+      jid=`fsl_sub -l $logdir -N $(basename $cmd) -t $cmd`      
     done
   done
-  echo "ALFF : executing cmd-list..."
-  cat -nb $cmd
-  jid=`fsl_sub -l $logdir -N $(basename $cmd) -j $jid -t $cmd`
 
+  waitIfBusy
+  
   # mask & smooth
-  cmd=$fldr/alff_smooth.cmd ; rm -f $cmd
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_func` ; do
       # declare vars
       fldr=$subjdir/$subj/$sess/alff
       sm=$ALFF_SMOOTHING_KERNEL ; #hpf=$ALFF_HPF_CUTOFF
       
+      cmd=$fldr/alff_smooth.cmd ; rm -f $cmd
+      
       # create cmd
       echo "ALFF : subj $subj , sess $sess : smoothing..."
-      echo "    $scriptdir/feat_smooth.sh $fldr/noise/filtered_func_data_denoised $fldr/filtered_func_data_denoised $sm none $subj $sess" >> $cmd
+      echo "    $scriptdir/feat_smooth.sh $fldr/noise/filtered_func_data_denoised $fldr/filtered_func_data_denoised $sm none $subj $sess" > $cmd
       #tail $cmd
+      
+      echo "ALFF : execute cmd:"
+      cat -nb $cmd        
+      jid=`fsl_sub -l $logdir -N $(basename $cmd) -t $cmd`
     done
   done
-  echo "ALFF : executing cmd-list..."
-  cat -nb $cmd
-  jid=`fsl_sub -l $logdir -N $(basename $cmd) -j $jid -t $cmd`
-
 fi
 
 
@@ -3242,7 +3252,6 @@ if [ $ALFF_STG2 -eq 1 ] ; then
   echo "----- BEGIN ALFF_STG2 -----"
   
   # create (f)ALFF
-  cmd=$fldr/alff_createALFF.cmd ; rm -f $cmd
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_func` ; do
       # declare vars
@@ -3250,16 +3259,19 @@ if [ $ALFF_STG2 -eq 1 ] ; then
       out=$fldr/$(subjsess)
       sm=$ALFF_SMOOTHING_KERNEL ; #hpf=$ALFF_HPF_CUTOFF
       
+      cmd=$fldr/alff_createALFF.cmd ; rm -f $cmd
+      
       # create cmd
-      echo "ALFF : subj $subj , sess $sess : eroding brain-mask..." # this is perhaps not so good (!)
+      echo "ALFF : subj $subj , sess $sess : eroding susan's brain-mask a bit..." # this is perhaps not so good (!)
+      fslmaths $fldr/filtered_func_data_denoised_susan_mask $fldr/susan_mask_ero # erode the dilated susan mask
       echo "ALFF : subj $subj , sess $sess : creating ALFF maps..."
-      echo "    fslmaths $fldr/example_func -bin $fldr/mask ; $scriptdir/createALFF.sh ${out} $fldr/filtered_func_data_denoised_s${sm} $fldr/mask $TR_bold $ALFF_BANDPASS" >> $cmd
+      echo "    $scriptdir/createALFF.sh ${out} $fldr/filtered_func_data_denoised_s${sm} $fldr/susan_mask_ero $TR_bold $ALFF_BANDPASS" > $cmd
+      
+      echo "ALFF : execute cmd:"
+      cat -nb $cmd
+      jid=`fsl_sub -l $logdir -N $(basename $cmd) -t $cmd`
     done
   done
-  echo "ALFF : executing cmd-list..."
-  cat -nb $cmd
-  . $cmd
-  #jid=`fsl_sub -l $logdir -N $(basename $cmd) -t $cmd`
 fi
 
 
@@ -3293,9 +3305,17 @@ if [ $ALFF_STG3 -eq 1 ] ; then
         echo "ALFF : subj $subj , sess $sess : registering ALFF maps to MNI space at resolution '$mni_res'..."
         cmd="    flirt -ref $fldr/standard -in $fldr/standard -out $fldr/standard_${mni_res} -applyisoxfm $mni_res"
         echo $cmd ; $cmd
+        
+        cmd="    applywarp --ref=$fldr/standard_${mni_res} --in=${out}_ALFF.nii.gz --out=${out}_ALFF_mni${mni_res} --warp=${warp} --premat=${affine} --interp=${interp}"
+        echo $cmd ; $cmd
+        cmd="    applywarp --ref=$fldr/standard_${mni_res} --in=${out}_fALFF.nii.gz --out=${out}_fALFF_mni${mni_res} --warp=${warp} --premat=${affine} --interp=${interp}"
+        echo $cmd ; $cmd
         cmd="    applywarp --ref=$fldr/standard_${mni_res} --in=${out}_ALFF_Z.nii.gz --out=${out}_ALFF_Z_mni${mni_res} --warp=${warp} --premat=${affine} --interp=${interp}"
         echo $cmd ; $cmd
         cmd="    applywarp --ref=$fldr/standard_${mni_res} --in=${out}_fALFF_Z.nii.gz --out=${out}_fALFF_Z_mni${mni_res} --warp=${warp} --premat=${affine} --interp=${interp}"
+        echo $cmd ; $cmd
+        
+        cmd="    applywarp --ref=$fldr/standard_${mni_res} --in=$fldr/filtered_func_data_denoised_susan_mask.nii.gz --out=$fldr/susan_mask_mni${mni_res}.nii.gz --warp=${warp} --premat=${affine} --interp=nn"
         echo $cmd ; $cmd
       done    
     done
@@ -3318,6 +3338,47 @@ waitIfBusy
 
 # change to 2nd level directory
 cd $grpdir
+
+########################
+# ----- BEGIN ALFF -----
+########################
+
+# ALFF prepare ALFF data
+if [ $ALFF_2NDLEV_STG1 -eq 1 ] ; then
+  echo "----- BEGIN ALFF_2NDLEV_STG1 -----"
+  echo "ALFF_2NDLEV: prepare..."
+  for res in $ALFF_RESOLUTIONS ; do
+    ztransform2ndlev=1
+    prepareALFF $subjdir alff $alffdir/$ALFF_OUTDIRNAME/stats_mni${res} "*_ALFF_mni${res}.nii.gz" "*_fALFF_mni${res}.nii.gz" "susan_mask_mni${res}.nii.gz" $ztransform2ndlev $ALFF_DELETE_PREV_RUNS
+    ##################
+    ztransform2ndlev=0
+    prepareALFF $subjdir alff $alffdir/$ALFF_OUTDIRNAME/stats_nativeZ_mni${res} "*_ALFF_Z_mni${res}.nii.gz" "*_fALFF_Z_mni${res}.nii.gz" "susan_mask_mni${res}.nii.gz" $ztransform2ndlev $ALFF_DELETE_PREV_RUNS
+  done 
+fi
+
+waitIfBusy
+
+if [ $ALFF_2NDLEV_STG2 -eq 1 ] ; then
+  echo "----- BEGIN ALFF_2NDLEV_STG2 -----"
+  echo "ALFF_2NDLEV : copying GLM designs..."
+  
+ 
+  for res in $ALFF_RESOLUTIONS ; do
+    statdir=$alffdir/$ALFF_OUTDIRNAME/stats_mni${res}  
+
+    echo "ALFF_2NDLEV : copying GLM designs to $statdir"
+    cat $glmdir_alff/designs | xargs -I{} cp -r $glmdir_alff/{} $statdir; cp $glmdir_alff/designs $statdir
+    echo "ALFF_2NDLEV : starting permutations..."
+    _randomise $statdir alff "ALFF_Z_merged" "-m ../brain_mask -d design.mat -t design.con -e design.grp -T -V -D -x -n $ALFF_RANDOMISE_NPERM" 0 brain_mask.nii.gz $RANDOMISE_PARALLEL
+  done
+  
+fi
+
+########################
+# ----- END ALFF -----
+########################
+
+waitIfBusy
 
 ########################
 # ----- BEGIN TBSS -----
@@ -3558,29 +3619,6 @@ fi
 #####################
 # ----- END VBM -----
 #####################
-
-
-waitIfBusy
-
-
-###############################
-# ----- BEGIN ALFF_2NDLEV -----
-###############################
-
-if [ $ALFF_2NDLEV_STG1 -eq 1 ] ; then
-  echo "----- BEGIN ALFF_2NDLEV_STG1 -----"
-  echo "ALFF_2NDLEV : copying GLM designs..."
-
-  echo "ALFF_2NDLEV : copying GLM designs to $i"
-  cat $glmdir_alff/designs | xargs -I{} cp -r $glmdir_alff/{} $i; cp $glmdir_alff/designs $i
-  echo "ALFF_2NDLEV : starting permutations..."
-  _randomise $i alff "GM_mod_merg_smoothed" "-m ../GM_mask -d design.mat -t design.con -e design.grp -T -V -D -x -n $ALFF_RANDOMISE_NPERM" 0 GM_mask.nii.gz $RANDOMISE_PARALLEL
-  
-fi
-
-#############################
-# ----- END ALFF_2NDLEV -----
-#############################
 
 
 waitIfBusy

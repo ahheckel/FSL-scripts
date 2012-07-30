@@ -782,6 +782,109 @@ function vbm_smooth()
       echo "$smooth" > kernel.txt
   cd $wd  
 }
+
+
+function prepareALFF()
+{
+  local sourcedir="$1"
+  local ALFFdir="$2"
+  local destdir="$3"
+  local pttrn_ALFF="$4"
+  local pttrn_fALFF="$5"
+  local maskfunc="$6"
+  local ztransform2ndlev="$7"
+  local DEL="$8"
+  local wd=`pwd` # define crurrent working directory
+  
+  # tbss subdir already present ?
+  if [ -d ${destdir} -a $DEL -eq 0 ] ; then read -p "prepareALFF(): Directory <${destdir}> already exists. Press any key to continue or Control-C to abort..." ; fi
+  if [ -d ${destdir} -a $DEL -eq 1 ] ; then 
+    if [ `echo ${destdir} | grep $alffdir | wc -l` -eq 0 ] ; then # test, whether destination paths is plausible to avoid accidental deletions
+      echo "prepareALFF(): ERROR: The destination path ($destdir) is not under the tbss directory ($alffdir). No deletions made. Exiting..." ; exit 1
+    else 
+      echo "prepareALFF(): WARNING: Directory <${destdir}> already exists - deleting it as requested in 5 seconds !" ; sleep 5
+      rm -r ${destdir}
+    fi
+  fi
+  
+  # create directory
+  echo $destdir
+  mkdir -p ${destdir}
+  
+  # are files already present for processing ? Otherwise copy from subjdir...
+  if [ $(find ${destdir} -maxdepth 1 -name "*.nii.gz" -type f | wc -l) = 0 ]; then
+    echo "prepareALFF(): copying ALFF maps to ALFF-directory..."
+    
+    list=""
+    for subj in $ALFF_INCLUDED_SUBJECTS ; do
+      for sess in $ALFF_INCLUDED_SESSIONS ; do
+        cp -v $subjdir/$subj/$sess/$ALFFdir/$pttrn_ALFF $destdir
+        cp -v $subjdir/$subj/$sess/$ALFFdir/$pttrn_fALFF $destdir
+        list=$list" "$subjdir/$subj/$sess/$ALFFdir/$maskfunc
+      done
+    done
+    
+    echo "prepareALFF(): estimating group brain-mask (needed for Z-transformation)..."
+    #fslmerge -t $destdir/mean_merged $list
+    #fslmaths $destdir/mean_merged -Tmean $destdir/mean_grp
+    #bet2 $destdir/mean_grp $destdir/brain_grp -f 0.3 ; fslmaths $destdir/brain_grp -bin $destdir/brain_mask
+    fslmerge -t $destdir/mask_merged $list
+    fslmaths $destdir/mask_merged -Tmin $destdir/brain_mask
+ 
+  else
+    echo "prepareALFF(): listing ALFF maps in ALFF-directory <${destdir}>:"
+    find ${destdir} -maxdepth 1 -name "*.nii.gz" -type f 
+  fi
+  if [ $DEL -eq 0 ] ; then read -p "Press key to continue..." ; fi
+  
+  echo "prepareALFF(): changing to ${destdir}..."
+  cd ${destdir} 
+  
+  if [ $ztransform2ndlev -eq 1 ] ; then  
+    echo "prepareALFF(): normalizing ALFF/fALFF to Z-score across full brain..."
+    
+    alff_list=`${FSLDIR}/bin/imglob $pttrn_ALFF`
+    alffZ_list=""
+    rm -f mean_ALFF.txt std_ALFF.txt
+    echo "prepareALFF(): normalizing ALFF to Z-score across full brain..."
+    for i in $alff_list ; do
+      fslstats $i -k brain_mask -m >> mean_ALFF.txt ; mean=$( tail -n1 mean_ALFF.txt )
+      fslstats $i -k brain_mask -s >> std_ALFF.txt ; std=$( tail -n1 std_ALFF.txt )
+      echo "prepareALFF(): normalizing '$i':"
+      echo "    mean: $mean std: $std"
+      #fslmaths $i -sub ${mean} -div ${std} -mas brain_mask ${i}_Z.nii.gz
+      fslmaths $i -sub ${mean} -div ${std} ${i}_Z.nii.gz
+      alffZ_list=$alffZ_list" "${i}_Z.nii.gz
+    done
+       
+    
+    falff_list=`${FSLDIR}/bin/imglob $pttrn_fALFF`
+    falffZ_list=""
+    rm -f mean_fALFF.txt std_fALFF.txt
+    echo "prepareALFF(): normalizing fALFF to Z-score across full brain..."
+    for i in $falff_list ; do
+      fslstats $i -k brain_mask -m >> mean_fALFF.txt ; mean=$( tail -n1 mean_fALFF.txt )
+      fslstats $i -k brain_mask -s >> std_fALFF.txt ; std=$( tail -n1 std_fALFF.txt )
+      echo "prepareALFF(): normalizing '$i':"
+      echo "    mean: $mean std: $std"
+      #fslmaths $i -sub ${mean} -div ${std} -mas brain_mask ${i}_Z.nii.gz
+      fslmaths $i -sub ${mean} -div ${std} ${i}_Z.nii.gz
+      falffZ_list=$falffZ_list" "${i}_Z.nii.gz
+    done
+
+    echo "prepareALFF(): merging results..."
+    fslmerge -t ALFF_Z_merged.nii.gz $alffZ_list
+    fslmerge -t fALFF_Z_merged.nii.gz $falffZ_list
+    
+    #cleanup
+    imrm $alff_list
+    imrm $falff_list
+    imrm $alffZ_list
+    imrm $falffZ_list
+  fi
+  
+  cd $wd
+}
  
 function _randomise()
 {

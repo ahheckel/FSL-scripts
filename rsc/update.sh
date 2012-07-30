@@ -23,7 +23,11 @@ if [ $1 -eq 64 ] ; then
   cp -iv fsl/topup/applytopup_blade $FSL_DIR/bin/applytopup
   cp -iv fsl/tbss_x/swap_voxelwise_64 $FSL_DIR/bin/swap_voxelwise
   cp -iv fsl/tbss_x/swap_subjectwise_64 $FSL_DIR/bin/swap_subjectwise
-
+  cp -iv afni/3dDespike_64 $FSL_DIR/bin/3dDespike
+  cp -iv afni/3dTcat_64 $FSL_DIR/bin/3dTcat
+  cp -iv afni/3dTstat_64 $FSL_DIR/bin/3dTstat
+  cp -iv afni/3dcalc_64 $FSL_DIR/bin/3dcalc
+  cp -iv afni/3dDetrend_64 $FSL_DIR/bin/3dDetrend
 fi
 
 if [ $1 -eq 32 ] ; then
@@ -32,7 +36,11 @@ if [ $1 -eq 32 ] ; then
   cp -iv fsl/topup/applytopup_32 $FSL_DIR/bin/applytopup
   cp -iv fsl/tbss_x/swap_voxelwise_32 $FSL_DIR/bin/swap_voxelwise
   cp -iv fsl/tbss_x/swap_subjectwise_32 $FSL_DIR/bin/swap_subjectwise
-
+  cp -iv afni/3dDespike_32 $FSL_DIR/bin/3dDespike
+  cp -iv afni/3dTcat_32 $FSL_DIR/bin/3dTcat
+  cp -iv afni/3dTstat_32 $FSL_DIR/bin/3dTstat
+  cp -iv afni/3dcalc_32 $FSL_DIR/bin/3dcalc
+  cp -iv afni/3dDetrend_32 $FSL_DIR/bin/3dDetrend
 fi
 chmod +x $FSL_DIR/bin/topup
 chmod +x $FSL_DIR/bin/applytopup
@@ -40,3 +48,8 @@ chmod +x $FSL_DIR/bin/swap_voxelwise
 chmod +x $FSL_DIR/bin/swap_subjectwise
 chmod +x $FSL_DIR/bin/tbss_x
 chmod +x $FREESURFER_HOME/bin/trac-all
+chmod +x $FSL_DIR/bin/3dTcat
+chmod +x $FSL_DIR/bin/3dDespike
+chmod +x $FSL_DIR/bin/3dTstat
+chmod +x $FSL_DIR/bin/3dcalc
+chmod +x $FSL_DIR/bin/3dDetrend
