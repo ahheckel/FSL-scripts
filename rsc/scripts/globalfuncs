@@ -824,7 +824,7 @@ function prepareALFF()
       done
     done
     
-    echo "prepareALFF(): estimating group brain-mask (needed for Z-transformation)..."
+    echo "prepareALFF(): estimating group brain-mask..."
     #fslmerge -t $destdir/mean_merged $list
     #fslmaths $destdir/mean_merged -Tmean $destdir/mean_grp
     #bet2 $destdir/mean_grp $destdir/brain_grp -f 0.3 ; fslmaths $destdir/brain_grp -bin $destdir/brain_mask

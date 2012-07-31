@@ -3179,12 +3179,13 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       #create cmd      
       echo "ALFF : subj $subj , sess $sess : applying motion-correction and unwarp shiftmap in ./bold/$(basename $featdir)'..."
       echo "ALFF : subj $subj , sess $sess : despiking (using AFNI's 3dDespike)..."
-      echo "ALFF : subj $subj , sess $sess : detrending (using AFNI's 3dTcat)..."
-      #echo "ALFF : subj $subj , sess $sess : despiking (using FSL's fslmaths -bptp)..."
+      echo "ALFF : subj $subj , sess $sess : detrending (using AFNI tools)..."
+      #echo "ALFF : subj $subj , sess $sess : despiking (using FSL's fslmaths -bptf, cutoff: $ALFF_HPF_CUTOFF Hz)..."
       #echo "ALFF : subj $subj , sess $sess : applying slicetiming correction..."
       
+      imrm -f $fldr/_tmp $fldr/__tmp $fldr/_m $fldr/_dm 
       # with afni despike/detrend        
-      #3dTstat -mean -prefix $fldr/_m.nii.gz $fldr/_tmp.nii.gz ; 3dDetrend -polort 2 -prefix $fldr/_dm.nii.gz $fldr/_m.nii.gz ; 3dcalc -a $fldr/_m.nii.gz  -b $fldr/_dm.nii.gz  -expr 'a+b' -prefix $fldr/__tmp.nii.gz ; rm -f $fldr/_m.nii.gz $fldr/_dm.nii.gz ;
+      #3dTstat -mean -prefix $fldr/_m.nii.gz $fldr/_tmp.nii.gz ; 3dDetrend -polort 2 -prefix $fldr/_dm.nii.gz $fldr/_tmp.nii.gz ; 3dcalc -a $fldr/_m.nii.gz  -b $fldr/_dm.nii.gz  -expr 'a+b' -prefix $fldr/__tmp.nii.gz ; rm -f $fldr/_m.nii.gz $fldr/_dm.nii.gz ;
       echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir ;\
       3dDespike -prefix $fldr/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
       3dTcat -rlt+ -prefix $fldr/__tmp.nii.gz $fldr/_tmp.nii.gz ; \
@@ -3275,7 +3276,7 @@ if [ $ALFF_STG2 -eq 1 ] ; then
       
       # create cmd
       echo "ALFF : subj $subj , sess $sess : eroding susan's brain-mask a bit..." # this is perhaps not so good (!)
-      fslmaths $fldr/filtered_func_data_denoised_susan_mask $fldr/susan_mask_ero # erode the dilated susan mask
+      fslmaths $fldr/filtered_func_data_denoised_susan_mask -ero $fldr/susan_mask_ero # erode the dilated susan mask
       echo "ALFF : subj $subj , sess $sess : creating ALFF maps..."
       echo "    $scriptdir/createALFF.sh ${out} $fldr/filtered_func_data_denoised_s${sm} $fldr/susan_mask_ero $TR_bold $ALFF_BANDPASS" > $cmd
       
@@ -3327,8 +3328,9 @@ if [ $ALFF_STG3 -eq 1 ] ; then
         cmd="    applywarp --ref=$fldr/standard_${mni_res} --in=${out}_fALFF_Z.nii.gz --out=${out}_fALFF_Z_mni${mni_res} --warp=${warp} --premat=${affine} --interp=${interp}"
         echo $cmd ; $cmd
         
-        cmd="    applywarp --ref=$fldr/standard_${mni_res} --in=$fldr/filtered_func_data_denoised_susan_mask.nii.gz --out=$fldr/susan_mask_mni${mni_res}.nii.gz --warp=${warp} --premat=${affine} --interp=nn"
+        cmd="    applywarp --ref=$fldr/standard_${mni_res} --in=$fldr/filtered_func_data_denoised_susan_mask.nii.gz --out=$fldr/susan_mask_mni${mni_res}.nii.gz --warp=${warp} --premat=${affine} --interp=${interp}"
         echo $cmd ; $cmd
+        fslmaths $fldr/susan_mask_mni${mni_res} -bin $fldr/susan_mask_mni${mni_res}
       done    
     done
   done  
@@ -3372,8 +3374,7 @@ waitIfBusy
 
 if [ $ALFF_2NDLEV_STG2 -eq 1 ] ; then
   echo "----- BEGIN ALFF_2NDLEV_STG2 -----"
-  echo "ALFF_2NDLEV : copying GLM designs..."
-  
+  echo "ALFF_2NDLEV : copying GLM designs..."  
  
   for res in $ALFF_RESOLUTIONS ; do
     statdir=$alffdir/$ALFF_OUTDIRNAME/stats_mni${res}  
