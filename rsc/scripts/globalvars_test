@@ -162,8 +162,8 @@ RECON_USE_CUDA=0           # use CUDA for recon-all, if available
 RECON_USE_MRITOTAL=1       # may improve talairach registration
 
 # FIELDMAP
-deltaTEphase=0.00246
-PI=$(echo "scale=10; 4*a(1)" | bc -l) # define pi
+deltaTEphase=0.00246       # in seconds
+PI=3.1415926532            # =$(echo "scale=10; 4*a(1)" | bc -l) # define pi
 
 # TOPUP
 TROT_topup=0.02975         # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)

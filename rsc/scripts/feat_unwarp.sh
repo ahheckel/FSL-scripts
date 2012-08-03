@@ -103,8 +103,8 @@ cd $wdir
   #fugue --loadfmap=EF_UD_fmap --dwell=$dwell --mask=EF_UD_fmap_mag_brain_mask -i EF_D_example_func -u EF_UD_example_func --unwarpdir=y --saveshift=EF_UD_shift+ # added by HKL
   #fugue --loadfmap=EF_UD_fmap --dwell=$dwell --mask=EF_UD_fmap_mag_brain_mask -i EF_D_example_func -u EF_UD_example_func --unwarpdir=y- --saveshift=EF_UD_shift- # added by HKL
   convertwarp -s EF_UD_shift -o EF_UD_warp -r EF_D_example_func --shiftdir=$unwarp_dir  
-  convertwarp -s EF_UD_shift+ -o _warp_+y -r EF_D_example_func --shiftdir=y # added by HKL
-  convertwarp -s EF_UD_shift- -o _warp_-y -r EF_D_example_func --shiftdir=y- # added by HKL
+  convertwarp -s EF_UD_shift -o _warp_+y -r EF_D_example_func --shiftdir=y # added by HKL
+  convertwarp -s EF_UD_shift -o _warp_-y -r EF_D_example_func --shiftdir=y- # added by HKL
   
   # apply warping to example_func
   immv example_func example_func_orig_distorted

@@ -1,30 +1,6 @@
 #!/bin/bash
 
 ########################################################################
-# set paths ############################################################
-########################################################################
-
-studydir=`pwd` # (!)
-scriptdir=$studydir/rsc/scripts
-tmpltdir=$studydir/rsc/templates
-subjdir=$studydir/subj
-grpdir=$studydir/grp
-tbssdir=$grpdir/tbss
-vbmdir=$grpdir/vbm
-alffdir=$grpdir/alff
-dregdir=$grpdir/dualreg
-glmdir=$grpdir/glm
-glmdir_tbss=$glmdir/tbss
-glmdir_vbm=$glmdir/vbm
-glmdir_alff=$glmdir/alff
-glmdir_dr=$glmdir/dualreg
-logdir=$studydir/logs 
-tmpdir=$studydir/.tmp
-FS_subjdir=$subjdir/FS_subj
-FS_sessdir=$subjdir/FS_sess
-export SUBJECTS_DIR=$FS_subjdir
-
-########################################################################
 # set file patterns ####################################################
 ########################################################################
 
@@ -54,7 +30,7 @@ RECON_STG1=0               # RECON-ALL prepare (copy and convert T1 nifti)
 RECON_STG2=0               # RECON-ALL execute cross-sectional stream
 RECON_STG3=0               # RECON-ALL execute longtitudinal stream's template creation
 RECON_STG4=0               # RECON-ALL execute longtitudinal processing for each timepoint
-RECON_STG5=1               # RECON-ALL register FS's longtitudinal template (if applicable) or brain.mgz to FSL's MNI152 template using fnirt
+RECON_STG5=0               # RECON-ALL register FS's longtitudinal template (if applicable) or brain.mgz to FSL's MNI152 template using fnirt
 
 FIELDMAP_STG1=0            # FIELDMAP prepare
 FIELDMAP_STG2=0            # FIELDMAP create
@@ -87,13 +63,13 @@ TRACULA_STG4=0             # TRACULA execute -path
 
 BOLD_STG1=0                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
 BOLD_STG2=0                # BOLD execute FEAT configuration file
-BOLD_STG3=1                # BOLD denoising in native space (needs Freesurfer recons)
+BOLD_STG3=0                # BOLD denoising in native space (needs Freesurfer recons)
 BOLD_STG4=0                # BOLD write MNI-registered volumes
 BOLD_STG5=0                # BOLD denoising in MNI-space
 
-ALFF_STG1=0
-ALFF_STG2=0
-ALFF_STG3=0
+ALFF_STG1=1                # ALFF preproc
+ALFF_STG2=1                # ALFF denoise
+ALFF_STG3=0                # ALFF MNI registration
 
 ########################################################################
 # enable second level analyses #########################################
@@ -117,7 +93,8 @@ MELODIC_CMD_STG1=0         # MELODIC use melodic-command line tool (optional)
 DUALREG_STG1=0             # DUALREG prepare for randomie
 DUALREG_STG2=0             # DUALREG randomise
 
-ALFF_2NDLEV_STG1=0
+ALFF_2NDLEV_STG1=0         # ALFF prepare
+ALFF_2NDLEV_STG2=0         # ALFF randomise
 
 ########################################################################
 # plots ################################################################
@@ -239,7 +216,7 @@ BOLD_FEAT_NO_BROWSER=0                                        # don't open brows
 # ALFF
 #ALFF_DENOISE_MASKS_NAT="EF_CSF EF_WB EF_WM"
 ALFF_DENOISE_MASKS_NAT="none"
-ALFF_DENOISE_USE_MOVPARS_NAT="1"
+ALFF_DENOISE_USE_MOVPARS_NAT="none"
 ALFF_SMOOTHING_KERNEL=6
 ALFF_HPF_CUTOFF=100
 ALFF_BANDPASS="0.01,0.1"
@@ -287,7 +264,7 @@ VBM_DELETE_PREV_RUNS=1                            # delete previously created 2n
 ALFF_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included
 ALFF_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC    # subjects to be included
 ALFF_OUTDIRNAME="alff_01"                          # name of output directory
-ALFF_RESOLUTIONS="2 4"                             # cycle through var. resolutions
+ALFF_RESOLUTIONS="2"                               # cycle through var. resolutions
 ALFF_RANDOMISE_NPERM=500                           # number of permutations
 ALFF_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked (!)
 
@@ -335,3 +312,27 @@ DWIUNWARP_INFO="+y"             # default direction values for unwarping DWIs (d
 BOLDUNWARP_INFO="+y"            # default direction values for unwarping BOLDs (default: -y)
 CHECK_CONSISTENCY_DIFFS=0       # checks number of bvals/bvecs entries at startup
 RANDOMISE_PARALLEL=1            # use randomise_parallel for clusters
+
+########################################################################
+# set paths ############################################################
+########################################################################
+
+studydir=`pwd` # (!)
+scriptdir=$studydir/rsc/scripts
+tmpltdir=$studydir/rsc/templates
+subjdir=$studydir/subj
+grpdir=$studydir/grp
+tbssdir=$grpdir/tbss
+vbmdir=$grpdir/vbm
+alffdir=$grpdir/alff
+dregdir=$grpdir/dualreg
+glmdir=$grpdir/glm
+glmdir_tbss=$glmdir/tbss
+glmdir_vbm=$glmdir/vbm
+glmdir_alff=$glmdir/alff
+glmdir_dr=$glmdir/dualreg
+logdir=$studydir/logs 
+tmpdir=$studydir/.tmp
+FS_subjdir=$subjdir/FS_subj
+FS_sessdir=$subjdir/FS_sess
+export SUBJECTS_DIR=$FS_subjdir
