@@ -14,6 +14,8 @@ cp -iv fsl/MNI152*.nii.gz $FSL_DIR/data/standard/
 cp -iv fsl/avg152T1_white_bin.nii.gz $FSL_DIR/data/standard/
 cp -iv fsl/avg152T1_csf_bin.nii.gz $FSL_DIR/data/standard/
 cp -iv scripts/featlib.tcl $FSL_DIR/tcl/featlib.tcl
+cp -iv fsl/fsl_sub $FSL_DIR/bin/fsl_sub # contains a memory limit
+
 #cp -iv scripts/fsl_sub_NOPOSIXLY.sh $FSL_DIR/bin/fsl_sub # patched for freesurfer 
 
 
@@ -53,3 +55,4 @@ chmod +x $FSL_DIR/bin/3dDespike
 chmod +x $FSL_DIR/bin/3dTstat
 chmod +x $FSL_DIR/bin/3dcalc
 chmod +x $FSL_DIR/bin/3dDetrend
+chmod +x $FSL_DIR/bin/fsl_sub

@@ -29,16 +29,16 @@ export SUBJECTS_DIR=$FS_subjdir
 ########################################################################
 
 # set file patterns
-pttrn_diffs="*_ep2ddiff_pat3_esp0_75ms_*-.nii" # (!)
+pttrn_diffs="*_ep2ddiff_pat3_esp0_75ms_*-.nii"
 pttrn_bvals=`remove_ext $pttrn_diffs`_bvals
 pttrn_bvecs=`remove_ext $pttrn_diffs`_bvecs
-pttrn_fmaps="*_gre_field_mapping.nii " # (!)
-pttrn_strucs="*T1_MPRAGE_tra_256_1_0mm_nopat.nii" # (!)
-pttrn_bolds="*resting_TE30_pat3_esp0_7_Filter.nii" # (!)
+pttrn_fmaps="*_gre_field_mapping.nii "
+pttrn_strucs="*T1_MPRAGE_tra_256_1_0mm_nopat.nii"
+pttrn_bolds="*resting_TE30_pat3_esp0_7_Filter.nii"
 
 # set file patterns for TOPUP
-pttrn_diffsplus="*_ep2ddiff_pat3_esp0_75ms_*+.nii" # (!)
-pttrn_diffsminus="*_ep2ddiff_pat3_esp0_75ms_*-.nii" # (!)
+pttrn_diffsplus="*_ep2ddiff_pat3_esp0_75ms_*+.nii"
+pttrn_diffsminus="*_ep2ddiff_pat3_esp0_75ms_*-.nii"
 pttrn_bvalsplus=`remove_ext $pttrn_diffsplus`_bvals
 pttrn_bvalsminus=`remove_ext $pttrn_diffsminus`_bvals
 pttrn_bvecsplus=`remove_ext $pttrn_diffsplus`_bvecs
@@ -275,7 +275,7 @@ VBM_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included in t
 VBM_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_STRUC   # subjects to be included in the VBM analysis
 VBM_OUTDIRNAME="vbm_01"                           # name of output directory
 VBM_USE_FS_LONGT=0                                # use FREESURFER'S longtitudinal template
-VBM_PTTRN_BRAIN="*_FS_brain.nii.gz" # search pattern for brain-extracted structurals
+VBM_PTTRN_BRAIN="*_FS_brain.nii.gz"               # search pattern for brain-extracted structurals
 VBM_PTTRN_STRUC="*_FS_struc.nii.gz"               # search pattern for original structurals (w/o skull-strip)
 VBM_SMOOTHING_KRNL="2 3 4"                        # cycle through some smoothing kernels
 VBM_Z_TRANSFORM=1                                 # z-transform grey matter 4D
@@ -286,7 +286,7 @@ VBM_DELETE_PREV_RUNS=1                            # delete previously created 2n
 ALFF_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included in the VBM analysis
 ALFF_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_STRUC   # subjects to be included in the VBM analysis
 ALFF_OUTDIRNAME="alff_01"                          # name of output directory
-ALFF_RESOLUTIONS="2 4"                             # cycle through var. resolutions
+ALFF_RESOLUTIONS="2"                               # cycle through var. resolutions
 ALFF_RANDOMISE_NPERM=500                           # number of permutations
 ALFF_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked (!)
 
