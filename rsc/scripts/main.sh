@@ -2454,7 +2454,7 @@ if [ $BOLD_STG2 -eq 1 ] ; then
             
             # link...
             echo "BOLD : subj $subj , sess $sess : creating symlink to unwarped 4D BOLD."
-            lname=$(echo "$featdir" | sed "s|"uw[+-0][y0]"|"uw"|g") # remove unwarp direction from link's name
+            lname=$(echo "$featdir" | sed "s|"uw[-+0][y0]"|"uw"|g") # remove unwarp direction from link's name
             ln -sfv ./$(basename $featdir)/filtered_func_data.nii.gz ${lname%.feat}_filtered_func_data.nii.gz
    
           done # end stc_val
@@ -2660,7 +2660,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
             echo "BOLD : subj $subj , sess $sess : featregapply -> '$featdir/reg_standard'..."
             featregapply $featdir
             
-            if [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 1 ] ; then            
+            if [ $BOLD_USE_FS_LONGT_TEMPLATE -ge 1 ] ; then            
               T1_file=$featdir/reg_longt/longt_brain # see RECON_STG5
               MNI_file=$featdir/reg_longt/longt_standard
               affine=$featdir/reg_longt/example_func2longt_brain.mat
@@ -2725,7 +2725,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
                 
                 # link...
                 echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-registered 4D BOLD."
-                lname=$(echo "$featdir" | sed "s|"uw[+-0][y0]"|"uw"|g") # remove unwarp direction from link's name
+                lname=$(echo "$featdir" | sed "s|"uw[-+0][y0]"|"uw"|g") # remove unwarp direction from link's name
                 ln -sfv ./$(basename $featdir)/reg_standard/$(basename $out_file).nii.gz ${lname%.feat}_$(basename $out_file).nii.gz
 
               done # end mni_res            
@@ -2762,7 +2762,7 @@ if [ $BOLD_STG5 -eq 1 ]; then
 
             if [ $BOLD_UNWARP -eq 1 ] ; then uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; else uw_dir=00 ; fi
             
-            if [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 1 ] ; then
+            if [ $BOLD_USE_FS_LONGT_TEMPLATE -ge 1 ] ; then
               ltag="_longt"   
             else
               ltag=""            
@@ -2820,7 +2820,7 @@ if [ $BOLD_STG5 -eq 1 ]; then
               
               # creating link...
               echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-denoised 4D BOLD."
-              lname=$(echo "$featdir" | sed "s|"uw[+-0][y0]"|"uw"|g") # remove unwarp direction from link's name
+              lname=$(echo "$featdir" | sed "s|"uw[-+0][y0]"|"uw"|g") # remove unwarp direction from link's name
               ln -sfv ./$(basename $featdir)/reg_standard/$(remove_ext $data_file)_denoised.nii.gz ${lname%.feat}_$(remove_ext $data_file)_denoised.nii.gz
                 
             done # end mni_res
