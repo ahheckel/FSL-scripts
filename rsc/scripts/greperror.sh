@@ -16,7 +16,7 @@ else
   done
 fi
 
-for i in warn error segfault fault rejected oops denied fail cannot critical panic usage exception ; do
+for i in warn error segfault fault rejected oops denied fail cannot critical panic usage exception bad_alloc ; do
     grep -i -I -n -H -R  $i $searchpath --color=auto 
 done
 

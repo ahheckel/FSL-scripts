@@ -62,6 +62,10 @@ DUALREG_INCLUDED_SUBJECTS=$(echo $DUALREG_INCLUDED_SUBJECTS | row2col | sort -u)
 DUALREG_INCLUDED_SESSIONS=$(echo $DUALREG_INCLUDED_SESSIONS | row2col | sort -u)
 DUALREG_INPUT_ICA_DIRNAMES=$(echo $DUALREG_INPUT_ICA_DIRNAMES | row2col | sort -u)
 DUALREG_IC_FILENAMES=$(echo $DUALREG_IC_FILENAMES | row2col | sort -u)
+# define denoise tags
+_m=$(for i in $BOLD_DENOISE_MASKS_NAT ; do remove_ext $i | cut -d _ -f 2 ; done) ; dntag_boldnat=$(rem_blanks "$BOLD_DENOISE_USE_MOVPARS_NAT")$(rem_blanks "$_m")
+_m=$(for i in $BOLD_DENOISE_MASKS_MNI ; do remove_ext $i | cut -d _ -f 2 ; done) ; dntag_boldmni=$(rem_blanks "$BOLD_DENOISE_USE_MOVPARS_MNI")$(rem_blanks "$_m")
+_m=$(for i in $ALFF_DENOISE_MASKS_NAT ; do remove_ext $i | cut -d _ -f 2 ; done) ; dntag_alff=$(rem_blanks "$ALFF_DENOISE_USE_MOVPARS_NAT")$(rem_blanks "$_m")
 
 # ----- create 1st level subject- and session files -----
 
@@ -2507,7 +2511,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
             _hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
             featdir=$fldr/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.feat
             
-            if [ ! -d $featdir ] ; then echo "BOLD : subj $subj , sess $sess : feat-directory '$featdir' not found ! -> breaking loop..." ; break ; fi
+            if [ ! -d $featdir ] ; then echo "BOLD : subj $subj , sess $sess : feat-directory '$featdir' not found ! -> breaking loop..." ; break ; else echo "BOLD : subj $subj , sess $sess : feat-directory: '$(basename $featdir)'." ; fi
             
             # cleanup prev. bbreg. runs
             rm -rf $featdir/noise/tmp.bbregister.*
@@ -2521,8 +2525,8 @@ if [ $BOLD_STG3 -eq 1 ] ; then
             mkdir -p $featdir/noise
             ln -sf ../filtered_func_data.nii.gz $featdir/noise/filtered_func_data.nii.gz
             echo "$scriptdir/fs_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $featdir/example_func $featdir/noise $subj $sess ; \
-            $scriptdir/denoise4D.sh $featdir/noise/filtered_func_data "$BOLD_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS_NAT" $featdir/noise/filtered_func_data_denoised $subj $sess ; \
-            $scriptdir/feat_smooth.sh $featdir/noise/filtered_func_data_denoised $featdir/filtered_func_data_denoised "$BOLD_DENOISE_SMOOTHING_KRNLS" "$BOLD_DENOISE_HPF_CUTOFFS" $TR_bold $subj $sess" > $featdir/bold_denoise.cmd
+            $scriptdir/denoise4D.sh $featdir/noise/filtered_func_data "$BOLD_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS_NAT" $featdir/noise/filtered_func_data_dn${dntag_boldnat} $subj $sess ; \
+            $scriptdir/feat_smooth.sh $featdir/noise/filtered_func_data_dn${dntag_boldnat} $featdir/filtered_func_data_dn${dntag_boldnat} "$BOLD_DENOISE_SMOOTHING_KRNLS" "$BOLD_DENOISE_HPF_CUTOFFS" $TR_bold $subj $sess" > $featdir/bold_denoise.cmd
             
             # executing...
             $scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N bold_denoise_$(subjsess) -t $featdir/bold_denoise.cmd
@@ -2798,7 +2802,7 @@ if [ $BOLD_STG5 -eq 1 ]; then
             fslmaths $FSL_DIR/data/standard/avg152T1_white_bin.nii.gz -mas $noisedir/MNI_WB.nii.gz $noisedir/MNI_WM.nii.gz
             imrm $noisedir/min            
             # estimate nuisance regressors
-            $scriptdir/denoise4D.sh -m $noisedir/${data_file} "$BOLD_DENOISE_MASKS_MNI" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS_MNI" $noisedir/$(remove_ext $data_file)_denoised $subj $sess 
+            $scriptdir/denoise4D.sh -m $noisedir/${data_file} "$BOLD_DENOISE_MASKS_MNI" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS_MNI" $noisedir/$(remove_ext $data_file)_dn${dntag_boldmni} $subj $sess 
    
             
             for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do
@@ -2807,12 +2811,12 @@ if [ $BOLD_STG5 -eq 1 ]; then
               data_ref=filtered_func_data${ltag}_mni2.nii.gz # the file we derived the nuisance regressors from
               cmd_file=${featdir}/bold_denoise_$(remove_ext $data_file).cmd
               
-              echo "BOLD : subj $subj , sess $sess : denoising '$data_file' in MNI space using 1000 connectome masks and nusiance matrix '$(remove_ext $data_ref)_denoised_nuisance_meants_proc.mat' ..."
+              echo "BOLD : subj $subj , sess $sess : denoising '$data_file' in MNI space using 1000 connectome masks and nusiance matrix '$(remove_ext $data_ref)_dn${dntag_boldmni}_nuisance_meants_proc.mat' ..."
                           
               # creating command for fsl_sub
               ln -sf ../$data_file $noisedir/$data_file
-              echo "$scriptdir/rem_noise.sh $noisedir/${data_file} $noisedir/$(remove_ext $data_ref)_denoised_nuisance_meants_proc.mat $noisedir/$(remove_ext $data_file)_denoised $subj $sess ; \
-              immv $noisedir/$(remove_ext $data_file)_denoised $featdir/reg_standard/" > $cmd_file
+              echo "$scriptdir/rem_noise.sh $noisedir/${data_file} $noisedir/$(remove_ext $data_ref)_dn${dntag_boldmni}_nuisance_meants_proc.mat $noisedir/$(remove_ext $data_file)_dn${dntag_boldmni} $subj $sess ; \
+              immv $noisedir/$(remove_ext $data_file)_dn${dntag_boldmni} $featdir/reg_standard/" > $cmd_file
            
               # executing...
               ln -sf ../$data_file $noisedir/$data_file
@@ -2821,7 +2825,7 @@ if [ $BOLD_STG5 -eq 1 ]; then
               # creating link...
               echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-denoised 4D BOLD."
               lname=$(echo "$featdir" | sed "s|"uw[-+0][y0]"|"uw"|g") # remove unwarp direction from link's name
-              ln -sfv ./$(basename $featdir)/reg_standard/$(remove_ext $data_file)_denoised.nii.gz ${lname%.feat}_$(remove_ext $data_file)_denoised.nii.gz
+              ln -sfv ./$(basename $featdir)/reg_standard/$(remove_ext $data_file)_dn${dntag_boldmni}.nii.gz ${lname%.feat}_$(remove_ext $data_file)_dn${dntag_boldmni}.nii.gz
                 
             done # end mni_res
     
@@ -3236,7 +3240,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       # create cmd
       echo "ALFF : subj $subj , sess $sess : denoising..."
       mkdir -p $fldr/noise ; ln -sf ../filtered_func_data.nii.gz $fldr/noise/filtered_func_data.nii.gz
-      echo "    $scriptdir/denoise4D.sh $fldr/noise/filtered_func_data "$ALFF_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$ALFF_DENOISE_USE_MOVPARS_NAT" $fldr/noise/filtered_func_data_denoised $subj $sess" > $cmd
+      echo "    $scriptdir/denoise4D.sh $fldr/noise/filtered_func_data "$ALFF_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$ALFF_DENOISE_USE_MOVPARS_NAT" $fldr/noise/filtered_func_data_dn${dntag_alff} $subj $sess" > $cmd
       #tail $cmd
       
       echo "ALFF : execute cmd:"
@@ -3258,7 +3262,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       
       # create cmd
       echo "ALFF : subj $subj , sess $sess : smoothing..."
-      echo "    $scriptdir/feat_smooth.sh $fldr/noise/filtered_func_data_denoised $fldr/filtered_func_data_denoised $sm none $subj $sess" > $cmd
+      echo "    $scriptdir/feat_smooth.sh $fldr/noise/filtered_func_data_dn${dntag_alff} $fldr/filtered_func_data_dn${dntag_alff} $sm none $subj $sess" > $cmd
       #tail $cmd
       
       echo "ALFF : execute cmd:"
@@ -3287,9 +3291,9 @@ if [ $ALFF_STG2 -eq 1 ] ; then
       
       # create cmd
       echo "ALFF : subj $subj , sess $sess : eroding susan's brain-mask a bit..." # this is perhaps not so good (!)
-      fslmaths $fldr/filtered_func_data_denoised_susan_mask -ero $fldr/susan_mask_ero # erode the dilated susan mask
+      fslmaths $fldr/filtered_func_data_dn${dntag_alff}_susan_mask -ero $fldr/susan_mask_ero # erode the dilated susan mask
       echo "ALFF : subj $subj , sess $sess : creating ALFF maps..."
-      echo "    $scriptdir/createALFF.sh ${out} $fldr/filtered_func_data_denoised_s${sm} $fldr/susan_mask_ero $TR_bold $ALFF_BANDPASS" > $cmd
+      echo "    $scriptdir/createALFF.sh ${out} $fldr/filtered_func_data_dn${dntag_alff}_s${sm} $fldr/susan_mask_ero $TR_bold $ALFF_BANDPASS" > $cmd
       
       echo "ALFF : execute cmd:"
       cat -nb $cmd
@@ -3339,7 +3343,7 @@ if [ $ALFF_STG3 -eq 1 ] ; then
         cmd="    applywarp --ref=$fldr/standard_${mni_res} --in=${out}_fALFF_Z.nii.gz --out=${out}_fALFF_Z_mni${mni_res} --warp=${warp} --premat=${affine} --interp=${interp}"
         echo $cmd ; $cmd
         
-        cmd="    applywarp --ref=$fldr/standard_${mni_res} --in=$fldr/filtered_func_data_denoised_susan_mask.nii.gz --out=$fldr/susan_mask_mni${mni_res}.nii.gz --warp=${warp} --premat=${affine} --interp=${interp}"
+        cmd="    applywarp --ref=$fldr/standard_${mni_res} --in=$fldr/filtered_func_data_dn${dntag_alff}_susan_mask.nii.gz --out=$fldr/susan_mask_mni${mni_res}.nii.gz --warp=${warp} --premat=${affine} --interp=${interp}"
         echo $cmd ; $cmd
         cmd="    fslmaths $fldr/susan_mask_mni${mni_res} -bin $fldr/susan_mask_mni${mni_res}"
         echo $cmd ; $cmd

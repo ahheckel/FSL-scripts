@@ -54,7 +54,7 @@ find ./subj -name report_log.html -type f | grep /fdt/$subdir | sort | xargs  -I
 
 
 # check feat - bold
-subdir=preprocBOLD_uw+y_st0_s0_hpfInf.feat
+subdir=preprocBOLD_uw.y_st0_s0_hpfInf.feat
 find ./subj -name report_log.html -type f | grep /bold/$subdir | sort | xargs  -I {} greperror.sh {}
 
 

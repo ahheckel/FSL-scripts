@@ -2,6 +2,13 @@
 
 # function declarations
 
+function rem_blanks()
+{
+  local array="$1"
+  local i=""
+  for i in $array ; do echo -n $i ; done
+}
+
 function getAquParams()
 {
   local conftxt="$1"
@@ -153,7 +160,7 @@ function isClusterBusy()
   # does qstat work ?
   qstat &>/dev/null
   if [ $? != 0 ] ; then 
-    read -p "ERROR : qstat failed. Is Network available ? Abort with Control-C." >&2
+    echo "ERROR : qstat failed. Is Network available ? Abort with Control-C." >&2
     echo "1"
     return
   fi

@@ -63,12 +63,12 @@ TRACULA_STG4=0             # TRACULA execute -path
 
 BOLD_STG1=0                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
 BOLD_STG2=0                # BOLD execute FEAT configuration file
-BOLD_STG3=0                # BOLD denoising in native space (needs Freesurfer recons)
+BOLD_STG3=1                # BOLD denoising in native space (needs Freesurfer recons)
 BOLD_STG4=0                # BOLD write MNI-registered volumes
 BOLD_STG5=0                # BOLD denoising in MNI-space
 
-ALFF_STG1=1                # ALFF preproc
-ALFF_STG2=1                # ALFF denoise
+ALFF_STG1=0                # ALFF preproc
+ALFF_STG2=0                # ALFF denoise
 ALFF_STG3=0                # ALFF MNI registration
 
 ########################################################################
@@ -216,7 +216,7 @@ BOLD_FEAT_NO_BROWSER=0                                        # don't open brows
 # ALFF
 #ALFF_DENOISE_MASKS_NAT="EF_CSF EF_WB EF_WM"
 ALFF_DENOISE_MASKS_NAT="none"
-ALFF_DENOISE_USE_MOVPARS_NAT="none"
+ALFF_DENOISE_USE_MOVPARS_NAT="0"
 ALFF_SMOOTHING_KERNEL=6
 ALFF_HPF_CUTOFF=""
 ALFF_BANDPASS="0.01,0.1"
