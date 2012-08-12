@@ -9,7 +9,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <4dinput> <4doutput> <"FWHM kernels"> <"HighPass cutoffs" | 'none'> [<TR>] <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` <4dinput> <4doutput> <"FWHM kernels"> <"HighPass cutoffs" | 'none'> <TR> <subj_idx> <sess_idx>"
     echo ""
     exit 1
 }
@@ -23,11 +23,10 @@ if [ x"$hpf_cutoffs" = "x" -o "$hpf_cutoffs" = "none" ] ; then
   dohpf=0
 else 
   dohpf=1
-  tr=$5
-  shift
+  tr=$5  
 fi
-subj="$5"  # optional
-sess="$6"  # optional
+subj="$6"  # optional
+sess="$7"  # optional
 
 echo "`basename $0`: subj $subj , sess $sess : smoothing $data with [ $BOLD_SMOOTHING_KRNLS ] (FWHM) kernels -> ${out}_[${BOLD_SMOOTHING_KRNLS}] ..." 
 
