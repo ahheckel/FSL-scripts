@@ -3189,7 +3189,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
         echo "ALFF : subj $subj , sess $sess : detrending (using FSL's fslmaths -bptf, cutoff: $ALFF_HPF_CUTOFF Hz)..."
       fi
       
-      imrm -f $fldr/_tmp $fldr/__tmp $fldr/_m $fldr/_dm 
+      imrm $fldr/_tmp $fldr/__tmp $fldr/_m $fldr/_dm 
       
       if [ x"$ALFF_HPF_CUTOFF" = "x" -o "$ALFF_HPF_CUTOFF" = "Inf" -o "$ALFF_HPF_CUTOFF" = "none" ] ; then
         
@@ -3222,7 +3222,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       
       echo "ALFF : execute cmd:"
       cat -nb $cmd        
-      jid=`fsl_sub -l $logdir -N $(basename $cmd) -t $cmd`
+      jid=`fsl_sub -l $logdir -N $(basename $cmd)_$(subjsess) -t $cmd`
     done
   done
 
@@ -3245,7 +3245,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       
       echo "ALFF : execute cmd:"
       cat -nb $cmd        
-      jid=`fsl_sub -l $logdir -N $(basename $cmd) -t $cmd`      
+      jid=`fsl_sub -l $logdir -N $(basename $cmd)_$(subjsess) -t $cmd`      
     done
   done
 
@@ -3267,7 +3267,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       
       echo "ALFF : execute cmd:"
       cat -nb $cmd        
-      jid=`fsl_sub -l $logdir -N $(basename $cmd) -t $cmd`
+      jid=`fsl_sub -l $logdir -N $(basename $cmd)_$(subjsess) -t $cmd`
     done
   done
 fi
@@ -3297,7 +3297,7 @@ if [ $ALFF_STG2 -eq 1 ] ; then
       
       echo "ALFF : execute cmd:"
       cat -nb $cmd
-      jid=`fsl_sub -l $logdir -N $(basename $cmd) -t $cmd`
+      jid=`fsl_sub -l $logdir -N $(basename $cmd)_$(subjsess) -t $cmd`
     done
   done
 fi
