@@ -1,5 +1,8 @@
 #!/bin/bash
 
+# CAVE: for AFNI tools: may need to install / link /usr/lib[64]/libXp.so.6
+
+
 #set -e
 
 if [ $# -lt 1 ] ; then echo "Usage: update [32|64]" ; exit ; fi

@@ -67,7 +67,7 @@ BOLD_STG3=0                # BOLD denoising in native space (needs Freesurfer re
 BOLD_STG4=0                # BOLD write MNI-registered volumes
 BOLD_STG5=0                # BOLD denoising in MNI-space
 
-ALFF_STG1=1                # ALFF preproc
+ALFF_STG1=0                # ALFF preproc
 ALFF_STG2=0                # ALFF denoise
 ALFF_STG3=0                # ALFF MNI registration
 

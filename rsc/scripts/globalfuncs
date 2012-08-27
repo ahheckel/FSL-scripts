@@ -160,7 +160,7 @@ function isClusterBusy()
   # does qstat work ?
   qstat &>/dev/null
   if [ $? != 0 ] ; then 
-    echo "ERROR : qstat failed. Is Network available ? Abort with Control-C." >&2
+    echo "ERROR : qstat failed. Is Network available ?" >&2
     echo "1"
     return
   fi
