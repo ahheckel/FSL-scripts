@@ -3397,8 +3397,20 @@ if [ $ALFF_2NDLEV_STG2 -eq 1 ] ; then
 
     echo "ALFF_2NDLEV : copying GLM designs to $statdir"
     cat $glmdir_alff/designs | xargs -I{} cp -r $glmdir_alff/{} $statdir; cp $glmdir_alff/designs $statdir
-    echo "ALFF_2NDLEV : starting permutations..."
+    
+    echo "ALFF_2NDLEV : starting permutations for fALFF-maps..."
+    _randomise $statdir falff "fALFF_Z_merged" "-m ../brain_mask -d design.mat -t design.con -e design.grp -T -V -D -x -n $ALFF_RANDOMISE_NPERM" 0 brain_mask.nii.gz $RANDOMISE_PARALLEL
+   
+  done
+  
+  waitIfBusy
+  
+  for res in $ALFF_RESOLUTIONS ; do
+    statdir=$alffdir/$ALFF_OUTDIRNAME/stats_mni${res}  
+    
+    echo "ALFF_2NDLEV : starting permutations for ALFF-maps..."
     _randomise $statdir alff "ALFF_Z_merged" "-m ../brain_mask -d design.mat -t design.con -e design.grp -T -V -D -x -n $ALFF_RANDOMISE_NPERM" 0 brain_mask.nii.gz $RANDOMISE_PARALLEL
+
   done
   
 fi
