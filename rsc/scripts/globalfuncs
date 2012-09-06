@@ -852,9 +852,10 @@ function prepareALFF()
     
     alff_list=`${FSLDIR}/bin/imglob $pttrn_ALFF`
     alffZ_list=""
-    rm -f mean_ALFF.txt std_ALFF.txt
+    rm -f mean_ALFF.txt std_ALFF.txt filelist_ALFF.txt
     echo "prepareALFF(): normalizing ALFF to Z-score across full brain..."
     for i in $alff_list ; do
+      echo "$i" >> filelist_ALFF.txt
       fslstats $i -k brain_mask -m >> mean_ALFF.txt ; mean=$( tail -n1 mean_ALFF.txt )
       fslstats $i -k brain_mask -s >> std_ALFF.txt ; std=$( tail -n1 std_ALFF.txt )
       echo "prepareALFF(): normalizing '$i':"
@@ -867,9 +868,10 @@ function prepareALFF()
     
     falff_list=`${FSLDIR}/bin/imglob $pttrn_fALFF`
     falffZ_list=""
-    rm -f mean_fALFF.txt std_fALFF.txt
+    rm -f mean_fALFF.txt std_fALFF.txt filelist_fALFF.txt
     echo "prepareALFF(): normalizing fALFF to Z-score across full brain..."
     for i in $falff_list ; do
+      echo "$i" >> filelist_fALFF.txt
       fslstats $i -k brain_mask -m >> mean_fALFF.txt ; mean=$( tail -n1 mean_fALFF.txt )
       fslstats $i -k brain_mask -s >> std_fALFF.txt ; std=$( tail -n1 std_fALFF.txt )
       echo "prepareALFF(): normalizing '$i':"
@@ -886,8 +888,25 @@ function prepareALFF()
     #cleanup
     imrm $alff_list
     imrm $falff_list
-    imrm $alffZ_list
-    imrm $falffZ_list
+    #imrm $alffZ_list
+    #imrm $falffZ_list
+  
+  else
+  
+    alffZ_list=`${FSLDIR}/bin/imglob $pttrn_ALFF`
+    falffZ_list=`${FSLDIR}/bin/imglob $pttrn_fALFF`
+    
+    rm -f filelist_ALFF_Z.txt filelist_fALFF_Z.txt    
+    for i in $alffZ_list ; do
+      echo "$i" >> filelist_ALFF_Z.txt
+    done  
+    for i in $falffZ_list ; do
+      echo "$i" >> filelist_fALFF_Z.txt
+    done
+  
+    echo "prepareALFF(): merging results..."
+    fslmerge -t ALFF_Z_merged.nii.gz $alffZ_list
+    fslmerge -t fALFF_Z_merged.nii.gz $falffZ_list  
   fi
   
   cd $wd
