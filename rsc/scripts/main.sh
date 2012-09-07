@@ -3183,16 +3183,13 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       #create cmd      
       echo "ALFF : subj $subj , sess $sess : applying motion-correction and unwarp shiftmap in ./bold/$(basename $featdir)'..."
       echo "ALFF : subj $subj , sess $sess : despiking (using AFNI's 3dDespike)..."
-      if [ x"$ALFF_HPF_CUTOFF" = "x" -o "$ALFF_HPF_CUTOFF" = "Inf" -o "$ALFF_HPF_CUTOFF" = "none" ] ; then
-        echo "ALFF : subj $subj , sess $sess : detrending (using AFNI tools)..."
-      else
-        echo "ALFF : subj $subj , sess $sess : detrending (using FSL's fslmaths -bptf, cutoff: $ALFF_HPF_CUTOFF Hz)..."
-      fi
       
       imrm $fldr/_tmp $fldr/__tmp $fldr/_m $fldr/_dm 
       
       if [ x"$ALFF_HPF_CUTOFF" = "x" -o "$ALFF_HPF_CUTOFF" = "Inf" -o "$ALFF_HPF_CUTOFF" = "none" ] ; then
-        
+
+        echo "ALFF : subj $subj , sess $sess : detrending (using AFNI tools)..."
+
         echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir ;\
         3dDespike -prefix $fldr/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
         3dTcat -rlt+ -prefix $fldr/__tmp.nii.gz $fldr/_tmp.nii.gz ; \
@@ -3200,6 +3197,8 @@ if [ $ALFF_STG1 -eq 1 ] ; then
         mv $fldr/__tmp.nii.gz $fldr/filtered_func_data.nii.gz" > $cmd
       
       else
+      
+        echo "ALFF : subj $subj , sess $sess : detrending (using FSL's fslmaths -bptf, cutoff: $ALFF_HPF_CUTOFF Hz)..."
       
         echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir ;\
         3dDespike -prefix $fldr/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
