@@ -335,3 +335,4 @@ DWIUNWARP_INFO="+y"             # default direction values for unwarping DWIs (d
 BOLDUNWARP_INFO="+y"            # default direction values for unwarping BOLDs (default: -y)
 CHECK_CONSISTENCY_DIFFS=1       # checks number of bvals/bvecs entries at startup
 RANDOMISE_PARALLEL=1            # use randomise_parallel for clusters
+DELAYINSECS=150

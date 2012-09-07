@@ -2,6 +2,12 @@
 
 # function declarations
 
+function sleepfor()
+{
+  echo "sleeping for $1 seconds..."
+  sleep $1
+}
+
 function rem_blanks()
 {
   local array="$1"

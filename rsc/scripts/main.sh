@@ -2454,7 +2454,9 @@ if [ $BOLD_STG2 -eq 1 ] ; then
             conffile=${featdir%.feat}.fsf
             echo "BOLD : subj $subj , sess $sess : running \"feat $conffile\"..."
             #fsl_sub -l $logdir -N bold_feat_$(subjsess) feat $conffile
-            feat $conffile            
+            feat $conffile
+            
+            sleepfor $DELAYINSECS
             
             # link...
             echo "BOLD : subj $subj , sess $sess : creating symlink to unwarped 4D BOLD."
@@ -2530,6 +2532,8 @@ if [ $BOLD_STG3 -eq 1 ] ; then
             
             # executing...
             $scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N bold_denoise_$(subjsess) -t $featdir/bold_denoise.cmd
+            
+            sleepfor $DELAYINSECS
             
           done # end stc_val
         done # end sm_krnl
@@ -3267,6 +3271,8 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       echo "ALFF : execute cmd:"
       cat -nb $cmd        
       jid=`fsl_sub -l $logdir -N $(basename $cmd)_$(subjsess) -t $cmd`
+      
+      sleepfor $DELAYINSECS
     done
   done
 fi
