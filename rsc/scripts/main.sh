@@ -2467,8 +2467,45 @@ if [ $BOLD_STG2 -eq 1 ] ; then
         done # end sm_krnl        
       done # end hpf_cut
       
-    done
-  done
+    done # end sess
+  done # end subj
+  
+  #waitIfBusy
+  
+  ## copy feat logs to logdir
+  #for subj in `cat subjects` ; do
+    #for sess in `cat ${subj}/sessions_func` ; do
+      
+      #fldr=$subjdir/$subj/$sess/bold
+      
+      ## shall we unwarp ?
+      #if [ $BOLD_UNWARP -eq 1 ] ; then
+        #uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
+      #else 
+        #uw_dir=00
+      #fi
+    
+      #for hpf_cut in $BOLD_HPF_CUTOFFS ; do
+        #for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+          #for stc_val in $BOLD_SLICETIMING_VALUES ; do
+          
+            ## define feat-dir
+            #_hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
+            #featdir=$fldr/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.feat 
+          
+            #if [ -d $featdir/logs ] ; then
+              #cp -R $featdir/logs/ $logdir/$(subjsess)_${featdir}
+            #else
+              #echo "BOLD : subj $subj , sess $sess : WARNING: no feat log-dir found (${featdir}/logs)!" 
+            #fi
+          
+          #done # end stc_val
+        #done # end sm_krnl        
+      #done # end hpf_cut
+      
+    #done # end sess
+  #done # end subj  
+  
 fi
 
 waitIfBusy

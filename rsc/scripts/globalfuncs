@@ -849,20 +849,20 @@ function prepareALFF()
     list=$(find ${destdir} -maxdepth 1 -name "*.nii.gz" -type f)
     for i in $list ; do echo $i ; done
   fi
-  if [ $DEL -eq 0 ] ; then read -p "Press key to continue..." ; fi
-  
+  if [ $DEL -eq 0 ] ; then read -p "Press key to continue..." ; fi  
+    
+  echo "prepareALFF(): estimating group brain-mask..."
+  #fslmerge -t $destdir/mean_merged $list
+  #fslmaths $destdir/mean_merged -Tmean $destdir/mean_grp
+  #bet2 $destdir/mean_grp $destdir/brain_grp -f 0.3 ; fslmaths $destdir/brain_grp -bin $destdir/brain_mask
+  fslmerge -t $destdir/mask_merged $list
+  fslmaths $destdir/mask_merged -Tmin $destdir/brain_mask  
+
   echo "prepareALFF(): changing to ${destdir}..."
   cd ${destdir} 
   
   # normalise using group mask or use natively normalised volumes
   if [ $ztransform2ndlev -eq 1 ] ; then
-  
-    echo "prepareALFF(): estimating group brain-mask..."
-    #fslmerge -t $destdir/mean_merged $list
-    #fslmaths $destdir/mean_merged -Tmean $destdir/mean_grp
-    #bet2 $destdir/mean_grp $destdir/brain_grp -f 0.3 ; fslmaths $destdir/brain_grp -bin $destdir/brain_mask
-    fslmerge -t $destdir/mask_merged $list
-    fslmaths $destdir/mask_merged -Tmin $destdir/brain_mask  
   
     echo "prepareALFF(): normalizing ALFF/fALFF to Z-score across full brain..."
     
