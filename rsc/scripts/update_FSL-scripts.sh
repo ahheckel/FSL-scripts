@@ -13,7 +13,7 @@ Usage() {
     exit 1
 }
 
-[ "$2" = "" ] && Usage    
+[ "$1" = "" ] && Usage    
 zipfile="$1"
 destfolder="$2"
 tmpdir=$(basename $zipfile | cut -d '.' -f 1)
@@ -23,7 +23,7 @@ unzip $zipfile -d $tmpdir
 
 echo ""
 echo "Type:"
-cmd="rsync -avz --delete $tmpdir/*/  /FSL-scripts/"
+cmd="sudo rsync -avz --delete $tmpdir/*/  /FSL-scripts/"
 echo $cmd
 cmd="rm -rf $tmpdir"
 echo $cmd

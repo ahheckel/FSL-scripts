@@ -2557,8 +2557,8 @@ if [ $BOLD_STG3 -eq 1 ] ; then
             
             # display info
             echo "BOLD : subj $subj , sess $sess : creating masks in functional native space using FS's bbreg..."
-            echo "BOLD : subj $subj , sess $sess : denoising..."
-            echo "BOLD : subj $subj , sess $sess : smoothing..."
+            echo "BOLD : subj $subj , sess $sess : denoising (tag: ${dntag_boldnat})..."
+            echo "BOLD : subj $subj , sess $sess : smoothing (FWHM: ${BOLD_DENOISE_SMOOTHING_KRNLS})..."
             
             # creating command for fsl_sub
             mkdir -p $featdir/noise
@@ -3278,7 +3278,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       cmd=$fldr/alff_denoise.cmd ; rm -f $cmd
       
       # create cmd
-      echo "ALFF : subj $subj , sess $sess : denoising..."
+      echo "ALFF : subj $subj , sess $sess : denoising (tag: ${dntag_alff})..."
       mkdir -p $fldr/noise ; ln -sf ../filtered_func_data.nii.gz $fldr/noise/filtered_func_data.nii.gz
       echo "    $scriptdir/denoise4D.sh $fldr/noise/filtered_func_data "$ALFF_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$ALFF_DENOISE_USE_MOVPARS_NAT" $fldr/noise/filtered_func_data_dn${dntag_alff} $subj $sess" > $cmd
       #tail $cmd
@@ -3301,7 +3301,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       cmd=$fldr/alff_smooth.cmd ; rm -f $cmd
       
       # create cmd
-      echo "ALFF : subj $subj , sess $sess : smoothing..."
+      echo "ALFF : subj $subj , sess $sess : smoothing (FWHM: ${sm})..."
       echo "    $scriptdir/feat_smooth.sh $fldr/noise/filtered_func_data_dn${dntag_alff} $fldr/filtered_func_data_dn${dntag_alff} $sm none $subj $sess" > $cmd
       #tail $cmd
       
@@ -3351,10 +3351,6 @@ waitIfBusy
 if [ $ALFF_STG3 -eq 1 ] ; then
   echo "----- BEGIN ALFF_STG3 -----"
   
-  # check
-  if [ ! -f $affine ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$affine' not found. Exiting..." ; exit ; fi
-  if [ ! -f $warp ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$warp' not found. Exiting..." ; exit ; fi
-  
   # register to MNI space
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_func` ; do
@@ -3367,6 +3363,10 @@ if [ $ALFF_STG3 -eq 1 ] ; then
       interp=trilinear            
       MNI_file=$FSL_DIR/data/standard/MNI152_T1_2mm_brain.nii.gz
       
+      # check
+      if [ ! -f $affine ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$affine' not found. Exiting..." ; exit ; fi
+      if [ ! -f $warp ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$warp' not found. Exiting..." ; exit ; fi
+          
       # copy template
       cp $MNI_file $fldr/standard.nii.gz
       
