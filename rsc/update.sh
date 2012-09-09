@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # CAVE: for AFNI tools: may need to install / link /usr/lib[64]/libXp.so.6
 
 
