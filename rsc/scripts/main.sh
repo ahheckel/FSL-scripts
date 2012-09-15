@@ -2280,7 +2280,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       
       # create symlinks to t1-structurals (highres registration reference)
       if [ $BOLD_REGISTER_TO_MNI -eq 1 ] ; then
-        echo "BOLD : subj $subj , sess $sess : creating symlinks to t1-structurals (highres registration reference)..."
+        echo "BOLD : subj $subj , sess $sess : creating symlinks to t1-structurals (highres registration reference) to please FEAT's naming convention..."
         line=`cat $subjdir/config_func2highres.reg | awk '{print $1}' | grep -nx $(subjsess) | cut -d : -f1`
         sess_t1=`cat $subjdir/config_func2highres.reg | awk '{print $2}' | sed -n ${line}p `
         if [ $sess_t1 = '.' ] ; then sess_t1="" ; fi # single-session design   
