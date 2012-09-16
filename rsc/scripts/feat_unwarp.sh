@@ -69,10 +69,10 @@ cd $wdir
   
   echo "`basename $0`: run despiking filter just on the edge voxels"
   fslmaths FM_UD_fmap_mag_brain_mask -ero FM_UD_fmap_mag_brain_mask_ero
-  #fugue --loadfmap=FM_UD_fmap --savefmap=FM_UD_fmap_tmp_fmapfilt -m FM_UD_fmap_mag_brain_mask --despike --despikethreshold=2.1 # rem by HKL
-  fugue --loadfmap=FM_UD_fmap --savefmap=FM_UD_fmap_tmp_fmapfilt --mask=FM_UD_fmap_mag_brain_mask --despike --despikethreshold=2.1 # see fsl-list email from Michael Hallquist on 8 Aug 2012 (median filter also turned off as suggested in the reply)
-  #fslmaths FM_UD_fmap_tmp_fmapfilt -sub FM_UD_fmap -mas FM_UD_fmap_mag_brain_mask_ero -add FM_UD_fmap FM_UD_fmap # rem by HKL
-  fslmaths FM_UD_fmap -sub FM_UD_fmap_tmp_fmapfilt -mas FM_UD_fmap_mag_brain_mask_ero -add FM_UD_fmap_tmp_fmapfilt FM_UD_fmap # see fsl-list email from Michael Hallquist on 8 Aug 2012
+  fugue --loadfmap=FM_UD_fmap --savefmap=FM_UD_fmap_tmp_fmapfilt -m FM_UD_fmap_mag_brain_mask --despike --despikethreshold=2.1 # rem by HKL
+  #fugue --loadfmap=FM_UD_fmap --savefmap=FM_UD_fmap_tmp_fmapfilt --mask=FM_UD_fmap_mag_brain_mask --despike --despikethreshold=2.1 # see fsl-list email from Michael Hallquist on 8 Aug 2012 (median filter also turned off as suggested in the reply)
+  fslmaths FM_UD_fmap_tmp_fmapfilt -sub FM_UD_fmap -mas FM_UD_fmap_mag_brain_mask_ero -add FM_UD_fmap FM_UD_fmap # rem by HKL
+  #fslmaths FM_UD_fmap -sub FM_UD_fmap_tmp_fmapfilt -mas FM_UD_fmap_mag_brain_mask_ero -add FM_UD_fmap_tmp_fmapfilt FM_UD_fmap # see fsl-list email from Michael Hallquist on 8 Aug 2012
   rm -f FM_UD_fmap_tmp_fmapfilt* FM_UD_fmap_mag_brain_mask_ero* FM_UD_fmap_mag_brain_mask50* FM_UD_fmap_mag_brain_i*
   
   echo "`basename $0`: now demean"

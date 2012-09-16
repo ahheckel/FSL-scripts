@@ -10,8 +10,9 @@ source $(dirname $0)/globalfuncs
 Usage() {
     echo ""
     echo "Usage: `basename $0` <out-dir> <isBOLD: 0|1> [n_dummyB0] <dwi-plus> <dwi-minus> <TotalReadoutTime(s)> <use noec: 0|1> <use ec: 0|1> [<dof> <costfunction>] <subj> <sess>"
-    echo "Example: topup.sh topupdir 0 dwi+.nii.gz dwi-.nii.gz 0.023 1 1 12 corratio 01 a"
-    echo "         topup.sh topupdir 1 4 bold+.nii.gz bold-.nii.gz 0.023 1 1 6 mutualinfo 01 a"
+    echo "Example: topup.sh topupdir 0 dwi*+.nii.gz dwi*-.nii.gz 0.023 1 1 12 corratio 01 a"
+    echo "         topup.sh topupdir 1 4 bold*+.nii.gz bold*-.nii.gz 0.023 1 1 6 mutualinfo 01 a"
+    echo "NOTE:    Alphabetical listings of blip+ and blip- images (dwi*+, dwi*-) must match !"
     echo ""
     exit 1
 }
@@ -404,11 +405,9 @@ if [ $TOPUP_STG4 -eq 1 ] ; then
       
       # execute TOPUP
       echo "TOPUP : subj $subj , sess $sess : executing TOPUP on merged low-B volumes..."
-      echo "topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/field_Hz_lowb --iout=$fldr/unwarped_lowb ; \
-      fslmaths $fldr/unwarped_lowb -Tmean $fldr/unwarped_lowb_mean ; \
-      bet $fldr/unwarped_lowb_mean $fldr/unwarped_lowb_mean_brain -f 0.3 -m ; \
-      fslmaths $fldr/field_Hz_lowb -mul 6.2832 $fldr/fmap_rads ; \
-      fslmaths $fldr/fmap_rads -mas $fldr/unwarped_lowb_mean_brain_mask $fldr/fmap_rads_masked" > $fldr/topup.cmd
+      mkdir -p $fldr/fm # dir. for fieldmap related stuff
+      echo "topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/fm/field_Hz_lowb --iout=$fldr/fm/uw_lowb_merged_chk ; \
+      fslmaths $fldr/fm/field_Hz_lowb -mul 6.2832 $fldr/fm/fmap_rads" > $fldr/topup.cmd
       fsl_sub -l $logdir -N topup_topup_$(subjsess) -t $fldr/topup.cmd
       #echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/$(subjsess)_fieldHz_lowb --iout=$fldr/$(subjsess)_unwarped_lowb" > $fldr/topup.cmd
       #. $fldr/topup.cmd      
@@ -493,6 +492,28 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       echo "TOPUP : subj $subj , sess $sess : zeroing negative values in topup-corrected DWIs..."
       if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_merged -thr 0 $fldr/$(subjsess)_topup_corr_merged ; fi
       if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_ec_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_ec_merged -thr 0 $fldr/$(subjsess)_topup_corr_ec_merged ; fi
+      
+      # create masked fieldmap
+      echo "TOPUP : subj $subj , sess $sess : masking topup-derived fieldmap..."
+      if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_merged.nii.gz ; fi
+      if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ; fi ;
+      if [ ! -f $fldr/fm/fmap_rads.nii.gz ] ; then  echo "TOPUP : subj $subj , sess $sess : ERROR : fieldmap not found in '$fldr/fm/' - exiting..." ; exit 1 ; fi
+      min=`row2col $fldr/bvals_concat.txt | getMin`
+      b0idces=`getIdx $fldr/bvalsminus_concat.txt $min` 
+      lowbs=""
+      for b0idx in $b0idces ; do 
+        lowb="$fldr/fm/uw_b${min}_`printf '%05i' $b0idx`"
+        echo "    found B0 image in merged diff. at pos. $b0idx (val:${min}) - extracting from '$corrfile'..."
+        fslroi $corrfile $lowb $b0idx 1
+        lowbs=$lowbs" "$lowb
+      done
+      echo "    creating mask..."
+      echo "fslmerge -t $fldr/fm/uw_lowb_merged $lowbs ; \
+      fslmaths $fldr/fm/uw_lowb_merged -Tmean $fldr/fm/uw_lowb_mean ; \
+      bet $fldr/fm/uw_lowb_mean $fldr/fm/uw_lowb_mean_brain -f 0.3 -m ; \
+      fslmaths $fldr/fm/fmap_rads -mas $fldr/fm/uw_lowb_mean_brain_mask $fldr/fm/fmap_rads_masked" > $fldr/topup_b0mask.cmd
+      fsl_sub -l $logdir -N topup_b0mask_$(subjsess) -t $fldr/topup_b0mask.cmd
+      
     done
   done    
 fi

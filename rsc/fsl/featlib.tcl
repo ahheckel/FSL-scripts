@@ -5090,10 +5090,10 @@ fsl:echo ${FD}/report_prestats.html "<hr><b>FUGUE fieldmap unwarping</b>"
     fsl:exec "${FSLDIR}/bin/fslmaths FM_UD_fmap -mas FM_UD_fmap_mag_brain_mask FM_UD_fmap"
     # run despiking filter just on the edge voxels
     fsl:exec "${FSLDIR}/bin/fslmaths FM_UD_fmap_mag_brain_mask -ero FM_UD_fmap_mag_brain_mask_ero"
-    #fsl:exec "$FSLDIR/bin/fugue --loadfmap=FM_UD_fmap --savefmap=FM_UD_fmap_tmp_fmapfilt -m FM_UD_fmap_mag_brain_mask --despike --despikethreshold=2.1"
-    fsl:exec "$FSLDIR/bin/fugue --loadfmap=FM_UD_fmap --savefmap=FM_UD_fmap_tmp_fmapfilt --mask=FM_UD_fmap_mag_brain_mask --despike --despikethreshold=2.1" # added by HKL : see fsllist mail from Michael Hallquist, also no median filter as sugg. in the reply
-    #fsl:exec "$FSLDIR/bin/fslmaths FM_UD_fmap_tmp_fmapfilt -sub FM_UD_fmap -mas FM_UD_fmap_mag_brain_mask_ero -add FM_UD_fmap FM_UD_fmap"
-    fsl:exec "$FSLDIR/bin/fslmaths FM_UD_fmap -sub FM_UD_fmap_tmp_fmapfilt -mas FM_UD_fmap_mag_brain_mask_ero -add FM_UD_fmap_tmp_fmapfilt FM_UD_fmap" # added by HKL : see fsllist mail from Michael Hallquist
+    fsl:exec "$FSLDIR/bin/fugue --loadfmap=FM_UD_fmap --savefmap=FM_UD_fmap_tmp_fmapfilt -m FM_UD_fmap_mag_brain_mask --despike --despikethreshold=2.1"
+    #fsl:exec "$FSLDIR/bin/fugue --loadfmap=FM_UD_fmap --savefmap=FM_UD_fmap_tmp_fmapfilt --mask=FM_UD_fmap_mag_brain_mask --despike --despikethreshold=2.1" # added by HKL : see fsllist mail from Michael Hallquist, also no median filter as sugg. in the reply
+    fsl:exec "$FSLDIR/bin/fslmaths FM_UD_fmap_tmp_fmapfilt -sub FM_UD_fmap -mas FM_UD_fmap_mag_brain_mask_ero -add FM_UD_fmap FM_UD_fmap"
+    #fsl:exec "$FSLDIR/bin/fslmaths FM_UD_fmap -sub FM_UD_fmap_tmp_fmapfilt -mas FM_UD_fmap_mag_brain_mask_ero -add FM_UD_fmap_tmp_fmapfilt FM_UD_fmap" # added by HKL : see fsllist mail from Michael Hallquist
     fsl:exec "/bin/rm -f FM_UD_fmap_tmp_fmapfilt* FM_UD_fmap_mag_brain_mask_ero* FM_UD_fmap_mag_brain_mask50* FM_UD_fmap_mag_brain_i*"
     
     # now demean

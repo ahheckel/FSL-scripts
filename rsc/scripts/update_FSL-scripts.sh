@@ -1,4 +1,3 @@
-
 #!/bin/bash
 # overwrite FSL-scripts with new version
 
