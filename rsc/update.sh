@@ -1,13 +1,17 @@
 #!/bin/bash
 # CAVE: for AFNI tools: may need to install or link /usr/lib[64]/libXp.so.6
 
-
 #set -e
 
 if [ $# -lt 1 ] ; then echo "Usage: update [32|64]" ; exit ; fi
 
 if [ x$FSL_DIR = "x" ] ; then echo "FSL_DIR variable is not defined ! Exiting." ; exit 1 ; fi
 if [ x$FREESURFER_HOME = "x" ] ; then echo "FREESURFER_HOME variable is not defined ! Exiting." ; exit 1 ; fi
+
+v5=$(cat $FSL_DIR/etc/fslversion | grep ^5 | wc -l)
+if [ $v5 -eq 1 ] ; then
+  cp -iv fsl/fsl_sub_v5 $FSL_DIR/bin/fsl_sub # contains a RAM limit
+fi
 
 cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
 cp -iv fsl/MNI152*.nii.gz $FSL_DIR/data/standard/
@@ -16,7 +20,6 @@ cp -iv fsl/avg152T1_csf_bin.nii.gz $FSL_DIR/data/standard/
 
 echo "Don't overwrite for FSL ver. 5 if asked !"
 cp -iv fsl/fsl_sub $FSL_DIR/bin/fsl_sub # contains a RAM limit
-#cp -iv scripts/fsl_sub_NOPOSIXLY.sh $FSL_DIR/bin/fsl_sub # patched for freesurfer
 echo "Don't overwrite for FSL ver. 5 if asked !"
 cp -iv fsl/tbss_x/tbss_x $FSL_DIR/bin/tbss_x # dont overwrite for fsl ver. 5
 echo "Don't overwrite for FSL ver. 5 if asked!"

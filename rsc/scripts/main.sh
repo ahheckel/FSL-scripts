@@ -981,11 +981,17 @@ if [ $TOPUP_STG4 -eq 1 ] ; then
       fldr=${subjdir}/${subj}/${sess}/topup
       
       if [ ! -f $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
-      
+
       # execute TOPUP
       echo "TOPUP : subj $subj , sess $sess : executing TOPUP on merged low-B volumes..."
-      echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/$(subjsess)_fieldHz_lowb --iout=$fldr/$(subjsess)_unwarped_lowb" > $fldr/topup.cmd
-      . $fldr/topup.cmd
+      echo "topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/field_Hz_lowb --iout=$fldr/unwarped_lowb ; \
+      fslmaths $fldr/unwarped_lowb -Tmean $fldr/unwarped_lowb_mean ; \
+      bet $fldr/unwarped_lowb_mean $fldr/unwarped_lowb_mean_brain -f 0.3 -m ; \
+      fslmaths $fldr/field_Hz_lowb -mul 6.2832 $fldr/fmap_rads ; \
+      fslmaths $fldr/fmap_rads -mas $fldr/unwarped_lowb_mean_brain_mask $fldr/fmap_rads_masked" > $fldr/topup.cmd
+      fsl_sub -l $logdir -N topup_topup_$(subjsess) -t $fldr/topup.cmd
+      #echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/$(subjsess)_fieldHz_lowb --iout=$fldr/$(subjsess)_unwarped_lowb" > $fldr/topup.cmd
+      #. $fldr/topup.cmd 
      
     done
   done

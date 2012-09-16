@@ -9,7 +9,7 @@ source $(dirname $0)/globalfuncs
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <out-dir> <isBOLD: 0|1> [n_dummyB0] <dwi-plus> <dwi-minus> <TotalReadoutTime(s)> <no ec: 0|1> <use ec: 0|1> [<dof> <costfunction>] <subj> <sess>"
+    echo "Usage: `basename $0` <out-dir> <isBOLD: 0|1> [n_dummyB0] <dwi-plus> <dwi-minus> <TotalReadoutTime(s)> <use noec: 0|1> <use ec: 0|1> [<dof> <costfunction>] <subj> <sess>"
     echo "Example: topup.sh topupdir 0 dwi+.nii.gz dwi-.nii.gz 0.023 1 1 12 corratio 01 a"
     echo "         topup.sh topupdir 1 4 bold+.nii.gz bold-.nii.gz 0.023 1 1 6 mutualinfo 01 a"
     echo ""
@@ -404,8 +404,14 @@ if [ $TOPUP_STG4 -eq 1 ] ; then
       
       # execute TOPUP
       echo "TOPUP : subj $subj , sess $sess : executing TOPUP on merged low-B volumes..."
-      echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/$(subjsess)_fieldHz_lowb --iout=$fldr/$(subjsess)_unwarped_lowb" > $fldr/topup.cmd
-      . $fldr/topup.cmd
+      echo "topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/field_Hz_lowb --iout=$fldr/unwarped_lowb ; \
+      fslmaths $fldr/unwarped_lowb -Tmean $fldr/unwarped_lowb_mean ; \
+      bet $fldr/unwarped_lowb_mean $fldr/unwarped_lowb_mean_brain -f 0.3 -m ; \
+      fslmaths $fldr/field_Hz_lowb -mul 6.2832 $fldr/fmap_rads ; \
+      fslmaths $fldr/fmap_rads -mas $fldr/unwarped_lowb_mean_brain_mask $fldr/fmap_rads_masked" > $fldr/topup.cmd
+      fsl_sub -l $logdir -N topup_topup_$(subjsess) -t $fldr/topup.cmd
+      #echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/$(subjsess)_fieldHz_lowb --iout=$fldr/$(subjsess)_unwarped_lowb" > $fldr/topup.cmd
+      #. $fldr/topup.cmd      
      
     done
   done

@@ -214,6 +214,8 @@ EES_bold=0.23333                                              # Effective Echo S
 TE_bold=30                                                    # TE (ms)
 BOLD_FEATDIR_PREFIX="preprocBOLD"                             # prefix for .feat output directory
 BOLD_BET_EXFUNC=0                                             # bet example func (middle of the 4D) (default 0)
+BOLD_FEAT_NO_BROWSER=1                                        # don't open browser window
+#---------------------
 BOLD_UNWARP=1                                                 # enable unwarping (default 1)
 BOLD_SIGNLOSS_THRES=10 	                                      # signal loss threshold (%) (default: 10)
 BOLD_SLICETIMING_VALUES="0"                                   # enter correction method (see .fsf file); "0" to switch off slice timing correction
@@ -225,16 +227,16 @@ BOLD_PTTRN_HIGHRES_BRAIN="*_FS_brain.nii.gz"                  # pattern of t1 sk
 BOLD_PTTRN_HIGHRES_STRUC="*_FS_struc.nii.gz"                  # pattern of t1 non-skull-stripped image
 BOLD_DENOISE_MASKS_NAT="EF_CSF EF_WM"                         # masks used for denoising [EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz EF_GM.nii.gz] located in feat-dir (need FS-recons for creation) -> see FS_create_masks.sh
 BOLD_DENOISE_USE_MOVPARS_NAT="1"                              # 0: none - 1: orig - 2: squared - 3: abs - 4: 1st deriv. with leading zero - 5: 1st deriv. with trailing zero ; CAVE: cannot take more than 4 motion related modes (4*6=24 regressors -> more lead to fsl_regfilt error (at least at 32 bit)) (!)
-BOLD_DENOISE_SMOOTHING_KRNLS="4"                              # smooth denoised data
+BOLD_DENOISE_SMOOTHING_KRNLS="4"                              # smooth denoised data (NOTE: denoising of native data requires feat-processed data without smoothing applied)
 BOLD_DENOISE_HPF_CUTOFFS=""                                   # high-pass filer denoised and smoothed data, but it may be better to do hpf before not after denoising... (?) (!)
+#---------------------
 BOLD_REGISTER_TO_MNI=1                                        # enable MNI registration
 BOLD_USE_FS_LONGT_TEMPLATE=2                                  # using FS's mid-long template as unbiased registration basis for multisession designs (0: off / 1: bold->t1->long.template / 2: bold->long.template)
 BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data      filtered_func_data_denoised_s2      filtered_func_data_denoised_s4"              # cycle through 4Ds that are to be resampled in MNI space
 BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                           # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
 BOLD_MNI_RESAMPLE_INTERP="trilinear"                          # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
-BOLD_DENOISE_MASKS_MNI="MNI_CSF MNI_WM"                       # masks used for denoising in MNI space 
+BOLD_DENOISE_MASKS_MNI="MNI_CSF MNI_WM"                       # masks used for denoising in MNI space (filtered_func_data with 2mm resolution must be present to estimate nuisance matrix)
 BOLD_DENOISE_USE_MOVPARS_MNI="1"                              # see above
-BOLD_FEAT_NO_BROWSER=1                                        # don't open browser window
 
 # ALFF
 #ALFF_DENOISE_MASKS_NAT="EF_CSF EF_WB EF_WM"
