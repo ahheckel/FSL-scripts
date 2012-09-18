@@ -43,6 +43,7 @@ indir=`dirname $input`
 formula1="output_precision(8); c" # formula1="c-mean(c)" # for WM / CSF / WB signal
 formula2="output_precision(8); c" # formula2="c-mean(c)" # for movpars
 
+# extract nuisance regressors from masks
 ts_list=""
 ts_list_proc=""
 if [ "$masks" != "none" ] ; then 
@@ -66,6 +67,7 @@ if [ "$masks" != "none" ] ; then
   done
 fi
 
+# create motion related regressors
 if [ "$movpar_calcs" != 0 ] ; then 
   if [ ! -f $movpar ] ; then 
     echo "`basename $0` : subj $subj , sess $sess : motion parameter file '$movpar' not found - exiting..."
@@ -113,12 +115,13 @@ else
   movpar_proc=""
 fi
 
+# create matrix - mean regrssor
 ones=$outdir/ones
 #for i in $ts_list ; do n=$(cat $i | wc -l) ; break ; done
 n=`fslinfo  $input| grep ^dim4 | awk '{print $2}'`
 c=$(octave -q --eval "ones($n,1)") ; echo $c | cut -d "=" -f 2- |  row2col > $ones
 
-
+# create matrix - confounds
 confounds="${output}_nuisance_meants.mat"
 echo "`basename $0` : subj $subj , sess $sess : creating nuisance matrix '$confounds' and '${confounds%.mat}_proc.mat'..."
 paste -d " " $ts_list_proc $movpar_proc $ones > ${confounds%.mat}_proc.mat

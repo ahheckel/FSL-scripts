@@ -1069,19 +1069,37 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       # merge corrected files
       if [ $TOPUP_USE_NATIVE -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : merging topup-corrected DWIs..."
+        #fsl_sub -l $logdir -N topup_merge_corr_$(subjsess) fslmerge -t $fldr/$(subjsess)_topup_corr_merged $(imglob $fldr/*_topup_corr)
         fslmerge -t $fldr/$(subjsess)_topup_corr_merged $(imglob $fldr/*_topup_corr)
       fi
       if [ $TOPUP_USE_EC -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : merging topup-corrected & eddy-corrected DWIs..."
+        #fsl_sub -l $logdir -N topup_merge_corr_ec_$(subjsess) fslmerge -t $fldr/$(subjsess)_topup_corr_ec_merged $(imglob $fldr/*_topup_corr_ec)
         fslmerge -t $fldr/$(subjsess)_topup_corr_ec_merged $(imglob $fldr/*_topup_corr_ec)
       fi
-      
-      # remove negative values
+    done
+  done
+  
+  waitIfBusy
+
+  # remove negative values  
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=${subjdir}/${subj}/${sess}/topup
+  
       echo "TOPUP : subj $subj , sess $sess : zeroing negative values in topup-corrected DWIs..."
       if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_merged -thr 0 $fldr/$(subjsess)_topup_corr_merged ; fi
       if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_ec_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_ec_merged -thr 0 $fldr/$(subjsess)_topup_corr_ec_merged ; fi
-      
-      # create masked fieldmap
+    done
+  done
+  
+  waitIfBusy
+  
+  # create masked fieldmap
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=${subjdir}/${subj}/${sess}/topup
+
       echo "TOPUP : subj $subj , sess $sess : masking topup-derived fieldmap..."
       if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_merged.nii.gz ; fi
       if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ; fi ;
@@ -1100,8 +1118,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       fslmaths $fldr/fm/uw_lowb_merged -Tmean $fldr/fm/uw_lowb_mean ; \
       bet $fldr/fm/uw_lowb_mean $fldr/fm/uw_lowb_mean_brain -f 0.3 -m ; \
       fslmaths $fldr/fm/fmap_rads -mas $fldr/fm/uw_lowb_mean_brain_mask $fldr/fm/fmap_rads_masked" > $fldr/topup_b0mask.cmd
-      fsl_sub -l $logdir -N topup_b0mask_$(subjsess) -t $fldr/topup_b0mask.cmd
-      
+      fsl_sub -l $logdir -N topup_b0mask_$(subjsess) -t $fldr/topup_b0mask.cmd      
     done
   done    
 fi
@@ -2308,9 +2325,9 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       n=$[$n+1]     
       
       # define magnitude and fieldmap
-      fmap=$subjdir/$subj/$sess/fm/fmap_rads_masked.nii.gz
+      fmap=$subjdir/$subj/$sess/$(remove_ext $BOLD_FMAP).nii.gz
       if [ ! -f $fmap ] ; then echo "BOLD : subj $subj , sess $sess : WARNING : Fieldmap image '$fmap' not found !" ; fi
-      fmap_magn=$subjdir/$subj/$sess/fm/magn_brain.nii.gz
+      fmap_magn=$subjdir/$subj/$sess/$(remove_ext $BOLD_MAGN).nii.gz
       if [ ! -f $fmap_magn ] ; then echo "BOLD : subj $subj , sess $sess : WARNING : Fieldmap magnitude image '$fmap_magn' not found !" ; fi
       
       # create symlinks to t1-structurals (highres registration reference)

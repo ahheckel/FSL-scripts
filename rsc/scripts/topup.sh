@@ -481,19 +481,37 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       # merge corrected files
       if [ $TOPUP_USE_NATIVE -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : merging topup-corrected DWIs..."
+        #fsl_sub -l $logdir -N topup_merge_corr_$(subjsess) fslmerge -t $fldr/$(subjsess)_topup_corr_merged $(imglob $fldr/*_topup_corr)
         fslmerge -t $fldr/$(subjsess)_topup_corr_merged $(imglob $fldr/*_topup_corr)
       fi
       if [ $TOPUP_USE_EC -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : merging topup-corrected & eddy-corrected DWIs..."
+        #fsl_sub -l $logdir -N topup_merge_corr_ec_$(subjsess) fslmerge -t $fldr/$(subjsess)_topup_corr_ec_merged $(imglob $fldr/*_topup_corr_ec)
         fslmerge -t $fldr/$(subjsess)_topup_corr_ec_merged $(imglob $fldr/*_topup_corr_ec)
       fi
+    done
+  done
+  
+  waitIfBusy
+  
+  # remove negative values
+  for subj in `cat $outdir/.subjects` ; do
+    for sess in `cat $outdir/.sessions_struc` ; do
+      fldr=$outdir
       
-      # remove negative values
       echo "TOPUP : subj $subj , sess $sess : zeroing negative values in topup-corrected DWIs..."
       if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_merged -thr 0 $fldr/$(subjsess)_topup_corr_merged ; fi
       if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_ec_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_ec_merged -thr 0 $fldr/$(subjsess)_topup_corr_ec_merged ; fi
+    done
+  done
+  
+  waitIfBusy
+  
+  # create masked fieldmap
+  for subj in `cat $outdir/.subjects` ; do
+    for sess in `cat $outdir/.sessions_struc` ; do
+      fldr=$outdir
       
-      # create masked fieldmap
       echo "TOPUP : subj $subj , sess $sess : masking topup-derived fieldmap..."
       if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_merged.nii.gz ; fi
       if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ; fi ;
