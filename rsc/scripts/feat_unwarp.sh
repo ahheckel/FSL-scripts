@@ -34,6 +34,14 @@ sdir=`pwd`
 # UD = undistorted (in any space)
 # D  = distorted (in any space)
 
+echo "`basename $0`: input           : $funcdata"
+echo "`basename $0`: fmap            : $fmap"
+echo "`basename $0`: magn            : $fmap_mag"
+echo "`basename $0`: uwdir           : $unwarp_dir"
+echo "`basename $0`: TE(ms)          : $TE"
+echo "`basename $0`: ESP(ms)         : $dwell"
+echo "`basename $0`: SigLossThres(%) : $signallossthresh"
+
 total_volumes=`fslnvols $funcdata 2> /dev/null`
 echo "`basename $0`: Total original volumes = $total_volumes"
 

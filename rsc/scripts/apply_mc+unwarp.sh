@@ -9,7 +9,7 @@ Usage() {
     echo ""
     echo "Usage: `basename $0` <input4D> <output4D> <mc mat-dir | .ecclog file> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> <interp (default:trilinear)>"
     echo "Example: `basename $0` bold uw_bold ./mc/prefiltered_func_data_mcf.mat/ ./unwarp/EF_UD_shift.nii.gz y spline"
-    echo "Example: `basename $0` diff uw_diff ./ec_dwi.ecclog ./unwarp/EF_UD_shift.nii.gz y spline"
+    echo "         `basename $0` diff uw_diff ./ec_dwi.ecclog ./unwarp/EF_UD_shift.nii.gz y spline"
     echo ""
     exit 1
 }

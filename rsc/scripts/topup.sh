@@ -535,8 +535,8 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       
       # link to mask
       echo "TOPUP : subj $subj , sess $sess : link to unwarped mask..."
-      ln -sfv ./fm/uw_lowb_mean_brain.nii.gz $fldr/nodif_brain.nii.gz
-      ln -sfv ./fm/uw_lowb_mean_brain_mask.nii.gz $fldr/nodif_brain_mask.nii.gz   
+      ln -sfv ./fm/uw_lowb_mean_brain.nii.gz $fldr/uw_nodif_brain.nii.gz
+      ln -sfv ./fm/uw_lowb_mean_brain_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz   
       
     done
   done    
@@ -661,11 +661,11 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
       # estimate tensor model (rotated bvecs)
       if [ $TOPUP_USE_NATIVE -eq 1 ] ; then           
         echo "TOPUP : subj $subj , sess $sess : dtifit is estimating tensor model with rotated b-vectors (no eddy-correction)..."
-        fsl_sub -l $logdir -N topup_dtifit_noec_bvecrot_$(subjsess) dtifit -k $fldr/$(subjsess)_topup_corr_merged -m $fldr/nodif_brain_mask -r $fldr/avg_bvecs_topup.rot -b $fldr/avg_bvals.txt  -o $fldr/$(subjsess)_dti_topup_noec_bvecrot
+        fsl_sub -l $logdir -N topup_dtifit_noec_bvecrot_$(subjsess) dtifit -k $fldr/$(subjsess)_topup_corr_merged -m $fldr/uw_nodif_brain_mask -r $fldr/avg_bvecs_topup.rot -b $fldr/avg_bvals.txt  -o $fldr/$(subjsess)_dti_topup_noec_bvecrot
       fi
       if [ $TOPUP_USE_EC -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : dtifit is estimating tensor model with rotated b-vectors (incl. eddy-correction)..."
-        fsl_sub -l $logdir -N topup_dtifit_ec_bvecrot_$(subjsess) dtifit -k $fldr/$(subjsess)_topup_corr_ec_merged -m $fldr/nodif_brain_mask -r $fldr/avg_bvecs_topup_ec.rot  -b $fldr/avg_bvals.txt  -o $fldr/$(subjsess)_dti_topup_ec_bvecrot
+        fsl_sub -l $logdir -N topup_dtifit_ec_bvecrot_$(subjsess) dtifit -k $fldr/$(subjsess)_topup_corr_ec_merged -m $fldr/uw_nodif_brain_mask -r $fldr/avg_bvecs_topup_ec.rot  -b $fldr/avg_bvals.txt  -o $fldr/$(subjsess)_dti_topup_ec_bvecrot
       fi
     done
   done

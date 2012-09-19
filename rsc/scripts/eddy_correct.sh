@@ -1,18 +1,23 @@
 #!/bin/sh
 
-trap 'echo "$0 : An ERROR has occured." ; exit 1' ERR # added by HKL
+trap 'echo "$0 : An ERROR has occured." ; exit 1' ERR
 
-set -e # added by HKL
+set -e
 
 Usage() {
     echo ""
-    echo "Usage: eddy_correct [-t] <4dinput> <4doutput> <reference_no> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}>"
-    echo ""
+    echo "Usage: eddy_correct [-t|-n] <4dinput> <4doutput> <reference_no> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}>"
+    echo "Options (mutually exclusive):  -t :  test mode, create ecclog with identities."
+    echo "                               -n :  no write-outs, just create ecclog file."
     exit 1
 }
 
-noec=0
-if [ "$1" = "-t" ] ; then noec=1 ; echo "`basename $0` : test-mode." ; shift ; fi
+noec=0 ; nowrite=0
+if [ "$1" = "-t" ] ; then 
+  noec=1 ; echo "`basename $0` : test-mode." ; shift
+elif [ "$1" = "-n" ] ; then 
+  nowrite=1 ; echo "`basename $0` : no write-outs." ; shift
+fi
 
 [ "$3" = "" ] && Usage
 
@@ -44,38 +49,45 @@ fslroi $input ${output}_ref $ref 1
 fslsplit $input ${output}_tmp
 full_list=`${FSLDIR}/bin/imglob ${output}_tmp????.*`
 
-rm -f ${output}.ecclog # added by HKL to avoid accumulation on re-run
+rm -f ${output}.ecclog # to avoid accumulation on re-run
 
 for i in $full_list ; do
-echo processing $i
-    echo processing $i >> ${output}.ecclog
-    if [ $noec != 1 ] ; then      
-      
-      if [ "$interp" = "spline" -a $fslversion -lt 5 ] ; then
-        ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost > ${output}.ecclog.tmp # added by HKL
-        cat ${output}.ecclog.tmp | sed -n '3,6'p > ${output}.ecclog.tmp.applywarp # added by HKL
-        ${FSLDIR}/bin/applywarp --ref=${output}_ref --in=$i --out=$i --premat=${output}.ecclog.tmp.applywarp --interp=spline # added by HKL
-        rm ${output}.ecclog.tmp.applywarp # added by HKL
+  echo processing $i
+  echo processing $i >> ${output}.ecclog
+  if [ $noec != 1 ] ; then    
+    if [ "$interp" = "spline" -a $fslversion -lt 5 ] ; then
+      ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost > ${output}.ecclog.tmp    
+      if [ $nowrite -eq 0 ] ; then          
+        cat ${output}.ecclog.tmp | sed -n '3,6'p > ${output}.ecclog.tmp.applywarp
+        ${FSLDIR}/bin/applywarp --ref=${output}_ref --in=$i --out=$i --premat=${output}.ecclog.tmp.applywarp --interp=spline
+        rm ${output}.ecclog.tmp.applywarp          
+      fi        
+    else      
+      if [ $nowrite -eq 0 ] ; then
+        ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -out $i -nosearch -paddingsize 1 -dof $dof -cost $cost -interp $interp > ${output}.ecclog.tmp
       else
-        ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -out $i -nosearch -paddingsize 1 -dof $dof -cost $cost -interp $interp > ${output}.ecclog.tmp # added by HKL
-      fi
-                
-      if [ "$interp" = "spline" ] ; then
-        #${FSLDIR}/bin/fslmaths $i -abs $i # added by HKL
-        ${FSLDIR}/bin/fslmaths $i -thr 0 $i # added by HKL
-      fi
-    
-    else
-      echo "" >> ${output}.ecclog.tmp
-      echo "Final result:" >> ${output}.ecclog.tmp
-      cat $FSL_DIR/etc/flirtsch/ident.mat >> ${output}.ecclog.tmp
-      echo "" >> ${output}.ecclog.tmp 
+        ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost > ${output}.ecclog.tmp
+      fi        
     fi
+              
+    if [ "$interp" = "spline" -a $nowrite -eq 0 ] ; then
+      #${FSLDIR}/bin/fslmaths $i -abs $i
+      ${FSLDIR}/bin/fslmaths $i -thr 0 $i
+    fi
+  
+  else
+    echo "" >> ${output}.ecclog.tmp
+    echo "Final result:" >> ${output}.ecclog.tmp
+    cat $FSL_DIR/etc/flirtsch/ident.mat >> ${output}.ecclog.tmp
+    echo "" >> ${output}.ecclog.tmp 
+  fi
 
-cat ${output}.ecclog.tmp >> ${output}.ecclog ; rm ${output}.ecclog.tmp # added by HKL
+  cat ${output}.ecclog.tmp >> ${output}.ecclog ; rm ${output}.ecclog.tmp
 done
 
-fslmerge -t $output $full_list
+if [ $nowrite -eq 0 ] ; then
+  fslmerge -t $output $full_list
+fi
 
 /bin/rm ${output}_tmp????.* ${output}_ref*
 
