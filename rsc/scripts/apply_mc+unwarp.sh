@@ -80,6 +80,6 @@ fslroi $output $outdir/example_func $mid 1
 imrm $full_list
 imrm ${output}_example_func
 imrm ${output}_WARP1
-rm -f _tmp_ecclog.mat
+rm -f ${output}_tmp_ecclog.mat
 
 echo "`basename $0` : done."
