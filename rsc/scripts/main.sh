@@ -1119,7 +1119,13 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       fslmaths $fldr/fm/uw_lowb_merged -Tmean $fldr/fm/uw_lowb_mean ; \
       bet $fldr/fm/uw_lowb_mean $fldr/fm/uw_lowb_mean_brain -f $fithres -m ; \
       fslmaths $fldr/fm/fmap_rads -mas $fldr/fm/uw_lowb_mean_brain_mask $fldr/fm/fmap_rads_masked" > $fldr/topup_b0mask.cmd
-      fsl_sub -l $logdir -N topup_b0mask_$(subjsess) -t $fldr/topup_b0mask.cmd      
+      fsl_sub -l $logdir -N topup_b0mask_$(subjsess) -t $fldr/topup_b0mask.cmd
+      
+      # link to mask
+      echo "TOPUP : subj $subj , sess $sess : link to unwarped mask..."
+      ln -sfv ./fm/uw_lowb_mean_brain.nii.gz $fldr/nodif_brain.nii.gz
+      ln -sfv ./fm/uw_lowb_mean_brain_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
+      
     done
   done    
 fi
@@ -1150,11 +1156,6 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
       #fi 
       #ln -sf nodif_brain_${f}.nii.gz $fldr/nodif_brain.nii.gz
       #ln -sf nodif_brain_${f}_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
-      
-      # link to mask
-      echo "TOPUP : subj $subj , sess $sess : link to unwarped mask..."
-      ln -sfv ./fm/uw_lowb_mean_brain.nii.gz $fldr/nodif_brain.nii.gz
-      ln -sfv ./fm/uw_lowb_mean_brain_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
       
       # averaging +/- bvecs & bvals...
       # NOTE: bvecs are averaged further below (following rotation)
