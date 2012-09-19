@@ -7,14 +7,14 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` [--nomc] <input4D> <output4D> <magn img> <dphase img> <dphaseTE(s)> <TE(ms)> <ESP(ms)> <unwarp direction: x/y/z/x-/y-/z-> <interp (default:trilinear)> <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` [--nomc] <input4D> <output4D> <magn img> <dphase img> <dphaseTE(s)> <TE(ms)> <ESP(ms)> <siglossthres(%)> <unwarp direction: x/y/z/x-/y-/z-> <interp (default:trilinear)> <subj_idx> <sess_idx>"
     echo "Options: --nomc        skip motion correction"
-    echo "Example: `basename $0` bold uw_bold magn dphase 0.00246 30 0.233 y- spline"
+    echo "Example: `basename $0` bold uw_bold magn dphase 0.00246 30 0.233 10 y- spline"
     echo ""
     exit 1
 }
 
-[ "$8" = "" ] && Usage
+[ "$9" = "" ] && Usage
 
 moco=1 ; if [ "$1" = "--nomc" ] ; then moco=0 ; echo "`basename $0` : motion correction will be skipped as requested." ; shift ; fi
 input=`remove_ext "$1"`
@@ -24,10 +24,11 @@ dphase=`remove_ext "$4"`
 dTE=$5
 TE=$6
 ESP=$7
-uwdir="$8"
-interp="$9"
-subj="${10}"
-sess="${11}"
+siglossthres=$8
+uwdir="$9"
+interp="$10"
+subj="${11}"
+sess="${12}"
 
 if [ x"$interp" = "x" ] ; then interp="trilinear" ; fi
 indir=$(dirname $input)
@@ -53,7 +54,7 @@ cmd="$(dirname $0)/make_fmap.sh $magn $dphase $dTE 0.5 $outdir/fm/fmap_rads_mask
 echo $cmd ; $cmd
 
 # unwarp
-cmd="$(dirname $0)/feat_unwarp.sh $input $outdir/fm/fmap_rads_masked $outdir/fm/magn_brain $uwdir $TE $ESP $outdir/unwarp $subj $sess"
+cmd="$(dirname $0)/feat_unwarp.sh $input $outdir/fm/fmap_rads_masked $outdir/fm/magn_brain $uwdir $TE $ESP $siglossthres $outdir/unwarp $subj $sess"
 echo $cmd ; $cmd
 
 # apply transforms

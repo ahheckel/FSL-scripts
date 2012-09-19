@@ -24,6 +24,7 @@ uwdir="$5"
 interp="$6"
 if [ x"$interp" = "x" ] ; then interp="trilinear" ; fi
 
+# motion correction or eddy-correction ?
 ecclog=0
 if [ ! -d $mcdir ] ; then
   if [ -f $mcdir -a ${mcdir#*.} = "ecclog" ] ; then
@@ -36,16 +37,16 @@ fi
 
 echo "`basename $0` : applying motion-correction and shiftmap..."
 
+# write unwarp warpfield
 nvol=`fslinfo  $input | grep ^dim4 | awk '{print $2}'`
 mid=$(echo "scale=0 ; $nvol / 2" | bc)
 fslroi $input ${output}_example_func $mid 1
+cmd="convertwarp --ref=${output}_example_func --shiftmap=${shiftmap} --shiftdir=${uwdir} --out=${output}_WARP1 --relout"
+echo $cmd
+$cmd
 
 
-  cmd="convertwarp --ref=${output}_example_func --shiftmap=${shiftmap} --shiftdir=${uwdir} --out=${output}_WARP1 --relout"
-  echo $cmd
-  $cmd
-  
-
+# combine with motion correction
 imrm ${output}_tmp_????.*
 fslsplit $input ${output}_tmp_
 full_list=`imglob ${output}_tmp_????.*`
@@ -68,10 +69,14 @@ for file in $full_list ; do
   
   i=$(scale=0 ; echo "$i + 1" | bc)
 done
+
+# merge
 echo "`basename $0`: merge outputs...."
 fslmerge -t $output $full_list
 outdir=$(dirname $output)
 fslroi $output $outdir/example_func $mid 1
+
+# cleanup
 imrm $full_list
 imrm ${output}_example_func
 imrm ${output}_WARP1
