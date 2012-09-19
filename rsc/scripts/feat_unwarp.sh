@@ -1,4 +1,5 @@
 #!/bin/bash
+# Feat's (v.4.1.9) unwarp module.
 
 set -e
 
@@ -9,12 +10,12 @@ trap 'echo "$0 : An ERROR has occured."' ERR
     
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input func> <fmap> <fmap-magn brain> <uw-dir x/y/z/x-/y-/z-> <TE> <ESP> <outdir>"
+    echo "Usage: `basename $0` <input func> <fmap> <fmap-magn brain> <uw-dir x/y/z/x-/y-/z-> <TE> <ESP> <sigloss-thres> <outdir>"
     echo ""
     exit 1
 }
 
-[ "$7" = "" ] && Usage    
+[ "$8" = "" ] && Usage    
   
 funcdata="$1"
 fmap="$2"
@@ -22,9 +23,9 @@ fmap_mag="$3"
 unwarp_dir="$4"
 TE=$5 #30
 dwell=$6 #0.23
-out="$7"
+signallossthresh=$7 # recommended: bold: 10 , dwi: 100
+out="$8"
 
-signallossthresh=10
 wdir=$out ; mkdir -p $wdir
 sdir=`pwd`
 

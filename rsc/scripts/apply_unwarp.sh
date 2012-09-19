@@ -13,7 +13,7 @@ Usage() {
     exit 1
 }
 
-[ "$5" = "" ] && Usage
+[ "$4" = "" ] && Usage
 
 input=`remove_ext "$1"`
 output=`remove_ext "$2"`

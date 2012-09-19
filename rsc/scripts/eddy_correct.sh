@@ -33,9 +33,11 @@ echo "Input does not exist or is not in a supported format"
     exit 1
 fi
 
-echo "dof: $dof"
-echo "cost: $cost"
-echo "interp: $interp"
+fslversion=$(cat $FSL_DIR/etc/fslversion | cut -d . -f 1)
+echo "FSL    : v.${fslversion}"
+echo "dof    : $dof"
+echo "cost   : $cost"
+echo "interp : $interp"
 
 fslroi $input ${output}_ref $ref 1
 
@@ -48,22 +50,28 @@ for i in $full_list ; do
 echo processing $i
     echo processing $i >> ${output}.ecclog
     if [ $noec != 1 ] ; then      
-      if [ "$interp" = "spline" ] ; then
+      
+      if [ "$interp" = "spline" -a $fslversion -lt 5 ] ; then
         ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost > ${output}.ecclog.tmp # added by HKL
         cat ${output}.ecclog.tmp | sed -n '3,6'p > ${output}.ecclog.tmp.applywarp # added by HKL
         ${FSLDIR}/bin/applywarp --ref=${output}_ref --in=$i --out=$i --premat=${output}.ecclog.tmp.applywarp --interp=spline # added by HKL
-        #${FSLDIR}/bin/fslmaths $i -abs $i # added by HKL
-        ${FSLDIR}/bin/fslmaths $i -thr 0 $i # added by HKL
         rm ${output}.ecclog.tmp.applywarp # added by HKL
       else
         ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -out $i -nosearch -paddingsize 1 -dof $dof -cost $cost -interp $interp > ${output}.ecclog.tmp # added by HKL
       fi
+                
+      if [ "$interp" = "spline" ] ; then
+        #${FSLDIR}/bin/fslmaths $i -abs $i # added by HKL
+        ${FSLDIR}/bin/fslmaths $i -thr 0 $i # added by HKL
+      fi
+    
     else
       echo "" >> ${output}.ecclog.tmp
       echo "Final result:" >> ${output}.ecclog.tmp
       cat $FSL_DIR/etc/flirtsch/ident.mat >> ${output}.ecclog.tmp
       echo "" >> ${output}.ecclog.tmp 
     fi
+
 cat ${output}.ecclog.tmp >> ${output}.ecclog ; rm ${output}.ecclog.tmp # added by HKL
 done
 

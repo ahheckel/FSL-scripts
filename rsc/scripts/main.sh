@@ -1114,9 +1114,10 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         lowbs=$lowbs" "$lowb
       done
       echo "    creating mask..."
+      fithres=`getBetThres ${subjdir}/config_bet_lowb $subj $sess` # get info for current subject
       echo "fslmerge -t $fldr/fm/uw_lowb_merged $lowbs ; \
       fslmaths $fldr/fm/uw_lowb_merged -Tmean $fldr/fm/uw_lowb_mean ; \
-      bet $fldr/fm/uw_lowb_mean $fldr/fm/uw_lowb_mean_brain -f 0.3 -m ; \
+      bet $fldr/fm/uw_lowb_mean $fldr/fm/uw_lowb_mean_brain -f $fithres -m ; \
       fslmaths $fldr/fm/fmap_rads -mas $fldr/fm/uw_lowb_mean_brain_mask $fldr/fm/fmap_rads_masked" > $fldr/topup_b0mask.cmd
       fsl_sub -l $logdir -N topup_b0mask_$(subjsess) -t $fldr/topup_b0mask.cmd      
     done
@@ -1132,24 +1133,29 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=${subjdir}/${subj}/${sess}/topup
       
-      # get info for current subject
-      f=`getBetThres ${subjdir}/config_bet_lowb $subj $sess`
+      ## get info for current subject
+      #f=`getBetThres ${subjdir}/config_bet_lowb $subj $sess`
 
-      # bet, if necessary
-      if [ $f = "mod" ] ; then
-        if [ ! -f $fldr/nodif_brain_${f}.nii.gz  -o ! -f $fldr/nodif_brain_${f}_mask.nii.gz ] ; then   
-          echo "TOPUP: subj $subj , sess $sess : externally modified volume (nodif_brain_${f}) & mask (nodif_brain_${f}_mask) not found - exiting..." ; exit
-        fi
-      else      
-        echo "TOPUP : subj $subj , sess $sess : betting B0 image with fi=${f} - extracting B0..."
-        if [ ! -f $fldr/lowb.idx ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : low-b index file '$fldr/lowb.idx' not found - continuing loop..." ; continue ; fi
-        fslroi $fldr/diffs_merged $fldr/nodif $(sed -n 1p $fldr/lowb.idx) 1
-        echo "TOPUP : subj $subj , sess $sess : ...and betting B0..."
-        bet $fldr/nodif $fldr/nodif_brain_${f} -m -f $f         
-      fi 
-      ln -sf nodif_brain_${f}.nii.gz $fldr/nodif_brain.nii.gz
-      ln -sf nodif_brain_${f}_mask.nii.gz $fldr/nodif_brain_mask.nii.gz      
-    
+      ## bet, if necessary
+      #if [ $f = "mod" ] ; then
+        #if [ ! -f $fldr/nodif_brain_${f}.nii.gz  -o ! -f $fldr/nodif_brain_${f}_mask.nii.gz ] ; then   
+          #echo "TOPUP: subj $subj , sess $sess : externally modified volume (nodif_brain_${f}) & mask (nodif_brain_${f}_mask) not found - exiting..." ; exit
+        #fi
+      #else      
+        #echo "TOPUP : subj $subj , sess $sess : betting B0 image with fi=${f} - extracting B0..."
+        #if [ ! -f $fldr/lowb.idx ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : low-b index file '$fldr/lowb.idx' not found - continuing loop..." ; continue ; fi
+        #fslroi $fldr/diffs_merged $fldr/nodif $(sed -n 1p $fldr/lowb.idx) 1
+        #echo "TOPUP : subj $subj , sess $sess : ...and betting B0..."
+        #bet $fldr/nodif $fldr/nodif_brain_${f} -m -f $f         
+      #fi 
+      #ln -sf nodif_brain_${f}.nii.gz $fldr/nodif_brain.nii.gz
+      #ln -sf nodif_brain_${f}_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
+      
+      # link to mask
+      echo "TOPUP : subj $subj , sess $sess : link to unwarped mask..."
+      ln -sfv ./fm/uw_lowb_mean_brain.nii.gz $fldr/nodif_brain.nii.gz
+      ln -sfv ./fm/uw_lowb_mean_brain_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
+      
       # averaging +/- bvecs & bvals...
       # NOTE: bvecs are averaged further below (following rotation)
       average $fldr/bvalsminus_concat.txt $fldr/bvalsplus_concat.txt > $fldr/avg_bvals.txt
@@ -1237,7 +1243,7 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
       fi
       
       # display info
-      echo "TOPUP : subj $subj , sess $sess : dtifit is estimating tensor model using nodif_brain_${f}_mask..."
+      echo "TOPUP : subj $subj , sess $sess : dtifit is estimating tensor model..."
       
       # estimate tensor model (rotated bvecs)
       if [ $TOPUP_USE_NATIVE -eq 1 ] ; then           
