@@ -19,7 +19,7 @@ echo "`basename $0`: removing all broken symlinks under '$1'..."
 
 if [ ! -d $1 ] ; then echo "`basename $0`: '$1' does not exist." ; exit 1 ; fi
 
-find $1 -type l ! -exec test -e {} \; -exec rm {} \;
+find $1 -type l ! -exec test -e {} \; -exec echo deleting {} \; -exec rm {} \;
 
 echo "`basename $0`: done."
 
