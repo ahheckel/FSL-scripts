@@ -45,7 +45,7 @@ echo "cost   : $cost"
 echo "interp : $interp"
 
 fslroi $input ${output}_ref $ref 1
-
+imrm ${output}_tmp????.*
 fslsplit $input ${output}_tmp
 full_list=`${FSLDIR}/bin/imglob ${output}_tmp????.*`
 
