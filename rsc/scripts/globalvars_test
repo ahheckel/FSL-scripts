@@ -68,9 +68,8 @@ TOPUP_STG6=0               # TOPUP estimate tensor model
 
 FDT_STG1=0                 # FDT merging
 FDT_STG2=0                 # FDT eddy-correct & extract B0 reference image
-FDT_STG3=0                 # FDT prepare FEAT configuration file for unwarping the DWIs
-FDT_STG4=0                 # FDT execute FEAT & extract unwarped B0 reference image
-FDT_STG5=0                 # FDT estimate tensor model
+FDT_STG3=0                 # FDT unwarp the DWIs
+FDT_STG4=0                 # FDT estimate tensor model
 
 BPX_STG1=0                 # BedpostX - execute
 
@@ -174,15 +173,15 @@ TOPUP_EC_DOF=6             # degrees of freedom used by eddy-correction
 TOPUP_EC_COST=mutualinfo   # cost-function used by eddy-correction (default: corratio)
 
 # FDT - unwarp
-TR_diff=11                 # TR of the DWIs (s)
-EES_diff=0.25              # Effective Echo Spacing of the DWIs (ms)
-TE_diff=88                 # TE of the DWIs (ms)
-FDT_EC_TEST=0              # don't apply eddy-correction
-FDT_EC_DOF=6               # degrees of freedom used by eddy-correction
-FDT_EC_COST=mutualinfo     # cost-function used by eddy-correction (default: corratio)
-FDT_SIGNLOSS_THRES=100     # signal loss threshold (%)
-FDT_UNWARP_BET_ALTEXFUNC=1 # brain-extract the input alternative example func (i.e. the B0 image)
-FDT_FEAT_NO_BROWSER=1      # don't open browser window
+TR_diff=11                     # TR of the DWIs (s)
+EES_diff=0.25                  # Effective Echo Spacing of the DWIs (ms)
+TE_diff=88                     # TE of the DWIs (ms)
+FDT_EC_TEST=0                  # don't apply eddy-correction
+FDT_EC_DOF=6                   # degrees of freedom used by eddy-correction
+FDT_EC_COST=mutualinfo         # cost-function used by eddy-correction (default: corratio)
+FDT_FMAP="fm/fmap_rads_masked" # rel. path to fieldmap in rads/sec (default: "fm/fmap_rads_masked")
+FDT_MAGN="fm/magn_brain"       # rel. path to magnitude (default: "fm/magn_brain")
+FDT_SIGNLOSS_THRES=100         # signal loss threshold (%)
 
 # BPX
 BPX_OUTDIR_PREFIX="bpx"

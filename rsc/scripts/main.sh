@@ -1126,7 +1126,6 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       ln -sfv ./fm/uw_lowb_mean_brain_${fithres}.nii.gz $fldr/uw_nodif_brain.nii.gz
       ln -sfv ./fm/uw_lowb_mean_brain_${fithres}_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz   
       
-      
     done
   done    
 fi
@@ -1309,7 +1308,12 @@ if [ $FDT_STG2 -eq 1 ] ; then
       b0img=`getB0Index $subj/$sess/"$pttrn_bvals" $fldr/ec_ref.idx | cut -d " " -f 1` ; min=`getB0Index $subj/$sess/"$pttrn_bvals" $fldr/ec_ref.idx | cut -d " " -f 2`
 
       # eddy-correct in test mode ? (don't apply eddy_correction)
-      if [ $FDT_EC_TEST -eq 1 ] ; then ectest="-t" ; echo "FDT : subj $subj , sess $sess : NOTE: eddy_correct is in testing mode." ; else ectest="" ; fi
+      if [ $FDT_EC_TEST -eq 1 ] ; then 
+        ecswitch="-t" ; echo "FDT : subj $subj , sess $sess : NOTE: eddy_correct is in 'testing' mode."
+      else
+        ecswitch=""
+        #ecswitch="-n" ; echo "FDT : subj $subj , sess $sess : NOTE: eddy_correct is in 'no-write-out' mode." 
+      fi
       
       # eddy-correct
       echo "FDT : subj $subj , sess $sess : eddy_correct is using volume no. $b0img as B0 (val:${min})..."
@@ -1317,7 +1321,7 @@ if [ $FDT_STG2 -eq 1 ] ; then
       # creating task file for fsl_sub, the deletions are needed to avoid accumulations when sge is doing a re-run on error
       echo "rm -f $fldr/ec_diff_merged_*.nii.gz ; \
             rm -f $fldr/ec_diff_merged.ecclog ; \
-            $scriptdir/eddy_correct.sh $ectest $fldr/diff_merged $fldr/ec_diff_merged $b0img $FDT_EC_DOF $FDT_EC_COST trilinear" > $fldr/fdt_ec.cmd
+            $scriptdir/eddy_correct.sh $ecswitch $fldr/diff_merged $fldr/ec_diff_merged $b0img $FDT_EC_DOF $FDT_EC_COST trilinear" > $fldr/fdt_ec.cmd
       fsl_sub -l $logdir -N fdt_eddy_correct_$(subjsess) -t $fldr/fdt_ec.cmd
       
     done
@@ -1325,137 +1329,27 @@ if [ $FDT_STG2 -eq 1 ] ; then
   
   waitIfBusy
   
-  # extract b0 reference image from eddy-corrected 4D (note: you can use these for both eddy-corrected and non eddy-corrected streams, bc. these b0 images were used as reference for eddy_correct)
+  # extract b0 reference image from 4D (note: you can use these for both eddy-corrected and non eddy-corrected streams, bc. these b0 images were used as reference for eddy_correct)
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$subjdir/$subj/$sess/fdt
-      echo "FDT : subj $subj , sess $sess : extract b0 reference image from eddy-corrected 4D..."
-      fsl_sub -l $logdir -N fdt_fslroi_$(subjsess) fslroi $fldr/ec_diff_merged $fldr/nodif $(cat $fldr/ec_ref.idx) 1  
+      echo "FDT : subj $subj , sess $sess : extract b0 reference image from merged DWIs..."
+      fsl_sub -l $logdir -N fdt_fslroi_$(subjsess) fslroi $fldr/diff_merged $fldr/nodif $(cat $fldr/ec_ref.idx) 1  
     done
   done
 fi
 
 waitIfBusy
 
-# FDT unwarp eddy-corrected DWIs - prepare FEAT config-file
+# FDT unwarp eddy-corrected DWIs
 if [ $FDT_STG3 -eq 1 ] ; then
   echo "----- BEGIN FDT_STG3 -----"
-  n=0 ; _npts=0 ; npts=0 # variables for counting and comparing number of volumes in the 4Ds
-  for subj in `cat subjects` ; do
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$subjdir/$subj/$sess/fdt
-      
-      # check if we have acquisition parameters
-      defineDWIparams $subjdir/config_acqparams_dwi $subj $sess
-      
-      # number of volumes in 4D
-      echo -n "FDT : counting number of volumes in '$fldr/ec_diff_merged.nii.gz'..."
-      npts=`countVols $fldr/ec_diff_merged.nii.gz`
-      echo " ${npts}."
-      if [ $n -gt 0 ] ; then
-        if [ ! $npts -eq $_npts ] ; then
-          echo "FDT : subj $subj , sess $sess : WARNING : Number of volumes does not match with previous image file in the loop!" 
-        fi
-      fi
-      _npts=$npts
-      n=$[$n+1] 
-      
-      # define alternative example func
-      if [ $FDT_UNWARP_BET_ALTEXFUNC -eq 1 ] ; then
-        f=`getBetThres ${subjdir}/config_bet_lowb $subj $sess`
-        bet $fldr/nodif $fldr/altExFunc_nodif_brain_${f} -f $f
-        altExFunc=$fldr/altExFunc_nodif_brain_${f}
-      else
-        ln -sf nodif.nii.gz $fldr/altExFunc_nodif.nii.gz
-        altExFunc=$fldr/altExFunc_nodif.nii.gz
-      fi
-
-      # define magnitude and fieldmap
-      fmap=$subjdir/$subj/$sess/fm/fmap_rads_masked.nii.gz
-      if [ ! -f $fmap ] ; then echo "FDT : subj $subj , sess $sess : WARNING : Fieldmap image '$fmap' not found !" ; fi
-      fmap_magn=$subjdir/$subj/$sess/fm/magn_brain.nii.gz
-      if [ ! -f $fmap_magn ] ; then echo "FDT : subj $subj , sess $sess : WARNING : Fieldmap magnitude image '$fmap_magn' not found !" ; fi
-      
-      # carry out substitutions
-      for uw_dir in -y +y ; do
-        conffile=$fldr/unwarpDWI_${uw_dir}.fsf
-        
-        if [ $uw_dir = "-y" ] ; then dir=y- ; fi
-        if [ $uw_dir = "+y" ] ; then dir=y ; fi
-              
-        echo "FDT : subj $subj , sess $sess : unwarping - creating config file $conffile"
-        cp $tmpltdir/template_unwarpDWI.fsf $conffile
-   
-        sed -i "s|set fmri(outputdir) \"X\"|set fmri(outputdir) \"$fldr/unwarpDWI_${uw_dir}\"|g" $conffile # set output dir
-        sed -i "s|set fmri(tr) X|set fmri(tr) $TR_diff|g" $conffile # set TR
-        sed -i "s|set fmri(npts) X|set fmri(npts) $npts|g" $conffile # set number of volumes
-        sed -i "s|set fmri(dwell) X|set fmri(dwell) $EES_diff|g" $conffile # set Eff. Echo Spacing
-        sed -i "s|set fmri(te) X|set fmri(te) $TE_diff|g" $conffile # set TE
-        sed -i "s|set fmri(signallossthresh) X|set fmri(signallossthresh) $FDT_SIGNLOSS_THRES|g" $conffile # set signal loss threshold in percent to zero - this is recommended in fsl list, but is that OK ? (?)
-        sed -i "s|set fmri(smooth) X|set fmri(smooth) 0|g" $conffile # set smoothing kernel to zero
-        sed -i "s|set fmri(unwarp_dir) .*|set fmri(unwarp_dir) $dir|g" $conffile # set unwarp dir.        
-        sed -i "s|set feat_files(1) \"X\"|set feat_files(1) \"$fldr/ec_diff_merged\"|g" $conffile # set input files        
-        sed -i "s|set unwarp_files(1) \"X\"|set unwarp_files(1) \"$(remove_ext $fmap)\"|g" $conffile # set fieldmap file (removing extension might be important for finding related files by feat) (?)
-        sed -i "s|set unwarp_files_mag(1) \"X\"|set unwarp_files_mag(1) \"$(remove_ext $fmap_magn)\"|g" $conffile # set fieldmap magnitude file (removing extension might be important for finding related files by feat) (?)
-        sed -i "s|set fmri(alternative_example_func) \"X\"|set fmri(alternative_example_func) \"$altExFunc\"|g" $conffile # set alternative example func
-        sed -i "s|set fmri(regstandard) .*|set fmri(regstandard) \"$FSL_DIR/data/standard/MNI152_T1_2mm_brain\"|g" $conffile # set MNI template
-             
-        sed -i "s|set fmri(analysis) .*|set fmri(analysis) 1|g" $conffile # do only pre-stats     
-        sed -i "s|set fmri(regunwarp_yn) .*|set fmri(regunwarp_yn) 1|g" $conffile # enable unwarp      
-        sed -i "s|set fmri(temphp_yn) .*|set fmri(temphp_yn) 0|g" $conffile # unset highpass filter       
-        sed -i "s|set fmri(mc) .*|set fmri(mc) 0|g" $conffile # unset motion correction (DWIs already eddy-corrected!)
-        sed -i "s|set fmri(bet_yn) .*|set fmri(bet_yn) 0|g" $conffile # unset brain extraction        
-        sed -i "s|set fmri(reginitial_highres_yn) .*|set fmri(reginitial_highres_yn) 0|g" $conffile # unset registration to initial highres
-        sed -i "s|set fmri(reghighres_yn) .*|set fmri(reghighres_yn) 0|g" $conffile # unset registration to highres
-        sed -i "s|set fmri(regstandard_yn) .*|set fmri(regstandard_yn) 0|g" $conffile # unset registration to standard space
-        sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 1|g" $conffile # overwrite on re-run
-        if [ $FDT_FEAT_NO_BROWSER -eq 1 ] ; then
-          sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 0|g" $conffile
-        else 
-          sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 1|g" $conffile
-        fi
-      done
-    done
-  done
-fi
-  
-waitIfBusy
-
-# FDT execute FEAT to do the unwarping and extract unwarped B0...  
-if [ $FDT_STG4 -eq 1 ] ; then
-  echo "----- BEGIN FDT_STG4 -----"
-  for subj in `cat subjects` ; do
-    for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$subjdir/$subj/$sess/fdt
-      
-      uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
-
-      # cleanup previous runs, execute FEAT and link to unwarped file
-      # NOTE: feat self-submits to the cluster and should in fact not be used in conjunction with fsl_sub (but it seems to work anyway) (!)
-      featdir=$fldr/unwarpDWI_${uw_dir}.feat
-      if [ -d $featdir ] ; then
-        echo "FDT : subj $subj , sess $sess : WARNING : removing previous .feat directory ('$featdir')..."     
-        rm -rf $featdir
-      fi
-      
-      conffile=${featdir%.feat}.fsf
-      echo "FDT : subj $subj , sess $sess : running \"feat $conffile\"..."
-      #fsl_sub -l $logdir -N fdt_feat_$(subjsess) feat $conffile
-      feat $conffile
-      ln -sf ./$(basename $featdir)/filtered_func_data.nii.gz $fldr/uw_ec_diff_merged.nii.gz
-
-    done
-  done
-fi
-    
-waitIfBusy
-
-# FDT estimate tensor model
-if [ $FDT_STG5 -eq 1 ] ; then
-  echo "----- BEGIN FDT_STG5 -----"
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do    
       fldr=$subj/$sess/fdt
+      
+      # check if we have acquisition parameters
+      defineDWIparams $subjdir/config_acqparams_dwi $subj $sess
       
       # get info for current subject
       f=`getBetThres ${subjdir}/config_bet_lowb $subj $sess`
@@ -1472,17 +1366,54 @@ if [ $FDT_STG5 -eq 1 ] ; then
       ln -sf nodif_brain_${f}.nii.gz $fldr/nodif_brain.nii.gz
       ln -sf nodif_brain_${f}_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
       
+      # define magnitude and fieldmap
+      fmap=$subjdir/$subj/$sess/$(remove_ext $FDT_FMAP).nii.gz
+      if [ ! -f $fmap ] ; then echo "FDT : subj $subj , sess $sess : WARNING : Fieldmap image '$fmap' not found !" ; fi
+      fmap_magn=$subjdir/$subj/$sess/$(remove_ext $FDT_MAGN).nii.gz
+      if [ ! -f $fmap_magn ] ; then echo "FDT : subj $subj , sess $sess : WARNING : Fieldmap magnitude image '$fmap_magn' not found !" ; fi
+      
+      # get unwarp dir.
+      uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
+      if [ $uw_dir = "-y" ] ; then dir=y- ; fi
+      if [ $uw_dir = "+y" ] ; then dir=y ; fi
+      
+      # unwarp
+      echo "FDT : subj $subj , sess $sess : execute unwarp..."
+      echo "$scriptdir/feat_unwarp.sh $fldr/nodif_brain.nii.gz $fmap $fmap_magn $dir $TE_diff $EES_diff $FDT_SIGNLOSS_THRES $fldr/uwDWI_${uw_dir}.feat/unwarp ; \
+      $scriptdir/apply_mc+unwarp.sh $fldr/diff_merged $fldr/uw_ec_diff_merged $fldr/ec_diff_merged.ecclog $fldr/uwDWI_${uw_dir}.feat/unwarp/EF_UD_shift.nii.gz $dir trilinear" > $fldr/feat_unwarp.cmd
+      cat $fldr/feat_unwarp.cmd
+      fsl_sub -l $logdir -N fdt_feat_unwarp_$(subjsess) -t $fldr/feat_unwarp.cmd
+    done
+  done
+fi
+    
+waitIfBusy
+
+# FDT estimate tensor model
+if [ $FDT_STG4 -eq 1 ] ; then
+  echo "----- BEGIN FDT_STG4 -----"
+  n=0 ; _npts=0 ; npts=0 # variables for counting and comparing number of volumes in the 4Ds
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_struc` ; do    
+      fldr=$subj/$sess/fdt
+                  
+      # number of volumes in 4D
+      echo -n "FDT : counting number of volumes in '$fldr/ec_diff_merged.nii.gz'..."
+      npts=`countVols $fldr/ec_diff_merged.nii.gz`
+      echo " ${npts}."
+      if [ $n -gt 0 ] ; then
+        if [ ! $npts -eq $_npts ] ; then
+          echo "FDT : subj $subj , sess $sess : WARNING : Number of volumes does not match with previous image file in the loop!" 
+        fi
+      fi
+      _npts=$npts
+      n=$[$n+1] 
+            
       # link to unwarped brainmask
       uwdir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
-      if [ $uwdir = -y ] ; then
-        ln -sf ./unwarpDWI_-y.feat/unwarp/EF_UD_example_func.nii.gz $fldr/uw_nodif.nii.gz
-        ln -sf ./unwarpDWI_-y.feat/unwarp/EF_UD_fmap_mag_brain_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
-      fi
-      if [ $uwdir = +y ] ; then
-        ln -sf ./unwarpDWI_+y.feat/unwarp/EF_UD_example_func.nii.gz $fldr/uw_nodif.nii.gz
-        ln -sf ./unwarpDWI_+y.feat/unwarp/EF_UD_fmap_mag_brain_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
-      fi
-      
+      ln -sf ./uwDWI_${uwdir}.feat/unwarp/EF_UD_example_func.nii.gz $fldr/uw_nodif.nii.gz
+      ln -sf ./uwDWI_${uwdir}.feat/unwarp/EF_UD_fmap_mag_brain_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
+
       # display info
       echo "FDT : subj $subj , sess $sess : dtifit is estimating tensor model using nodif_brain_${f}_mask..."
       
