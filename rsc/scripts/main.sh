@@ -1124,7 +1124,9 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       # link to mask
       echo "TOPUP : subj $subj , sess $sess : link to unwarped mask..."
       ln -sfv ./fm/uw_lowb_mean_brain_${fithres}.nii.gz $fldr/uw_nodif_brain.nii.gz
-      ln -sfv ./fm/uw_lowb_mean_brain_${fithres}_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz   
+      ln -sfv ./fm/uw_lowb_mean_brain_${fithres}_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
+      # link to mean brain
+      ln -sf ./uw_lowb_mean_brain_${fithres}.nii.gz $fldr/fm/uw_lowb_mean_brain.nii.gz
       
     done
   done    
