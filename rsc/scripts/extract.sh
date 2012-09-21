@@ -6,7 +6,7 @@ trap 'echo "$0 : An ERROR has occured."' ERR
     
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <out-Prefix> <idx> <\"input file\">"
+    echo "Usage: `basename $0` <out-Prefix> <idx> <input file>"
     echo "Example: `basename $0` ./test/melodic 0,1,2,3 melodic_IC.nii.gz"
     echo ""
     exit 1
