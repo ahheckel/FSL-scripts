@@ -538,7 +538,8 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       ln -sfv ./fm/uw_lowb_mean_brain_${fithres}.nii.gz $fldr/uw_nodif_brain.nii.gz
       ln -sfv ./fm/uw_lowb_mean_brain_${fithres}_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
       # link to mean brain
-      ln -sf ./uw_lowb_mean_brain_${fithres}.nii.gz $fldr/fm/uw_lowb_mean_brain.nii.gz
+      ln -sfv ./uw_lowb_mean_brain_${fithres}.nii.gz $fldr/fm/uw_lowb_mean_brain.nii.gz
+      ln -sfv ./uw_lowb_mean_brain_${fithres}_mask.nii.gz $fldr/fm/uw_lowb_mean_brain_mask.nii.gz
       
     done
   done    
@@ -552,24 +553,6 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
   for subj in `cat $outdir/.subjects` ; do
     for sess in `cat $outdir/.sessions_struc` ; do
       fldr=$outdir
-      
-      ## get info for current subject
-      #f=0.2 # (!)
-
-      ## bet, if necessary
-      #if [ $f = "mod" ] ; then
-        #if [ ! -f $fldr/nodif_brain_${f}.nii.gz  -o ! -f $fldr/nodif_brain_${f}_mask.nii.gz ] ; then   
-          #echo "TOPUP: out-dir '$outdir' : externally modified volume (nodif_brain_${f}) & mask (nodif_brain_${f}_mask) not found - exiting..." ; exit
-        #fi
-      #else      
-        #echo "TOPUP : subj $subj , sess $sess : betting B0 image with fi=${f} - extracting B0..."
-        #if [ ! -f $fldr/lowb.idx ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : low-b index file '$fldr/lowb.idx' not found - continuing loop..." ; continue ; fi
-        #fslroi $fldr/diffs_merged $fldr/nodif $(sed -n 1p $fldr/lowb.idx) 1
-        #echo "TOPUP : subj $subj , sess $sess : ...and betting B0..."
-        #bet $fldr/nodif $fldr/nodif_brain_${f} -m -f $f         
-      #fi 
-      #ln -sf nodif_brain_${f}.nii.gz $fldr/nodif_brain.nii.gz
-      #ln -sf nodif_brain_${f}_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
       
       # averaging +/- bvecs & bvals...
       # NOTE: bvecs are averaged further below (following rotation)

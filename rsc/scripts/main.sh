@@ -67,6 +67,7 @@ _m=$(for i in $BOLD_DENOISE_MASKS_NAT ; do remove_ext $i | cut -d _ -f 2 ; done)
 _m=$(for i in $BOLD_DENOISE_MASKS_MNI ; do remove_ext $i | cut -d _ -f 2 ; done) ; dntag_boldmni=$(rem_blanks "$BOLD_DENOISE_USE_MOVPARS_MNI")$(rem_blanks "$_m")
 _m=$(for i in $ALFF_DENOISE_MASKS_NAT ; do remove_ext $i | cut -d _ -f 2 ; done) ; dntag_alff=$(rem_blanks "$ALFF_DENOISE_USE_MOVPARS_NAT")$(rem_blanks "$_m")
 
+
 # ----- create 1st level subject- and session files -----
 
 if [ "x$FIRSTLEV_SUBJECTS" != "x" -a "x$FIRSTLEV_SESSIONS_FUNC" != "x" -a "x$FIRSTLEV_SESSIONS_STRUC" != "x" ] ; then
@@ -334,12 +335,12 @@ echo "Ensuring UNIX line endings in bval-/bvec textfiles..."
 for subj in `cat $subjdir/subjects` ; do
   for sess in `cat $subjdir/$subj/sessions_struc` ; do
     dwi_txtfiles=""
-    if [ x${pttrn_bvalsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvalsplus ; fi
-    if [ x${pttrn_bvalsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvalsminus ; fi
-    if [ x${pttrn_bvecsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvecsplus ; fi
-    if [ x${pttrn_bvecsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvecsminus ; fi
-    if [ x${pttrn_bvals} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvals ; fi
-    if [ x${pttrn_bvecs} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvecs ; fi
+    if [ x${pttrn_bvalsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvalsplus ; fi
+    if [ x${pttrn_bvalsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvalsminus ; fi
+    if [ x${pttrn_bvecsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvecsplus ; fi
+    if [ x${pttrn_bvecsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvecsminus ; fi
+    if [ x${pttrn_bvals} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvals ; fi
+    if [ x${pttrn_bvecs} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvecs ; fi
     dwi_txtfiles=$(echo $dwi_txtfiles| row2col | sort | uniq)
     for i in $dwi_txtfiles ; do 
       #echo "    $i"
@@ -353,7 +354,7 @@ echo "...done."
 if [ $CHECK_CONSISTENCY_DIFFS = 1 ] ; then
   for subj in `cat $subjdir/subjects` ; do
     for sess in `cat $subjdir/$subj/sessions_struc` ; do
-      fldr=$subjdir/$subj/$sess/
+      fldr=$srcdir/$subj/$sess/
       echo "subj $subj , sess $sess : "
       checkConsistency "$fldr/$pttrn_diffs" "$fldr/$pttrn_bvals" "$fldr/$pttrn_bvecs"
     done
@@ -383,6 +384,17 @@ for subj in `cat $subjdir/subjects`; do
     mkdir -p $FS_sessdir/$(subjsess)
   done   
 done
+
+# check presence of source dir. (where nifti originals are located)
+if [ ! -d $srcdir ] ; then
+  echo "ERROR: '$srcdir' (where nifti originals should be located) does not exist - creating it and exiting..."
+  for subj in `cat $subjdir/subjects`; do 
+    for sess in `cat $subjdir/$subj/sessions_struc` ; do
+      mkdir -p $srcdir/$subj/$sess
+    done   
+  done
+  exit
+fi
 
 # wait until cluster is ready...
 waitIfBusy
@@ -424,7 +436,7 @@ if [ $RECON_STG1 -eq 1 ] ; then
       mkdir -p $fldr
       
       # reorient to please fslview
-      file=`ls ${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check pattern (!)
+      file=`ls ${srcdir}/${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check pattern (!)
       echo "RECON : subj $subj , sess $sess : reorienting T1 ('$file') to please fslview..."
       fslreorient2std $file $fldr/tmp_t1
       
@@ -603,7 +615,7 @@ if [ $FIELDMAP_STG1 -eq 1 ]; then
       mkdir -p $fldr
    
       # find magnitude
-      fm_m=`ls ${subj}/${sess}/${pttrn_fmaps} | sed -n 1p` # first in listing is magnitude (second is phase-difference volume) (!)
+      fm_m=`ls ${srcdir}/${subj}/${sess}/${pttrn_fmaps} | sed -n 1p` # first in listing is magnitude (second is phase-difference volume) (!)
       imcp $fm_m $fldr
       
       # split magnitude
@@ -643,7 +655,7 @@ if [ $FIELDMAP_STG2 -eq 1 ]; then
       fi
           
       # find phase image
-      fm_p=`ls ${subj}/${sess}/${pttrn_fmaps}  | tail -n 1` # last in list is phase image, check pattern (!)
+      fm_p=`ls ${srcdir}/${subj}/${sess}/${pttrn_fmaps}  | tail -n 1` # last in list is phase image, check pattern (!)
       
       # copy files to fieldmap folder
       imcp $fm_p $fldr
@@ -723,8 +735,8 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       echo "TOPUP : subj $subj , sess $sess : preparing TOPUP... "
       
       # are the +- diffusion files in equal number ?
-      n_plus=`ls $subj/$sess/$pttrn_diffsplus | wc -l`
-      n_minus=`ls $subj/$sess/$pttrn_diffsminus | wc -l`
+      n_plus=`ls $srcdir/$subj/$sess/$pttrn_diffsplus | wc -l`
+      n_minus=`ls $srcdir/$subj/$sess/$pttrn_diffsminus | wc -l`
       if [ ! $n_plus -eq $n_minus ] ; then 
         echo "TOPUP : subj $subj , sess $sess : ERROR : number of +blips diff. files ($n_plus) != number of -blips diff. files ($n_minus) - continuing loop..."
         continue
@@ -734,11 +746,11 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       fi
                         
       # count +/- bvec/bval-files
-      ls $subjdir/$subj/$sess/$pttrn_bvecsplus > $fldr/bvec+.files
-      ls $subjdir/$subj/$sess/$pttrn_bvecsminus > $fldr/bvec-.files
+      ls $srcdir/$subj/$sess/$pttrn_bvecsplus > $fldr/bvec+.files
+      ls $srcdir/$subj/$sess/$pttrn_bvecsminus > $fldr/bvec-.files
       cat $fldr/bvec-.files $fldr/bvec+.files > $fldr/bvec.files
-      ls $subjdir/$subj/$sess/$pttrn_bvalsplus > $fldr/bval+.files
-      ls $subjdir/$subj/$sess/$pttrn_bvalsminus > $fldr/bval-.files
+      ls $srcdir/$subj/$sess/$pttrn_bvalsplus > $fldr/bval+.files
+      ls $srcdir/$subj/$sess/$pttrn_bvalsminus > $fldr/bval-.files
       cat $fldr/bval-.files $fldr/bval+.files > $fldr/bval.files
       n_vec_plus=`cat $fldr/bvec+.files | wc -l`
       n_vec_minus=`cat $fldr/bvec-.files | wc -l`
@@ -764,10 +776,10 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       fi
       
       # concatenate +bvecs and -bvecs
-      concat_bvals $subj/$sess/"$pttrn_bvalsminus" $fldr/bvalsminus_concat.txt
-      concat_bvals $subj/$sess/"$pttrn_bvalsplus" $fldr/bvalsplus_concat.txt 
-      concat_bvecs $subj/$sess/"$pttrn_bvecsminus" $fldr/bvecsminus_concat.txt
-      concat_bvecs $subj/$sess/"$pttrn_bvecsplus" $fldr/bvecsplus_concat.txt 
+      concat_bvals $srcdir/$subj/$sess/"$pttrn_bvalsminus" $fldr/bvalsminus_concat.txt
+      concat_bvals $srcdir/$subj/$sess/"$pttrn_bvalsplus" $fldr/bvalsplus_concat.txt 
+      concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecsminus" $fldr/bvecsminus_concat.txt
+      concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecsplus" $fldr/bvecsplus_concat.txt 
 
       nbvalsplus=$(wc -w $fldr/bvalsplus_concat.txt | cut -d " " -f 1)
       nbvalsminus=$(wc -w $fldr/bvalsminus_concat.txt | cut -d " " -f 1)
@@ -775,7 +787,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       nbvecsminus=$(wc -w $fldr/bvecsplus_concat.txt | cut -d " " -f 1)      
      
       # check number of entries in concatenated bvals/bvecs files
-      n_entries=`countVols $subj/$sess/"$pttrn_diffsplus"` 
+      n_entries=`countVols $srcdir/$subj/$sess/"$pttrn_diffsplus"` 
       if [ $nbvalsplus = $nbvalsminus -a $nbvalsplus = $n_entries -a $nbvecsplus = `echo "3*$n_entries" | bc` -a $nbvecsplus = $nbvecsminus ] ; then
         echo "TOPUP : subj $subj , sess $sess : number of entries in bvals- and bvecs files consistent ($n_entries entries)."
       else
@@ -798,7 +810,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       echo "TOPUP : subj $subj , sess $sess : creating index file for TOPUP..."      
       rm -f $fldr/$(subjsess)_acqparam.txt ; rm -f $fldr/$(subjsess)_acqparam_inv.txt ; rm -f $fldr/diff.files # clean-up previous runs...
       
-      diffsminus=`ls ${subjdir}/${subj}/${sess}/${pttrn_diffsminus}`
+      diffsminus=`ls ${srcdir}/${subj}/${sess}/${pttrn_diffsminus}`
       for file in $diffsminus ; do
         nvol=`fslinfo $file | grep ^dim4 | awk '{print $2}'`
         echo "$file n:${nvol}" | tee -a $fldr/diff.files
@@ -808,7 +820,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
         done
       done
       
-      diffsplus=`ls ${subjdir}/${subj}/${sess}/${pttrn_diffsplus}`
+      diffsplus=`ls ${srcdir}/${subj}/${sess}/${pttrn_diffsplus}`
       for file in $diffsplus ; do
         nvol=`fslinfo $file | grep ^dim4 | awk '{print $2}'`
         echo "$file n:${nvol}" | tee -a $fldr/diff.files
@@ -988,18 +1000,7 @@ if [ $TOPUP_STG4 -eq 1 ] ; then
       echo "topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/fm/field_Hz_lowb --iout=$fldr/fm/uw_lowb_merged_chk ; \
       fslmaths $fldr/fm/field_Hz_lowb -mul 6.2832 $fldr/fm/fmap_rads" > $fldr/topup.cmd
       fsl_sub -l $logdir -N topup_topup_$(subjsess) -t $fldr/topup.cmd
-      #echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/$(subjsess)_fieldHz_lowb --iout=$fldr/$(subjsess)_unwarped_lowb" > $fldr/topup.cmd
-      #. $fldr/topup.cmd 
-               
-      #echo "TOPUP : subj $subj , sess $sess : executing TOPUP on merged low-B volumes..."
-      #mkdir -p $fldr/fm # dir. for fieldmap related stuff
-      #echo "topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/fm/field_Hz_lowb --iout=$fldr/fm/unwarped_lowb ; \
-      #fslmaths $fldr/fm/unwarped_lowb -Tmean $fldr/fm/unwarped_lowb_mean ; \
-      #bet $fldr/fm/unwarped_lowb_mean $fldr/fm/unwarped_lowb_mean_brain -f 0.3 -m ; \
-      #fslmaths $fldr/fm/field_Hz_lowb -mul 6.2832 $fldr/fm/fmap_rads ; \
-      #fslmaths $fldr/fm/fmap_rads -mas $fldr/fm/unwarped_lowb_mean_brain_mask $fldr/fm/fmap_rads_masked" > $fldr/topup.cmd
-      #fsl_sub -l $logdir -N topup_topup_$(subjsess) -t $fldr/topup.cmd
-        
+       
     done
   done
 fi
@@ -1016,20 +1017,20 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       if [ ! -f $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
       
       # generate commando without eddy-correction
-      nplus=`ls $subj/$sess/$pttrn_diffsplus | wc -l`      
+      nplus=`ls $srcdir/$subj/$sess/$pttrn_diffsplus | wc -l`      
       rm -f $fldr/applytopup.cmd
       for i in `seq 1 $nplus` ; do
         j=`echo "$i + $nplus" | bc -l`
 
-        blipdown=`ls $subjdir/$subj/$sess/$pttrn_diffsminus | sed -n ${i}p`
-        blipup=`ls $subjdir/$subj/$sess/$pttrn_diffsplus | sed -n ${i}p`
+        blipdown=`ls $srcdir/$subj/$sess/$pttrn_diffsminus | sed -n ${i}p`
+        blipup=`ls $srcdir/$subj/$sess/$pttrn_diffsplus | sed -n ${i}p`
         
         n=`printf %03i $i`
         echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
       done
       
       # generate commando with eddy-correction
-      nplus=`ls $subj/$sess/$pttrn_diffsplus | wc -l`      
+      nplus=`ls $srcdir/$subj/$sess/$pttrn_diffsplus | wc -l`      
       rm -f $fldr/applytopup_ec.cmd
       for i in `seq 1 $nplus` ; do
         j=`echo "$i + $nplus" | bc -l`
@@ -1126,7 +1127,8 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       ln -sfv ./fm/uw_lowb_mean_brain_${fithres}.nii.gz $fldr/uw_nodif_brain.nii.gz
       ln -sfv ./fm/uw_lowb_mean_brain_${fithres}_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
       # link to mean brain
-      ln -sf ./uw_lowb_mean_brain_${fithres}.nii.gz $fldr/fm/uw_lowb_mean_brain.nii.gz
+      ln -sfv ./uw_lowb_mean_brain_${fithres}.nii.gz $fldr/fm/uw_lowb_mean_brain.nii.gz
+      ln -sfv ./uw_lowb_mean_brain_${fithres}_mask.nii.gz $fldr/fm/uw_lowb_mean_brain_mask.nii.gz
       
     done
   done    
@@ -1140,25 +1142,7 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=${subjdir}/${subj}/${sess}/topup
-      
-      ## get info for current subject
-      #f=`getBetThres ${subjdir}/config_bet_lowb $subj $sess`
 
-      ## bet, if necessary
-      #if [ $f = "mod" ] ; then
-        #if [ ! -f $fldr/nodif_brain_${f}.nii.gz  -o ! -f $fldr/nodif_brain_${f}_mask.nii.gz ] ; then   
-          #echo "TOPUP: subj $subj , sess $sess : externally modified volume (nodif_brain_${f}) & mask (nodif_brain_${f}_mask) not found - exiting..." ; exit
-        #fi
-      #else      
-        #echo "TOPUP : subj $subj , sess $sess : betting B0 image with fi=${f} - extracting B0..."
-        #if [ ! -f $fldr/lowb.idx ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : low-b index file '$fldr/lowb.idx' not found - continuing loop..." ; continue ; fi
-        #fslroi $fldr/diffs_merged $fldr/nodif $(sed -n 1p $fldr/lowb.idx) 1
-        #echo "TOPUP : subj $subj , sess $sess : ...and betting B0..."
-        #bet $fldr/nodif $fldr/nodif_brain_${f} -m -f $f         
-      #fi 
-      #ln -sf nodif_brain_${f}.nii.gz $fldr/nodif_brain.nii.gz
-      #ln -sf nodif_brain_${f}_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
-      
       # averaging +/- bvecs & bvals...
       # NOTE: bvecs are averaged further below (following rotation)
       average $fldr/bvalsminus_concat.txt $fldr/bvalsplus_concat.txt > $fldr/avg_bvals.txt
@@ -1284,7 +1268,7 @@ if [ $FDT_STG1 -eq 1 ] ; then
       
       # merge diffs...
       echo "FDT : subj $subj , sess $sess : merging diffs..."
-      ls $subj/$sess/$pttrn_diffs | tee $fldr/diff.files
+      ls $srcdir/$subj/$sess/$pttrn_diffs | tee $fldr/diff.files
       fsl_sub -l $logdir -N fdt_fslmerge_$(subjsess) fslmerge -t $fldr/diff_merged $(cat $fldr/diff.files)      
     done    
   done
@@ -1307,7 +1291,7 @@ if [ $FDT_STG2 -eq 1 ] ; then
       fi
       
       # get B0 index
-      b0img=`getB0Index $subj/$sess/"$pttrn_bvals" $fldr/ec_ref.idx | cut -d " " -f 1` ; min=`getB0Index $subj/$sess/"$pttrn_bvals" $fldr/ec_ref.idx | cut -d " " -f 2`
+      b0img=`getB0Index $srcdir/$subj/$sess/"$pttrn_bvals" $fldr/ec_ref.idx | cut -d " " -f 1` ; min=`getB0Index $srcdir/$subj/$sess/"$pttrn_bvals" $fldr/ec_ref.idx | cut -d " " -f 2`
 
       # eddy-correct in test mode ? (don't apply eddy_correction)
       if [ $FDT_EC_TEST -eq 1 ] ; then 
@@ -1383,7 +1367,7 @@ if [ $FDT_STG3 -eq 1 ] ; then
       echo "FDT : subj $subj , sess $sess : execute unwarp..."
       echo "$scriptdir/feat_unwarp.sh $fldr/nodif_brain.nii.gz $fmap $fmap_magn $dir $TE_diff $EES_diff $FDT_SIGNLOSS_THRES $fldr/uwDWI_${uw_dir}.feat/unwarp ; \
       $scriptdir/apply_mc+unwarp.sh $fldr/diff_merged $fldr/uw_ec_diff_merged $fldr/ec_diff_merged.ecclog $fldr/uwDWI_${uw_dir}.feat/unwarp/EF_UD_shift.nii.gz $dir trilinear" > $fldr/feat_unwarp.cmd
-      cat $fldr/feat_unwarp.cmd
+      #cat $fldr/feat_unwarp.cmd
       fsl_sub -l $logdir -N fdt_feat_unwarp_$(subjsess) -t $fldr/feat_unwarp.cmd
     done
   done
@@ -1420,11 +1404,11 @@ if [ $FDT_STG4 -eq 1 ] ; then
       echo "FDT : subj $subj , sess $sess : dtifit is estimating tensor model using nodif_brain_${f}_mask..."
       
       # concatenate bvals and bvecs within session
-      concat_bvals $subj/$sess/"$pttrn_bvals" $fldr/bvals_concat.txt
-      concat_bvecs $subj/$sess/"$pttrn_bvecs" $fldr/bvecs_concat.txt 
+      concat_bvals $srcdir/$subj/$sess/"$pttrn_bvals" $fldr/bvals_concat.txt
+      concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecs" $fldr/bvecs_concat.txt 
     
       # number of entries in bvals- and bvecs files consistent ?
-      checkConsistency "$subj/$sess/$pttrn_diffs" $fldr/bvals_concat.txt $fldr/bvecs_concat.txt
+      checkConsistency "$srcdir/$subj/$sess/$pttrn_diffs" $fldr/bvals_concat.txt $fldr/bvecs_concat.txt
       
       # rotate bvecs
       xfmrot $fldr/ec_diff_merged.ecclog $fldr/bvecs_concat.txt $fldr/bvecs_concat.rot
@@ -1771,7 +1755,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
 
       # list and copy anatomical t1 images
       echo "VBM PREPROC : subj $subj , sess $sess : copying T1 image to ${fldr}..."
-      file=`ls ${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check (!)
+      file=`ls ${srcdir}/${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check (!)
       fslmaths $file ${fldr}/$(subjsess)_t1_orig
       
       # reorient for fslview
@@ -2068,8 +2052,8 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
         # are bvals and bvecs already concatenated ?
         if [ ! -f $subj/$sess/fdt/bvals_concat.txt -o ! -f $subj/$sess/fdt/bvecs_concat.txt ] ; then
           echo "TRACULA : subj $subj , sess $sess : creating concatenated bvals and bvecs file..."
-          concat_bvals $subj/$sess/"$pttrn_bvals" $fldr/bvals_concat.txt
-          concat_bvecs $subj/$sess/"$pttrn_bvecs" $fldr/bvecs_concat.txt
+          concat_bvals $srcdir/$subj/$sess/"$pttrn_bvals" $fldr/bvals_concat.txt
+          concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecs" $fldr/bvecs_concat.txt
         else 
           ln -sfv ../../$subj/$sess/fdt/bvals_concat.txt $fldr/bvals_concat.txt
           ln -sfv ../../$subj/$sess/fdt/bvecs_concat.txt $fldr/bvecs_concat.txt
@@ -2080,7 +2064,7 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
           ln -sfv ../../$subj/$sess/fdt/diff_merged.nii.gz $fldr/diff_merged.nii.gz
         else
           echo "TRACULA : subj $subj , sess $sess : no pre-existing 4D file found - merging diffusion files..."
-          diffs=`ls $subj/$sess/$pttrn_diffs`          
+          diffs=`ls $srcdir/$subj/$sess/$pttrn_diffs`          
           fsl_sub -l $logdir -N trac_fslmerge_$(subjsess) fslmerge -t $fldr/diff_merged $diffs 
         fi
         
@@ -2246,7 +2230,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       mkdir -p $fldr
                   
       # link bold file
-      bold_bn=`basename $(ls $subjdir/$subj/$sess/$pttrn_bolds | tail -n 1)`
+      bold_bn=`basename $(ls $srcdir/$subj/$sess/$pttrn_bolds | tail -n 1)`
       bold_ext=`echo ${bold_bn#*.}`
       bold_lnk=bold.${bold_ext}
       if [ -L $fldr/bold.nii -o -L $fldr/bold.nii.gz ] ; then rm -f $fldr/bold.nii $fldr/bold.nii.gz ; fi # delete link if already present
@@ -2462,42 +2446,6 @@ if [ $BOLD_STG2 -eq 1 ] ; then
       
     done # end sess
   done # end subj
-  
-  #waitIfBusy
-  
-  ## copy feat logs to logdir
-  #for subj in `cat subjects` ; do
-    #for sess in `cat ${subj}/sessions_func` ; do
-      
-      #fldr=$subjdir/$subj/$sess/bold
-      
-      ## shall we unwarp ?
-      #if [ $BOLD_UNWARP -eq 1 ] ; then
-        #uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
-      #else 
-        #uw_dir=00
-      #fi
-    
-      #for hpf_cut in $BOLD_HPF_CUTOFFS ; do
-        #for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
-          #for stc_val in $BOLD_SLICETIMING_VALUES ; do
-          
-            ## define feat-dir
-            #_hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
-            #featdir=$fldr/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.feat 
-          
-            #if [ -d $featdir/logs ] ; then
-              #cp -R $featdir/logs/ $logdir/$(subjsess)_${featdir}
-            #else
-              #echo "BOLD : subj $subj , sess $sess : WARNING: no feat log-dir found (${featdir}/logs)!" 
-            #fi
-          
-          #done # end stc_val
-        #done # end sm_krnl        
-      #done # end hpf_cut
-      
-    #done # end sess
-  #done # end subj  
   
 fi
 
