@@ -28,7 +28,7 @@ else
 fi
 
 # create command options
-opts="-v --tr=${TR} --report --guireport=$outdir/report.html -d 0 --mmthresh=0.5"
+opts="-v --tr=${TR} --report --guireport=$outdir/$subdir/report.html -d 0 --mmthresh=0.5"
 if [ $bet -eq 0 ] ; then  opts="$opts --nobet --bgthreshold=10" ; fi
 if [ $gica -eq 1 ] ; then opts="$opts -a concat" ; fi
 
@@ -38,7 +38,7 @@ mkdir -p $outdir/$subdir
 # check inputs
 err=0 ; rm -f $outdir/input.files
 for file in $inputs ; do
-  if [ -f $file ] ; then echo "`basename $0`: adding '$file' to input filelist..." ; echo $file >> $outdir/input.files ;  else echo "`basename $0`: ERROR: '$file' does no exist !" ; err=1 ; fi
+  if [ -f $file ] ; then echo "`basename $0`: adding '$file' to input filelist..." ; echo $file >> $outdir/input.files ;  else echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
 done
 if [ $err -eq 1 ] ; then "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
 
@@ -46,6 +46,9 @@ if [ $err -eq 1 ] ; then "`basename $0`: An ERROR has occured. Exiting..." ; exi
 cmd="melodic -i $outdir/input.files -o $outdir/$subdir $opts"
 echo $cmd | tee $outdir/melodic.cmd
 . $outdir/melodic.cmd
+
+# link to report webpage
+ln -sfv ./report/00index.html $outdir/$subdir/report.html
 
 # done
 echo "`basename $0`: done."
