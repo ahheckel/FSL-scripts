@@ -1354,9 +1354,9 @@ if [ $FDT_STG3 -eq 1 ] ; then
       
       # define magnitude and fieldmap
       fmap=$subjdir/$subj/$sess/$(remove_ext $FDT_FMAP).nii.gz
-      if [ ! -f $fmap ] ; then echo "FDT : subj $subj , sess $sess : WARNING : Fieldmap image '$fmap' not found !" ; fi
       fmap_magn=$subjdir/$subj/$sess/$(remove_ext $FDT_MAGN).nii.gz
-      if [ ! -f $fmap_magn ] ; then echo "FDT : subj $subj , sess $sess : WARNING : Fieldmap magnitude image '$fmap_magn' not found !" ; fi
+      if [ ! -f $fmap ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
+      if [ ! -f $fmap_magn ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
       
       # get unwarp dir.
       uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
@@ -2251,9 +2251,11 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       
       # define magnitude and fieldmap
       fmap=$subjdir/$subj/$sess/$(remove_ext $BOLD_FMAP).nii.gz
-      if [ ! -f $fmap ] ; then echo "BOLD : subj $subj , sess $sess : WARNING : Fieldmap image '$fmap' not found !" ; fi
       fmap_magn=$subjdir/$subj/$sess/$(remove_ext $BOLD_MAGN).nii.gz
-      if [ ! -f $fmap_magn ] ; then echo "BOLD : subj $subj , sess $sess : WARNING : Fieldmap magnitude image '$fmap_magn' not found !" ; fi
+      if [ $BOLD_UNWARP -eq 1 ] ; then
+        if [ ! -f $fmap ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
+        if [ ! -f $fmap_magn ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
+      fi
       
       # create symlinks to t1-structurals (highres registration reference)
       if [ $BOLD_REGISTER_TO_MNI -eq 1 ] ; then
