@@ -310,7 +310,7 @@ MELODIC_HIGHPASS_CUTOFF=100                                    # high-pass filte
 # MELODIC_CMD (optional)
 MELODIC_CMD_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS               # subjects to be included in the ICA analysis
 MELODIC_CMD_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions to be included in the ICA analysis
-MELODIC_CMD_INPUT_FILES="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni2.nii.gz    preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni4.nii.gz"   # preprocBOLD_mni_uw_mc_bold_hpf100_s4_stc0_res4.nii.gz preprocBOLD_mni_uw_mc_bold_hpf100_s2_stc0_res2.nii.gz"  # filename of input file (in 'bold' subdirectory)
+MELODIC_CMD_INPUT_FILES="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni2    preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni4"   # preprocBOLD_mni_uw_mc_bold_hpf100_s4_stc0_res4.nii.gz preprocBOLD_mni_uw_mc_bold_hpf100_s2_stc0_res2.nii.gz"  # filename of input file (in 'bold' subdirectory)
 MELODIC_CMD_OUTDIR_PREFIX="MELODIC-CMD01"                       # output directory pre-fix (dir-name is composed as: ${MELODIC_OUTDIR_PREFIX}_${MELODIC_INPUT_FILE}.gica)
 MELODIC_CMD_BET=0                                               # enable betting
 MELODIC_CMD_DELETE_PREV_RUNS=1                                  # delete previously created melodic directories and files; if set, no questions will be asked

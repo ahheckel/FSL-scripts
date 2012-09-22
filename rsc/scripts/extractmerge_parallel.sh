@@ -26,14 +26,18 @@ function isStillRunning()
   echo $stillrunnning
 }
 
-function waitIfBusyId() 
+function waitIfBusyIDs() 
 {
-  local ID=$1
-  if [ `isStillRunning $ID` -gt 0 ] ; then
-    echo -n "waiting..."
-    while [ `isStillRunning $ID` -gt 0 ] ; do echo -n '.' ; sleep 5 ; done
-    echo "done."
-  fi
+  local IDfile=$1
+  local ID=""
+  for ID in $(cat $IDfile) ; do
+    if [ `isStillRunning $ID` -gt 0 ] ; then
+      echo -n "waiting..."
+      while [ `isStillRunning $ID` -gt 0 ] ; do echo -n '.' ; sleep 5 ; done
+      echo "done."
+    fi
+  done
+  rm $IDfile
 }
 
     
@@ -54,16 +58,16 @@ logdir="$4"
 n=0
 for input in $inputs ; do
   echo "`basename $0`: extracting volume at pos. $idx from '$input'..."
-  jid=`fsl_sub -l $logdir fslroi $input $wdir/_tmp_$(zeropad $n 4) $idx 1`
+  fsl_sub -l $logdir fslroi $input $wdir/_tmp_$(zeropad $n 4) $idx 1 >> $wdir/jid.list
   n=$(echo "$n + 1" | bc)
 done
 
-waitIfBusyId $jid
+waitIfBusyIDs $wdir/jid.list
 
 echo "`basename $0`: merging..."
 
-jid=`fsl_sub -j $jid -l $logdir fslmerge -t ${out} $(imglob $wdir/_tmp_????)`
+fsl_sub -j $jid -l $logdir fslmerge -t ${out} $(imglob $wdir/_tmp_????) >> $wdir/jid.list
 
-waitIfBusyId $jid
+waitIfBusyIDs $wdir/jid.list
 
 echo "`basename $0`: done."

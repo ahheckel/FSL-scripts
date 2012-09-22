@@ -7,7 +7,7 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <\"input-files\"> <TR(sec)> <output-dir> <bet 0|1>"
+    echo "Usage: `basename $0` <\"input-file(s)\"|inputfiles.txt> <TR(sec)> <output-dir> <bet 0|1>"
     echo ""
     exit 1
 }
@@ -21,8 +21,13 @@ bet="$4"
 # single session ICA ?
 gica=1
 if [ $(echo "$inputs" | wc -w) -eq 1 ] ; then
-  gica=0
-  subdir=$(remove_ext $(basename $inputs)).ica
+  if [ $(imtest $inputs) -eq 1 ] ; then
+    gica=0
+    subdir=$(remove_ext $(basename $inputs)).ica
+  else
+    inputs="$(cat $inputs)"
+    subdir=groupmelodic.ica
+  fi
 else
   subdir=groupmelodic.ica
 fi
@@ -36,9 +41,9 @@ if [ $gica -eq 1 ] ; then opts="$opts -a concat" ; fi
 mkdir -p $outdir/$subdir
 
 # check inputs
-err=0 ; rm -f $outdir/input.files
+err=0 ; rm -f $outdir/input.files ; i=1
 for file in $inputs ; do
-  if [ -f $file ] ; then echo "`basename $0`: adding '$file' to input filelist..." ; echo $file >> $outdir/input.files ;  else echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
+  if [ -f $file ] ; then echo "`basename $0`: $i adding '$file' to input filelist..." ; echo $file >> $outdir/input.files ; i=$[$i+1] ; else echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
 done
 if [ $err -eq 1 ] ; then "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
 

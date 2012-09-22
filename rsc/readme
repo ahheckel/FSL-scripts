@@ -1,4 +1,4 @@
-update imagemagick (compile)
-fsl_sub: comment out POSIXLY_CORRECT=1 <-- consult fsl list, but seems to give problems with "feat"
+/FSL-scripts must be exportet and mounted on all nodes
+install imagemagick (compile)
+fsl_sub: comment out POSIXLY_CORRECT=1 <-- consult fsl list, but seems to give problems with "feat" -> maintain two separate versions for fsl and freesurfer
 recon-all -use-mritotal may give better talairach registrations
-

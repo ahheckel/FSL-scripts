@@ -1126,7 +1126,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       echo "TOPUP : subj $subj , sess $sess : link to unwarped mask..."
       ln -sfv ./fm/uw_lowb_mean_brain_${fithres}.nii.gz $fldr/uw_nodif_brain.nii.gz
       ln -sfv ./fm/uw_lowb_mean_brain_${fithres}_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
-      # link to mean brain
+      # link to mean lowb
       ln -sfv ./uw_lowb_mean_brain_${fithres}.nii.gz $fldr/fm/uw_lowb_mean_brain.nii.gz
       ln -sfv ./uw_lowb_mean_brain_${fithres}_mask.nii.gz $fldr/fm/uw_lowb_mean_brain_mask.nii.gz
       
@@ -1355,8 +1355,8 @@ if [ $FDT_STG3 -eq 1 ] ; then
       # define magnitude and fieldmap
       fmap=$subjdir/$subj/$sess/$(remove_ext $FDT_FMAP).nii.gz
       fmap_magn=$subjdir/$subj/$sess/$(remove_ext $FDT_MAGN).nii.gz
-      if [ ! -f $fmap ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
-      if [ ! -f $fmap_magn ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
+      if [ $(imtest $fmap) -eq 0 ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
+      if [ $(imtest $fmap_magn) -eq 0 ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
       
       # get unwarp dir.
       uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
@@ -1903,27 +1903,6 @@ if [ $VBM_STG3 -eq 1 ] ; then
     
   done
 
-  ## VBM PREPROC SSM eroding mask
-  #for subj in `cat subjects`; do 
-    #for sess in `cat ${subj}/sessions_struc` ; do
-      #fldr="${subj}/${sess}/vbm"
-      #echo "VBM PREPROC : subj $subj , sess $sess : eroding mask..."
-      #fsl_sub -l $logdir -N vbm_fslmaths_$(subjsess) fslmaths ${fldr}/t1_mask_inv_ero -ero -bin ${fldr}/t1_mask_inv_ero2
-    #done
-  #done
-
-  #waitIfBusy
-
-  ## VBM PREPROC SSM eroding mask
-  #for subj in `cat subjects`; do 
-    #for sess in `cat ${subj}/sessions_struc` ; do
-      #fldr=${subj}/${sess}/vbm
-      #echo "VBM PREPROC : subj $subj , sess $sess : eroding mask..."
-      #fsl_sub -l $logdir -N vbm_fslmaths_$(subjsess) fslmaths ${fldr}/t1_mask_inv_ero2 -ero -bin ${fldr}/t1_mask_inv_ero3
-    #done
-  #done
-
-  #waitIfBusy
 
   # VBM PREPROC SSM masking native T1
   for subj in `cat subjects`; do 
@@ -2253,8 +2232,8 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       fmap=$subjdir/$subj/$sess/$(remove_ext $BOLD_FMAP).nii.gz
       fmap_magn=$subjdir/$subj/$sess/$(remove_ext $BOLD_MAGN).nii.gz
       if [ $BOLD_UNWARP -eq 1 ] ; then
-        if [ ! -f $fmap ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
-        if [ ! -f $fmap_magn ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
+        if [ $(imtest $fmap) -eq 0 ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
+        if [ $(imtest $fmap_magn) -eq 0 ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
       fi
       
       # create symlinks to t1-structurals (highres registration reference)
@@ -3308,7 +3287,7 @@ if [ $ALFF_STG3 -eq 1 ] ; then
       
       # check
       if [ ! -f $affine ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$affine' not found. Exiting..." ; exit ; fi
-      if [ ! -f $warp ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$warp' not found. Exiting..." ; exit ; fi
+      if [ $(imtest $warp) -eq 0 ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$warp' not found. Exiting..." ; exit ; fi
           
       # copy template
       cp $MNI_file $fldr/standard.nii.gz
@@ -3806,14 +3785,13 @@ if [ $MELODIC_CMD_STG1 -eq 1 ]; then
 
         bold=$subjdir/$subj/$sess/bold/$melodic_input
         
-        if [ ! -f $bold ] ; then echo "MELODIC_CMD : subj $subj , sess $sess : ERROR : input file '$bold' not found - continuing loop..." ; err=1 ; continue ; fi
+        if [ $(imtest $bold) -eq 0 ] ; then echo "MELODIC_CMD : subj $subj , sess $sess : ERROR : input volume '$bold' not found - continuing loop..." ; err=1 ; continue ; fi
         
         echo "MELODIC_CMD  subj $subj , sess $sess : adding input-file '$bold'"
         echo $bold | tee -a $fldr/input.files
       
       done
-    done
-    
+    done    
     if [ $err -eq 1 ] ; then echo "MELODIC_CMD : an ERROR has occurred - exiting..." ; exit ; fi
     
     # shall we bet ?
@@ -3862,7 +3840,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
     fi
 
     # gather input-files
-    inputfiles="" ; inputfile=""
+    inputfiles="" ; inputfile="" ; err = 0
     for subj in $DUALREG_INCLUDED_SUBJECTS ; do
       for sess in $DUALREG_INCLUDED_SESSIONS ; do        
         # test if inputfile is present
@@ -3870,10 +3848,10 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
           inputfile=$subjdir/$subj/$sess/bold/${_inputfile}
         else
           inputfile=$(find $subjdir/$subj/$sess/ -maxdepth 4 -name filtered_func_data.nii.gz -type f | grep `remove_ext $DUALREG_INPUT_BOLD_STDSPC_FILE`_${DUALREG_INPUT_ICA_DIRNAME}.ica/reg_standard | xargs ls -rt | grep filtered_func_data.nii.gz | tail -n 1) # added '|| true' to avoid abortion by 'set -e' statement
-          if [ -z $inputfile ] ; then echo "DUALREG : subj $subj , sess $sess : standard-space registered input file '$DUALREG_INPUT_BOLD_STDSPC_FILE' not defined - continuing..." ; continue ; fi
+          if [ -z $inputfile ] ; then echo "DUALREG : subj $subj , sess $sess : ERROR : standard-space registered input file '$DUALREG_INPUT_BOLD_STDSPC_FILE' not defined - continuing..." ; err=1 ; continue ; fi
         fi
         
-        if [ ! -f $inputfile ] ; then echo "DUALREG : subj $subj , sess $sess : standard-space registered input file '$inputfile' not found - continuing..." ; continue ; fi
+        if [ $(imtest $inputfile) -eq 0 ] ; then echo "DUALREG : subj $subj , sess $sess : ERROR : standard-space registered input file '$inputfile' not found - continuing..." ; err=1 ; continue ; fi
         
 
         if [ `echo "$inputfile"|wc -w` -gt 1 ] ; then 
@@ -3883,10 +3861,12 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
           echo "DUALREG : subj $subj , sess $sess :           taking the latest one:"
           echo "DUALREG : subj $subj , sess $sess :           '$inputfile'"
         fi
+        
         echo "DUALREG : subj $subj , sess $sess : adding standard-space registered input file '$inputfile'"
         inputfiles=$inputfiles" "$inputfile
       done
-    done
+    done    
+    if [ $err -eq 1 ] ; then "DUALREG : An Error has occured. Exiting..." ; exit ; fi
     
     # check if number of rows in design file and number of input-files 
     if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : file '$glmdir_dr/designs' not found - exiting..." ; exit ; fi
@@ -3908,7 +3888,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
     for IC_fname in $DUALREG_IC_FILENAMES ; do
       ICfile=$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
       dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAME}_$(remove_ext $IC_fname)
-      if [ ! -f $ICfile ] ; then echo "DUALREG : ERROR : group-level IC file '$ICfile' not found - exiting..." ; exit ; fi
+      if [ $(imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit ; fi
       
       # cleanup previous run
       if [ -d $dr_outdir ] ; then
@@ -3956,7 +3936,7 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
       ICfile=$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
       if [ ! -d $dr_outdir ] ; then echo "DUALREG : ERROR : output directory '$dr_outdir' not found - exiting..." ; exit ; fi
       if [ ! -f $dr_outdir/inputfiles ] ; then echo "DUALREG : ERROR : inputfiles textfile not found, you must run stage1 first - exiting..." ; exit ; fi
-      if [ ! -f $ICfile ] ; then echo "DUALREG : ERROR : group-level IC file '$ICfile' not found - exiting..." ; exit ; fi
+      if [ $(imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit ; fi
 
       echo "DUALREG : using output-directory '$dr_outdir'..."
       
@@ -4009,7 +3989,7 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
       fi
       for dr_glm_name in $dr_glm_names ; do
         echo "DUALREG : copying GLM design '$dr_glm_name' to '$dr_outdir/stats'"
-        mkdir -p $dr_outdir/stats ; cp -r $glmdir_dr/$dr_glm_name $dr_outdir/stats/ ; cp $ICfile $dr_outdir/stats/
+        mkdir -p $dr_outdir/stats ; cp -r $glmdir_dr/$dr_glm_name $dr_outdir/stats/ ; imcp $ICfile $dr_outdir/stats/
         echo "DUALREG : calling '$RANDCMD' for folder '$dr_outdir/stats/$dr_glm_name' ($DUALREG_NPERM permutations)."
         cmd="${scriptdir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp $RANDCMD $DUALREG_NPERM $dr_outdir 0 0 1 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
         $cmd ; waitIfBusy # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
