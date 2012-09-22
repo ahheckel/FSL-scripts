@@ -30,13 +30,13 @@ function waitIfBusyIDs()
 {
   local IDfile=$1
   local ID=""
+  echo -n "waiting..."
   for ID in $(cat $IDfile) ; do
     if [ `isStillRunning $ID` -gt 0 ] ; then
-      echo -n "waiting..."
       while [ `isStillRunning $ID` -gt 0 ] ; do echo -n '.' ; sleep 5 ; done
-      echo "done."
     fi
   done
+  echo "done."
   rm $IDfile
 }
 
@@ -55,11 +55,13 @@ idx="$2"
 inputs="$3"
 logdir="$4"
 
-n=0
+n=0 ; i=1
 for input in $inputs ; do
-  echo "`basename $0`: extracting volume at pos. $idx from '$input'..."
+  if [ $(imtest $input) -eq 0 ] ; then echo "`basename $0`: '$input' not found." ; continue ; fi
+  echo "`basename $0`: $i - extracting volume at pos. $idx from '$input'..."
   fsl_sub -l $logdir fslroi $input $wdir/_tmp_$(zeropad $n 4) $idx 1 >> $wdir/jid.list
   n=$(echo "$n + 1" | bc)
+  i=$[$i+1]
 done
 
 waitIfBusyIDs $wdir/jid.list
