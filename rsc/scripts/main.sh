@@ -6,7 +6,7 @@ set -e
 trap 'echo "$0 : An ERROR has occured."' ERR # don't exit on trap (!)
 
 # echo date
-date
+startdate=$(date) ; echo $startdate
 
 # define current working directory
 wd=`pwd`
@@ -291,7 +291,7 @@ for infofile in config_bet_lowb config_bet_struc0 config_bet_struc1 config_unwar
 done
 if [ $errpause -eq 1 ] ; then echo "***CHECK*** (sleeping 2 seconds)..." ; sleep 2 ; fi
 
-# list files for each subject and session
+# list input files for each subject and session
 checklist=""
 if [ ! "x$pttrn_diffs" = "x" ] ; then checklist=$checklist" "$pttrn_diffs; fi
 if [ ! "x$pttrn_bvals" = "x" ] ; then checklist=$checklist" "$pttrn_bvals; fi
@@ -320,6 +320,27 @@ for subj in `cat $subjdir/subjects` ; do
     n=$[$n+1]
   done
 done
+
+# display selected modules
+echo "" ; echo "1ST LEVEL processing streams selected:"
+echo -n "--- Scratch   :    " ; [ $SCRATCH = 1 ] && echo -n "SCRATCH " ; echo ""
+echo -n "--- RECON-ALL :    " ; [ $RECON_STG1 = 1 ] && echo -n "STG1 " ; [ $RECON_STG2 = 1 ] && echo -n "STG2 " ; [ $RECON_STG3 = 1 ] && echo -n "STG3 " ; [ $RECON_STG4 = 1 ] && echo -n "STG4 " ; [ $RECON_STG5 = 1 ] && echo -n "STG5 " ; echo ""
+echo -n "--- FMAP      :    " ; [ $FIELDMAP_STG1 = 1 ] && echo -n "STG1 " ; [ $FIELDMAP_STG2 = 1 ] && echo -n "STG2 " ; echo ""
+echo -n "--- TOPUP     :    " ; [ $TOPUP_STG1 = 1 ] && echo -n "STG1 " ; [ $TOPUP_STG2 = 1 ] && echo -n "STG2 " ; [ $TOPUP_STG3 = 1 ] && echo -n "STG3 " ; [ $TOPUP_STG4 = 1 ] && echo -n "STG4 " ; [ $TOPUP_STG5 = 1 ] && echo -n "STG5 " ; [ $TOPUP_STG6 = 1 ] && echo -n "STG6 " ; echo ""
+echo -n "--- FDT       :    " ; [ $FDT_STG1 = 1 ] && echo -n "STG1 " ; [ $FDT_STG2 = 1 ] && echo -n "STG2 " ; [ $FDT_STG3 = 1 ] && echo -n "STG3 " ; [ $FDT_STG4 = 1 ] && echo -n "STG4 " ; echo ""
+echo -n "--- BPX       :    " ; [ $BPX_STG1 = 1 ] && echo -n "STG1 "  ; echo ""
+echo -n "--- VBM       :    " ; [ $VBM_STG1 = 1 ] && echo -n "STG1 " ; [ $VBM_STG2 = 1 ] && echo -n "STG2 " ; [ $VBM_STG3 = 1 ] && echo -n "STG3 " ; [ $VBM_STG4 = 1 ] && echo -n "STG4 " ; [ $VBM_STG5 = 1 ] && echo -n "STG5 " ; echo ""
+echo -n "--- TRACULA   :    " ; [ $TRACULA_STG1 = 1 ] && echo -n "STG1 " ; [ $TRACULA_STG2 = 1 ] && echo -n "STG2 " ; [ $TRACULA_STG3 = 1 ] && echo -n "STG3 " ; [ $TRACULA_STG4 = 1 ] && echo -n "STG4 " ; echo ""
+echo -n "--- BOLD      :    " ; [ $BOLD_STG1 = 1 ] && echo -n "STG1 " ; [ $BOLD_STG2 = 1 ] && echo -n "STG2 " ; [ $BOLD_STG3 = 1 ] && echo -n "STG3 " ; [ $BOLD_STG4 = 1 ] && echo -n "STG4 " ; [ $BOLD_STG5 = 1 ] && echo -n "STG5 " ; echo ""
+echo -n "--- ALFF      :    " ; [ $ALFF_STG1 = 1 ] && echo -n "STG1 " ; [ $ALFF_STG2 = 1 ] && echo -n "STG2 " ; [ $ALFF_STG3 = 1 ] && echo -n "STG3 " ; echo ""
+echo "2ND LEVEL processing streams selected:"
+echo -n "--- TBSS           :    " ; [ $TBSS_STG1 = 1 ] && echo -n "STG1 " ; [ $TBSS_STG2 = 1 ] && echo -n "STG2 " ; [ $TBSS_STG3 = 1 ] && echo -n "STG3 " ; [ $TBSS_STG4 = 1 ] && echo -n "STG4 " ; [ $TBSS_STG5 = 1 ] && echo -n "STG5 " ; echo ""
+echo -n "--- VBM_2NDLEV     :    " ; [ $VBM_2NDLEV_STG1 = 1 ] && echo -n "STG1 " ; [ $VBM_2NDLEV_STG2 = 1 ] && echo -n "STG2 " ; [ $VBM_2NDLEV_STG3 = 1 ] && echo -n "STG3 " ; echo ""
+echo -n "--- MELODIC_2NDLEV :    " ; [ $MELODIC_2NDLEV_STG1 = 1 ] && echo -n "STG1 " ; [ $MELODIC_2NDLEV_STG2 = 1 ] && echo -n "STG2 " ; echo ""
+echo -n "--- MELODIC_CMD    :    " ; [ $MELODIC_CMD_STG1 = 1 ] && echo -n "STG1 " ; echo ""
+echo -n "--- DUALREG        :    " ; [ $DUALREG_STG1 = 1 ] && echo -n "STG1 " ; [ $DUALREG_STG2 = 1 ] && echo -n "STG2 " ; echo ""
+echo -n "--- ALFF_2NDLEV    :    " ; [ $ALFF_2NDLEV_STG1 = 1 ] && echo -n "STG1 " ; [ $ALFF_2NDLEV_STG2 = 1 ] && echo -n "STG2 " ; echo ""
+echo ""
 echo "***CHECK*** (sleeping 2 seconds)..."
 sleep 2
 
@@ -352,6 +373,7 @@ echo "...done."
 
 # check bvals, bvecs and diff. files for consistent number of entries
 if [ $CHECK_CONSISTENCY_DIFFS = 1 ] ; then
+  echo "Checking bvals/bvecs- and DWI files for consistent number of entries..."
   for subj in `cat $subjdir/subjects` ; do
     for sess in `cat $subjdir/$subj/sessions_struc` ; do
       fldr=$srcdir/$subj/$sess/
@@ -4009,6 +4031,8 @@ waitIfBusy
 
 
 cd $wd
-date
+finishdate=$(date)
+echo "started  : $startdate"
+echo "finished : $finishdate"
 echo "Exiting."
 exit
