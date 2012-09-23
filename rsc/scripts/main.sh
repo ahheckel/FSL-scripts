@@ -19,6 +19,7 @@ set +e
   mkdir $lock &>/dev/null  
   if [ $? -gt 0 ] ; then echo "$0 : --> another instance is already running - exiting." ; exit ; fi
   lock=""
+  echo ""
 set -e
 
 # remove lock on exit
