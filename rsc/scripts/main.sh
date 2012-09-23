@@ -1,12 +1,14 @@
 #!/bin/bash
 
+# echo date
+startdate=$(date) ; echo $startdate
+startdate_sec=$(date +"%s")
+
 # exit on error
 set -e
 
-trap 'echo "$0 : An ERROR has occured."' ERR # don't exit on trap (!)
-
-# echo date
-startdate=$(date) ; echo $startdate
+# define error trap
+trap 'finishdate_sec=$(date +"%s") ; diff=$(($finishdate_sec-$startdate_sec)) ; echo "$0 : An ERROR has occured. Time elapsed since start: $(echo "scale=4 ; $diff / 3600" | bc -l) h"' ERR # don't exit on trap (!)
 
 # define current working directory
 wd=`pwd`
@@ -423,6 +425,7 @@ waitIfBusy
 
 # change to subjects directory...
 cd $subjdir
+
 
 ###########################
 # ----- BEGIN SCRATCH -----
@@ -4032,7 +4035,11 @@ waitIfBusy
 
 cd $wd
 finishdate=$(date)
-echo "started  : $startdate"
-echo "finished : $finishdate"
+finishdate_sec=$(date +"%s")
+diff=$(($finishdate_sec-$startdate_sec))
+
+echo "started      : $startdate"
+echo "finished     : $finishdate"
+echo "time elapsed : $(echo "scale=4 ; $diff / 3600" | bc -l) h"
 echo "Exiting."
 exit
