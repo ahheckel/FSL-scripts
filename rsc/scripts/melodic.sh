@@ -7,16 +7,18 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <\"input-file(s)\"|inputfiles.txt> <TR(sec)> <output-dir> <bet 0|1>"
+    echo "Usage: `basename $0` <\"input-file(s)\"|inputfiles.txt> <TR(sec)> <output-dir> [<bet 0|1, def 1>]"
     echo ""
     exit 1
 }
 
-[ "$4" = "" ] && Usage
+[ "$3" = "" ] && Usage
 inputs="$1"
 TR=$2
 outdir="$3"
 bet="$4"
+
+if [ x"$bet" = "x" ] ; then bet=1 ; fi
 
 # single session ICA ?
 gica=1
