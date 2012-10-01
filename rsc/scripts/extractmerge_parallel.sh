@@ -57,7 +57,7 @@ logdir="$4"
 
 n=0 ; i=1
 for input in $inputs ; do
-  if [ $(imtest $input) -eq 0 ] ; then echo "`basename $0`: '$input' not found." ; continue ; fi
+  if [ ! -f $input ] ; then echo "`basename $0`: '$input' not found." ; continue ; fi
   echo "`basename $0`: $i - extracting volume at pos. $idx from '$input'..."
   fsl_sub -l $logdir fslroi $input $wdir/_tmp_$(zeropad $n 4) $idx 1 >> $wdir/jid.list
   n=$(echo "$n + 1" | bc)

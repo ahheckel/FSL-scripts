@@ -7,9 +7,10 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input4D> <output4D> <mc mat-dir | .ecclog file> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> <interp (default:trilinear)>"
+    echo "Usage: `basename $0` <input4D> <output4D> <mc mat-dir | .ecclog file | matrix file> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> <interp (default:trilinear)>"
     echo "Example: `basename $0` bold uw_bold ./mc/prefiltered_func_data_mcf.mat/ ./unwarp/EF_UD_shift.nii.gz y spline"
     echo "         `basename $0` diff uw_diff ./ec_dwi.ecclog ./unwarp/EF_UD_shift.nii.gz y spline"
+    echo "         `basename $0` diff uw_diff ./matrix.mat ./unwarp/EF_UD_shift.nii.gz y spline"
     echo ""
     exit 1
 }
@@ -25,13 +26,17 @@ interp="$6"
 if [ x"$interp" = "x" ] ; then interp="trilinear" ; fi
 
 # motion correction or eddy-correction ?
-ecclog=0
+ecclog=0 ; sinlgemat=0
 if [ ! -d $mcdir ] ; then
+  echo "`basename $0`: '$mcdir' is not a directory..."
   if [ -f $mcdir -a ${mcdir#*.} = "ecclog" ] ; then
     echo "`basename $0`: '$mcdir' is an .ecclog file."
     ecclog=1
+  elif [ -f $mcdir ] ; then
+    sinlgemat=1
+    echo "`basename $0`: '$mcdir' is not an .ecclog file - let's assume that it is a text file with a transformation matrix in it..."
   else
-    echo "`basename $0`: '$mcdir' is neither a directory nor an .ecclog file. Exiting..." ; exit 1
+    echo "`basename $0`: '$mcdir' not found. Exiting..." ; exit 1
   fi
 fi  
 
@@ -45,7 +50,6 @@ cmd="convertwarp --ref=${output}_example_func --shiftmap=${shiftmap} --shiftdir=
 echo $cmd
 $cmd
 
-
 # combine with motion correction
 imrm ${output}_tmp_????.*
 fslsplit $input ${output}_tmp_
@@ -54,11 +58,15 @@ i=0
 for file in $full_list ; do
   echo "processing $file"
 
-  if [ $ecclog -eq 1 ] ; then
-    line1=$(echo "$i*8 + 4" | bc -l)
-    line2=$(echo "$i*8 + 7" | bc -l)
-    cat ${mcdir} | sed -n "$line1,$line2"p > ${output}_tmp_ecclog.mat
-    cmd="applywarp --ref=${output}_example_func --in=${file} --warp=${output}_WARP1 --premat=${output}_tmp_ecclog.mat --rel --out=${file} --interp=${interp}"  
+  if [ $ecclog -eq 1 -o $sinlgemat -eq 1 ] ; then
+    if [ $ecclog -eq 1 ] ; then
+      line1=$(echo "$i*8 + 4" | bc -l)
+      line2=$(echo "$i*8 + 7" | bc -l)
+      cat ${mcdir} | sed -n "$line1,$line2"p > ${output}_tmp_ecclog.mat
+      cmd="applywarp --ref=${output}_example_func --in=${file} --warp=${output}_WARP1 --premat=${output}_tmp_ecclog.mat --rel --out=${file} --interp=${interp}"  
+    elif [ $sinlgemat -eq 1 ] ; then
+      cmd="applywarp --ref=${output}_example_func --in=${file} --warp=${output}_WARP1 --premat=${mcdir} --rel --out=${file} --interp=${interp}"  
+    fi
   else
     i=`zeropad $i 4`  
     cmd="applywarp --ref=${output}_example_func --in=${file} --warp=${output}_WARP1 --premat=${mcdir}/MAT_${i} --rel --out=${file} --interp=${interp}"  
@@ -80,6 +88,6 @@ fslroi $output $outdir/example_func $mid 1
 imrm $full_list
 imrm ${output}_example_func
 imrm ${output}_WARP1
-rm -f ${output}_tmp_ecclog.mat
+rm -f ${output}_tmp_ecclog.mat 
 
 echo "`basename $0` : done."

@@ -23,7 +23,7 @@ if [ x"$bet" = "x" ] ; then bet=1 ; fi
 # single session ICA ?
 gica=1
 if [ $(echo "$inputs" | wc -w) -eq 1 ] ; then
-  if [ $(imtest $inputs) -eq 1 ] ; then
+  if [ -f $inputs ] ; then
     gica=0
     subdir=$(remove_ext $(basename $inputs)).ica
   else

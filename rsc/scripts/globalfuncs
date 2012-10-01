@@ -2,6 +2,21 @@
 
 # function declarations
 
+function _imtest()
+{
+  local vol="$1"
+ 
+  if [ -f $vol ] ; then
+    if [ $(fslinfo $vol 2>/dev/null | wc -l) -gt 0 ] ; then
+      echo "1"
+    else
+      echo "0"
+    fi
+  else
+    echo "0" 
+  fi  
+}
+
 function sleepfor()
 {
   echo "sleeping for $1 seconds..."

@@ -1381,8 +1381,8 @@ if [ $FDT_STG3 -eq 1 ] ; then
       # define magnitude and fieldmap
       fmap=$subjdir/$subj/$sess/$(remove_ext $FDT_FMAP).nii.gz
       fmap_magn=$subjdir/$subj/$sess/$(remove_ext $FDT_MAGN).nii.gz
-      if [ $(imtest $fmap) -eq 0 ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
-      if [ $(imtest $fmap_magn) -eq 0 ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
+      if [ $(_imtest $fmap) -eq 0 ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
+      if [ $(_imtest $fmap_magn) -eq 0 ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
       
       # get unwarp dir.
       uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
@@ -2260,8 +2260,8 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       fmap=$subjdir/$subj/$sess/$(remove_ext $BOLD_FMAP).nii.gz
       fmap_magn=$subjdir/$subj/$sess/$(remove_ext $BOLD_MAGN).nii.gz
       if [ $BOLD_UNWARP -eq 1 ] ; then
-        if [ $(imtest $fmap) -eq 0 ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
-        if [ $(imtest $fmap_magn) -eq 0 ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
+        if [ $(_imtest $fmap) -eq 0 ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
+        if [ $(_imtest $fmap_magn) -eq 0 ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
       fi
       
       # create symlinks to t1-structurals (highres registration reference)
@@ -2672,7 +2672,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
             # execute...
             for data_file in $BOLD_MNI_RESAMPLE_FUNCDATAS ; do
               
-              if [ $(imtest $featdir/$data_file) != 1 ] ; then
+              if [ $(_imtest $featdir/$data_file) != 1 ] ; then
                   echo "BOLD : subj $subj , sess $sess : WARNING : volume '$featdir/$data_file' not found -> this file cannot be written out in MNI-space. Continuing loop..."
                   continue
               fi
@@ -2777,7 +2777,7 @@ if [ $BOLD_STG5 -eq 1 ]; then
             # estimate nuisance regressors on resolution 2
             mni_res=2       
             data_file=filtered_func_data${ltag}_mni${mni_res}.nii.gz
-            if [ $(imtest $featdir/reg_standard/$data_file) != 1 ] ; then
+            if [ $(_imtest $featdir/reg_standard/$data_file) != 1 ] ; then
                 echo "BOLD : subj $subj , sess $sess : WARNING : estimating nuisance regressors : volume '$featdir/reg_standard/$data_file' not found. Continuing loop..."
                 continue
             fi
@@ -3315,7 +3315,7 @@ if [ $ALFF_STG3 -eq 1 ] ; then
       
       # check
       if [ ! -f $affine ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$affine' not found. Exiting..." ; exit ; fi
-      if [ $(imtest $warp) -eq 0 ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$warp' not found. Exiting..." ; exit ; fi
+      if [ $(_imtest $warp) -eq 0 ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$warp' not found. Exiting..." ; exit ; fi
           
       # copy template
       cp $MNI_file $fldr/standard.nii.gz
@@ -3813,7 +3813,7 @@ if [ $MELODIC_CMD_STG1 -eq 1 ]; then
 
         bold=$subjdir/$subj/$sess/bold/$melodic_input
         
-        if [ $(imtest $bold) -eq 0 ] ; then echo "MELODIC_CMD : subj $subj , sess $sess : ERROR : input volume '$bold' not found - continuing loop..." ; err=1 ; continue ; fi
+        if [ $(_imtest $bold) -eq 0 ] ; then echo "MELODIC_CMD : subj $subj , sess $sess : ERROR : input volume '$bold' not found - continuing loop..." ; err=1 ; continue ; fi
         
         echo "MELODIC_CMD  subj $subj , sess $sess : adding input-file '$bold'"
         echo $bold | tee -a $fldr/input.files
@@ -3868,7 +3868,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
     fi
 
     # gather input-files
-    inputfiles="" ; inputfile="" ; err = 0
+    inputfiles="" ; inputfile="" ; err=0
     for subj in $DUALREG_INCLUDED_SUBJECTS ; do
       for sess in $DUALREG_INCLUDED_SESSIONS ; do        
         # test if inputfile is present
@@ -3879,7 +3879,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
           if [ -z $inputfile ] ; then echo "DUALREG : subj $subj , sess $sess : ERROR : standard-space registered input file '$DUALREG_INPUT_BOLD_STDSPC_FILE' not defined - continuing..." ; err=1 ; continue ; fi
         fi
         
-        if [ $(imtest $inputfile) -eq 0 ] ; then echo "DUALREG : subj $subj , sess $sess : ERROR : standard-space registered input file '$inputfile' not found - continuing..." ; err=1 ; continue ; fi
+        if [ $(_imtest $inputfile) -eq 0 ] ; then echo "DUALREG : subj $subj , sess $sess : ERROR : standard-space registered input file '$inputfile' not found - continuing..." ; err=1 ; continue ; fi
         
 
         if [ `echo "$inputfile"|wc -w` -gt 1 ] ; then 
@@ -3916,7 +3916,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
     for IC_fname in $DUALREG_IC_FILENAMES ; do
       ICfile=$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
       dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAME}_$(remove_ext $IC_fname)
-      if [ $(imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit ; fi
+      if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit ; fi
       
       # cleanup previous run
       if [ -d $dr_outdir ] ; then
@@ -3964,7 +3964,7 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
       ICfile=$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
       if [ ! -d $dr_outdir ] ; then echo "DUALREG : ERROR : output directory '$dr_outdir' not found - exiting..." ; exit ; fi
       if [ ! -f $dr_outdir/inputfiles ] ; then echo "DUALREG : ERROR : inputfiles textfile not found, you must run stage1 first - exiting..." ; exit ; fi
-      if [ $(imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit ; fi
+      if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit ; fi
 
       echo "DUALREG : using output-directory '$dr_outdir'..."
       
