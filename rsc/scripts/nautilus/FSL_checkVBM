@@ -1,4 +1,0 @@
-#!/bin/bash
-FSL=/usr/share/fsl/4.1
-fslview ${FSL}/data/standard/MNI152_T1_2mm_brain -l "Greyscale" -t 0.5 ../GM_mod_merg_smoothed.nii.gz  -l "Greyscale" -t 0.6 $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS -l "Red-Yellow" -b 0.75,0.9
-

@@ -1,2 +1,0 @@
-#!/bin/bash
-/usr/bin/fsl4.1-Glm $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS
