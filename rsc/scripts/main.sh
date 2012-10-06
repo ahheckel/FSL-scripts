@@ -8,7 +8,7 @@ startdate_sec=$(date +"%s")
 set -e
 
 # define error trap
-trap 'finishdate_sec=$(date +"%s") ; diff=$(($finishdate_sec-$startdate_sec)) ; echo "$0 : An ERROR has occured. Time elapsed since start: $(echo "scale=4 ; $diff / 3600" | bc -l) h"' ERR # don't exit on trap (!)
+trap 'finishdate_sec=$(date +"%s") ; diff=$(($finishdate_sec-$startdate_sec)) ; echo "$0 : An ERROR has occured. Time elapsed since start: $(echo "scale=4 ; $diff / 3600" | bc -l) h ($(echo "scale=0 ; $diff / 60" | bc -l) min)"' ERR # don't exit on trap (!)
 
 # define current working directory
 wd=`pwd`
@@ -426,6 +426,12 @@ waitIfBusy
 
 # change to subjects directory...
 cd $subjdir
+
+# save config
+echo "" ; echo "saving configuration:"
+mkdir -p $studydir/.cfg 
+tar -cvzf $studydir/.cfg/conf_$(date | sed "s|[: ]|-|g").tar.gz -C $subjdir ../globalvars $(ls config_*)
+echo ""
 
 
 ###########################
@@ -4041,6 +4047,6 @@ diff=$(($finishdate_sec-$startdate_sec))
 
 echo "started      : $startdate"
 echo "finished     : $finishdate"
-echo "time elapsed : $(echo "scale=4 ; $diff / 3600" | bc -l) h"
+echo "time elapsed : $(echo "scale=4 ; $diff / 3600" | bc -l) h ($(echo "scale=0 ; $diff / 60" | bc -l) min)"
 echo "Exiting."
 exit

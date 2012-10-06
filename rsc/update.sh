@@ -30,9 +30,9 @@ cp -iv fsl/featlib.tcl $FSL_DIR/tcl/featlib.tcl # dont overwrite for fsl ver. 5
 
 if [ $1 -eq 64 ] ; then
   echo "Don't overwrite for FSL ver. 5 if asked!"
-  cp -iv fsl/topup/topup_blade $FSL_DIR/bin/topup # dont overwrite for fsl ver. 5
+  cp -iv fsl/topup/topup_64 $FSL_DIR/bin/topup # dont overwrite for fsl ver. 5
   echo "Don't overwrite for FSL ver. 5 if asked!"
-  cp -iv fsl/topup/applytopup_blade $FSL_DIR/bin/applytopup # dont overwrite for fsl ver. 5
+  cp -iv fsl/topup/applytopup_64 $FSL_DIR/bin/applytopup # dont overwrite for fsl ver. 5
   echo "Don't overwrite for FSL ver. 5 if asked!"
   cp -iv fsl/tbss_x/swap_voxelwise_64 $FSL_DIR/bin/swap_voxelwise # dont overwrite for fsl ver. 5
   echo "Don't overwrite for FSL ver. 5 if asked!"
