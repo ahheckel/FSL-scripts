@@ -354,6 +354,17 @@ if [ x"$SGE_ROOT" != "x" ] ; then
   echo ""
 fi
 
+# check if source directory exists (where nifti originals are located)
+if [ ! -d $srcdir ] ; then
+  echo "ERROR: '$srcdir' (where nifti originals should be located) does not exist - creating it and exiting..."
+  for subj in `cat $subjdir/subjects`; do 
+    for sess in `cat $subjdir/$subj/sessions_struc` ; do
+      mkdir -p $srcdir/$subj/$sess
+    done   
+  done
+  exit
+fi
+
 # dos2unix bval/bvec textfiles (just in case...)
 echo "Ensuring UNIX line endings in bval-/bvec textfiles..."
 for subj in `cat $subjdir/subjects` ; do
@@ -409,17 +420,6 @@ for subj in `cat $subjdir/subjects`; do
     mkdir -p $FS_sessdir/$(subjsess)
   done   
 done
-
-# check presence of source dir. (where nifti originals are located)
-if [ ! -d $srcdir ] ; then
-  echo "ERROR: '$srcdir' (where nifti originals should be located) does not exist - creating it and exiting..."
-  for subj in `cat $subjdir/subjects`; do 
-    for sess in `cat $subjdir/$subj/sessions_struc` ; do
-      mkdir -p $srcdir/$subj/$sess
-    done   
-  done
-  exit
-fi
 
 # wait until cluster is ready...
 waitIfBusy

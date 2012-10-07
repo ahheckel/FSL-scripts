@@ -7,7 +7,7 @@
 studydir=`pwd`
 scriptdir=$studydir/rsc/scripts
 tmpltdir=$studydir/rsc/templates
-srcdir=$studydir/orig
+srcdir=$studydir/subj
 subjdir=$studydir/subj
 grpdir=$studydir/grp
 tbssdir=$grpdir/tbss
@@ -145,7 +145,7 @@ PLOT_BOLD_MNIREG_DIRNAMES="ica_50"         # (part of) dirname, where reg_standa
 
 # FIRST LEVEL
 # overwrite pre-existing subject /session file (to disable set any to "")
-FIRSTLEV_SUBJECTS="01 02 03 04 flip04 05 flip05 06 flip06 07 flip07 08 09 flip09 10" 
+FIRSTLEV_SUBJECTS="01" 
 FIRSTLEV_SESSIONS_FUNC="a b c d e"               
 FIRSTLEV_SESSIONS_STRUC="a c e"                
 
