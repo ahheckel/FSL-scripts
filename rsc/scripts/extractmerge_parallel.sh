@@ -43,24 +43,34 @@ function waitIfBusyIDs()
     
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <out4D> <indices> <\"input files\"> <qsub logdir>"
+    echo "Usage: `basename $0` <out4D> <indices> [<fslmaths unary operator] <\"input files\"> <qsub logdir>"
+    echo "Example: `basename $0` means.nii.gz 1,2,3 -Tmean \"\$inputs\" /tmp"
+    echo "         `basename $0` bolds.nii.gz \"1 2 3\" \"\" \"\$inputs\" /tmp"
+    echo "         `basename $0` bolds.nii.gz 1 \"\$inputs\" /tmp"
     echo ""
     exit 1
 }
 
 [ "$4" = "" ] && Usage    
-  
-out="$1"
-idces="$2"
-inputs="$3"
-logdir="$4"
 
+# define vars
+out="$1"
+idces="$(echo "$2" | sed 's|,| |g')"
+if [ $(echo $idces | wc -w) -gt 1 ] ; then op="$3" ; shift ; fi
+inputs="$3"
+if [ x"$logdir" = "x" ] ; then logdir="$wdir" ; else logdir="$4" ; fi
+
+# extracting...
 n=0 ; i=1
 for input in $inputs ; do
   if [ ! -f $input ] ; then echo "`basename $0`: '$input' not found." ; continue ; fi
   for idx in $idces ; do
     echo "`basename $0`: $i - extracting volume at pos. $idx from '$input'..."
-    fsl_sub -l $logdir fslroi $input $wdir/_tmp_$(zeropad $n 4)_idx$(zeropad $idx 4) $idx 1 >> $wdir/jid.list
+    if [ $(echo $idces | wc -w) -gt 1 ] ; then
+      fsl_sub -l $logdir fslroi $input $wdir/_tmp_$(zeropad $n 4)_idx$(zeropad $idx 4) $idx 1 >> $wdir/jid.list
+    else
+      fsl_sub -l $logdir fslroi $input $wdir/_tmp_$(zeropad $n 4) $idx 1 >> $wdir/jid.list
+    fi
   done
   n=$(echo "$n + 1" | bc)
   i=$[$i+1]
@@ -68,23 +78,26 @@ done
 
 waitIfBusyIDs $wdir/jid.list
 
-echo "`basename $0`: merging (and applying unary fslmaths operator)..."
-n=0 ; i=1
-for input in $inputs ; do
-  if [ ! -f $input ] ; then continue ; fi
-  files="" ; cmd=""
-  for idx in $idces ; do
-    files=$wdir/_tmp_$(zeropad $n 4)_idx$(zeropad $idx 4)" "$wdir/_tmp_$(zeropad $n 4)_idx$(zeropad $idx 4)
+# if more than one index...
+if [ $(echo $idces | wc -w) -gt 1 ] ; then
+  echo "`basename $0`: merging (and applying unary fslmaths operator: '$op')..."
+  n=0 ; rm -f $wdir/apply_operator.cmd
+  for input in $inputs ; do
+    if [ ! -f $input ] ; then continue ; fi
+    files=""
+    for idx in $idces ; do files=$files" "$wdir/_tmp_$(zeropad $n 4)_idx$(zeropad $idx 4) ; done
+    echo "fslmerge -t $wdir/_tmp_$(zeropad $n 4) $files ; \
+    imrm $files ; \
+    fslmaths $wdir/_tmp_$(zeropad $n 4) $op $wdir/_tmp_$(zeropad $n 4)" >> $wdir/apply_operator.cmd
+    n=$(echo "$n + 1" | bc)
   done
-  cmd="fslmerge -t $wdir/_tmp_$(zeropad $n 4) $files ; imrm $files ; fslmaths -Tmean $wdir/_tmp_$(zeropad $n 4) $wdir/_tmp_$(zeropad $n 4)"
-  fsl_sub -l $logdir $cmd >> $wdir/jid.list
-  n=$(echo "$n + 1" | bc)
-  i=$[$i+1]
-done
+  cat $wdir/apply_operator.cmd
+  fsl_sub -l $logdir -t $wdir/apply_operator.cmd >> $wdir/jid.list
+  waitIfBusyIDs $wdir/jid.list
+fi # end if
 
-waitIfBusyIDs $wdir/jid.list
-
-echo "`basename $0`: merging..."
+# merging...
+echo "`basename $0`: merging to '${out}'..."
 fsl_sub -l $logdir fslmerge -t ${out} $(imglob $wdir/_tmp_????) >> $wdir/jid.list
 
 waitIfBusyIDs $wdir/jid.list
