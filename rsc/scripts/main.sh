@@ -3161,21 +3161,28 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       # define cmd
       cmd=$fldr/alff_prepare.cmd ; rm -f $cmd
             
-      ## copy files
-      echo "ALFF : subj $subj , sess $sess : copying link to bold4D..."
-      cp -Pv $(dirname $featdir)/bold.nii $fldr/
+      # link bold file
+      bold_bn=`basename $(ls $srcdir/$subj/$sess/$pttrn_bolds | tail -n 1)`
+      bold_ext=`echo ${bold_bn#*.}`
+      bold_lnk=bold.${bold_ext}
+      if [ -L $fldr/bold.nii -o -L $fldr/bold.nii.gz ] ; then rm -f $fldr/bold.nii $fldr/bold.nii.gz ; fi # delete link if already present
+      echo "ALFF : subj $subj , sess $sess : creating link '$bold_lnk' to '$bold_bn'"
+      ln -sf ../$bold_bn $fldr/$bold_lnk
+      #cp -Pv $(dirname $featdir)/bold.nii $fldr/
       
       # apply motion correction and unwarping
       if [ $uwdir = -y ] ; then  _uwdir=y- ; fi
       if [ $uwdir = +y ] ; then  _uwdir=y ; fi
-
-      echo "ALFF : subj $subj , sess $sess : copying denoise_masks from './bold/$(basename $featdir)/noise'..."
-      mkdir -p $fldr/noise/
-      cp -v $featdir/noise/EF_*.nii.gz $fldr/noise/
-      #echo "ALFF : subj $subj , sess $sess : creating denoise_masks..."
-      #sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
-      #echo "    $scriptdir/fs_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $fldr/example_func $fldr/noise $subj $sess" >> $cmd
-      #tail $cmd
+      
+      if [ "$ALFF_DENOISE_MASKS_NAT" != "'none'" ] ; then
+        echo "ALFF : subj $subj , sess $sess : copying denoise_masks from './bold/$(basename $featdir)/noise'..."
+        mkdir -p $fldr/noise/
+        cp -v $featdir/noise/EF_*.nii.gz $fldr/noise/
+        #echo "ALFF : subj $subj , sess $sess : creating denoise_masks..."
+        #sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
+        #echo "    $scriptdir/fs_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $fldr/example_func $fldr/noise $subj $sess" >> $cmd
+        #tail $cmd
+      fi
       
       #create cmd      
       echo "ALFF : subj $subj , sess $sess : applying motion-correction and unwarp shiftmap in ./bold/$(basename $featdir)'..."
@@ -3187,7 +3194,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
 
         echo "ALFF : subj $subj , sess $sess : detrending (using AFNI tools)..."
 
-        echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir ;\
+        echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/${ALFF_MC_DIR}/prefiltered_func_data_mcf.mat $featdir/${ALFF_UNWARP_SHIFT} $_uwdir ;\
         3dDespike -prefix $fldr/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
         3dTcat -rlt+ -prefix $fldr/__tmp.nii.gz $fldr/_tmp.nii.gz ; \
         rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ;\
@@ -3197,7 +3204,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       
         echo "ALFF : subj $subj , sess $sess : detrending (using FSL's fslmaths -bptf, cutoff: $ALFF_HPF_CUTOFF Hz)..."
       
-        echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir ;\
+        echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/${ALFF_MC_DIR}/prefiltered_func_data_mcf.mat $featdir/${ALFF_UNWARP_SHIFT} $_uwdir ;\
         3dDespike -prefix $fldr/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
         $scriptdir/feat_hpf.sh $fldr/_tmp.nii.gz $fldr/__tmp.nii.gz $ALFF_HPF_CUTOFF $TR_bold $subj $sess ; \
         rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ; \
@@ -3210,7 +3217,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
     
       
       ## with slicetiming correction      
-      #echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir ;\
+      #echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/${ALFF_MC_DIR}/prefiltered_func_data_mcf.mat $featdir/${ALFF_UNWARP_SHIFT} $_uwdir ;\
       #$scriptdir/getsliceorderSIEMENS_interleaved.sh $fldr/filtered_func_data.nii.gz $fldr/sliceorder.txt ; slicetimer -i $fldr/filtered_func_data.nii.gz --out=$fldr/_tmp.nii.gz -r $TR_bold --ocustom=$fldr/sliceorder.txt ;\
       #$scriptdir/feat_hpf.sh $fldr/_tmp.nii.gz $fldr/__tmp.nii.gz $ALFF_HPF_CUTOFF $TR_bold $subj $sess ;\
       #rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ;\
@@ -3236,7 +3243,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       # create cmd
       echo "ALFF : subj $subj , sess $sess : denoising (tag: ${dntag_alff})..."
       mkdir -p $fldr/noise ; ln -sf ../filtered_func_data.nii.gz $fldr/noise/filtered_func_data.nii.gz
-      echo "    $scriptdir/denoise4D.sh $fldr/noise/filtered_func_data "$ALFF_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$ALFF_DENOISE_USE_MOVPARS_NAT" $fldr/noise/filtered_func_data_dn${dntag_alff} $subj $sess" > $cmd
+      echo "    $scriptdir/denoise4D.sh $fldr/noise/filtered_func_data "$ALFF_DENOISE_MASKS_NAT" $featdir/${ALFF_MC_DIR}/prefiltered_func_data_mcf.par "$ALFF_DENOISE_USE_MOVPARS_NAT" $fldr/noise/filtered_func_data_dn${dntag_alff} $subj $sess" > $cmd
       #tail $cmd
       
       echo "ALFF : execute cmd:"

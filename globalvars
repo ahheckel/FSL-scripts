@@ -57,8 +57,8 @@ RECON_STG3=0               # RECON-ALL execute longtitudinal stream's template c
 RECON_STG4=0               # RECON-ALL execute longtitudinal processing for each timepoint
 RECON_STG5=0               # RECON-ALL register FS's longtitudinal template (if applicable) or brain.mgz to FSL's MNI152 template using fnirt
 
-FIELDMAP_STG1=1            # FIELDMAP prepare
-FIELDMAP_STG2=1            # FIELDMAP create
+FIELDMAP_STG1=0            # FIELDMAP prepare
+FIELDMAP_STG2=0            # FIELDMAP create
 
 TOPUP_STG1=0               # TOPUP prepare
 TOPUP_STG2=0               # TOPUP low-B images: create index and extract
@@ -91,9 +91,9 @@ BOLD_STG3=0                # BOLD denoising (needs Freesurfer recons)
 BOLD_STG4=0                # BOLD write MNI-registered volumes
 BOLD_STG5=0                # BOLD denoise MNI-registered volumes
 
-ALFF_STG1=0                # ALFF preproc
-ALFF_STG2=0                # ALFF denoise
-ALFF_STG3=0                # ALFF MNI registration
+ALFF_STG1=1                # ALFF preproc
+ALFF_STG2=1                # ALFF denoise
+ALFF_STG3=1                # ALFF MNI registration
 
 ########################################################################
 # enable second level analyses #########################################
@@ -146,7 +146,7 @@ PLOT_BOLD_MNIREG_DIRNAMES="ica_50"         # (part of) dirname, where reg_standa
 # FIRST LEVEL
 # overwrite pre-existing subject /session file (to disable set any to "")
 FIRSTLEV_SUBJECTS="01" 
-FIRSTLEV_SESSIONS_FUNC="a b c d e"               
+FIRSTLEV_SESSIONS_FUNC="a"               
 FIRSTLEV_SESSIONS_STRUC="a c e"                
 
 # SECOND LEVEL
@@ -247,7 +247,9 @@ ALFF_DENOISE_USE_MOVPARS_NAT="0"                                # enter "0" to s
 ALFF_SMOOTHING_KERNEL=6                                         # enter FWHM in mm (default 6)
 ALFF_HPF_CUTOFF=""                                              # enter "none", "" or "Inf" to use AFNI's detrending tool (default "")
 ALFF_BANDPASS="0.01,0.1"                                        # enter bandpass (default: "0.01,0.1")
-ALFF_FEATDIR="bold/preprocBOLD_uw??_st0_s0_hpf100.feat"         # e.g. "bold/preprocBOLD_uw??_st0_s0_hpf100.feat"
+ALFF_FEATDIR="bold/SESSA_uw+y_st0_s2_hpf100.feat"         # e.g. "bold/preprocBOLD_uw??_st0_s0_hpf100.feat"
+ALFF_MC_DIR="mc"                                                # e.g. "mc"
+ALFF_UNWARP_SHIFT="unwarp/EF_UD_shift.nii.gz"                   # e.g. "unwarp/EF_UD_shift.nii.gz"
 ALFF_MNI_AFFINE="reg_longt/example_func2longt_brain.mat"        # e.g. "reg_longt/example_func2longt_brain.mat"
 ALFF_MNI_WARP="reg_longt/longt_head2longt_standard_warp.nii.gz" # e.g. "reg_longt/longt_head2longt_standard_warp.nii.gz"
 ALFF_RESAMPLING_RESOLUTIONS="2"                                 # enter resolution (default: "2")
