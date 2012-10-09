@@ -1,0 +1,426 @@
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=us-ascii">
+</head>
+<body>
+<hr>
+<table border="0" width="100%">
+<tbody>
+<tr>
+<td align="CENTER">
+<h1>TBSS - Tract-Based Spatial Statistics - v1.2</h1>
+Voxelwise analysis of multi-subject diffusion data<br>
+<br>
+<a href="#intro">Intro</a> &nbsp;&nbsp;-&nbsp;&nbsp; <a href="#overview">Running TBSS</a> &nbsp;&nbsp;-&nbsp;&nbsp; <a href="#nonFA">
+Using non-FA images</a> &nbsp;&nbsp;-&nbsp;&nbsp; <a href="#X">Using crossing-fibres measures</a> &nbsp;&nbsp;-&nbsp;&nbsp;
+<a href="#sym">Testing left vs. right</a><br>
+<a href="#display">Displaying TBSS results</a> &nbsp;&nbsp;-&nbsp;&nbsp; <a href="#back">Transforming TBSS results back to native space</a> &nbsp;&nbsp;-&nbsp;&nbsp;
+<a href="#new">What's new in this version</a> </td>
+<td align="RIGHT"><a href="UrlBlockedError.aspx" target="_blank"><img border="0"></a>
+</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<p><i><b>New version:</b> TBSS v1.2 has switched the nonlinear registration to using
+<a href="UrlBlockedError.aspx" target="_blank">FNIRT</a> (FMRIB's Nonlinear Registration Tool). FNIRT is about 15 times faster than IRTK on FA data and possibly a little more 'accurate'. A TBSS v1.2 analysis is
+<b>not</b> compatible with an older analysis. To see the full list of changes from the previous version see
+<a href="#new">what's new</a></i>. <a name="intro"></a></p>
+<p></p>
+<hr>
+<h2>Introduction</h2>
+<p>There has been much recent interest in using magnetic resonance diffusion imaging to provide information about anatomical connectivity in the brain, by measuring the anisotropic diffusion of water in white matter tracts. One of the measures most commonly
+ derived from diffusion data is fractional anisotropy (FA), which quantifies how strongly directional the local tract structure is. Many imaging studies are starting to use FA images in voxelwise statistical analyses, in order to localise brain changes related
+ to development, degeneration and disease. However, optimal analysis is compromised by the use of standard registration algorithms; there has not been a satisfactory solution to the question of how to align FA images from multiple subjects in a way that allows
+ for valid conclusions to be drawn from the subsequent voxelwise analysis. Furthermore, the arbitrariness of the choice of spatial smoothing extent has not been resolved. TBSS aims to solve these issues via a) carefully tuned nonlinear registration, followed
+ by b) projection onto an alignment-invariant tract representation (the &quot;mean FA skeleton&quot;). TBSS aims to improve the sensitivity, objectivity and interpretability of analysis of multi-subject diffusion imaging studies.
+</p>
+<p>For more information on TBSS, including a technical report, see the <a href="redir.aspx?C=32bb742ad6704f349447092330933d14&amp;URL=http%3a%2f%2fwww.fmrib.ox.ac.uk%2fanalysis%2fresearch%2ftbss%2f" target="_blank">
+TBSS web page</a>. If you use TBSS in your research, please make sure that you reference at least the first of the articles listed below, and ideally the complete list.
+</p>
+<hr>
+<b>Referencing TBSS</b>
+<p><i>Brief summary text:</i> Voxelwise statistical analysis of the FA data was carried out using TBSS (Tract-Based Spatial Statistics, [Smith 2006]), part of FSL [Smith 2004]. TBSS projects all subjects' FA data onto a mean FA tract skeleton, before applying
+ voxelwise cross-subject statistics. </p>
+<p><i>More detailed summary text:</i> Voxelwise statistical analysis of the FA data was carried out using TBSS (Tract-Based Spatial Statistics, [Smith 2006]), part of FSL [Smith 2004]. First, FA images were created by fitting a tensor model to the raw diffusion
+ data using FDT, and then brain-extracted using BET [Smith 2002]. All subjects' FA data were then aligned into a common space using the nonlinear registration tool FNIRT [Andersson 2007a, 2007b], which uses a b-spline representation of the registration warp
+ field [Rueckert 1999]. Next, the mean FA image was created and thinned to create a mean FA skeleton which represents the centres of all tracts common to the group. Each subject's aligned FA data was then projected onto this skeleton and the resulting data
+ fed into voxelwise cross-subject statistics. <font size="-1"><em></p>
+<p>[Smith 2006] S.M. Smith, M. Jenkinson, H. Johansen-Berg, D. Rueckert, T.E. Nichols, C.E. Mackay, K.E. Watkins, O. Ciccarelli, M.Z. Cader, P.M. Matthews, and T.E.J. Behrens.
+<br>
+&nbsp;&nbsp;&nbsp;Tract-based spatial statistics: Voxelwise analysis of multi-subject diffusion data.
+<br>
+&nbsp;&nbsp;&nbsp;NeuroImage, 31:1487-1505, 2006. </p>
+<p>[Smith 2004] S.M. Smith, M. Jenkinson, M.W. Woolrich, C.F. Beckmann, T.E.J. Behrens, H. Johansen-Berg, P.R. Bannister, M. De Luca, I. Drobnjak, D.E. Flitney, R. Niazy, J. Saunders, J. Vickers, Y. Zhang, N. De Stefano, J.M. Brady, and P.M. Matthews.
+<br>
+&nbsp;&nbsp;&nbsp;Advances in functional and structural MR image analysis and implementation as FSL.
+<br>
+&nbsp;&nbsp;&nbsp;NeuroImage, 23(S1):208-219, 2004. </p>
+<p>[Smith 2002] S.M. Smith. <br>
+&nbsp;&nbsp;&nbsp;Fast robust automated brain extraction. <br>
+&nbsp;&nbsp;&nbsp;Human Brain Mapping, 17(3):143-155, November 2002. </p>
+<p>[Andersson 2007a] J.L.R. Andersson, M. Jenkinson and S. Smith. <br>
+&nbsp;&nbsp;&nbsp;Non-linear optimisation. <br>
+&nbsp;&nbsp;&nbsp;FMRIB technical report TR07JA1 from www.fmrib.ox.ac.uk/analysis/techrep </p>
+<p>[Andersson 2007b] J.L.R. Andersson, M. Jenkinson and S. Smith. <br>
+&nbsp;&nbsp;&nbsp;Non-linear registration, aka Spatial normalisation <br>
+&nbsp;&nbsp;&nbsp;FMRIB technical report TR07JA2 from www.fmrib.ox.ac.uk/analysis/techrep </p>
+<p>[Rueckert 1999] D. Rueckert, L. I. Sonoda, C. Hayes, D. L. G. Hill, M. O. Leach, and D. J. Hawkes.
+<br>
+&nbsp;&nbsp;&nbsp;Non-rigid registration using free-form deformations: Application to breast MR images.
+<br>
+&nbsp;&nbsp;&nbsp;IEEE Transactions on Medical Imaging, 18(8):712-721, 1999. </em></font><a name="overview"></a></p>
+<p></p>
+<hr>
+<h2>Running TBSS - Overview</h2>
+<p>Running TBSS first involves running a few simple steps/scripts: </p>
+<ul>
+<li><b>preprocessing</b> - create FA images from your diffusion study data </li><li><b>tbss_1_preproc</b> - prepare your FA data in your TBSS working directory in the right format
+</li><li><b>tbss_2_reg</b> - apply nonlinear registration of all FA images into standard space
+</li><li><b>tbss_3_postreg</b> - create the mean FA image and skeletonise it </li><li><b>tbss_4_prestats</b> - project all subjects' FA data onto the mean FA skeleton
+</li><li><b>stats (e.g., randomise)</b> - feed the 4D projected FA data into GLM modelling and thresholding in order to find voxels which correlate with your model.
+</li></ul>
+We now go through the TBSS steps in detail. <a name="0"></a>
+<hr>
+<h3>0 - create FA data from a diffusion MRI study</h3>
+In order to run TBSS you need to create a single FA image from each subject in the study. We recommend that you do this using tools in the
+<a href="UrlBlockedError.aspx" target="_blank">FDT</a> FSL toolbox; in brief: <br>
+1. Correct your original data for the effects of head movement and eddy currents using
+<code>eddy_correct</code> <br>
+2. Create a brain mask by running <code>bet</code> on one of the B=0 (no diffusion weighting) images
+<br>
+3. Fit the diffusion tensor model using <code>dtifit</code> <a name="1"></a>
+<hr>
+<h3>1 - tbss_1_preproc</h3>
+You now need to create a new, empty directory (folder) in which you will run the TBSS analysis, for example:
+<pre>mkdir mytbss</pre>
+Then copy into there all of your subjects' FA images, giving each subject's FA image a different name. You will make later analysis easier if you name the images in a logical order, for example so that all controls are listed before all patients:
+<pre>cd mytbss
+ls
+  CON_N00300_dti_data_FA.nii.gz
+  CON_N00302_dti_data_FA.nii.gz
+  CON_N00499_dti_data_FA.nii.gz
+  PAT_N00373_dti_data_FA.nii.gz
+  PAT_N00422_dti_data_FA.nii.gz
+  PAT_N03600_dti_data_FA.nii.gz</pre>
+You are now nearly ready to run the first TBSS script, which will erode your FA images slightly and zero the end slices (to remove likely outliers from the diffusion tensor fitting). Type:
+<pre><b>tbss_1_preproc *.nii.gz</b></pre>
+(the <code>*</code> expands to the list of input images).
+<p>The script will also move all the images into a new sub-directory called <code>
+FA</code> (where all the registration steps will later take place,) and will also create another sub-directory called
+<code>origdata</code> and place all your original images in there for posterity. </p>
+<p>Finally, the script runs <code>slicesdir</code>, which creates an overview webpage containing a static view of each of the input images, so that you can then quickly view each of them for obvious problems.
+<a name="2"></a></p>
+<hr>
+<h3>2 - tbss_2_reg</h3>
+The next TBSS script runs the nonlinear registration, aligning all FA images to a 1x1x1mm standard space. The target image used in the registrations can either be a pre-defined target, or can be automatically chosen to be the most &quot;typical&quot; subject in the study.
+<p>In general we recommend using the <a href="UrlBlockedError.aspx" target="_blank">
+FMRIB58_FA</a> standard-space image as the target in TBSS. This involves carrying out just one registration per subject and generally gives good alignment results. This option is applied by using the
+<code>-T</code> flag. Alternatively, you can supply your own target image by using the
+<code>-t</code> option. </p>
+<p>The third option is to align every FA image to every other one, identify the &quot;most representative&quot; one, and use this as the target image. This target image is then affine-aligned into MNI152 standard space, and every image is transformed into 1x1x1mm MNI152
+ space by combining the nonlinear transform to the target FA image with the affine transform from that target to MNI152 space. This option is selected by using the
+<code>-n</code> flag, and is the recommended option if you need to generate a study-specific, for example if the subjects are all young children (and hence the adult-derived FMRIB58_FA target is inappropriate).
+</p>
+<p>Direct registration to the high resolution FMRIB58_FA image takes about 15 minutes x N subjects (when running on a single computer). In comparison, the all-subjects-to-all-subjects option takes about 5 minutes x N x N. Hence the latter approach can take
+ much longer to run than the former. </p>
+<p>If your lab has a batch submission system (e.g., SGE) then you may want to setup FSL to take advantage of this - then all the registration jobs get submitted to the batch system for parallel processing. In this case, ask your system administrator to edit
+ $FSLDIR/bin/fsl_sub in order to setup FSL to make use of your cluster environment. Once this is done, running tbss_2_reg submits all the registrations to your batch system, and you need to watch for them all to complete before moving on to the next stage of
+ TBSS. </p>
+<p>Once <b>all</b> the registrations have finished running, you are ready to move onto the next step.
+<a name="3"></a></p>
+<hr>
+<h3>3 - tbss_3_postreg</h3>
+<p>The next TBSS script applies the nonlinear transforms found in the previous stage to all subjects to bring them into standard space.
+</p>
+<p>If the previous stage was run with the <code>-n</code> option (find the most typical subject as the target), then this script first needs to make the decision about which of your FA images is the most &quot;typical&quot;, for selection as the target image to apply
+ all nonlinear transformations into the space of. (The script does this by taking each FA image in turn, and estimating the average amount of warping that was necessary to align all other images to it; it then finds the one that had the smallest amount of average
+ warping when used as a target.) Obviously if you pre-specified the FA target image then this step is automatically skipped. The script then takes the target and affine-aligns it into 1x1x1mm MNI152 space - this resolution is chosen as the later skeletonisation
+ and projection steps work well at this resolution, and the choice of working in MNI152 space is chosen for convenience of display and coordinate reporting later. Once this is done, each subject's FA image has the nonlinear transform to the target and then
+ the affine transform to MNI152 space applied, resulting in a transformation of the original FA image into MNI152 space (actually the two transformations are combined before being applied, to avoid having to resample the image twice).
+</p>
+<p>The above results in a standard-space version of each subject's FA image; next these are all merged into a single 4D image file called
+<code>all_FA</code>, created in a new subdirectory called <code>stats</code>. Next, the mean of all FA images is created, called
+<code>mean_FA</code>, and this is then fed into the FA skeletonisation program to create
+<code>mean_FA_skeleton</code>. </p>
+<p>All of the above is done simply by running the script: </p>
+<pre><b>tbss_3_postreg -S</b></pre>
+<p>Alternatively, if you wish to use the FMRIB58_FA mean FA image and its derived skeleton, instead of the mean of your subjects in the study, use the
+<code>-T</code> option: </p>
+<pre><b>tbss_3_postreg -T</b></pre>
+<p>In general we would recommend using the <code>-S</code> option (derive the mean FA and skeleton from the actual subjects you have).
+</p>
+<p><img align="right"> The script finishes by telling you to check whether a suitable threshold for the mean FA skeleton is 0.2 (a typical value used by the next script). For example, load the 4D FA data and the skeleton into FSLView:
+</p>
+<pre>cd stats
+fslview all_FA -b 0,0.8 mean_FA_skeleton -b 0.2,0.8 -l Green</pre>
+<p>The <code>-b</code> option sets sensible display range options, and in the case of the skeleton image, also controls the thresholding applied. Now turn on the movie loop; you will see the mean FA skeleton on top of each different subject's aligned FA image.
+ If all the processing so far has worked ok the skeleton should look like the examples shown here (see the TBSS paper for more examples of different subjects' results underneath the skeleton). If the registration has worked well you should see that in general
+ each subject's major tracts are reasonably well aligned to the relevant parts of the skeleton. If you set the skeleton threshold (in FSLView, the lower of the display range settings) much lower than 0.2, it will extend away towards extremes where there is
+ too much cross-subject variability and where the nonlinear registration has not been able to attain good alignments. Remember the skeleton threshold for the next stage.
+<a name="4"></a></p>
+<hr>
+<h3>4 - tbss_4_prestats</h3>
+<p>The last TBSS script carries out the final steps necessary before you run the voxelwise cross-subject stats. It thresholds the mean FA skeleton image at the chosen threshold - a common value that works well is 0.2 (see above). To run, type:
+</p>
+<pre><b>tbss_4_prestats 0.2</b></pre>
+replacing the <code>0.2</code> with another value if you need to change it.
+<p>The resulting binary skeleton mask defines the set of voxels used in all subsequent processing. Next a &quot;distance map&quot; is created from the skeleton mask. This is used in the projection of FA onto the skeleton (see the TBSS paper for more detail). Finally,
+ the script takes the 4D all_FA image (containing all subjects' aligned FA data) and, for each &quot;timepoint&quot; (i.e., subject ID), projects the FA data onto the mean FA skeleton. This results in a 4D image file containing the (projected) skeletonised FA data. It
+ is this file that you will feed into voxelwise statistics in the next section. <a name="5">
+</a></p>
+<hr>
+<h3>5 - voxelwise statistics on the skeletonised FA data</h3>
+<p>The previous step resulted in the 4D skeletonised FA image <code>all_FA_skeletonised</code> (in the
+<code>stats</code> subdirectory). It is this that you now feed into voxelwise statistics, that, for example, tells you which FA skeleton voxels are significantly different between two groups of subjects.
+</p>
+<p>One recommended way of doing the stats is to use the <code>randomise</code> tool. For more detail see the
+<a href="UrlBlockedError.aspx" target="_blank">randomise manual</a>. Before running
+<code>randomise</code> you will need to generate a design matrix file, e.g., <code>
+design.mat</code> and contrasts file, e.g., <code>design.con</code>. You can use the script
+<code>design_ttest2</code> in the simple case of a two-group comparison. Alternatively you can use the
+<b>Glm</b> GUI to generate these design matrix and contrast files. Note that the order of the entries (rows) in your design matrix
+<i>must</i> match the alphabetical order of your original FA images, as that determines the order of the aligned FA images in the final 4D file
+<code>all_FA_skeletonised</code>; check this with: </p>
+<pre>
+cd FA
+imglob *_FA.*
+</pre>
+<p>We recommend using the <a href="redir.aspx?C=32bb742ad6704f349447092330933d14&amp;URL=http%3a%2f%2fwww.fmrib.ox.ac.uk%2fanalysis%2fresearch%2ftfce" target="_blank">
+TFCE</a> (Threshold-Free Cluster Enhancement) option in randomise. This is somewhat similar to cluster-based thresholding, but generally more robust and avoids the need for the arbitrary initial cluster-forming threshold. To use this on TBSS-preprocessed data,
+ add the <code>--T2</code> option to randomise. </p>
+<p>So, say you have 7 controls (with original filenames <code>CON_001_dti_FA.nii.gz</code> etc.) and 11 patients (with original filenames
+<code>PAT_001_dti_FA.nii.gz</code> etc.). You can generate design files and run voxelwise statistics and inference using randomisation, including cluster-based thresholding, using:
+</p>
+<pre>
+cd ../stats
+design_ttest2 design 7 11
+
+randomise -i all_FA_skeletonised -o tbss -m mean_FA_skeleton_mask -d design.mat -t design.con -n 500 --T2 -V
+
+fslview $FSLDIR/data/standard/MNI152_T1_1mm mean_FA_skeleton -l Green -b 0.2,0.8 tbss_tstat1 -l Red-Yellow -b 3,6 tbss_tstat2 -l Blue-Lightblue -b 3,6
+</pre>
+<p>In this case, contrast 1 gives the control&gt;patient test and contrast 2 gives the control&lt;patient test. The raw (unthresholded) tstat images are
+<code>tbss_tstat1</code> and <code>tbss_tstat2</code> respectively. The TFCE p-value images (fully corrected for multiple comparisons across space) are
+<code>tbss_tfce_corrp_tstat1</code> and <code>tbss_tfce_corrp_tstat2</code> (note, these are actually 1-p for convenience of display, so thresholding at .95 gives significant clusters).
+<a name="nonFA"></a></p>
+<p></p>
+<hr>
+<h2>Using non-FA Images in TBSS</h2>
+<p>It is straightforward to apply TBSS to other diffusion-derived data than FA images. For example, you may be interested in how MD (mean diffusivity) or the first diffusion tensor eigenvalue varies between different subjects.
+</p>
+<p>To achieve this we recommend using the FA images to achieve the nonlinear registration and skeletonisation stages, and also to estimate the projection vectors from each individual subject onto the mean FA skeleton. The nonlinear warps and skeleton projection
+ can then also be applied to other images such as the second eigenvalue. The following instructions assume that you want to run TBSS on the second eigenvalue, named L2 by dtifit:
+</p>
+<ul>
+<li>Run the full TBSS analysis (see all steps above) on your FA data. </li><li>Create a new directory called L2 (or any other name) in your TBSS analysis directory (the one that contains the existing
+<code>origdata</code>, <code>FA</code> and <code>stats</code> directories from the FA analysis):<br>
+<code>mkdir L2</code> </li><li>Copy your L2 images into this new directory, making sure that they are named <b>
+exactly</b> the same as the original FA images were (look in <code>origdata</code> to check the original names).
+</li><li>Now, making sure that you are in your top working TBSS directory (the one that now contains FA, stats and L2 subdirectories) and run the
+<code>tbss_non_FA</code> script, telling it that the alternate data is called L2. This will apply the original nonlinear registration to the L2 data, merge all subjects' warped L2 data into a 4D file
+<code>stats/all_L2</code>, project this onto the original mean FA skeleton (using the original FA data to find the projection vectors), resulting in the 4D projected data
+<code>stats/all_L2_skeletonised</code>:<br>
+<code>tbss_non_FA L2</code> </li><li>You can now run voxelwise stats on the projected 4D data <code>all_L2_skeletonised</code>
+<a href="#5">in the same manner as described above</a>. </li></ul>
+<a name="X"></a>
+<p></p>
+<hr>
+<h2>Using crossing-fibre measurements in TBSS</h2>
+<p>The interpretation of FA changes in crossing-fibre regions can be ambiguous and challenging. One solution to this problem is the use of models that incorporate fibre-specific measurements, i.e. two or more measurements that relate to two or more fibre orientations
+ within each voxel. For example, you may use partial volume fraction estimates from bedpostX instead of FA at each voxel. If we estimate orientations x1 and x2, together with their partial volume fractions f1 and f2, you may want to use f1 and f2 instead of
+ FA which should increase the interpretability of the results in crossing fibre areas.
+</p>
+<p>When using measurements that are orientation specific, it is not sufficient to use tbss_non_FA, because we need to ensure that a fibre orientation x1 in a subject corresponds to the same fibre population across all subjects. The ouput of bedpostX may be
+ such that x1 relates to a given pathway (say cortico-spinal tract) in a subset of the subjects, but to another tract (e.g. SLF) in other subjects. I.e. x1 and x2 are swapped between those two subsets of subjects.
+</p>
+<p>TBSS deals with these situations automatically, via the use of the tbss_x script. As for tbss_non_FA, we recommend using FA for the nonlinear registration and skeletonisation stages, and also to estimate the projection vectors from each individual subject
+ onto the mean FA skeleton. The nonlinear warps and skeleton projection can then be applied to crossing fibre measurements. The following instructions assume that you are using bedpostX estimates of fibres orientations (dyads1,dyads2,etc.) and related partial
+ volumes (f1,f2,etc). You can replace these with any other orientation-dependent measurements (e.g. using another diffusion model).
+</p>
+<ul>
+<li>Run the full TBSS analysis (see all steps above) on your FA data. </li><li>Create one directory per orientation and per measurement in your TBSS analysis directory (the one that contains the existing
+<code>origdata</code>, <code>FA</code> and <code>stats</code> directories from the FA analysis):<br>
+<code>mkdir F1 F2 D1 D2</code> </li><li>Copy your images into this new directory, making sure that they are named <b>
+exactly</b> the same as the original FA images were (look in <code>origdata</code> to check the original names). For example, if you are using bedpostX outputs, copy the dyads (dyads1,dyads2,etc.) onto D1,D2,etc., and the partial volumes (mean_f1samples, mean_f2samples,etc.)
+ onto F1,F2,etc. </li><li>Now, making sure that you are in your top working TBSS directory (the one that contains FA, stats and origdata subdirectories) and run the
+<code>tbss_x</code> script: <code>tbss_x F1 F2 D1 D2</code>, telling it that the measurements in F1 are associated with the orientations in D1, etc. This will apply the original nonlinear registration to the data in F* and D*, then perform a series of operations
+ that ensure that F* will be associated with the same orientations across subjects.
+</li><li>You can now run voxelwise stats on the output 4D data <code>all_F*_x_skeletonised</code>
+<a href="#5">as described above</a>. </li></ul>
+<a name="sym"></a>
+<p></p>
+<hr>
+<h2>Testing left vs. right in TBSS</h2>
+<p>In order to test skeleton voxels on the left of the brain vs. those on the right (i.e., testing for asymmetries in diffusion characteristics), it is necessary to derive (and project onto) a slightly different mean FA skeleton - one that is symmetric. Obviously
+ this skeleton needs to be restricted to only those parts of the &quot;original&quot; skeleton that are already sufficiently close to being symmetric - i.e. where there is reasonable correspondence in general tract structure between left and right in the brain.
+</p>
+<p>To run such analysis, first complete the above TBSS processing steps 1-4. Then cd into the stats subdirectory in your TBSS analysis. Use the script
+<code>tbss_sym</code>; if you want to apply the symmetry analysis to the FA data, type<br>
+<code>tbss_sym FA</code><br>
+or if you want to apply it to other diffusion data (that has previously been processed using
+<code>tbss_non_FA</code>), such as <code>MO</code>, type<br>
+<code>tbss_sym MO</code><br>
+</p>
+<p>The script first generates the symmetric mean-FA image and derived skeleton, mask and distance map, unless these have already been generated by a previous run of
+<code>tbss_sym</code>. The rest of this paragraph can be ignored if you are not interested in the details of how the symmetric skeleton is derived. First, the original (asymmetric) skeleton is dilated (thickened) by one voxel, and saved to a temporary file.
+ Next, the symmetrised mean-FA image <code>mean_FA_symmetrised</code> is generated, just by flipping and average
+<code>mean_FA</code>. This is then skeletonised to generate the initial symmetric skeleton. This skeleton is masked by the dilated original skeleton - this step ensures that only skeleton structures that are already
+<i>close</i> to being symmetric in the original data are used in this left-right analysis. Finally, to be absolutely sure the final skeleton is exactly symmetric, it is flipped and masked with the non-flipped version, creating symmetrised skeleton
+<code>mean_FA_symmetrised_skeleton</code>. A thresholded skeleton mask image and derived distance map are then derived from this.
+</p>
+<p>Now, the 4D prealigned data <code>all_FA</code> (or non-FA equivalent, if requested) is projected onto the symmetrised skeleton, resulting in 4D file
+<code>all_FA_symmetrised_skeletonised</code> (etc.). This could now be left-right tested. However, To make this straightforward two final steps are carried out: 1) The 4D dataset is left-right flipped, and the latter subtracted from the former. 2) The left
+ half of this dataset (corresponding to the &quot;right&quot; side of standard space) is then zeroed, as the same information (inverted) is present on the left and right sides of the image. This results in 4D image
+<code>all_FA_skeletonised_left_minus_right</code>. </p>
+<p>Therefore the simplest possible analysis with <code>randomise</code> is just to test whether the mean of this data is significantly greater than zero, using the
+<code>-1</code> option instead of entering a design matrix and contrast file. This tests for L&gt;R. To test for R&gt;L, either invert the data and re-run
+<code>randomise</code>, or create an appropriate design matrix and contrast file.
+<a name="display"></a></p>
+<p></p>
+<hr>
+<h2>Displaying TBSS Results</h2>
+<p><img align="right">In this section we give some hints on how to present TBSS results. You might want to use either the MNI152 background image or your mean_FA study-specific image - or you may want to show TBSS results on top of both. If you use your mean_FA
+ image as the background, make sure that you set a good display range, for example 0:0.6. For the rest of this section we'll assume that you want to show results on top of the MNI152 image and hence start by loading MNI152 into FSLView.
+</p>
+<p>You will probably next want to load the mean_FA_skeleton image on top of your background image, to show where the skeleton was estimated, and which standard-space voxels were tested in the multi-subjects statistics. Load mean_FA_skeleton into FSLView and
+ set its display range correctly. The lower threshold <b>must</b> be set to the threshold that you used in the TBSS analysis, for example 0.2. The upper level should probably be set to something like 0.7, so that you can see variation in mean FA values within
+ the skeleton. You probably want to change the colourmap, for example to Green, and increase the transparency (with the transparency slider) so that when you load the stats image in, it is easier to see.
+</p>
+<p>Finally, load the stats image in. If you have used TFCE-based testing in randomise, the raw t-statistic image will be named something like
+<code>tbss_tstat1</code> (which you could view to see raw tstats before significance testing), but the image you probably want is
+<code>tbss_tfce_corrp_tstat1</code>, which is the corrected p-value image (actually the values in this image are 1-p for ease of display, so that bigger is &quot;better&quot;). Load this into FSLView, set a colourmap such as Red-Yellow, and set the display range to something
+ like 0.95:1, which corresponds to thresholding the results at p&lt;0.05. </p>
+<p>All of the above (apart from setting the skeleton transparency, which has to be done by hand in the GUI) can be carried out with a single command (see first example image):
+</p>
+<p><code>fslview $FSLDIR/data/standard/MNI152_T1_1mm mean_FA_skeleton -l Green -b 0.2,0.7 tbss_tfce_corrp_tstat1 -l Red-Yellow -b 0.95,1</code>
+</p>
+<p><img align="right">Alternatively, although showing the stats results on the TBSS skeleton is a true representation of the actual analysis carried out, some people find it easier to visualise the results if the skeletonised results are &quot;thickened&quot; somewhat.
+ In order to make such a presentation easy, there is a script <code>tbss_fill</code>, which thickens the thresholded stats image, filling it out into the local &quot;tracts&quot; seen in mean_FA. For example, to apply this to the same example as above and then view in
+ FSLView on top of the mean_FA image, run: </p>
+<p><code>tbss_fill tbss_tfce_corrp_tstat1 0.95 mean_FA tbss_fill<br>
+fslview mean_FA -b 0,0.6 mean_FA_skeleton -l Green -b 0.2,0.7 tbss_fill -l Red-Yellow</code>
+<a name="back"></a></p>
+<p></p>
+<hr>
+<h2>Transforming TBSS results back to native space</h2>
+<p>It is possible to take one or more voxels on the mean FA skeleton and show where, in each subject's Fa image, those voxels originally came from. This &quot;back projection&quot; is composed of one or two steps. First, the skeleton voxel is projected back from its
+ position on the skeleton to the nearby position at the centre of the nearest tract in the subject's FA image in standard space (i.e., after the FA image had been nonlinearly registered to the target image). Second, this point can then be &quot;inverse warped&quot; back
+ into the subject's native space, by inverting the nonlinear registration that was originally applied. The whole process can be viewed thus:
+</p>
+<p></p>
+<center><img width="100%"></center>
+<p>There are two obvious reasons why you might want to back-project a skeleton-space voxel (or voxels). The first is to confirm that a given skeleton point was derived from the correct tract-centre points in all subjects. This can generally be achieve by just
+ taking the first of the back projection steps, from the skeleton to the space of the all_FA data, and viewing the back-projected points on top of all_FA (looking at each subject, i.e., timepoint, separately). The second is to take a skeleton-space voxel or
+ set of voxels (for example, a skeleton-space blob that is significantly different between the two groups of subjects in the study) back to the space of the original subjects' data, in order to run tractography for each subject, with that result forming the
+ tractography seed mask. </p>
+<p><b>Option 1: just deproject &lt;skeleton-space-input-image&gt; onto the space of each nonlinearly registered subject in all_FA</b>
+</p>
+<p>For an example of confirming the final tract-centre projection stage, first form an image containing significant voxels from a previous randomise-based statistical analysis of the skeletonised data:
+</p>
+<p></p>
+<pre>fslmaths tbss_tfce_corrp_tstat1 -thr 0.95 grot
+tbss_deproject grot 1
+fslview all_FA grot_to_all_FA -l Red-Yellow</pre>
+<p>The <code>1</code> tells the script to just apply stage 1 of the de-projections, i.e. from skeleton space to the all_FA space. This lets you view the interesting skeleton-space voxels in the space of each subject's standard space (nonlinearly registered)
+ FA image - as you move through the timepoints in FSLView you see each subject in turn.
+</p>
+<p><b>Option 2: do the first step and also invert the nonlinear warping, to get back to subjects' native space</b>
+</p>
+<p>For an example of complete back-projection to the space of the native data in FA, run the following, first making sure you run the command from within the
+<code>stats</code> directory. The <code>2</code> flag tells the script to take the back-projection back to the native space:
+</p>
+<p></p>
+<pre>tbss_deproject grot 2</pre>
+<p>This results in a separate output for each subject in the <code>stats</code> directory. For example, if your first subject was called
+<code>subject_001</code>, you would view the results (if you are in the <code>stats</code> directory), with:
+</p>
+<p><code>fslview ../FA/subject_001_FA subject_001_FA_grot -l Red-Yellow</code> </p>
+<p>This is probably the space you want to transform <code>grot</code> into if you are going to use the result to seed tractography analysis.
+</p>
+<p>Finally, you can add the <code>-n</code> flag to the end of the <code>tbss_deproject</code> command to tell the transformations of your original skeleton voxels to keep the exact values in your input data (rather than allowing them to be smoothly interpolated)
+ when applying the reverse transformations. For example, if your skeleton-space image that you feed into
+<code>tbss_deproject</code> contains mask index numbers 1, 2 and 3 at different mask locations on the skeleton, you would use the
+<code>-n</code> option, and then the output images from <code>tbss_deproject</code> will contain the same set of index numbers without any alteration cause by the interpolations. Note that this will take a long time to run if you have lots of distinct integer
+ values in the input image, as the deprojections are run separately for every different index number! If your data has continuous values (e.g. Z-statistic or p-values) you should not use the
+<code>-n</code> option. <a name="new"></a></p>
+<p></p>
+<hr>
+<h2>What's new in this version</h2>
+<p><b>v1.2</b> </p>
+<p>This version switched the nonlinear registration from using IRTK to using <a href="UrlBlockedError.aspx" target="_blank">
+FNIRT</a> (FMRIB's Nonlinear Registration Tool) and as a result there are some minor usage changes. FNIRT is about 15 times faster than IRTK on FA data and possibly a little more 'accurate'. A TBSS v1.2 analysis is
+<b>not</b> compatible with an older analysis; the data needs to be re-processed starting with running tbss_1_preproc (re-running earlier steps such as eddy correction and dtifit is not necessary). The usage changes are:
+</p>
+<p>tbss_1_preproc now doesn't need a scaling factor to be chosen; FA images no longer need to be converted to be in the range 0:10000.
+</p>
+<p>It is no longer necessary to run tbss_1_preproc before feeding non-FA images into TBSS; the data just needs to be named correctly and put in the right place (see manual).
+</p>
+<p>The threshold entered for tbss_4_prestats is now in the same units as FA, e.g. 0.2, and no longer scaled up by a factor of 10000.
+</p>
+<p><b>v1.1</b> </p>
+<p>This version introduced a standard-space mean FA image (FMRIB58_FA) for use as the target in the initial nonlinear registration. This now becomes the recommended target for the nonlinear registrations, instead of registering every subject to every other
+ subject, and choosing the most typical. All scripts are updated to allow either way of running the registrations.
+</p>
+<p>Script <code>tbss_fill</code> is added to allow &quot;thickening&quot; of results for ease of display.
+</p>
+<p>Script <code>tbss_deproject</code> is added to allow back-projection of skeleton-space voxels into all_FA and native FA spaces.
+</p>
+<p><b>v1.0</b> </p>
+<p>Original TBSS release. </p>
+<p></p>
+<hr>
+<font size="1">Copyright &copy; 2005-2008, University of Oxford. Written by <a href="redir.aspx?C=32bb742ad6704f349447092330933d14&amp;URL=http%3a%2f%2fwww.fmrib.ox.ac.uk%2f%7esteve%2findex.html" target="_blank">
+S. Smith</a>.</font> <br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+<br>
+</body>
+</html>
