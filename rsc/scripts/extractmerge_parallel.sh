@@ -39,7 +39,6 @@ function waitIfBusyIDs()
   echo "done."
   rm $IDfile
 }
-
     
 Usage() {
     echo ""
@@ -51,7 +50,7 @@ Usage() {
     exit 1
 }
 
-[ "$4" = "" ] && Usage    
+[ "$3" = "" ] && Usage    
 
 # define vars
 out="$1"
@@ -59,6 +58,9 @@ idces="$(echo "$2" | sed 's|,| |g')"
 if [ $(echo $idces | wc -w) -gt 1 ] ; then op="$3" ; shift ; fi
 inputs="$3"
 if [ x"$logdir" = "x" ] ; then logdir="$wdir" ; else logdir="$4" ; fi
+
+# check SGE
+qstat &>/dev/null
 
 # extracting...
 n=0 ; i=1
@@ -76,6 +78,7 @@ for input in $inputs ; do
   i=$[$i+1]
 done
 
+# wait
 waitIfBusyIDs $wdir/jid.list
 
 # if more than one index...
@@ -93,6 +96,7 @@ if [ $(echo $idces | wc -w) -gt 1 ] ; then
   done
   cat $wdir/apply_operator.cmd
   fsl_sub -l $logdir -t $wdir/apply_operator.cmd >> $wdir/jid.list
+  # wait
   waitIfBusyIDs $wdir/jid.list
 fi # end if
 
@@ -100,6 +104,7 @@ fi # end if
 echo "`basename $0`: merging to '${out}'..."
 fsl_sub -l $logdir fslmerge -t ${out} $(imglob $wdir/_tmp_????) >> $wdir/jid.list
 
+# wait
 waitIfBusyIDs $wdir/jid.list
 
 echo "`basename $0`: done."

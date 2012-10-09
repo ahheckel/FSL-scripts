@@ -1,4 +1,3 @@
-
 #!/bin/bash
 # The FEAT way of high pass filtering.
 
