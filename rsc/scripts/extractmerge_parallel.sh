@@ -83,8 +83,8 @@ waitIfBusyIDs $wdir/jid.list
 
 # if more than one index...
 if [ $(echo $idces | wc -w) -gt 1 ] ; then
-  echo "`basename $0`: merging (and applying unary fslmaths operator: '$op')..."
   n=0 ; rm -f $wdir/apply_operator.cmd
+  echo "`basename $0`: merging (and applying unary fslmaths operator: '$op')..."
   for input in $inputs ; do
     if [ ! -f $input ] ; then continue ; fi
     files=""
