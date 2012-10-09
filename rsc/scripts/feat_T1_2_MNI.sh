@@ -1,4 +1,3 @@
-
 #!/bin/bash
 # The FEAT way of T1->MNI registration.
 

@@ -78,7 +78,7 @@ for input in $inputs ; do
   i=$[$i+1]
 done
 
-# wait
+# waiting...
 waitIfBusyIDs $wdir/jid.list
 
 # if more than one index...
@@ -96,7 +96,7 @@ if [ $(echo $idces | wc -w) -gt 1 ] ; then
   done
   cat $wdir/apply_operator.cmd
   fsl_sub -l $logdir -t $wdir/apply_operator.cmd >> $wdir/jid.list
-  # wait
+  # waiting...
   waitIfBusyIDs $wdir/jid.list
 fi # end if
 
@@ -104,7 +104,7 @@ fi # end if
 echo "`basename $0`: merging to '${out}'..."
 fsl_sub -l $logdir fslmerge -t ${out} $(imglob $wdir/_tmp_????) >> $wdir/jid.list
 
-# wait
+# waiting...
 waitIfBusyIDs $wdir/jid.list
 
 echo "`basename $0`: done."

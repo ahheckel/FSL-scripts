@@ -1,4 +1,3 @@
-
 #!/bin/bash
 # convert FS format to FSL format / normalize WM-intensity and conform to 256^3 at 1mm (or another isotropic resolution)
 

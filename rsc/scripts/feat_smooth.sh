@@ -1,4 +1,3 @@
-
 #!/bin/bash
 # The FEAT way of smoothing.
 # NOTE: also performs grand mean scaling.

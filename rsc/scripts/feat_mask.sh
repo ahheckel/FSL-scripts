@@ -1,4 +1,3 @@
-
 #!/bin/bash
 # The FEAT way of making the mask.
 
