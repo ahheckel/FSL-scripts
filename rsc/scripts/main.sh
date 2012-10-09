@@ -3212,10 +3212,9 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       
       fi
       
-      # with afni despike/detrend        
+      ## with afni despike/detrend        
       #3dTstat -mean -prefix $fldr/_m.nii.gz $fldr/_tmp.nii.gz ; 3dDetrend -polort 2 -prefix $fldr/_dm.nii.gz $fldr/_tmp.nii.gz ; 3dcalc -a $fldr/_m.nii.gz  -b $fldr/_dm.nii.gz  -expr 'a+b' -prefix $fldr/__tmp.nii.gz ; rm -f $fldr/_m.nii.gz $fldr/_dm.nii.gz ;
-    
-      
+          
       ## with slicetiming correction      
       #echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/${ALFF_MC_DIR}/prefiltered_func_data_mcf.mat $featdir/${ALFF_UNWARP_SHIFT} $_uwdir ;\
       #$scriptdir/getsliceorderSIEMENS_interleaved.sh $fldr/filtered_func_data.nii.gz $fldr/sliceorder.txt ; slicetimer -i $fldr/filtered_func_data.nii.gz --out=$fldr/_tmp.nii.gz -r $TR_bold --ocustom=$fldr/sliceorder.txt ;\

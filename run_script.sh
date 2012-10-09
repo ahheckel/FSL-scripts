@@ -1,1 +1,1 @@
-./rsc/scripts/main.sh
+rsc/scripts/main.sh

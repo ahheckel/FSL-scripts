@@ -46,7 +46,7 @@ echo $cmd ; $cmd
 rm -f $$deleteme.reg.dat
 
 
-echo "`basename $0` : subj $subj , sess $sess : done."
+echo "`basename $0` : done."
 
 
              
