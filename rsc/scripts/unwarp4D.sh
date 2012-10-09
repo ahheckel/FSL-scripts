@@ -26,7 +26,7 @@ TE=$6
 ESP=$7
 siglossthres=$8
 uwdir="$9"
-interp="$10"
+interp="${10}"
 subj="${11}"
 sess="${12}"
 
@@ -43,7 +43,7 @@ echo $cmd ; $cmd
 
 # motion correction
 if [ $moco -eq 1 ] ; then
-  if [ -d $outdir/mc/prefiltered_func_data_mcf.mat ] ; then echo "`basename $0` :  deleting motion-correction mat-directory from previous run..." ; rm -vrf $outdir/mc/prefiltered_func_data_mcf.mat ; fi
+  if [ -d $outdir/mc/prefiltered_func_data_mcf.mat ] ; then echo "`basename $0` : deleting motion-correction mat-directory from previous run..." ; rm -vrf $outdir/mc/prefiltered_func_data_mcf.mat ; fi
   cmd="mcflirt -in $input -out $outdir/mc/prefiltered_func_data_mcf -mats -plots -refvol $mid -rmsrel -rmsabs"
   echo $cmd ; $cmd
   rm -f $outdir/mc/prefiltered_func_data_mcf.nii.gz

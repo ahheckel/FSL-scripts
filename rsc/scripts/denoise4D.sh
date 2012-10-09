@@ -115,7 +115,7 @@ else
   movpar_proc=""
 fi
 
-# create matrix - mean regrssor
+# create matrix - mean regressor
 ones=$outdir/ones
 #for i in $ts_list ; do n=$(cat $i | wc -l) ; break ; done
 n=`fslinfo  $input| grep ^dim4 | awk '{print $2}'`

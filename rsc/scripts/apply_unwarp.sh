@@ -28,7 +28,6 @@ nvol=`fslinfo  $input | grep ^dim4 | awk '{print $2}'`
 mid=$(echo "scale=0 ; $nvol / 2" | bc)
 fslroi $input ${output}_example_func $mid 1
 
-
   cmd="convertwarp --ref=${output}_example_func --shiftmap=${shiftmap} --shiftdir=${uwdir} --out=${output}_WARP1 --relout"
   echo $cmd
   $cmd
