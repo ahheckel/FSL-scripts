@@ -35,7 +35,7 @@ else
 fi
 
 # create command options
-opts="-v --tr=${TR} --report --guireport=$outdir/$subdir/report.html -d 0 --mmthresh=0.5"
+opts="-v --tr=${TR} --report --guireport=$outdir/$subdir/report.html -d 0 --mmthresh=0.5 --Oall"
 if [ $bet -eq 0 ] ; then  opts="$opts --nobet --bgthreshold=10" ; fi
 if [ $gica -eq 1 ] ; then opts="$opts -a concat" ; fi
 
