@@ -6,7 +6,7 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 wdir=`pwd`/.extmerge$$
 mkdir -p $wdir
-#trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
+trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
    
 Usage() {
     echo ""
