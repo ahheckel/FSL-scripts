@@ -195,6 +195,7 @@ BPX_USE_TOPUP_NOEC_BVECROT=0
 BPX_USE_TOPUP_EC_BVECROT=1
 
 # VBM_PREPROC
+VBM_FSLV5=0                # perform fsl_anat script
 VBM_NU_CORRECT_T1=0        # perform non-uniformity correction prior to t1 skull-stripping - useful for mri_watershed (default: 0)
 VBM_SSM_ERODE_STEPS=3
                            # mutually exclusive:

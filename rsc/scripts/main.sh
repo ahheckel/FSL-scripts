@@ -470,7 +470,8 @@ if [ $RECON_STG1 -eq 1 ] ; then
       # reorient to please fslview
       file=`ls ${srcdir}/${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check pattern (!)
       echo "RECON : subj $subj , sess $sess : reorienting T1 ('$file') to please fslview..."
-      fslreorient2std $file $fldr/tmp_t1
+      rm -f $fldr/tmp_t1.nii $fldr/tmp_t1.nii.gz
+      fslreorient2std $file $fldr/tmp_t1 ; fslmaths $fldr/tmp_t1 $fldr/tmp_t1 ; rm -f $fldr/tmp_t1.nii
       
       # convert to .mgz
       echo "RECON : subj $subj , sess $sess : converting T1 to .mgz format..."
@@ -1791,13 +1792,15 @@ if [ $VBM_STG1 -eq 1 ] ; then
       fslmaths $file ${fldr}/$(subjsess)_t1_orig
       
       # reorient for fslview
-      fslreorient2std $file ${fldr}/$(subjsess)_t1_flipped
-      ln -sf $(subjsess)_t1_flipped.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz
+      rm -f ${fldr}/$(subjsess)_t1_reor.nii ${fldr}/$(subjsess)_t1_reor.nii.gz 
+      fslreorient2std $file ${fldr}/$(subjsess)_t1_reor
+      fslmaths ${fldr}/$(subjsess)_t1_reor ${fldr}/$(subjsess)_t1_reor ; rm -f ${fldr}/$(subjsess)_t1_reor.nii
+      ln -sf $(subjsess)_t1_reor.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz
       
       # convert to .mnc & perform non-uniformity correction
       if [ $VBM_NU_CORRECT_T1 -eq 1 ] ; then
         echo "VBM PREPROC : subj $subj , sess $sess : performing non-uniformity correction..."
-        mri_convert ${fldr}/$(subjsess)_t1_flipped.nii.gz $fldr/tmp.mnc # &>$logdir/vbm_mri_convert01_$(subjsess) 
+        mri_convert ${fldr}/$(subjsess)_t1_reor.nii.gz $fldr/tmp.mnc # &>$logdir/vbm_mri_convert01_$(subjsess) 
         fsl_sub -l $logdir -N vbm_nu_correct_$(subjsess) nu_correct -clobber $fldr/tmp.mnc $fldr/t1_nu_struc.mnc
       fi      
     done
@@ -1839,6 +1842,19 @@ if [ $VBM_STG1 -eq 1 ] ; then
       fi
     done
   done
+  
+  waitIfBusy
+  
+  # also execute fsl_anat scirpt (fsl v.5) if applicable
+  if [ $VBM_FSLV5 -eq 1 ] ; then
+    if [ ! -f $FSL_DIR/bin/fsl_anat ] ; then echo "VBM PREPROC : ERROR : fsl_anat not found... is this really FSL v.5 ? Exiting." ; exit ; fi
+    for subj in `cat subjects`; do 
+      for sess in `cat ${subj}/sessions_struc` ; do
+        echo "VBM PREPROC : subj $subj , sess $sess : 'fsl_anat' is being executed..."
+        fsl_sub -l $logdir -N vbm_fsl_anat_$(subjsess) fsl_anat --clobber -i $fldr/$(subjsess)_t1_struc.nii.gz
+      done
+    done
+  fi
   
 fi
 
