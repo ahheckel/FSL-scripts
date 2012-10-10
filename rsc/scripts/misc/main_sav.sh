@@ -1,14 +1,12 @@
 #!/bin/bash
 
-# echo date
-startdate=$(date) ; echo $startdate
-startdate_sec=$(date +"%s")
-
 # exit on error
 set -e
 
-# define error trap
-trap 'finishdate_sec=$(date +"%s") ; diff=$(($finishdate_sec-$startdate_sec)) ; echo "$0 : An ERROR has occured. Time elapsed since start: $(echo "scale=4 ; $diff / 3600" | bc -l) h ($(echo "scale=0 ; $diff / 60" | bc -l) min)"' ERR # don't exit on trap (!)
+trap 'echo "$0 : An ERROR has occured."' ERR # don't exit on trap (!)
+
+# echo date
+date
 
 # define current working directory
 wd=`pwd`
@@ -19,7 +17,6 @@ set +e
   mkdir $lock &>/dev/null  
   if [ $? -gt 0 ] ; then echo "$0 : --> another instance is already running - exiting." ; exit ; fi
   lock=""
-  echo ""
 set -e
 
 # remove lock on exit
@@ -69,7 +66,6 @@ DUALREG_IC_FILENAMES=$(echo $DUALREG_IC_FILENAMES | row2col | sort -u)
 _m=$(for i in $BOLD_DENOISE_MASKS_NAT ; do remove_ext $i | cut -d _ -f 2 ; done) ; dntag_boldnat=$(rem_blanks "$BOLD_DENOISE_USE_MOVPARS_NAT")$(rem_blanks "$_m")
 _m=$(for i in $BOLD_DENOISE_MASKS_MNI ; do remove_ext $i | cut -d _ -f 2 ; done) ; dntag_boldmni=$(rem_blanks "$BOLD_DENOISE_USE_MOVPARS_MNI")$(rem_blanks "$_m")
 _m=$(for i in $ALFF_DENOISE_MASKS_NAT ; do remove_ext $i | cut -d _ -f 2 ; done) ; dntag_alff=$(rem_blanks "$ALFF_DENOISE_USE_MOVPARS_NAT")$(rem_blanks "$_m")
-
 
 # ----- create 1st level subject- and session files -----
 
@@ -294,7 +290,7 @@ for infofile in config_bet_lowb config_bet_struc0 config_bet_struc1 config_unwar
 done
 if [ $errpause -eq 1 ] ; then echo "***CHECK*** (sleeping 2 seconds)..." ; sleep 2 ; fi
 
-# list input files for each subject and session
+# list files for each subject and session
 checklist=""
 if [ ! "x$pttrn_diffs" = "x" ] ; then checklist=$checklist" "$pttrn_diffs; fi
 if [ ! "x$pttrn_bvals" = "x" ] ; then checklist=$checklist" "$pttrn_bvals; fi
@@ -323,27 +319,6 @@ for subj in `cat $subjdir/subjects` ; do
     n=$[$n+1]
   done
 done
-
-# display selected modules
-echo "" ; echo "1ST LEVEL processing streams selected:"
-echo -n "--- Scratch   :    " ; [ $SCRATCH = 1 ] && echo -n "SCRATCH " ; echo ""
-echo -n "--- RECON-ALL :    " ; [ $RECON_STG1 = 1 ] && echo -n "STG1 " ; [ $RECON_STG2 = 1 ] && echo -n "STG2 " ; [ $RECON_STG3 = 1 ] && echo -n "STG3 " ; [ $RECON_STG4 = 1 ] && echo -n "STG4 " ; [ $RECON_STG5 = 1 ] && echo -n "STG5 " ; echo ""
-echo -n "--- FMAP      :    " ; [ $FIELDMAP_STG1 = 1 ] && echo -n "STG1 " ; [ $FIELDMAP_STG2 = 1 ] && echo -n "STG2 " ; echo ""
-echo -n "--- TOPUP     :    " ; [ $TOPUP_STG1 = 1 ] && echo -n "STG1 " ; [ $TOPUP_STG2 = 1 ] && echo -n "STG2 " ; [ $TOPUP_STG3 = 1 ] && echo -n "STG3 " ; [ $TOPUP_STG4 = 1 ] && echo -n "STG4 " ; [ $TOPUP_STG5 = 1 ] && echo -n "STG5 " ; [ $TOPUP_STG6 = 1 ] && echo -n "STG6 " ; echo ""
-echo -n "--- FDT       :    " ; [ $FDT_STG1 = 1 ] && echo -n "STG1 " ; [ $FDT_STG2 = 1 ] && echo -n "STG2 " ; [ $FDT_STG3 = 1 ] && echo -n "STG3 " ; [ $FDT_STG4 = 1 ] && echo -n "STG4 " ; echo ""
-echo -n "--- BPX       :    " ; [ $BPX_STG1 = 1 ] && echo -n "STG1 "  ; echo ""
-echo -n "--- VBM       :    " ; [ $VBM_STG1 = 1 ] && echo -n "STG1 " ; [ $VBM_STG2 = 1 ] && echo -n "STG2 " ; [ $VBM_STG3 = 1 ] && echo -n "STG3 " ; [ $VBM_STG4 = 1 ] && echo -n "STG4 " ; [ $VBM_STG5 = 1 ] && echo -n "STG5 " ; echo ""
-echo -n "--- TRACULA   :    " ; [ $TRACULA_STG1 = 1 ] && echo -n "STG1 " ; [ $TRACULA_STG2 = 1 ] && echo -n "STG2 " ; [ $TRACULA_STG3 = 1 ] && echo -n "STG3 " ; [ $TRACULA_STG4 = 1 ] && echo -n "STG4 " ; echo ""
-echo -n "--- BOLD      :    " ; [ $BOLD_STG1 = 1 ] && echo -n "STG1 " ; [ $BOLD_STG2 = 1 ] && echo -n "STG2 " ; [ $BOLD_STG3 = 1 ] && echo -n "STG3 " ; [ $BOLD_STG4 = 1 ] && echo -n "STG4 " ; [ $BOLD_STG5 = 1 ] && echo -n "STG5 " ; echo ""
-echo -n "--- ALFF      :    " ; [ $ALFF_STG1 = 1 ] && echo -n "STG1 " ; [ $ALFF_STG2 = 1 ] && echo -n "STG2 " ; [ $ALFF_STG3 = 1 ] && echo -n "STG3 " ; echo ""
-echo "2ND LEVEL processing streams selected:"
-echo -n "--- TBSS           :    " ; [ $TBSS_STG1 = 1 ] && echo -n "STG1 " ; [ $TBSS_STG2 = 1 ] && echo -n "STG2 " ; [ $TBSS_STG3 = 1 ] && echo -n "STG3 " ; [ $TBSS_STG4 = 1 ] && echo -n "STG4 " ; [ $TBSS_STG5 = 1 ] && echo -n "STG5 " ; echo ""
-echo -n "--- VBM_2NDLEV     :    " ; [ $VBM_2NDLEV_STG1 = 1 ] && echo -n "STG1 " ; [ $VBM_2NDLEV_STG2 = 1 ] && echo -n "STG2 " ; [ $VBM_2NDLEV_STG3 = 1 ] && echo -n "STG3 " ; echo ""
-echo -n "--- MELODIC_2NDLEV :    " ; [ $MELODIC_2NDLEV_STG1 = 1 ] && echo -n "STG1 " ; [ $MELODIC_2NDLEV_STG2 = 1 ] && echo -n "STG2 " ; echo ""
-echo -n "--- MELODIC_CMD    :    " ; [ $MELODIC_CMD_STG1 = 1 ] && echo -n "STG1 " ; echo ""
-echo -n "--- DUALREG        :    " ; [ $DUALREG_STG1 = 1 ] && echo -n "STG1 " ; [ $DUALREG_STG2 = 1 ] && echo -n "STG2 " ; echo ""
-echo -n "--- ALFF_2NDLEV    :    " ; [ $ALFF_2NDLEV_STG1 = 1 ] && echo -n "STG1 " ; [ $ALFF_2NDLEV_STG2 = 1 ] && echo -n "STG2 " ; echo ""
-echo ""
 echo "***CHECK*** (sleeping 2 seconds)..."
 sleep 2
 
@@ -354,28 +329,17 @@ if [ x"$SGE_ROOT" != "x" ] ; then
   echo ""
 fi
 
-# check if source directory exists (where nifti originals are located)
-if [ ! -d $srcdir ] ; then
-  echo "ERROR: '$srcdir' (where nifti originals should be located) does not exist - creating it and exiting..."
-  for subj in `cat $subjdir/subjects`; do 
-    for sess in `cat $subjdir/$subj/sessions_struc` ; do
-      mkdir -p $srcdir/$subj/$sess
-    done   
-  done
-  exit
-fi
-
 # dos2unix bval/bvec textfiles (just in case...)
 echo "Ensuring UNIX line endings in bval-/bvec textfiles..."
 for subj in `cat $subjdir/subjects` ; do
   for sess in `cat $subjdir/$subj/sessions_struc` ; do
     dwi_txtfiles=""
-    if [ x${pttrn_bvalsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvalsplus ; fi
-    if [ x${pttrn_bvalsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvalsminus ; fi
-    if [ x${pttrn_bvecsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvecsplus ; fi
-    if [ x${pttrn_bvecsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvecsminus ; fi
-    if [ x${pttrn_bvals} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvals ; fi
-    if [ x${pttrn_bvecs} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvecs ; fi
+    if [ x${pttrn_bvalsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvalsplus ; fi
+    if [ x${pttrn_bvalsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvalsminus ; fi
+    if [ x${pttrn_bvecsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvecsplus ; fi
+    if [ x${pttrn_bvecsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvecsminus ; fi
+    if [ x${pttrn_bvals} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvals ; fi
+    if [ x${pttrn_bvecs} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$subjdir/$subj/$sess/$pttrn_bvecs ; fi
     dwi_txtfiles=$(echo $dwi_txtfiles| row2col | sort | uniq)
     for i in $dwi_txtfiles ; do 
       #echo "    $i"
@@ -387,10 +351,9 @@ echo "...done."
 
 # check bvals, bvecs and diff. files for consistent number of entries
 if [ $CHECK_CONSISTENCY_DIFFS = 1 ] ; then
-  echo "Checking bvals/bvecs- and DWI files for consistent number of entries..."
   for subj in `cat $subjdir/subjects` ; do
     for sess in `cat $subjdir/$subj/sessions_struc` ; do
-      fldr=$srcdir/$subj/$sess/
+      fldr=$subjdir/$subj/$sess/
       echo "subj $subj , sess $sess : "
       checkConsistency "$fldr/$pttrn_diffs" "$fldr/$pttrn_bvals" "$fldr/$pttrn_bvecs"
     done
@@ -427,13 +390,6 @@ waitIfBusy
 # change to subjects directory...
 cd $subjdir
 
-# save config
-echo "" ; echo "saving configuration:"
-mkdir -p $studydir/.cfg 
-tar -cvzf $studydir/.cfg/conf_$(date | sed "s|[: ]|-|g").tar.gz -C $subjdir ../globalvars $(ls config_*)
-echo ""
-
-
 ###########################
 # ----- BEGIN SCRATCH -----
 ###########################
@@ -468,7 +424,7 @@ if [ $RECON_STG1 -eq 1 ] ; then
       mkdir -p $fldr
       
       # reorient to please fslview
-      file=`ls ${srcdir}/${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check pattern (!)
+      file=`ls ${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check pattern (!)
       echo "RECON : subj $subj , sess $sess : reorienting T1 ('$file') to please fslview..."
       fslreorient2std $file $fldr/tmp_t1
       
@@ -647,7 +603,7 @@ if [ $FIELDMAP_STG1 -eq 1 ]; then
       mkdir -p $fldr
    
       # find magnitude
-      fm_m=`ls ${srcdir}/${subj}/${sess}/${pttrn_fmaps} | sed -n 1p` # first in listing is magnitude (second is phase-difference volume) (!)
+      fm_m=`ls ${subj}/${sess}/${pttrn_fmaps} | sed -n 1p` # first in listing is magnitude (second is phase-difference volume) (!)
       imcp $fm_m $fldr
       
       # split magnitude
@@ -687,7 +643,7 @@ if [ $FIELDMAP_STG2 -eq 1 ]; then
       fi
           
       # find phase image
-      fm_p=`ls ${srcdir}/${subj}/${sess}/${pttrn_fmaps}  | tail -n 1` # last in list is phase image, check pattern (!)
+      fm_p=`ls ${subj}/${sess}/${pttrn_fmaps}  | tail -n 1` # last in list is phase image, check pattern (!)
       
       # copy files to fieldmap folder
       imcp $fm_p $fldr
@@ -767,8 +723,8 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       echo "TOPUP : subj $subj , sess $sess : preparing TOPUP... "
       
       # are the +- diffusion files in equal number ?
-      n_plus=`ls $srcdir/$subj/$sess/$pttrn_diffsplus | wc -l`
-      n_minus=`ls $srcdir/$subj/$sess/$pttrn_diffsminus | wc -l`
+      n_plus=`ls $subj/$sess/$pttrn_diffsplus | wc -l`
+      n_minus=`ls $subj/$sess/$pttrn_diffsminus | wc -l`
       if [ ! $n_plus -eq $n_minus ] ; then 
         echo "TOPUP : subj $subj , sess $sess : ERROR : number of +blips diff. files ($n_plus) != number of -blips diff. files ($n_minus) - continuing loop..."
         continue
@@ -778,11 +734,11 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       fi
                         
       # count +/- bvec/bval-files
-      ls $srcdir/$subj/$sess/$pttrn_bvecsplus > $fldr/bvec+.files
-      ls $srcdir/$subj/$sess/$pttrn_bvecsminus > $fldr/bvec-.files
+      ls $subjdir/$subj/$sess/$pttrn_bvecsplus > $fldr/bvec+.files
+      ls $subjdir/$subj/$sess/$pttrn_bvecsminus > $fldr/bvec-.files
       cat $fldr/bvec-.files $fldr/bvec+.files > $fldr/bvec.files
-      ls $srcdir/$subj/$sess/$pttrn_bvalsplus > $fldr/bval+.files
-      ls $srcdir/$subj/$sess/$pttrn_bvalsminus > $fldr/bval-.files
+      ls $subjdir/$subj/$sess/$pttrn_bvalsplus > $fldr/bval+.files
+      ls $subjdir/$subj/$sess/$pttrn_bvalsminus > $fldr/bval-.files
       cat $fldr/bval-.files $fldr/bval+.files > $fldr/bval.files
       n_vec_plus=`cat $fldr/bvec+.files | wc -l`
       n_vec_minus=`cat $fldr/bvec-.files | wc -l`
@@ -808,10 +764,10 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       fi
       
       # concatenate +bvecs and -bvecs
-      concat_bvals $srcdir/$subj/$sess/"$pttrn_bvalsminus" $fldr/bvalsminus_concat.txt
-      concat_bvals $srcdir/$subj/$sess/"$pttrn_bvalsplus" $fldr/bvalsplus_concat.txt 
-      concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecsminus" $fldr/bvecsminus_concat.txt
-      concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecsplus" $fldr/bvecsplus_concat.txt 
+      concat_bvals $subj/$sess/"$pttrn_bvalsminus" $fldr/bvalsminus_concat.txt
+      concat_bvals $subj/$sess/"$pttrn_bvalsplus" $fldr/bvalsplus_concat.txt 
+      concat_bvecs $subj/$sess/"$pttrn_bvecsminus" $fldr/bvecsminus_concat.txt
+      concat_bvecs $subj/$sess/"$pttrn_bvecsplus" $fldr/bvecsplus_concat.txt 
 
       nbvalsplus=$(wc -w $fldr/bvalsplus_concat.txt | cut -d " " -f 1)
       nbvalsminus=$(wc -w $fldr/bvalsminus_concat.txt | cut -d " " -f 1)
@@ -819,7 +775,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       nbvecsminus=$(wc -w $fldr/bvecsplus_concat.txt | cut -d " " -f 1)      
      
       # check number of entries in concatenated bvals/bvecs files
-      n_entries=`countVols $srcdir/$subj/$sess/"$pttrn_diffsplus"` 
+      n_entries=`countVols $subj/$sess/"$pttrn_diffsplus"` 
       if [ $nbvalsplus = $nbvalsminus -a $nbvalsplus = $n_entries -a $nbvecsplus = `echo "3*$n_entries" | bc` -a $nbvecsplus = $nbvecsminus ] ; then
         echo "TOPUP : subj $subj , sess $sess : number of entries in bvals- and bvecs files consistent ($n_entries entries)."
       else
@@ -842,7 +798,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       echo "TOPUP : subj $subj , sess $sess : creating index file for TOPUP..."      
       rm -f $fldr/$(subjsess)_acqparam.txt ; rm -f $fldr/$(subjsess)_acqparam_inv.txt ; rm -f $fldr/diff.files # clean-up previous runs...
       
-      diffsminus=`ls ${srcdir}/${subj}/${sess}/${pttrn_diffsminus}`
+      diffsminus=`ls ${subjdir}/${subj}/${sess}/${pttrn_diffsminus}`
       for file in $diffsminus ; do
         nvol=`fslinfo $file | grep ^dim4 | awk '{print $2}'`
         echo "$file n:${nvol}" | tee -a $fldr/diff.files
@@ -852,7 +808,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
         done
       done
       
-      diffsplus=`ls ${srcdir}/${subj}/${sess}/${pttrn_diffsplus}`
+      diffsplus=`ls ${subjdir}/${subj}/${sess}/${pttrn_diffsplus}`
       for file in $diffsplus ; do
         nvol=`fslinfo $file | grep ^dim4 | awk '{print $2}'`
         echo "$file n:${nvol}" | tee -a $fldr/diff.files
@@ -1032,7 +988,18 @@ if [ $TOPUP_STG4 -eq 1 ] ; then
       echo "topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/fm/field_Hz_lowb --iout=$fldr/fm/uw_lowb_merged_chk ; \
       fslmaths $fldr/fm/field_Hz_lowb -mul 6.2832 $fldr/fm/fmap_rads" > $fldr/topup.cmd
       fsl_sub -l $logdir -N topup_topup_$(subjsess) -t $fldr/topup.cmd
-       
+      #echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/$(subjsess)_fieldHz_lowb --iout=$fldr/$(subjsess)_unwarped_lowb" > $fldr/topup.cmd
+      #. $fldr/topup.cmd 
+               
+      #echo "TOPUP : subj $subj , sess $sess : executing TOPUP on merged low-B volumes..."
+      #mkdir -p $fldr/fm # dir. for fieldmap related stuff
+      #echo "topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/fm/field_Hz_lowb --iout=$fldr/fm/unwarped_lowb ; \
+      #fslmaths $fldr/fm/unwarped_lowb -Tmean $fldr/fm/unwarped_lowb_mean ; \
+      #bet $fldr/fm/unwarped_lowb_mean $fldr/fm/unwarped_lowb_mean_brain -f 0.3 -m ; \
+      #fslmaths $fldr/fm/field_Hz_lowb -mul 6.2832 $fldr/fm/fmap_rads ; \
+      #fslmaths $fldr/fm/fmap_rads -mas $fldr/fm/unwarped_lowb_mean_brain_mask $fldr/fm/fmap_rads_masked" > $fldr/topup.cmd
+      #fsl_sub -l $logdir -N topup_topup_$(subjsess) -t $fldr/topup.cmd
+        
     done
   done
 fi
@@ -1049,20 +1016,20 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       if [ ! -f $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
       
       # generate commando without eddy-correction
-      nplus=`ls $srcdir/$subj/$sess/$pttrn_diffsplus | wc -l`      
+      nplus=`ls $subj/$sess/$pttrn_diffsplus | wc -l`      
       rm -f $fldr/applytopup.cmd
       for i in `seq 1 $nplus` ; do
         j=`echo "$i + $nplus" | bc -l`
 
-        blipdown=`ls $srcdir/$subj/$sess/$pttrn_diffsminus | sed -n ${i}p`
-        blipup=`ls $srcdir/$subj/$sess/$pttrn_diffsplus | sed -n ${i}p`
+        blipdown=`ls $subjdir/$subj/$sess/$pttrn_diffsminus | sed -n ${i}p`
+        blipup=`ls $subjdir/$subj/$sess/$pttrn_diffsplus | sed -n ${i}p`
         
         n=`printf %03i $i`
         echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
       done
       
       # generate commando with eddy-correction
-      nplus=`ls $srcdir/$subj/$sess/$pttrn_diffsplus | wc -l`      
+      nplus=`ls $subj/$sess/$pttrn_diffsplus | wc -l`      
       rm -f $fldr/applytopup_ec.cmd
       for i in `seq 1 $nplus` ; do
         j=`echo "$i + $nplus" | bc -l`
@@ -1157,10 +1124,8 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       # link to mask
       echo "TOPUP : subj $subj , sess $sess : link to unwarped mask..."
       ln -sfv ./fm/uw_lowb_mean_brain_${fithres}.nii.gz $fldr/uw_nodif_brain.nii.gz
-      ln -sfv ./fm/uw_lowb_mean_brain_${fithres}_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
-      # link to mean lowb
-      ln -sfv ./uw_lowb_mean_brain_${fithres}.nii.gz $fldr/fm/uw_lowb_mean_brain.nii.gz
-      ln -sfv ./uw_lowb_mean_brain_${fithres}_mask.nii.gz $fldr/fm/uw_lowb_mean_brain_mask.nii.gz
+      ln -sfv ./fm/uw_lowb_mean_brain_${fithres}_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz   
+      
       
     done
   done    
@@ -1174,7 +1139,25 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=${subjdir}/${subj}/${sess}/topup
+      
+      ## get info for current subject
+      #f=`getBetThres ${subjdir}/config_bet_lowb $subj $sess`
 
+      ## bet, if necessary
+      #if [ $f = "mod" ] ; then
+        #if [ ! -f $fldr/nodif_brain_${f}.nii.gz  -o ! -f $fldr/nodif_brain_${f}_mask.nii.gz ] ; then   
+          #echo "TOPUP: subj $subj , sess $sess : externally modified volume (nodif_brain_${f}) & mask (nodif_brain_${f}_mask) not found - exiting..." ; exit
+        #fi
+      #else      
+        #echo "TOPUP : subj $subj , sess $sess : betting B0 image with fi=${f} - extracting B0..."
+        #if [ ! -f $fldr/lowb.idx ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : low-b index file '$fldr/lowb.idx' not found - continuing loop..." ; continue ; fi
+        #fslroi $fldr/diffs_merged $fldr/nodif $(sed -n 1p $fldr/lowb.idx) 1
+        #echo "TOPUP : subj $subj , sess $sess : ...and betting B0..."
+        #bet $fldr/nodif $fldr/nodif_brain_${f} -m -f $f         
+      #fi 
+      #ln -sf nodif_brain_${f}.nii.gz $fldr/nodif_brain.nii.gz
+      #ln -sf nodif_brain_${f}_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
+      
       # averaging +/- bvecs & bvals...
       # NOTE: bvecs are averaged further below (following rotation)
       average $fldr/bvalsminus_concat.txt $fldr/bvalsplus_concat.txt > $fldr/avg_bvals.txt
@@ -1300,7 +1283,7 @@ if [ $FDT_STG1 -eq 1 ] ; then
       
       # merge diffs...
       echo "FDT : subj $subj , sess $sess : merging diffs..."
-      ls $srcdir/$subj/$sess/$pttrn_diffs | tee $fldr/diff.files
+      ls $subj/$sess/$pttrn_diffs | tee $fldr/diff.files
       fsl_sub -l $logdir -N fdt_fslmerge_$(subjsess) fslmerge -t $fldr/diff_merged $(cat $fldr/diff.files)      
     done    
   done
@@ -1323,15 +1306,10 @@ if [ $FDT_STG2 -eq 1 ] ; then
       fi
       
       # get B0 index
-      b0img=`getB0Index $srcdir/$subj/$sess/"$pttrn_bvals" $fldr/ec_ref.idx | cut -d " " -f 1` ; min=`getB0Index $srcdir/$subj/$sess/"$pttrn_bvals" $fldr/ec_ref.idx | cut -d " " -f 2`
+      b0img=`getB0Index $subj/$sess/"$pttrn_bvals" $fldr/ec_ref.idx | cut -d " " -f 1` ; min=`getB0Index $subj/$sess/"$pttrn_bvals" $fldr/ec_ref.idx | cut -d " " -f 2`
 
       # eddy-correct in test mode ? (don't apply eddy_correction)
-      if [ $FDT_EC_TEST -eq 1 ] ; then 
-        ecswitch="-t" ; echo "FDT : subj $subj , sess $sess : NOTE: eddy_correct is in 'testing' mode."
-      else
-        ecswitch=""
-        #ecswitch="-n" ; echo "FDT : subj $subj , sess $sess : NOTE: eddy_correct is in 'no-write-out' mode." 
-      fi
+      if [ $FDT_EC_TEST -eq 1 ] ; then ectest="-t" ; echo "FDT : subj $subj , sess $sess : NOTE: eddy_correct is in testing mode." ; else ectest="" ; fi
       
       # eddy-correct
       echo "FDT : subj $subj , sess $sess : eddy_correct is using volume no. $b0img as B0 (val:${min})..."
@@ -1339,7 +1317,7 @@ if [ $FDT_STG2 -eq 1 ] ; then
       # creating task file for fsl_sub, the deletions are needed to avoid accumulations when sge is doing a re-run on error
       echo "rm -f $fldr/ec_diff_merged_*.nii.gz ; \
             rm -f $fldr/ec_diff_merged.ecclog ; \
-            $scriptdir/eddy_correct.sh $ecswitch $fldr/diff_merged $fldr/ec_diff_merged $b0img $FDT_EC_DOF $FDT_EC_COST trilinear" > $fldr/fdt_ec.cmd
+            $scriptdir/eddy_correct.sh $ectest $fldr/diff_merged $fldr/ec_diff_merged $b0img $FDT_EC_DOF $FDT_EC_COST trilinear" > $fldr/fdt_ec.cmd
       fsl_sub -l $logdir -N fdt_eddy_correct_$(subjsess) -t $fldr/fdt_ec.cmd
       
     done
@@ -1347,27 +1325,137 @@ if [ $FDT_STG2 -eq 1 ] ; then
   
   waitIfBusy
   
-  # extract b0 reference image from 4D (note: you can use these for both eddy-corrected and non eddy-corrected streams, bc. these b0 images were used as reference for eddy_correct)
+  # extract b0 reference image from eddy-corrected 4D (note: you can use these for both eddy-corrected and non eddy-corrected streams, bc. these b0 images were used as reference for eddy_correct)
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$subjdir/$subj/$sess/fdt
-      echo "FDT : subj $subj , sess $sess : extract b0 reference image from merged DWIs..."
-      fsl_sub -l $logdir -N fdt_fslroi_$(subjsess) fslroi $fldr/diff_merged $fldr/nodif $(cat $fldr/ec_ref.idx) 1  
+      echo "FDT : subj $subj , sess $sess : extract b0 reference image from eddy-corrected 4D..."
+      fsl_sub -l $logdir -N fdt_fslroi_$(subjsess) fslroi $fldr/ec_diff_merged $fldr/nodif $(cat $fldr/ec_ref.idx) 1  
     done
   done
 fi
 
 waitIfBusy
 
-# FDT unwarp eddy-corrected DWIs
+# FDT unwarp eddy-corrected DWIs - prepare FEAT config-file
 if [ $FDT_STG3 -eq 1 ] ; then
   echo "----- BEGIN FDT_STG3 -----"
+  n=0 ; _npts=0 ; npts=0 # variables for counting and comparing number of volumes in the 4Ds
   for subj in `cat subjects` ; do
-    for sess in `cat ${subj}/sessions_struc` ; do    
-      fldr=$subj/$sess/fdt
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$subjdir/$subj/$sess/fdt
       
       # check if we have acquisition parameters
       defineDWIparams $subjdir/config_acqparams_dwi $subj $sess
+      
+      # number of volumes in 4D
+      echo -n "FDT : counting number of volumes in '$fldr/ec_diff_merged.nii.gz'..."
+      npts=`countVols $fldr/ec_diff_merged.nii.gz`
+      echo " ${npts}."
+      if [ $n -gt 0 ] ; then
+        if [ ! $npts -eq $_npts ] ; then
+          echo "FDT : subj $subj , sess $sess : WARNING : Number of volumes does not match with previous image file in the loop!" 
+        fi
+      fi
+      _npts=$npts
+      n=$[$n+1] 
+      
+      # define alternative example func
+      if [ $FDT_UNWARP_BET_ALTEXFUNC -eq 1 ] ; then
+        f=`getBetThres ${subjdir}/config_bet_lowb $subj $sess`
+        bet $fldr/nodif $fldr/altExFunc_nodif_brain_${f} -f $f
+        altExFunc=$fldr/altExFunc_nodif_brain_${f}
+      else
+        ln -sf nodif.nii.gz $fldr/altExFunc_nodif.nii.gz
+        altExFunc=$fldr/altExFunc_nodif.nii.gz
+      fi
+
+      # define magnitude and fieldmap
+      fmap=$subjdir/$subj/$sess/fm/fmap_rads_masked.nii.gz
+      if [ ! -f $fmap ] ; then echo "FDT : subj $subj , sess $sess : WARNING : Fieldmap image '$fmap' not found !" ; fi
+      fmap_magn=$subjdir/$subj/$sess/fm/magn_brain.nii.gz
+      if [ ! -f $fmap_magn ] ; then echo "FDT : subj $subj , sess $sess : WARNING : Fieldmap magnitude image '$fmap_magn' not found !" ; fi
+      
+      # carry out substitutions
+      for uw_dir in -y +y ; do
+        conffile=$fldr/unwarpDWI_${uw_dir}.fsf
+        
+        if [ $uw_dir = "-y" ] ; then dir=y- ; fi
+        if [ $uw_dir = "+y" ] ; then dir=y ; fi
+              
+        echo "FDT : subj $subj , sess $sess : unwarping - creating config file $conffile"
+        cp $tmpltdir/template_unwarpDWI.fsf $conffile
+   
+        sed -i "s|set fmri(outputdir) \"X\"|set fmri(outputdir) \"$fldr/unwarpDWI_${uw_dir}\"|g" $conffile # set output dir
+        sed -i "s|set fmri(tr) X|set fmri(tr) $TR_diff|g" $conffile # set TR
+        sed -i "s|set fmri(npts) X|set fmri(npts) $npts|g" $conffile # set number of volumes
+        sed -i "s|set fmri(dwell) X|set fmri(dwell) $EES_diff|g" $conffile # set Eff. Echo Spacing
+        sed -i "s|set fmri(te) X|set fmri(te) $TE_diff|g" $conffile # set TE
+        sed -i "s|set fmri(signallossthresh) X|set fmri(signallossthresh) $FDT_SIGNLOSS_THRES|g" $conffile # set signal loss threshold in percent to zero - this is recommended in fsl list, but is that OK ? (?)
+        sed -i "s|set fmri(smooth) X|set fmri(smooth) 0|g" $conffile # set smoothing kernel to zero
+        sed -i "s|set fmri(unwarp_dir) .*|set fmri(unwarp_dir) $dir|g" $conffile # set unwarp dir.        
+        sed -i "s|set feat_files(1) \"X\"|set feat_files(1) \"$fldr/ec_diff_merged\"|g" $conffile # set input files        
+        sed -i "s|set unwarp_files(1) \"X\"|set unwarp_files(1) \"$(remove_ext $fmap)\"|g" $conffile # set fieldmap file (removing extension might be important for finding related files by feat) (?)
+        sed -i "s|set unwarp_files_mag(1) \"X\"|set unwarp_files_mag(1) \"$(remove_ext $fmap_magn)\"|g" $conffile # set fieldmap magnitude file (removing extension might be important for finding related files by feat) (?)
+        sed -i "s|set fmri(alternative_example_func) \"X\"|set fmri(alternative_example_func) \"$altExFunc\"|g" $conffile # set alternative example func
+        sed -i "s|set fmri(regstandard) .*|set fmri(regstandard) \"$FSL_DIR/data/standard/MNI152_T1_2mm_brain\"|g" $conffile # set MNI template
+             
+        sed -i "s|set fmri(analysis) .*|set fmri(analysis) 1|g" $conffile # do only pre-stats     
+        sed -i "s|set fmri(regunwarp_yn) .*|set fmri(regunwarp_yn) 1|g" $conffile # enable unwarp      
+        sed -i "s|set fmri(temphp_yn) .*|set fmri(temphp_yn) 0|g" $conffile # unset highpass filter       
+        sed -i "s|set fmri(mc) .*|set fmri(mc) 0|g" $conffile # unset motion correction (DWIs already eddy-corrected!)
+        sed -i "s|set fmri(bet_yn) .*|set fmri(bet_yn) 0|g" $conffile # unset brain extraction        
+        sed -i "s|set fmri(reginitial_highres_yn) .*|set fmri(reginitial_highres_yn) 0|g" $conffile # unset registration to initial highres
+        sed -i "s|set fmri(reghighres_yn) .*|set fmri(reghighres_yn) 0|g" $conffile # unset registration to highres
+        sed -i "s|set fmri(regstandard_yn) .*|set fmri(regstandard_yn) 0|g" $conffile # unset registration to standard space
+        sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 1|g" $conffile # overwrite on re-run
+        if [ $FDT_FEAT_NO_BROWSER -eq 1 ] ; then
+          sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 0|g" $conffile
+        else 
+          sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 1|g" $conffile
+        fi
+      done
+    done
+  done
+fi
+  
+waitIfBusy
+
+# FDT execute FEAT to do the unwarping and extract unwarped B0...  
+if [ $FDT_STG4 -eq 1 ] ; then
+  echo "----- BEGIN FDT_STG4 -----"
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$subjdir/$subj/$sess/fdt
+      
+      uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
+
+      # cleanup previous runs, execute FEAT and link to unwarped file
+      # NOTE: feat self-submits to the cluster and should in fact not be used in conjunction with fsl_sub (but it seems to work anyway) (!)
+      featdir=$fldr/unwarpDWI_${uw_dir}.feat
+      if [ -d $featdir ] ; then
+        echo "FDT : subj $subj , sess $sess : WARNING : removing previous .feat directory ('$featdir')..."     
+        rm -rf $featdir
+      fi
+      
+      conffile=${featdir%.feat}.fsf
+      echo "FDT : subj $subj , sess $sess : running \"feat $conffile\"..."
+      #fsl_sub -l $logdir -N fdt_feat_$(subjsess) feat $conffile
+      feat $conffile
+      ln -sf ./$(basename $featdir)/filtered_func_data.nii.gz $fldr/uw_ec_diff_merged.nii.gz
+
+    done
+  done
+fi
+    
+waitIfBusy
+
+# FDT estimate tensor model
+if [ $FDT_STG5 -eq 1 ] ; then
+  echo "----- BEGIN FDT_STG5 -----"
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_struc` ; do    
+      fldr=$subj/$sess/fdt
       
       # get info for current subject
       f=`getBetThres ${subjdir}/config_bet_lowb $subj $sess`
@@ -1384,63 +1472,26 @@ if [ $FDT_STG3 -eq 1 ] ; then
       ln -sf nodif_brain_${f}.nii.gz $fldr/nodif_brain.nii.gz
       ln -sf nodif_brain_${f}_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
       
-      # define magnitude and fieldmap
-      fmap=$subjdir/$subj/$sess/$(remove_ext $FDT_FMAP).nii.gz
-      fmap_magn=$subjdir/$subj/$sess/$(remove_ext $FDT_MAGN).nii.gz
-      if [ $(_imtest $fmap) -eq 0 ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
-      if [ $(_imtest $fmap_magn) -eq 0 ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
-      
-      # get unwarp dir.
-      uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
-      if [ $uw_dir = "-y" ] ; then dir=y- ; fi
-      if [ $uw_dir = "+y" ] ; then dir=y ; fi
-      
-      # unwarp
-      echo "FDT : subj $subj , sess $sess : execute unwarp..."
-      echo "$scriptdir/feat_unwarp.sh $fldr/nodif_brain.nii.gz $fmap $fmap_magn $dir $TE_diff $EES_diff $FDT_SIGNLOSS_THRES $fldr/uwDWI_${uw_dir}.feat/unwarp ; \
-      $scriptdir/apply_mc+unwarp.sh $fldr/diff_merged $fldr/uw_ec_diff_merged $fldr/ec_diff_merged.ecclog $fldr/uwDWI_${uw_dir}.feat/unwarp/EF_UD_shift.nii.gz $dir trilinear" > $fldr/feat_unwarp.cmd
-      #cat $fldr/feat_unwarp.cmd
-      fsl_sub -l $logdir -N fdt_feat_unwarp_$(subjsess) -t $fldr/feat_unwarp.cmd
-    done
-  done
-fi
-    
-waitIfBusy
-
-# FDT estimate tensor model
-if [ $FDT_STG4 -eq 1 ] ; then
-  echo "----- BEGIN FDT_STG4 -----"
-  n=0 ; _npts=0 ; npts=0 # variables for counting and comparing number of volumes in the 4Ds
-  for subj in `cat subjects` ; do
-    for sess in `cat ${subj}/sessions_struc` ; do    
-      fldr=$subj/$sess/fdt
-                  
-      # number of volumes in 4D
-      echo -n "FDT : counting number of volumes in '$fldr/ec_diff_merged.nii.gz'..."
-      npts=`countVols $fldr/ec_diff_merged.nii.gz`
-      echo " ${npts}."
-      if [ $n -gt 0 ] ; then
-        if [ ! $npts -eq $_npts ] ; then
-          echo "FDT : subj $subj , sess $sess : WARNING : Number of volumes does not match with previous image file in the loop!" 
-        fi
-      fi
-      _npts=$npts
-      n=$[$n+1] 
-            
       # link to unwarped brainmask
       uwdir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
-      ln -sf ./uwDWI_${uwdir}.feat/unwarp/EF_UD_example_func.nii.gz $fldr/uw_nodif.nii.gz
-      ln -sf ./uwDWI_${uwdir}.feat/unwarp/EF_UD_fmap_mag_brain_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
-
+      if [ $uwdir = -y ] ; then
+        ln -sf ./unwarpDWI_-y.feat/unwarp/EF_UD_example_func.nii.gz $fldr/uw_nodif.nii.gz
+        ln -sf ./unwarpDWI_-y.feat/unwarp/EF_UD_fmap_mag_brain_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
+      fi
+      if [ $uwdir = +y ] ; then
+        ln -sf ./unwarpDWI_+y.feat/unwarp/EF_UD_example_func.nii.gz $fldr/uw_nodif.nii.gz
+        ln -sf ./unwarpDWI_+y.feat/unwarp/EF_UD_fmap_mag_brain_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
+      fi
+      
       # display info
       echo "FDT : subj $subj , sess $sess : dtifit is estimating tensor model using nodif_brain_${f}_mask..."
       
       # concatenate bvals and bvecs within session
-      concat_bvals $srcdir/$subj/$sess/"$pttrn_bvals" $fldr/bvals_concat.txt
-      concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecs" $fldr/bvecs_concat.txt 
+      concat_bvals $subj/$sess/"$pttrn_bvals" $fldr/bvals_concat.txt
+      concat_bvecs $subj/$sess/"$pttrn_bvecs" $fldr/bvecs_concat.txt 
     
       # number of entries in bvals- and bvecs files consistent ?
-      checkConsistency "$srcdir/$subj/$sess/$pttrn_diffs" $fldr/bvals_concat.txt $fldr/bvecs_concat.txt
+      checkConsistency "$subj/$sess/$pttrn_diffs" $fldr/bvals_concat.txt $fldr/bvecs_concat.txt
       
       # rotate bvecs
       xfmrot $fldr/ec_diff_merged.ecclog $fldr/bvecs_concat.txt $fldr/bvecs_concat.rot
@@ -1787,7 +1838,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
 
       # list and copy anatomical t1 images
       echo "VBM PREPROC : subj $subj , sess $sess : copying T1 image to ${fldr}..."
-      file=`ls ${srcdir}/${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check (!)
+      file=`ls ${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check (!)
       fslmaths $file ${fldr}/$(subjsess)_t1_orig
       
       # reorient for fslview
@@ -1935,6 +1986,27 @@ if [ $VBM_STG3 -eq 1 ] ; then
     
   done
 
+  ## VBM PREPROC SSM eroding mask
+  #for subj in `cat subjects`; do 
+    #for sess in `cat ${subj}/sessions_struc` ; do
+      #fldr="${subj}/${sess}/vbm"
+      #echo "VBM PREPROC : subj $subj , sess $sess : eroding mask..."
+      #fsl_sub -l $logdir -N vbm_fslmaths_$(subjsess) fslmaths ${fldr}/t1_mask_inv_ero -ero -bin ${fldr}/t1_mask_inv_ero2
+    #done
+  #done
+
+  #waitIfBusy
+
+  ## VBM PREPROC SSM eroding mask
+  #for subj in `cat subjects`; do 
+    #for sess in `cat ${subj}/sessions_struc` ; do
+      #fldr=${subj}/${sess}/vbm
+      #echo "VBM PREPROC : subj $subj , sess $sess : eroding mask..."
+      #fsl_sub -l $logdir -N vbm_fslmaths_$(subjsess) fslmaths ${fldr}/t1_mask_inv_ero2 -ero -bin ${fldr}/t1_mask_inv_ero3
+    #done
+  #done
+
+  #waitIfBusy
 
   # VBM PREPROC SSM masking native T1
   for subj in `cat subjects`; do 
@@ -2063,8 +2135,8 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
         # are bvals and bvecs already concatenated ?
         if [ ! -f $subj/$sess/fdt/bvals_concat.txt -o ! -f $subj/$sess/fdt/bvecs_concat.txt ] ; then
           echo "TRACULA : subj $subj , sess $sess : creating concatenated bvals and bvecs file..."
-          concat_bvals $srcdir/$subj/$sess/"$pttrn_bvals" $fldr/bvals_concat.txt
-          concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecs" $fldr/bvecs_concat.txt
+          concat_bvals $subj/$sess/"$pttrn_bvals" $fldr/bvals_concat.txt
+          concat_bvecs $subj/$sess/"$pttrn_bvecs" $fldr/bvecs_concat.txt
         else 
           ln -sfv ../../$subj/$sess/fdt/bvals_concat.txt $fldr/bvals_concat.txt
           ln -sfv ../../$subj/$sess/fdt/bvecs_concat.txt $fldr/bvecs_concat.txt
@@ -2075,7 +2147,7 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
           ln -sfv ../../$subj/$sess/fdt/diff_merged.nii.gz $fldr/diff_merged.nii.gz
         else
           echo "TRACULA : subj $subj , sess $sess : no pre-existing 4D file found - merging diffusion files..."
-          diffs=`ls $srcdir/$subj/$sess/$pttrn_diffs`          
+          diffs=`ls $subj/$sess/$pttrn_diffs`          
           fsl_sub -l $logdir -N trac_fslmerge_$(subjsess) fslmerge -t $fldr/diff_merged $diffs 
         fi
         
@@ -2162,8 +2234,7 @@ if [ $TRACULA_STG2 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$FS_subjdir/$(subjsess)
       echo "TRACULA : subj $subj , sess $sess : executing trac-all -prep command:"
-      echo "fsl_sub -l $logdir -N trac-all-prep_$(subjsess) trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc" | tee $fldr/trac-all_prep.cmd
-      #echo "$scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N trac-all-prep_$(subjsess) trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc" | tee $fldr/trac-all_prep.cmd # fsl_sub_NOPOSIXLY.sh gives getopt error ! (!)
+      echo "$scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N trac-all-prep_$(subjsess) trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc" | tee $fldr/trac-all_prep.cmd
       #echo "trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc -log $logdir/trac-all-prep_$(subjsess)_$$" | tee $fldr/trac-all_prep.cmd 
       . $fldr/trac-all_prep.cmd
       # note: the eddy correct log file is obviously overwritten on re-run by trac-all -prep, that's what we want (eddy_correct per se would append on .log from broken runs, that's bad)
@@ -2196,8 +2267,7 @@ if [ $TRACULA_STG4 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$FS_subjdir/$(subjsess)
       echo "subj $subj , sess $sess : executing trac-all -path command:"
-      echo "fsl_sub -l $logdir -N trac-all-paths_$(subjsess) trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc" | tee $fldr/trac-all_path.cmd
-      #echo "$scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N trac-all-paths_$(subjsess) trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc" | tee $fldr/trac-all_path.cmd # fsl_sub_NOPOSIXLY.sh perhaps also unsafe here ? (?)
+      echo "$scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N trac-all-paths_$(subjsess) trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc" | tee $fldr/trac-all_path.cmd
       #echo "trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc -log $logdir/trac-all-paths_$(subjsess)_$$" | tee $fldr/trac-all_path.cmd
       . $fldr/trac-all_path.cmd
     done
@@ -2243,7 +2313,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       mkdir -p $fldr
                   
       # link bold file
-      bold_bn=`basename $(ls $srcdir/$subj/$sess/$pttrn_bolds | tail -n 1)`
+      bold_bn=`basename $(ls $subjdir/$subj/$sess/$pttrn_bolds | tail -n 1)`
       bold_ext=`echo ${bold_bn#*.}`
       bold_lnk=bold.${bold_ext}
       if [ -L $fldr/bold.nii -o -L $fldr/bold.nii.gz ] ; then rm -f $fldr/bold.nii $fldr/bold.nii.gz ; fi # delete link if already present
@@ -2264,11 +2334,9 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       
       # define magnitude and fieldmap
       fmap=$subjdir/$subj/$sess/$(remove_ext $BOLD_FMAP).nii.gz
+      if [ ! -f $fmap ] ; then echo "BOLD : subj $subj , sess $sess : WARNING : Fieldmap image '$fmap' not found !" ; fi
       fmap_magn=$subjdir/$subj/$sess/$(remove_ext $BOLD_MAGN).nii.gz
-      if [ $BOLD_UNWARP -eq 1 ] ; then
-        if [ $(_imtest $fmap) -eq 0 ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
-        if [ $(_imtest $fmap_magn) -eq 0 ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
-      fi
+      if [ ! -f $fmap_magn ] ; then echo "BOLD : subj $subj , sess $sess : WARNING : Fieldmap magnitude image '$fmap_magn' not found !" ; fi
       
       # create symlinks to t1-structurals (highres registration reference)
       if [ $BOLD_REGISTER_TO_MNI -eq 1 ] ; then
@@ -2461,6 +2529,42 @@ if [ $BOLD_STG2 -eq 1 ] ; then
       
     done # end sess
   done # end subj
+  
+  #waitIfBusy
+  
+  ## copy feat logs to logdir
+  #for subj in `cat subjects` ; do
+    #for sess in `cat ${subj}/sessions_func` ; do
+      
+      #fldr=$subjdir/$subj/$sess/bold
+      
+      ## shall we unwarp ?
+      #if [ $BOLD_UNWARP -eq 1 ] ; then
+        #uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
+      #else 
+        #uw_dir=00
+      #fi
+    
+      #for hpf_cut in $BOLD_HPF_CUTOFFS ; do
+        #for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
+          #for stc_val in $BOLD_SLICETIMING_VALUES ; do
+          
+            ## define feat-dir
+            #_hpf_cut=$(echo $hpf_cut | sed "s|\.||g") ; _sm_krnl=$(echo $sm_krnl | sed "s|\.||g") # remove '.'
+            #featdir=$fldr/${BOLD_FEATDIR_PREFIX}_uw${uw_dir}_st${stc_val}_s${_sm_krnl}_hpf${_hpf_cut}.feat 
+          
+            #if [ -d $featdir/logs ] ; then
+              #cp -R $featdir/logs/ $logdir/$(subjsess)_${featdir}
+            #else
+              #echo "BOLD : subj $subj , sess $sess : WARNING: no feat log-dir found (${featdir}/logs)!" 
+            #fi
+          
+          #done # end stc_val
+        #done # end sm_krnl        
+      #done # end hpf_cut
+      
+    #done # end sess
+  #done # end subj  
   
 fi
 
@@ -2678,7 +2782,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
             # execute...
             for data_file in $BOLD_MNI_RESAMPLE_FUNCDATAS ; do
               
-              if [ $(_imtest $featdir/$data_file) != 1 ] ; then
+              if [ $(imtest $featdir/$data_file) != 1 ] ; then
                   echo "BOLD : subj $subj , sess $sess : WARNING : volume '$featdir/$data_file' not found -> this file cannot be written out in MNI-space. Continuing loop..."
                   continue
               fi
@@ -2783,7 +2887,7 @@ if [ $BOLD_STG5 -eq 1 ]; then
             # estimate nuisance regressors on resolution 2
             mni_res=2       
             data_file=filtered_func_data${ltag}_mni${mni_res}.nii.gz
-            if [ $(_imtest $featdir/reg_standard/$data_file) != 1 ] ; then
+            if [ $(imtest $featdir/reg_standard/$data_file) != 1 ] ; then
                 echo "BOLD : subj $subj , sess $sess : WARNING : estimating nuisance regressors : volume '$featdir/reg_standard/$data_file' not found. Continuing loop..."
                 continue
             fi
@@ -3149,18 +3253,10 @@ if [ $ALFF_STG1 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_func` ; do      
       # declare vars
       out=$fldr/$(subjsess)
-      uwdir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
-      featdir=$subjdir/$subj/$sess/$(echo "$ALFF_FEATDIR" | sed "s|??|$uwdir|g")
-      if [ $ALFF_FSLV5 -eq 1 ] ; then
-        alff_uw_shiftmap=$featdir/reg/unwarp/FM_UD_fmap2epi_shift.nii.gz
-      else
-        alff_uw_shiftmap=$featdir/unwarp/EF_UD_shift.nii.gz
-      fi
-      
+      uwdir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; featdir=$subjdir/$subj/$sess/$(echo "$ALFF_FEATDIR" | sed "s|??|$uwdir|g")
+
       # check
       if [ ! -d $featdir ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: directory '$featdir' not found - exiting..." ; exit ; fi
-      if [ ! -d $featdir/mc ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$featdir/mc' not found - exiting..." ; exit ; fi
-      if [ ! -f $alff_uw_shiftmap ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$alff_uw_shiftmap' not found - exiting..." ; exit ; fi
       
       # mkdir
       fldr=$subjdir/$subj/$sess/alff
@@ -3169,28 +3265,21 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       # define cmd
       cmd=$fldr/alff_prepare.cmd ; rm -f $cmd
             
-      # link bold file
-      bold_bn=`basename $(ls $srcdir/$subj/$sess/$pttrn_bolds | tail -n 1)`
-      bold_ext=`echo ${bold_bn#*.}`
-      bold_lnk=bold.${bold_ext}
-      if [ -L $fldr/bold.nii -o -L $fldr/bold.nii.gz ] ; then rm -f $fldr/bold.nii $fldr/bold.nii.gz ; fi # delete link if already present
-      echo "ALFF : subj $subj , sess $sess : creating link '$bold_lnk' to '$bold_bn'"
-      ln -sf ../$bold_bn $fldr/$bold_lnk
-      #cp -Pv $(dirname $featdir)/bold.nii $fldr/
+      ## copy files
+      echo "ALFF : subj $subj , sess $sess : copying link to bold4D..."
+      cp -Pv $(dirname $featdir)/bold.nii $fldr/
       
       # apply motion correction and unwarping
       if [ $uwdir = -y ] ; then  _uwdir=y- ; fi
       if [ $uwdir = +y ] ; then  _uwdir=y ; fi
-      
-      if [ "$ALFF_DENOISE_MASKS_NAT" != "'none'" ] ; then
-        echo "ALFF : subj $subj , sess $sess : copying denoise_masks from './bold/$(basename $featdir)/noise'..."
-        mkdir -p $fldr/noise/
-        cp -v $featdir/noise/EF_*.nii.gz $fldr/noise/
-        #echo "ALFF : subj $subj , sess $sess : creating denoise_masks..."
-        #sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
-        #echo "    $scriptdir/fs_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $fldr/example_func $fldr/noise $subj $sess" >> $cmd
-        #tail $cmd
-      fi
+
+      echo "ALFF : subj $subj , sess $sess : copying denoise_masks from './bold/$(basename $featdir)/noise'..."
+      mkdir -p $fldr/noise/
+      cp -v $featdir/noise/EF_*.nii.gz $fldr/noise/
+      #echo "ALFF : subj $subj , sess $sess : creating denoise_masks..."
+      #sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
+      #echo "    $scriptdir/fs_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $fldr/example_func $fldr/noise $subj $sess" >> $cmd
+      #tail $cmd
       
       #create cmd      
       echo "ALFF : subj $subj , sess $sess : applying motion-correction and unwarp shiftmap in ./bold/$(basename $featdir)'..."
@@ -3202,7 +3291,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
 
         echo "ALFF : subj $subj , sess $sess : detrending (using AFNI tools)..."
 
-        echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $alff_uw_shiftmap $_uwdir trilinear ;\
+        echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir ;\
         3dDespike -prefix $fldr/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
         3dTcat -rlt+ -prefix $fldr/__tmp.nii.gz $fldr/_tmp.nii.gz ; \
         rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ;\
@@ -3212,7 +3301,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       
         echo "ALFF : subj $subj , sess $sess : detrending (using FSL's fslmaths -bptf, cutoff: $ALFF_HPF_CUTOFF Hz)..."
       
-        echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $alff_uw_shiftmap $_uwdir trilinear ;\
+        echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir ;\
         3dDespike -prefix $fldr/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
         $scriptdir/feat_hpf.sh $fldr/_tmp.nii.gz $fldr/__tmp.nii.gz $ALFF_HPF_CUTOFF $TR_bold $subj $sess ; \
         rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ; \
@@ -3220,11 +3309,12 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       
       fi
       
-      ## with afni despike/detrend        
+      # with afni despike/detrend        
       #3dTstat -mean -prefix $fldr/_m.nii.gz $fldr/_tmp.nii.gz ; 3dDetrend -polort 2 -prefix $fldr/_dm.nii.gz $fldr/_tmp.nii.gz ; 3dcalc -a $fldr/_m.nii.gz  -b $fldr/_dm.nii.gz  -expr 'a+b' -prefix $fldr/__tmp.nii.gz ; rm -f $fldr/_m.nii.gz $fldr/_dm.nii.gz ;
-          
+    
+      
       ## with slicetiming correction      
-      #echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $alff_uw_shiftmap $_uwdir trilinear ;\
+      #echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $featdir/unwarp/EF_UD_shift $_uwdir ;\
       #$scriptdir/getsliceorderSIEMENS_interleaved.sh $fldr/filtered_func_data.nii.gz $fldr/sliceorder.txt ; slicetimer -i $fldr/filtered_func_data.nii.gz --out=$fldr/_tmp.nii.gz -r $TR_bold --ocustom=$fldr/sliceorder.txt ;\
       #$scriptdir/feat_hpf.sh $fldr/_tmp.nii.gz $fldr/__tmp.nii.gz $ALFF_HPF_CUTOFF $TR_bold $subj $sess ;\
       #rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ;\
@@ -3335,7 +3425,7 @@ if [ $ALFF_STG3 -eq 1 ] ; then
       
       # check
       if [ ! -f $affine ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$affine' not found. Exiting..." ; exit ; fi
-      if [ $(_imtest $warp) -eq 0 ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$warp' not found. Exiting..." ; exit ; fi
+      if [ ! -f $warp ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$warp' not found. Exiting..." ; exit ; fi
           
       # copy template
       cp $MNI_file $fldr/standard.nii.gz
@@ -3786,8 +3876,6 @@ if [ $MELODIC_2NDLEV_STG2 -eq 1 ]; then
       if [ "x$melodic_t1brain" = "x" ] ; then echo "MELODIC_GROUP: WARNING: brain-extracted high-res not found - continuing loop... " ; continue ; fi
       if [ "x$melodic_t1struc" = "x" ] ; then echo "MELODIC_GROUP: WARNING: high-res not found - continuing loop... " ; continue ; fi
       
-      #cp -v $melodic_t1struc $grpdir/melodic/$(subjsess)_t1.nii.gz
-      #cp -v $melodic_t1brain $grpdir/melodic/$(subjsess)_t1_brain.nii.gz
       cmd="ln -sfv ../../$(basename $subjdir)/$subj/$sess_t1/vbm/$(basename $melodic_t1struc) $grpdir/melodic/$(subjsess)_t1.nii.gz" ; $cmd
       cmd="ln -sfv ../../$(basename $subjdir)/$subj/$sess_t1/vbm/$(basename $melodic_t1brain) $grpdir/melodic/$(subjsess)_t1_brain.nii.gz " ; $cmd
     done
@@ -3835,13 +3923,14 @@ if [ $MELODIC_CMD_STG1 -eq 1 ]; then
 
         bold=$subjdir/$subj/$sess/bold/$melodic_input
         
-        if [ $(_imtest $bold) -eq 0 ] ; then echo "MELODIC_CMD : subj $subj , sess $sess : ERROR : input volume '$bold' not found - continuing loop..." ; err=1 ; continue ; fi
+        if [ ! -f $bold ] ; then echo "MELODIC_CMD : subj $subj , sess $sess : ERROR : input file '$bold' not found - continuing loop..." ; err=1 ; continue ; fi
         
         echo "MELODIC_CMD  subj $subj , sess $sess : adding input-file '$bold'"
         echo $bold | tee -a $fldr/input.files
       
       done
-    done    
+    done
+    
     if [ $err -eq 1 ] ; then echo "MELODIC_CMD : an ERROR has occurred - exiting..." ; exit ; fi
     
     # shall we bet ?
@@ -3890,7 +3979,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
     fi
 
     # gather input-files
-    inputfiles="" ; inputfile="" ; err=0
+    inputfiles="" ; inputfile=""
     for subj in $DUALREG_INCLUDED_SUBJECTS ; do
       for sess in $DUALREG_INCLUDED_SESSIONS ; do        
         # test if inputfile is present
@@ -3898,10 +3987,10 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
           inputfile=$subjdir/$subj/$sess/bold/${_inputfile}
         else
           inputfile=$(find $subjdir/$subj/$sess/ -maxdepth 4 -name filtered_func_data.nii.gz -type f | grep `remove_ext $DUALREG_INPUT_BOLD_STDSPC_FILE`_${DUALREG_INPUT_ICA_DIRNAME}.ica/reg_standard | xargs ls -rt | grep filtered_func_data.nii.gz | tail -n 1) # added '|| true' to avoid abortion by 'set -e' statement
-          if [ -z $inputfile ] ; then echo "DUALREG : subj $subj , sess $sess : ERROR : standard-space registered input file '$DUALREG_INPUT_BOLD_STDSPC_FILE' not defined - continuing..." ; err=1 ; continue ; fi
+          if [ -z $inputfile ] ; then echo "DUALREG : subj $subj , sess $sess : standard-space registered input file '$DUALREG_INPUT_BOLD_STDSPC_FILE' not defined - continuing..." ; continue ; fi
         fi
         
-        if [ $(_imtest $inputfile) -eq 0 ] ; then echo "DUALREG : subj $subj , sess $sess : ERROR : standard-space registered input file '$inputfile' not found - continuing..." ; err=1 ; continue ; fi
+        if [ ! -f $inputfile ] ; then echo "DUALREG : subj $subj , sess $sess : standard-space registered input file '$inputfile' not found - continuing..." ; continue ; fi
         
 
         if [ `echo "$inputfile"|wc -w` -gt 1 ] ; then 
@@ -3911,12 +4000,10 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
           echo "DUALREG : subj $subj , sess $sess :           taking the latest one:"
           echo "DUALREG : subj $subj , sess $sess :           '$inputfile'"
         fi
-        
         echo "DUALREG : subj $subj , sess $sess : adding standard-space registered input file '$inputfile'"
         inputfiles=$inputfiles" "$inputfile
       done
-    done    
-    if [ $err -eq 1 ] ; then "DUALREG : An Error has occured. Exiting..." ; exit ; fi
+    done
     
     # check if number of rows in design file and number of input-files 
     if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : file '$glmdir_dr/designs' not found - exiting..." ; exit ; fi
@@ -3938,7 +4025,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
     for IC_fname in $DUALREG_IC_FILENAMES ; do
       ICfile=$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
       dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAME}_$(remove_ext $IC_fname)
-      if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit ; fi
+      if [ ! -f $ICfile ] ; then echo "DUALREG : ERROR : group-level IC file '$ICfile' not found - exiting..." ; exit ; fi
       
       # cleanup previous run
       if [ -d $dr_outdir ] ; then
@@ -3986,7 +4073,7 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
       ICfile=$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
       if [ ! -d $dr_outdir ] ; then echo "DUALREG : ERROR : output directory '$dr_outdir' not found - exiting..." ; exit ; fi
       if [ ! -f $dr_outdir/inputfiles ] ; then echo "DUALREG : ERROR : inputfiles textfile not found, you must run stage1 first - exiting..." ; exit ; fi
-      if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit ; fi
+      if [ ! -f $ICfile ] ; then echo "DUALREG : ERROR : group-level IC file '$ICfile' not found - exiting..." ; exit ; fi
 
       echo "DUALREG : using output-directory '$dr_outdir'..."
       
@@ -4039,7 +4126,7 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
       fi
       for dr_glm_name in $dr_glm_names ; do
         echo "DUALREG : copying GLM design '$dr_glm_name' to '$dr_outdir/stats'"
-        mkdir -p $dr_outdir/stats ; cp -r $glmdir_dr/$dr_glm_name $dr_outdir/stats/ ; imcp $ICfile $dr_outdir/stats/
+        mkdir -p $dr_outdir/stats ; cp -r $glmdir_dr/$dr_glm_name $dr_outdir/stats/ ; cp $ICfile $dr_outdir/stats/
         echo "DUALREG : calling '$RANDCMD' for folder '$dr_outdir/stats/$dr_glm_name' ($DUALREG_NPERM permutations)."
         cmd="${scriptdir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp $RANDCMD $DUALREG_NPERM $dr_outdir 0 0 1 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
         $cmd ; waitIfBusy # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
@@ -4057,12 +4144,6 @@ waitIfBusy
 
 
 cd $wd
-finishdate=$(date)
-finishdate_sec=$(date +"%s")
-diff=$(($finishdate_sec-$startdate_sec))
-
-echo "started      : $startdate"
-echo "finished     : $finishdate"
-echo "time elapsed : $(echo "scale=4 ; $diff / 3600" | bc -l) h ($(echo "scale=0 ; $diff / 60" | bc -l) min)"
+date
 echo "Exiting."
 exit

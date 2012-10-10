@@ -6,13 +6,13 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 wdir=`pwd`/.extmerge$$
 mkdir -p $wdir
-trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
+#trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
    
 Usage() {
     echo ""
     echo "Usage: `basename $0` <out4D> <indices> [<fslmaths unary operator] <\"input files\">"
     echo "Example: `basename $0` means.nii.gz 1,2,3 -Tmean \"\$inputs\""
-    echo "         `basename $0` bolds.nii.gz \"1 2 3\" \"\" \"\$inputs\""
+    echo "         `basename $0` bolds.nii.gz \"1 2 3\" \" \" \"\$inputs\""
     echo "         `basename $0` bolds.nii.gz 1 \"\$inputs\""
     echo ""
     exit 1
@@ -61,6 +61,6 @@ fi # end if
 
 # merging...
 echo "`basename $0`: merging to '${out}'..."
-fslmerge -t ${out} $(imglob $wdir/_tmp_????)
+fslmerge -t ${out} $(imglob $wdir/_tmp_????.*)
 
 echo "`basename $0`: done."

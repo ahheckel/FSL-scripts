@@ -44,7 +44,7 @@ Usage() {
     echo ""
     echo "Usage: `basename $0` <out4D> <indices> [<fslmaths unary operator] <\"input files\"> <qsub logdir>"
     echo "Example: `basename $0` means.nii.gz 1,2,3 -Tmean \"\$inputs\" /tmp"
-    echo "         `basename $0` bolds.nii.gz \"1 2 3\" \"\" \"\$inputs\" /tmp"
+    echo "         `basename $0` bolds.nii.gz \"1 2 3\" \" \" \"\$inputs\" /tmp"
     echo "         `basename $0` bolds.nii.gz 1 \"\$inputs\" /tmp"
     echo ""
     exit 1
@@ -102,7 +102,7 @@ fi # end if
 
 # merging...
 echo "`basename $0`: merging to '${out}'..."
-fsl_sub -l $logdir fslmerge -t ${out} $(imglob $wdir/_tmp_????) >> $wdir/jid.list
+fsl_sub -l $logdir fslmerge -t ${out} $(imglob $wdir/_tmp_????.*) >> $wdir/jid.list
 
 # waiting...
 waitIfBusyIDs $wdir/jid.list
