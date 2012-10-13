@@ -2,6 +2,25 @@
 
 # function declarations
 
+function save_config()
+{
+  local _studydir="$1"
+  local _subjdir="$2"
+  local wdir=`pwd`
+  local log=""
+  local _date=$(date | sed "s|[: ]|-|g")
+  
+  echo "" ; echo "saving configuration:"  
+  cd $_subjdir  
+    mkdir -p $_studydir/cfg 
+    if [ -f ../log ] ; then log="../log_${_date}" ; cp ../log $log ; fi
+    tar -cvzf $_studydir/cfg/conf_${_date}.tar.gz -C $_subjdir ../globalvars $(ls config_*) $log
+    rm $log    
+  cd $wdir
+  
+  echo ""
+}
+
 function _imtest()
 {
   local vol="$1"

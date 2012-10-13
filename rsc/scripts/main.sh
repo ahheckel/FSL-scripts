@@ -22,11 +22,13 @@ set +e
   echo ""
 set -e
 
-# remove lock on exit
-trap "rmdir $wd/.lockdir121978 ; echo -e \"\nlock removed.\n`date`\" ; exit" EXIT
-
-# source environment variables and functions
+# source environment variables
 source ./globalvars
+
+# remove lock on exit
+trap "save_config $studydir $subjdir ; rmdir $wd/.lockdir121978 ; echo -e \"\nlock removed.\n`date`\" ; exit" EXIT
+
+# source environment functions
 source $scriptdir/globalfuncs
 
 # remove duplicates in string arrays (to avoid collisions on the cluster)
@@ -426,13 +428,6 @@ waitIfBusy
 
 # change to subjects directory...
 cd $subjdir
-
-# save config
-echo "" ; echo "saving configuration:"
-mkdir -p $studydir/.cfg 
-tar -cvzf $studydir/.cfg/conf_$(date | sed "s|[: ]|-|g").tar.gz -C $subjdir ../globalvars $(ls config_*)
-echo ""
-
 
 ###########################
 # ----- BEGIN SCRATCH -----

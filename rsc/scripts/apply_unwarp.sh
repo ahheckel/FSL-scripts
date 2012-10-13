@@ -35,8 +35,6 @@ fslroi $input ${output}_example_func $mid 1
   cmd="applywarp --ref=${output}_example_func --in=${input} --warp=${output}_WARP1 --rel --out=${output} --interp=${interp}"
   echo $cmd
   $cmd
-  
-  i=$(scale=0 ; echo "$i + 1" | bc)
 
 outdir=$(dirname $output)
 fslroi $output $outdir/example_func $mid 1
