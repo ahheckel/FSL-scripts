@@ -2,19 +2,30 @@
 
 # function declarations
 
+function time_elapsed()
+{
+  local startdate_sec=$1
+  local finishdate_sec=$(date +"%s")
+  local diff=$(($finishdate_sec-$startdate_sec))
+  
+  echo "Time elapsed : $(echo "scale=2 ; $diff / 3600" | bc -l) h ($(echo "scale=1 ; $diff / 60" | bc -l) min)"
+}
+
 function save_config()
 {
   local _studydir="$1"
   local _subjdir="$2"
-  local wdir=`pwd`
+  local _config=""
   local log=""
+  local wdir=`pwd`
   local _date=$(date | sed "s|[: ]|-|g")
-  
+ 
   echo "" ; echo "saving configuration:"  
   cd $_subjdir  
     mkdir -p $_studydir/cfg 
     if [ -f ../log ] ; then log="../log_${_date}" ; cp ../log $log ; fi
-    tar -cvzf $_studydir/cfg/conf_${_date}.tar.gz -C $_subjdir ../globalvars $(ls config_*) $log
+    if [ $(ls config_* | wc -l) -gt 0 ] ; then _config=$(ls config_*) ; fi
+    tar -cvzf $_studydir/cfg/conf_${_date}.tar.gz -C $_subjdir ../globalvars $_config $log
     rm $log    
   cd $wdir
   

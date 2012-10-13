@@ -8,7 +8,7 @@ startdate_sec=$(date +"%s")
 set -e
 
 # define error trap
-trap 'finishdate_sec=$(date +"%s") ; diff=$(($finishdate_sec-$startdate_sec)) ; echo "$0 : An ERROR has occured. Time elapsed since start: $(echo "scale=4 ; $diff / 3600" | bc -l) h ($(echo "scale=0 ; $diff / 60" | bc -l) min)"' ERR # don't exit on trap (!)
+trap 'finishdate_sec=$(date +"%s") ; diff=$(($finishdate_sec-$startdate_sec)) ; echo "$0 : An ERROR has occured on `date`. Time elapsed since start: $(echo "scale=4 ; $diff / 3600" | bc -l) h ($(echo "scale=0 ; $diff / 60" | bc -l) min)"' ERR # don't exit on trap (!)
 
 # define current working directory
 wd=`pwd`
@@ -26,7 +26,7 @@ set -e
 source ./globalvars
 
 # remove lock on exit
-trap "save_config $studydir $subjdir ; rmdir $wd/.lockdir121978 ; echo -e \"\nlock removed.\n`date`\" ; exit" EXIT
+trap "save_config $studydir $subjdir ; rmdir $wd/.lockdir121978 ; echo -e \"\nlock removed.\nExiting on `date`\" ; time_elapsed $startdate_sec ; exit" EXIT
 
 # source environment functions
 source $scriptdir/globalfuncs
@@ -4066,14 +4066,10 @@ fi
 
 waitIfBusy
 
-
-cd $wd
 finishdate=$(date)
 finishdate_sec=$(date +"%s")
-diff=$(($finishdate_sec-$startdate_sec))
-
 echo "started      : $startdate"
 echo "finished     : $finishdate"
-echo "time elapsed : $(echo "scale=4 ; $diff / 3600" | bc -l) h ($(echo "scale=0 ; $diff / 60" | bc -l) min)"
-echo "Exiting."
+
+cd $wd
 exit
