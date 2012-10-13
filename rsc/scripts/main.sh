@@ -26,7 +26,7 @@ set -e
 source ./globalvars
 
 # remove lock on exit
-trap "save_config $studydir $subjdir ; rmdir $wd/.lockdir121978 ; echo -e \"\nlock removed.\nExiting on `date`\" ; time_elapsed $startdate_sec ; exit" EXIT
+trap "save_config $studydir $subjdir ; rmdir $wd/.lockdir121978 ; echo \"Lock removed.\" ; time_elapsed $startdate_sec ; echo \"Exiting on `date`\" ; exit" EXIT
 
 # source environment functions
 source $scriptdir/globalfuncs
@@ -1846,7 +1846,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
     for subj in `cat subjects`; do 
       for sess in `cat ${subj}/sessions_struc` ; do
         echo "VBM PREPROC : subj $subj , sess $sess : 'fsl_anat' is being executed..."
-        fsl_sub -l $logdir -N vbm_fsl_anat_$(subjsess) fsl_anat --clobber -i $fldr/$(subjsess)_t1_struc.nii.gz
+        fsl_sub -l $logdir -N vbm_fsl_anat_$(subjsess) fsl_anat --clobber -i ${fldr}/$(subjsess)_t1_orig
       done
     done
   fi
