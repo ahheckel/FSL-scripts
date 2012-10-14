@@ -465,8 +465,7 @@ if [ $RECON_STG1 -eq 1 ] ; then
       # reorient to please fslview
       file=`ls ${srcdir}/${subj}/${sess}/${pttrn_strucs} | tail -n 1` # take last, check pattern (!)
       echo "RECON : subj $subj , sess $sess : reorienting T1 ('$file') to please fslview..."
-      rm -f $fldr/tmp_t1.nii $fldr/tmp_t1.nii.gz
-      fslreorient2std $file $fldr/tmp_t1 ; fslmaths $fldr/tmp_t1 $fldr/tmp_t1 ; rm -f $fldr/tmp_t1.nii
+      $scriptdir/fslreorient2std.sh $file $fldr/tmp_t1
       
       # convert to .mgz
       echo "RECON : subj $subj , sess $sess : converting T1 to .mgz format..."
@@ -1787,9 +1786,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
       fslmaths $file ${fldr}/$(subjsess)_t1_orig
       
       # reorient for fslview
-      rm -f ${fldr}/$(subjsess)_t1_reor.nii ${fldr}/$(subjsess)_t1_reor.nii.gz 
-      fslreorient2std $file ${fldr}/$(subjsess)_t1_reor
-      fslmaths ${fldr}/$(subjsess)_t1_reor ${fldr}/$(subjsess)_t1_reor ; rm -f ${fldr}/$(subjsess)_t1_reor.nii
+      $scriptdir/fslreorient2std.sh $file ${fldr}/$(subjsess)_t1_reor
       ln -sf $(subjsess)_t1_reor.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz
       
       # convert to .mnc & perform non-uniformity correction
