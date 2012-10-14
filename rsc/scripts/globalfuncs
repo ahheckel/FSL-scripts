@@ -22,11 +22,14 @@ function save_config()
  
   echo "" ; echo "saving configuration:"  
   cd $_subjdir  
-    mkdir -p $_studydir/cfg 
-    if [ -f ../log ] ; then log="../log_${_date}" ; cp ../log $log ; fi
+    mkdir -p $_studydir/.cfg 
+    if [ -f ../log ] ; then 
+      log="../logfile"
+      cp ../log $log
+    fi
     if [ $(ls config_* | wc -l) -gt 0 ] ; then _config=$(ls config_*) ; fi
-    tar -cvzf $_studydir/cfg/conf_${_date}.tar.gz -C $_subjdir ../globalvars $_config $log
-    rm $log    
+    tar -cvzf $_studydir/.cfg/conf_${_date}.tar.gz -C $_subjdir ../globalvars $_config $log
+    rm -f $log    
   cd $wdir
   
   echo ""

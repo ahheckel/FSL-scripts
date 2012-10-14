@@ -91,9 +91,9 @@ BOLD_STG3=0                # BOLD denoising (needs Freesurfer recons)
 BOLD_STG4=0                # BOLD write MNI-registered volumes
 BOLD_STG5=0                # BOLD denoise MNI-registered volumes
 
-ALFF_STG1=1                # ALFF preproc
-ALFF_STG2=1                # ALFF denoise
-ALFF_STG3=1                # ALFF MNI registration
+ALFF_STG1=0                # ALFF preproc
+ALFF_STG2=0                # ALFF denoise
+ALFF_STG3=0                # ALFF MNI registration
 
 ########################################################################
 # enable second level analyses #########################################

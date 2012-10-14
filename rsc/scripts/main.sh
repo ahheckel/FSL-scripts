@@ -4065,6 +4065,7 @@ waitIfBusy
 
 finishdate=$(date)
 finishdate_sec=$(date +"%s")
+echo ""
 echo "started      : $startdate"
 echo "finished     : $finishdate"
 
