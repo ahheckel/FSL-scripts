@@ -23,6 +23,7 @@ set +e
 set -e
 
 # source environment variables
+if [ ! -f ./globalvars ] ; then echo "ERROR: 'globalvars' not found - exiting." ; exit ; fi
 source ./globalvars
 
 # remove lock on exit
