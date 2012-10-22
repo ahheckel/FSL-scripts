@@ -3161,7 +3161,11 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       uwdir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
       featdir=$subjdir/$subj/$sess/$(echo "$ALFF_FEATDIR" | sed "s|??|$uwdir|g")
       if [ $ALFF_FSLV5 -eq 1 ] ; then
-        alff_uw_shiftmap=$featdir/reg/unwarp/FM_UD_fmap2epi_shift.nii.gz
+        if [ -f $featdir/reg/unwarp/EF_UD_shift.nii.gz ] ; then
+          alff_uw_shiftmap=$featdir/reg/unwarp/EF_UD_shift.nii.gz # patched version of fsl5
+        else
+          alff_uw_shiftmap=$featdir/reg/unwarp/FM_UD_fmap2epi_shift.nii.gz # this misnaming of the shiftmap is a known bug of unpatched fsl5
+        fi        
       else
         alff_uw_shiftmap=$featdir/unwarp/EF_UD_shift.nii.gz
       fi

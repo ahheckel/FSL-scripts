@@ -7,6 +7,8 @@ Usage() {
     echo ""
     echo "Usage: `basename $0` <tbss|vbm> <dir> <search-pttrn> <thres> <fslview 1|0>"
     echo "Example: `basename $0` vbm ./stats \"*_corrp_*\" 0.95 1"
+    echo "         `basename $0` vbm ./stats \"*_corrp_*\" -1"
+    echo "          NOTE: thres=-1 reports only the most significant result."
     echo ""
     exit 1
 }
@@ -17,6 +19,7 @@ dir=$2
 pttrn=$3
 thres=$4
 if [ -z $5 ] ; then fslview=0 ; else fslview=$5 ; fi
+if [ $thres -eq -1 ] ; then reportfirst=1 ; thres=0.01 ; else reportfirst=0 ; fi
 
 collect=""
 logfile="./findClusters.log"
@@ -34,7 +37,7 @@ for f in $files ; do
   nl=$(cat $tmpfile | wc -l)
   if [ $nl -gt 1 ] ; then
     echo "------------------------------" | tee -a $logfile
-    echo "${f}:" | tee -a $logfile
+    echo "${f}" | tee -a $logfile
     echo "------------------------------" | tee -a $logfile
     collect=$collect" "$f
     for i in `seq 2 $nl` ; do
@@ -63,11 +66,14 @@ for f in $files ; do
         printf '\t TAL:  %s \n' "$TAL" | tee -a $logfile
         printf '\t HAV1: %s \n' "$HAV1" | tee -a $logfile
         printf '\t HAV2: %s \n' "$HAV2" | tee -a $logfile
-      fi      
+      fi
+      
+      if [ $reportfirst -eq 1 ] ; then break ; fi
+      
     done
   else
     echo "------------------------------" | tee -a $logfile
-    echo "${f}:" | tee -a $logfile  
+    echo "${f}" | tee -a $logfile  
     echo "------------------------------" | tee -a $logfile
   fi
 done
