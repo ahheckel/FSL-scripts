@@ -10,10 +10,11 @@ trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exi
    
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <out4D> <indices> [<fslmaths unary operator] <\"input files\">"
+    echo "Usage: `basename $0` <out4D> <indices> [<fslmaths unary operator>] <\"input files\">"
     echo "Example: `basename $0` means.nii.gz 1,2,3 -Tmean \"\$inputs\""
     echo "         `basename $0` bolds.nii.gz \"1 2 3\" \" \" \"\$inputs\""
     echo "         `basename $0` bolds.nii.gz 1 \"\$inputs\""
+    echo "         `basename $0` bolds.nii.gz all -Tmean \"\$inputs\""
     echo ""
     exit 1
 }
@@ -23,21 +24,26 @@ Usage() {
 # define vars
 out="$1"
 idces="$(echo "$2" | sed 's|,| |g')"
-if [ $(echo $idces | wc -w) -gt 1 ] ; then op="$3" ; shift ; fi
+if [ $(echo $idces | wc -w) -gt 1 -o "$idces" = "all" ] ; then op="$3" ; shift ; fi
 inputs="$3"
 
 # extracting...
 n=0 ; i=1
 for input in $inputs ; do
   if [ ! -f $input ] ; then echo "`basename $0`: '$input' not found." ; continue ; fi
-  for idx in $idces ; do
-    echo "`basename $0`: $i - extracting volume at pos. $idx from '$input'..."
-    if [ $(echo $idces | wc -w) -gt 1 ] ; then
-      fslroi $input $wdir/_tmp_$(zeropad $n 4)_idx$(zeropad $idx 4) $idx 1
-    else
-      fslroi $input $wdir/_tmp_$(zeropad $n 4) $idx 1
-    fi
-  done
+  if [ "$idces" = "all" ] ; then
+    echo "`basename $0`: $i - applying unary fslmaths operator '$op' to '$input'..."
+    fslmaths $input $op $wdir/_tmp_$(zeropad $n 4) # apply operator
+  else
+    for idx in $idces ; do
+      echo "`basename $0`: $i - extracting volume at pos. $idx from '$input'..."
+      if [ $(echo $idces | wc -w) -gt 1 ] ; then
+        fslroi $input $wdir/_tmp_$(zeropad $n 4)_idx$(zeropad $idx 4) $idx 1
+      else
+        fslroi $input $wdir/_tmp_$(zeropad $n 4) $idx 1
+      fi
+    done
+  fi
   n=$(echo "$n + 1" | bc)
   i=$[$i+1]
 done
