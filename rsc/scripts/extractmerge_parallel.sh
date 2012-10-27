@@ -43,9 +43,9 @@ function waitIfBusyIDs()
 Usage() {
     echo ""
     echo "Usage: `basename $0` <out4D> <indices|all|mid> [<fslmaths unary operator>] <\"input files\"> <qsub logdir>"
-    echo "Example: `basename $0` means.nii.gz 1,2,3 -Tmean \"\$inputs\" /tmp"
-    echo "         `basename $0` bolds.nii.gz \"1 2 3\" \" \" \"\$inputs\" /tmp"
-    echo "         `basename $0` bolds.nii.gz 1 \"\$inputs\" /tmp"
+    echo "Example: `basename $0` means.nii.gz 0,1,2,3 -Tmean \"\$inputs\" /tmp"
+    echo "         `basename $0` bolds.nii.gz \"0 1 2 3\" \" \" \"\$inputs\" /tmp"
+    echo "         `basename $0` bolds.nii.gz 0 \"\$inputs\" /tmp"
     echo "         `basename $0` bolds.nii.gz all -Tmean \"\$inputs\" /tmp"
     echo ""
     exit 1

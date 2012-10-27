@@ -11,9 +11,9 @@ trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exi
 Usage() {
     echo ""
     echo "Usage: `basename $0` <out4D> <indices|all|mid> [<fslmaths unary operator>] <\"input files\">"
-    echo "Example: `basename $0` means.nii.gz 1,2,3 -Tmean \"\$inputs\""
-    echo "         `basename $0` bolds.nii.gz \"1 2 3\" \" \" \"\$inputs\""
-    echo "         `basename $0` bolds.nii.gz 1 \"\$inputs\""
+    echo "Example: `basename $0` means.nii.gz 0,1,2,3 -Tmean \"\$inputs\""
+    echo "         `basename $0` bolds.nii.gz \"0 1 2 3\" \" \" \"\$inputs\""
+    echo "         `basename $0` bolds.nii.gz 0 \"\$inputs\""
     echo "         `basename $0` bolds.nii.gz all -Tmean \"\$inputs\""
     echo ""
     exit 1

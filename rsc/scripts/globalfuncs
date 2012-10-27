@@ -39,7 +39,7 @@ function _imtest()
 {
   local vol="$1"
  
-  if [ -f $vol ] ; then
+  if [ -f ${vol} -o -f ${vol}.nii -o -f ${vol}.nii.gz -o -f ${vol}.hdr -o -f ${vol}.img ] ; then
     if [ $(fslinfo $vol 2>/dev/null | wc -l) -gt 0 ] ; then
       echo "1"
     else
