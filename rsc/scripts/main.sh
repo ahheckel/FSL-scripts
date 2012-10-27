@@ -2173,7 +2173,6 @@ if [ $TRACULA_STG2 -eq 1 ] ; then
       echo "TRACULA : subj $subj , sess $sess : executing trac-all -prep command:"
       echo "fsl_sub -l $logdir -N trac-all-prep_$(subjsess) trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc" | tee $fldr/trac-all_prep.cmd
       #echo "$scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N trac-all-prep_$(subjsess) trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc" | tee $fldr/trac-all_prep.cmd # fsl_sub_NOPOSIXLY.sh gives getopt error ! (!)
-      #echo "trac-all -no-isrunning -noappendlog -prep -c $fldr/tracula.rc -log $logdir/trac-all-prep_$(subjsess)_$$" | tee $fldr/trac-all_prep.cmd 
       . $fldr/trac-all_prep.cmd
       # note: the eddy correct log file is obviously overwritten on re-run by trac-all -prep, that's what we want (eddy_correct per se would append on .log from broken runs, that's bad)
     done
@@ -2207,7 +2206,6 @@ if [ $TRACULA_STG4 -eq 1 ] ; then
       echo "subj $subj , sess $sess : executing trac-all -path command:"
       echo "fsl_sub -l $logdir -N trac-all-paths_$(subjsess) trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc" | tee $fldr/trac-all_path.cmd
       #echo "$scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N trac-all-paths_$(subjsess) trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc" | tee $fldr/trac-all_path.cmd # fsl_sub_NOPOSIXLY.sh perhaps also unsafe here ? (?)
-      #echo "trac-all -no-isrunning -noappendlog -path -c $fldr/tracula.rc -log $logdir/trac-all-paths_$(subjsess)_$$" | tee $fldr/trac-all_path.cmd
       . $fldr/trac-all_path.cmd
     done
   done

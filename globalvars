@@ -51,7 +51,7 @@ pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
 
 SCRATCH=0                  # execute scratchpad and exit
 
-RECON_STG1=1               # RECON-ALL prepare (copy and convert T1 nifti)
+RECON_STG1=0               # RECON-ALL prepare (copy and convert T1 nifti)
 RECON_STG2=0               # RECON-ALL execute cross-sectional stream
 RECON_STG3=0               # RECON-ALL execute longtitudinal stream's template creation
 RECON_STG4=0               # RECON-ALL execute longtitudinal processing for each timepoint
@@ -81,7 +81,7 @@ VBM_STG4=0                 # VBM final skull strip - bet
 VBM_STG5=0                 # VBM final skull strip - watershed
 
 TRACULA_STG1=0             # TRACULA prepare
-TRACULA_STG2=0             # TRACULA execute -prep
+TRACULA_STG2=1             # TRACULA execute -prep
 TRACULA_STG3=0             # TRACULA execute -bedp
 TRACULA_STG4=0             # TRACULA execute -path
 
