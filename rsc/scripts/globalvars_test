@@ -152,7 +152,16 @@ FIRSTLEV_SESSIONS_STRUC="a c e"
 # SECOND LEVEL
 SECONDLEV_SUBJECTS="01 02 03 flip04 flip05 flip06 flip07 08 flip09 10" 
 SECONDLEV_SESSIONS_FUNC="a b c d e"                
-SECONDLEV_SESSIONS_STRUC="a c e"     
+SECONDLEV_SESSIONS_STRUC="a c e"
+
+# ACQUISITION PARAMETERS
+TROT_topup=0.02975              # TOPUP DWI total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
+TR_diff=11                      # DWI TR of the DWIs (s)
+EES_diff=0.25                   # DWI Effective Echo Spacing of the DWIs (ms)
+TE_diff=88                      # DWI TE of the DWIs (ms)
+TR_bold=3.330                   # BOLD TR (s)
+EES_bold=0.23333                # BOLD Effective Echo Spacing (ms)
+TE_bold=30                      # BOLD TE (ms)
 
 #-----------------------------------------------------------------------
 # first level analyses -------------------------------------------------
@@ -167,16 +176,12 @@ deltaTEphase=0.00246       # in seconds
 PI=3.1415926532            # =$(echo "scale=10; 4*a(1)" | bc -l) # define pi
 
 # TOPUP
-TROT_topup=0.02975         # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
 TOPUP_USE_NATIVE=1         # apply TOPUP-warps to native DWI runs
 TOPUP_USE_EC=1             # apply TOPUP-warps to eddy-corrected DWI runs (i.e. runs that have been eddy-corrected to the first B0 volume per run)
 TOPUP_EC_DOF=6             # degrees of freedom used by eddy-correction
 TOPUP_EC_COST=mutualinfo   # cost-function used by eddy-correction (default: corratio)
 
 # FDT - unwarp
-TR_diff=11                     # TR of the DWIs (s)
-EES_diff=0.25                  # Effective Echo Spacing of the DWIs (ms)
-TE_diff=88                     # TE of the DWIs (ms)
 FDT_EC_TEST=0                  # don't apply eddy-correction
 FDT_EC_DOF=6                   # degrees of freedom used by eddy-correction
 FDT_EC_COST=mutualinfo         # cost-function used by eddy-correction (default: corratio)
@@ -210,9 +215,6 @@ TRACULA_USE_TOPUP_NOEC_BVECROT=0 # use TOPUP corrected merged DWI files with cor
 TRACULA_USE_TOPUP_EC_BVECROT=1   # use TOPUP corrected & eddy-corrected merged DWI files with corrected b-vectors
 
 # BOLD - preproc
-TR_bold=3.330                                                 # TR (s)
-EES_bold=0.23333                                              # Effective Echo Spacing (ms)
-TE_bold=30                                                    # TE (ms)
 BOLD_FEATDIR_PREFIX="preprocBOLD"                             # prefix for .feat output directory
 BOLD_BET_EXFUNC=0                                             # bet example func (middle of the 4D) (default 0)
 BOLD_FEAT_NO_BROWSER=1                                        # don't open browser window
