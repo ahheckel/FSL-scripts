@@ -10,7 +10,7 @@ trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exi
    
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <out4D> <indices> [<fslmaths unary operator>] <\"input files\">"
+    echo "Usage: `basename $0` <out4D> <indices|all|mid> [<fslmaths unary operator>] <\"input files\">"
     echo "Example: `basename $0` means.nii.gz 1,2,3 -Tmean \"\$inputs\""
     echo "         `basename $0` bolds.nii.gz \"1 2 3\" \" \" \"\$inputs\""
     echo "         `basename $0` bolds.nii.gz 1 \"\$inputs\""
@@ -34,6 +34,10 @@ for input in $inputs ; do
   if [ "$idces" = "all" ] ; then
     echo "`basename $0`: $i - applying unary fslmaths operator '$op' to '$input'..."
     fslmaths $input $op $wdir/_tmp_$(zeropad $n 4) # apply operator
+  elif [ "$idces" = "mid" ] ; then
+      nvol=`fslinfo  $input | grep ^dim4 | awk '{print $2}'` ; mid=$(echo "scale=0 ; $nvol / 2" | bc)
+      echo "`basename $0`: $i - extracting volume at pos. $mid from '$input'..."
+      fslroi $input $wdir/_tmp_$(zeropad $n 4) $mid 1
   else
     for idx in $idces ; do
       echo "`basename $0`: $i - extracting volume at pos. $idx from '$input'..."

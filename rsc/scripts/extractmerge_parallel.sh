@@ -42,7 +42,7 @@ function waitIfBusyIDs()
     
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <out4D> <indices|all> [<fslmaths unary operator>] <\"input files\"> <qsub logdir>"
+    echo "Usage: `basename $0` <out4D> <indices|all|mid> [<fslmaths unary operator>] <\"input files\"> <qsub logdir>"
     echo "Example: `basename $0` means.nii.gz 1,2,3 -Tmean \"\$inputs\" /tmp"
     echo "         `basename $0` bolds.nii.gz \"1 2 3\" \" \" \"\$inputs\" /tmp"
     echo "         `basename $0` bolds.nii.gz 1 \"\$inputs\" /tmp"
@@ -73,6 +73,10 @@ for input in $inputs ; do
   if [ "$idces" = "all" ] ; then
       echo "`basename $0`: $i - applying unary fslmaths operator '$op' to '$input'..."
       fsl_sub -l $logdir fslmaths $input $op $wdir/_tmp_$(zeropad $n 4) >> $wdir/jid.list # apply operator
+  elif [ "$idces" = "mid" ] ; then
+      nvol=`fslinfo  $input | grep ^dim4 | awk '{print $2}'` ; mid=$(echo "scale=0 ; $nvol / 2" | bc)
+      echo "`basename $0`: $i - extracting volume at pos. $mid from '$input'..."
+      fsl_sub -l $logdir fslroi $input $wdir/_tmp_$(zeropad $n 4) $mid 1 >> $wdir/jid.list
   else
     for idx in $idces ; do
       echo "`basename $0`: $i - extracting volume at pos. $idx from '$input'..."
