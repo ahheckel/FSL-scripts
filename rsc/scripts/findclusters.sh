@@ -19,7 +19,7 @@ dir=$2
 pttrn=$3
 thres=$4
 if [ -z $5 ] ; then fslview=0 ; else fslview=$5 ; fi
-if [ $thres -eq -1 ] ; then reportfirst=1 ; thres=0.01 ; else reportfirst=0 ; fi
+if [ "$thres" = "-1" ] ; then reportfirst=1 ; thres=0.01 ; else reportfirst=0 ; fi
 
 collect=""
 logfile="./findClusters.log"
@@ -49,7 +49,8 @@ for f in $files ; do
       z="$(echo $line | cut -d " " -f 6)"
       
       max=$(printf '%0.3f' $max)
-      tval=$(fslmeants -i $(echo $f | sed "s|_tfce||g" | sed "s|_p||g" | sed "s|_corrp||g" | sed "s|_vox||g") --usemm -c $x $y $z) # query t-value
+      #tval=$(fslmeants -i $(echo $f | sed "s|tfce_||g" | sed "s|corrp_||g" | sed "s|p_||g" | sed "s|vox_||g") --usemm -c $x $y $z) # query t-value
+      tval=$(fslmeants -i $(echo $f | sed "s|_tfce_|_|g" | sed "s|_corrp_|_|g" | sed "s|_p_|_|g" | sed "s|_vox_|_|g") --usemm -c $x $y $z) # query t-value
       
       if [ $anal = "tbss" ] ; then
         JHU1=$(atlasquery  -a "JHU ICBM-DTI-81 White-Matter Labels" -c ${x},${y},${z} | cut -d ">" -f 4)
