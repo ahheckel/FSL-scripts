@@ -81,7 +81,7 @@ VBM_STG4=0                 # VBM final skull strip - bet
 VBM_STG5=0                 # VBM final skull strip - watershed
 
 TRACULA_STG1=0             # TRACULA prepare
-TRACULA_STG2=1             # TRACULA execute -prep
+TRACULA_STG2=0             # TRACULA execute -prep
 TRACULA_STG3=0             # TRACULA execute -bedp
 TRACULA_STG4=0             # TRACULA execute -path
 
@@ -91,7 +91,7 @@ BOLD_STG3=0                # BOLD denoising (needs Freesurfer recons)
 BOLD_STG4=0                # BOLD write MNI-registered volumes
 BOLD_STG5=0                # BOLD denoise MNI-registered volumes
 
-ALFF_STG1=1                # ALFF preproc
+ALFF_STG1=0                # ALFF preproc
 ALFF_STG2=0                # ALFF denoise
 ALFF_STG3=0                # ALFF MNI registration
 
@@ -114,7 +114,7 @@ MELODIC_2NDLEV_STG2=0      # MELODIC create sym-links to t1-structurals
 
 MELODIC_CMD_STG1=0         # MELODIC use melodic-command line tool (optional)
 
-DUALREG_STG1=0             # DUALREG prepare for randomise
+DUALREG_STG1=1             # DUALREG prepare for randomise
 DUALREG_STG2=0             # DUALREG randomise
 
 ALFF_2NDLEV_STG1=0         # ALFF prepare
@@ -321,6 +321,7 @@ MELODIC_CMD_DELETE_PREV_RUNS=1                                  # delete previou
 DUALREG_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS               # subjects that should be used with dualreg
 DUALREG_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions that should be used with dualreg
 DUALREG_INPUT_ICA_DIRNAMES="MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni2    MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni4" # where the ICs reside ; ommit suffix '.gica'
+DUALREG_INPUT_BOLD_FILE=""
 DUALREG_IC_FILENAMES="melodic_IC.nii.gz"                    # 4D file with the IC of interest; it is to be found in the DUALREG_INPUT_ICA_DIRNAMES directories
 DUALREG_OUTDIR_PREFIX="dr"                                  # output directory pre-fix (dir-name is composed as: ${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAMES}_${DUALREG_IC_FILENAMES})
 DUALREG_NPERM=5000                                          # number of permutations

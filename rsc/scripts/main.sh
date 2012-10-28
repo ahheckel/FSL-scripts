@@ -3887,7 +3887,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
   echo "----- BEGIN DUALREG_STG1 -----"
 
   for DUALREG_INPUT_ICA_DIRNAME in $DUALREG_INPUT_ICA_DIRNAMES ; do
-    if [ $DUALREG_COMPATIBILITY -eq 0 ] ; then
+    if [ $DUALREG_COMPATIBILITY -eq 0 -a x"$DUALREG_INPUT_BOLD_FILE" = "x" ] ; then
       # this applies when MELODIC-GUI was used
       if [ -f $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf ] ; then
         echo "DUALREG : taking basic input filename from '${DUALREG_INPUT_ICA_DIRNAME}.fsf' (first entry therein)"
@@ -3906,15 +3906,18 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
       for sess in $DUALREG_INCLUDED_SESSIONS ; do        
         # test if inputfile is present
         if [ $DUALREG_COMPATIBILITY -eq 0 ] ; then
-          inputfile=$subjdir/$subj/$sess/bold/${_inputfile}
+          if [ x"$DUALREG_INPUT_BOLD_FILE" = "x" ] ; then
+            inputfile=$subjdir/$subj/$sess/bold/${_inputfile}
+          else
+            inputfile=$subjdir/$subj/$sess/bold/$DUALREG_INPUT_BOLD_FILE
+          fi 
         else
           inputfile=$(find $subjdir/$subj/$sess/ -maxdepth 4 -name filtered_func_data.nii.gz -type f | grep `remove_ext $DUALREG_INPUT_BOLD_STDSPC_FILE`_${DUALREG_INPUT_ICA_DIRNAME}.ica/reg_standard | xargs ls -rt | grep filtered_func_data.nii.gz | tail -n 1) # added '|| true' to avoid abortion by 'set -e' statement
           if [ -z $inputfile ] ; then echo "DUALREG : subj $subj , sess $sess : ERROR : standard-space registered input file '$DUALREG_INPUT_BOLD_STDSPC_FILE' not defined - continuing..." ; err=1 ; continue ; fi
         fi
         
         if [ $(_imtest $inputfile) -eq 0 ] ; then echo "DUALREG : subj $subj , sess $sess : ERROR : standard-space registered input file '$inputfile' not found - continuing..." ; err=1 ; continue ; fi
-        
-
+    
         if [ `echo "$inputfile"|wc -w` -gt 1 ] ; then 
           echo "DUALREG : subj $subj , sess $sess : WARNING : more than one standard-space registered input file detected:"
           echo "DUALREG : subj $subj , sess $sess :           '$inputfile'"
@@ -3927,7 +3930,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
         inputfiles=$inputfiles" "$inputfile
       done
     done    
-    if [ $err -eq 1 ] ; then "DUALREG : An Error has occured. Exiting..." ; exit ; fi
+    if [ $err -eq 1 ] ; then echo "DUALREG : An Error has occured. Exiting..." ; exit ; fi
     
     # check if number of rows in design file and number of input-files 
     if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : file '$glmdir_dr/designs' not found - exiting..." ; exit ; fi
