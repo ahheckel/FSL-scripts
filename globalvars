@@ -320,15 +320,12 @@ MELODIC_CMD_DELETE_PREV_RUNS=1                                  # delete previou
 # DUALREG
 DUALREG_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS               # subjects that should be used with dualreg
 DUALREG_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions that should be used with dualreg
-DUALREG_INPUT_ICA_DIRNAMES="MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni2    MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni4" # where the ICs reside ; ommit suffix '.gica'
+DUALREG_INPUT_ICA_DIRNAMES="ica_50" # where the ICs reside ; ommit suffix '.gica'
 DUALREG_INPUT_BOLD_FILE=""
 DUALREG_IC_FILENAMES="melodic_IC.nii.gz"                    # 4D file with the IC of interest; it is to be found in the DUALREG_INPUT_ICA_DIRNAMES directories
 DUALREG_OUTDIR_PREFIX="dr"                                  # output directory pre-fix (dir-name is composed as: ${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAMES}_${DUALREG_IC_FILENAMES})
 DUALREG_NPERM=5000                                          # number of permutations
 DUALREG_DELETE_PREV_RUNS=1                                  # delete previous runs?
-# compatibility mode
-DUALREG_COMPATIBILITY=0                                     # compatibility mode with older versions of this script (when MELODIC is used for MNI-registration)
-DUALREG_INPUT_BOLD_STDSPC_FILE=uw_mc_bold_hpf120_s4_res4.nii.gz # only used in compat. mode: the input filename to MELODIC
 
 # ----------------------------------------------------------------------
 
@@ -340,6 +337,6 @@ BETSTRUC0_INFO="0.30 na na na"  # default bet values for t1 structurals (CoG na)
 BETSTRUC1_INFO="0.10 na na na"  # default bet values for t1 structurals (CoG na) - final skullstrip (SSM)
 DWIUNWARP_INFO="+y"             # default direction values for unwarping DWIs (default: -y)
 BOLDUNWARP_INFO="+y"            # default direction values for unwarping BOLDs (default: -y)
-CHECK_CONSISTENCY_DIFFS=1       # checks number of bvals/bvecs entries at startup
+CHECK_CONSISTENCY_DIFFS=0       # checks number of bvals/bvecs entries at startup
 RANDOMISE_PARALLEL=1            # use randomise_parallel for clusters
 DELAYINSECS=150
