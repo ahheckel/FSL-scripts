@@ -20,7 +20,11 @@ function save_config()
   local wdir=`pwd`
   local _date=$(date | sed "s|[: ]|-|g")
  
-  echo "" ; echo "saving configuration:"  
+  echo "" ; echo "saving configuration:"
+  if [ x"$_subjdir" = "x" ] ; then echo "ERROR: 'subjdir' var. not defined - cannot save..." ; return ; fi
+  if [ x"$_studydir" = "x" ] ; then echo "ERROR: 'studydir' var. not defined - cannot save..." ; return ; fi
+  if [ ! -d $_subjdir ] ; then echo "ERROR: '$_subjdir'  not found - cannot save..." ; return ; fi
+  if [ ! -d $_studydir ] ; then echo "ERROR: '$_studydir'  not found - cannot save..." ; return ; fi
   cd $_subjdir  
     mkdir -p $_studydir/.cfg 
     if [ -f ../log ] ; then 

@@ -26,6 +26,9 @@ set -e
 if [ ! -f ./globalvars ] ; then echo "ERROR: 'globalvars' not found - exiting." ; exit ; fi
 source ./globalvars
 
+# create subjects-dir.
+mkdir -p $subjdir
+
 # remove lock on exit
 trap "save_config $studydir $subjdir ; rmdir $wd/.lockdir121978 ; echo \"Lock removed.\" ; time_elapsed $startdate_sec ; echo \"Exiting on `date`\" ; exit" EXIT
 
