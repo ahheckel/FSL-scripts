@@ -10,7 +10,7 @@ if [ x$FREESURFER_HOME = "x" ] ; then echo "FREESURFER_HOME variable is not defi
 
 v5=$(cat $FSL_DIR/etc/fslversion | grep ^5 | wc -l)
 if [ $v5 -eq 1 ] ; then
-  echo "FSL v.5 detected."
+  echo "FSL v.5 detected. Replacing fsl_sub..."
   cp -iv fsl/fsl_sub_v5 $FSL_DIR/bin/fsl_sub # contains a RAM limit
 fi
 

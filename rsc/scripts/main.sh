@@ -2263,7 +2263,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       bold_lnk=bold.${bold_ext}
       if [ -L $fldr/bold.nii -o -L $fldr/bold.nii.gz ] ; then rm -f $fldr/bold.nii $fldr/bold.nii.gz ; fi # delete link if already present
       echo "BOLD : subj $subj , sess $sess : creating link '$bold_lnk' to '$bold_bn'"
-      ln -sf $(path_abs2rel $fldr/ $srcdir/$subj/$sess/)/$bold_bn $fldr/$bold_lnk
+      ln -sf $(path_abs2rel $fldr/ $srcdir/$subj/$sess/)/$bold_bn $fldr/$bold_lnk # path_abs2rel: mind trailing "/"
       
       # number of volumes in 4D
       echo -n "BOLD : subj $subj , sess $sess : counting number of volumes in '$fldr/$bold_lnk'..."
@@ -3194,7 +3194,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       bold_lnk=bold.${bold_ext}
       if [ -L $fldr/bold.nii -o -L $fldr/bold.nii.gz ] ; then rm -f $fldr/bold.nii $fldr/bold.nii.gz ; fi # delete link if already present
       echo "ALFF : subj $subj , sess $sess : creating link '$bold_lnk' to '$bold_bn'"
-      ln -sf $(path_abs2rel $fldr/ $srcdir/$subj/$sess/)/$bold_bn $fldr/$bold_lnk
+      ln -sf $(path_abs2rel $fldr/ $srcdir/$subj/$sess/)/$bold_bn $fldr/$bold_lnk # path_abs2rel: mind trailing "/"
       #cp -Pv $(dirname $featdir)/bold.nii $fldr/
       
       # apply motion correction and unwarping
