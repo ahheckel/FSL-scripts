@@ -7,7 +7,8 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <\"input-file(s)\"|inputfiles.txt> <TR(sec)> <output-dir> [<bet 0|1, def 1>]"
+    echo "Usage: `basename $0` <\"input-file(s)\"|inputfiles.txt> <TR(sec)> <output-dir> [meldodic options]"
+    echo "Example: `basename $0` inputfiles.txt 3.30 melodic_ICA \"--nobet -d 25\""
     echo ""
     exit 1
 }
@@ -16,9 +17,7 @@ Usage() {
 inputs="$1"
 TR=$2
 outdir="$3"
-bet="$4"
-
-if [ x"$bet" = "x" ] ; then bet=1 ; fi
+_opts="$4"
 
 # single session ICA ?
 gica=1
@@ -35,8 +34,7 @@ else
 fi
 
 # create command options
-opts="-v --tr=${TR} --report --guireport=$outdir/$subdir/report.html -d 0 --mmthresh=0.5 --Oall"
-if [ $bet -eq 0 ] ; then  opts="$opts --nobet --bgthreshold=10" ; fi
+opts="-v --tr=${TR} --report --guireport=$outdir/$subdir/report.html -d 0 --mmthresh=0.5 --Oall $_opts"
 if [ $gica -eq 1 ] ; then opts="$opts -a concat" ; fi
 
 # create output directory
