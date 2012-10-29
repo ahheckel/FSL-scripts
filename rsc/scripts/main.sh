@@ -26,6 +26,9 @@ set -e
 if [ ! -f ./globalvars ] ; then echo "ERROR: 'globalvars' not found - exiting." ; exit ; fi
 source ./globalvars
 
+# display FSL version
+echo "FSL version is $(cat $FSL_DIR/etc/fslversion)." ; echo "" ; sleep 1
+
 # create subjects-dir.
 mkdir -p $subjdir
 
@@ -82,13 +85,14 @@ _m=$(for i in $ALFF_DENOISE_MASKS_NAT ; do remove_ext $i | cut -d _ -f 2 ; done)
 if [ "x$FIRSTLEV_SUBJECTS" != "x" -a "x$FIRSTLEV_SESSIONS_FUNC" != "x" -a "x$FIRSTLEV_SESSIONS_STRUC" != "x" ] ; then
   echo "creating subjects file..."
   
-  errflag=0
-  for i in $FIRSTLEV_SUBJECTS ; do if [ ! -d ${subjdir}/$i ] ; then errflag=1 ; echo "ERROR: '${subjdir}/$i' does not exist!" ; fi ; done
-  if [ $errflag -eq 1 ] ; then echo "...exiting." ; exit ; fi
+  #errflag=0
+  #for i in $FIRSTLEV_SUBJECTS ; do if [ ! -d ${subjdir}/$i ] ; then errflag=1 ; echo "ERROR: '${subjdir}/$i' does not exist!" ; fi ; done
+  #if [ $errflag -eq 1 ] ; then echo "...exiting." ; exit ; fi
   
   echo $FIRSTLEV_SUBJECTS | row2col > ${subjdir}/subjects
   cat -n ${subjdir}/subjects
   for subj in `cat ${subjdir}/subjects` ; do
+    if [ ! -d ${subjdir}/$subj ] ; then mkdir -p ${subjdir}/$subj ; fi
     echo "creating functional session file for subject '$subj': "[ $FIRSTLEV_SESSIONS_FUNC ]""
     echo $FIRSTLEV_SESSIONS_FUNC | row2col > ${subjdir}/$subj/sessions_func
     echo "creating structural session file for subject '$subj': "[ $FIRSTLEV_SESSIONS_STRUC ]""
@@ -213,7 +217,7 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   if [ ! -f ${subjdir}/config_func2highres.reg ] ; then
     echo "Registration mapping between functionals and t1 structural not found. You may need to create that file..."
     subj=`head -n 1 $subjdir/subjects`
-    if [ $(find $subjdir/$subj/ -maxdepth 1 -type d | wc -l) -eq 1 ] ; then
+    if [ $(find $srcdir/$subj/ -maxdepth 1 -type d | wc -l) -eq 1 ] ; then
       read -p "No subdirectories in $subjdir/$subj detected - assuming single session design. Press Key to create default func->highres mapping for single session designs..."
       for i in $(cat $subjdir/subjects) ; do
         echo "$i ." >> $subjdir/config_func2highres.reg
@@ -323,7 +327,7 @@ for subj in `cat $subjdir/subjects` ; do
   for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do
     out=""
     for i in $checklist ; do 
-      out=$out"    "$(ls $subjdir/$subj/$sess/$i 2>/dev/null | wc -l)
+      out=$out"    "$(ls $srcdir/$subj/$sess/$i 2>/dev/null | wc -l)
     done
     printf "%3i subj %s , sess %s :%s \n" $n $subj $sess "$out"
     n=$[$n+1]
@@ -1847,6 +1851,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
     for subj in `cat subjects`; do 
       for sess in `cat ${subj}/sessions_struc` ; do
         echo "VBM PREPROC : subj $subj , sess $sess : 'fsl_anat' is being executed..."
+        fldr=$subjdir/$subj/$sess/vbm
         fsl_sub -l $logdir -N vbm_fsl_anat_$(subjsess) fsl_anat --clobber -i ${fldr}/$(subjsess)_t1_orig
       done
     done
@@ -2258,7 +2263,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       bold_lnk=bold.${bold_ext}
       if [ -L $fldr/bold.nii -o -L $fldr/bold.nii.gz ] ; then rm -f $fldr/bold.nii $fldr/bold.nii.gz ; fi # delete link if already present
       echo "BOLD : subj $subj , sess $sess : creating link '$bold_lnk' to '$bold_bn'"
-      ln -sf ../$bold_bn $fldr/$bold_lnk
+      ln -sf $(path_abs2rel $fldr/ $srcdir/$subj/$sess/)/$bold_bn $fldr/$bold_lnk
       
       # number of volumes in 4D
       echo -n "BOLD : subj $subj , sess $sess : counting number of volumes in '$fldr/$bold_lnk'..."
@@ -3189,7 +3194,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       bold_lnk=bold.${bold_ext}
       if [ -L $fldr/bold.nii -o -L $fldr/bold.nii.gz ] ; then rm -f $fldr/bold.nii $fldr/bold.nii.gz ; fi # delete link if already present
       echo "ALFF : subj $subj , sess $sess : creating link '$bold_lnk' to '$bold_bn'"
-      ln -sf ../$bold_bn $fldr/$bold_lnk
+      ln -sf $(path_abs2rel $fldr/ $srcdir/$subj/$sess/)/$bold_bn $fldr/$bold_lnk
       #cp -Pv $(dirname $featdir)/bold.nii $fldr/
       
       # apply motion correction and unwarping

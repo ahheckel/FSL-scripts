@@ -10,6 +10,7 @@ if [ x$FREESURFER_HOME = "x" ] ; then echo "FREESURFER_HOME variable is not defi
 
 v5=$(cat $FSL_DIR/etc/fslversion | grep ^5 | wc -l)
 if [ $v5 -eq 1 ] ; then
+  echo "FSL v.5 detected."
   cp -iv fsl/fsl_sub_v5 $FSL_DIR/bin/fsl_sub # contains a RAM limit
 fi
 
@@ -18,25 +19,28 @@ cp -iv fsl/MNI152*.nii.gz $FSL_DIR/data/standard/
 cp -iv fsl/avg152T1_white_bin.nii.gz $FSL_DIR/data/standard/
 cp -iv fsl/avg152T1_csf_bin.nii.gz $FSL_DIR/data/standard/
 
-echo "Don't overwrite for FSL ver. 5 if asked !"
-cp -iv fsl/fsl_sub $FSL_DIR/bin/fsl_sub # contains a RAM limit
-echo "Don't overwrite for FSL ver. 5 if asked !"
-cp -iv fsl/tbss_x/tbss_x $FSL_DIR/bin/tbss_x # dont overwrite for fsl ver. 5
-echo "Don't overwrite for FSL ver. 5 if asked!"
-cp -iv fsl/topup/b02b0.cnf $FSL_DIR/etc/flirtsch/b02b0.cnf # dont overwrite for fsl ver. 5
-echo "Don't overwrite for FSL ver. 5 if asked!"
-cp -iv fsl/featlib.tcl $FSL_DIR/tcl/featlib.tcl # dont overwrite for fsl ver. 5
-
+if [ $v5 -eq 0 ] ; then
+  #echo "Don't overwrite for FSL ver. 5 if asked !"
+  cp -iv fsl/fsl_sub $FSL_DIR/bin/fsl_sub # contains a RAM limit
+  #echo "Don't overwrite for FSL ver. 5 if asked !"
+  cp -iv fsl/tbss_x/tbss_x $FSL_DIR/bin/tbss_x # dont overwrite for fsl ver. 5
+  #echo "Don't overwrite for FSL ver. 5 if asked!"
+  cp -iv fsl/topup/b02b0.cnf $FSL_DIR/etc/flirtsch/b02b0.cnf # dont overwrite for fsl ver. 5
+  #echo "Don't overwrite for FSL ver. 5 if asked!"
+  cp -iv fsl/featlib.tcl $FSL_DIR/tcl/featlib.tcl # dont overwrite for fsl ver. 5
+fi
 
 if [ $1 -eq 64 ] ; then
-  echo "Don't overwrite for FSL ver. 5 if asked!"
-  cp -iv fsl/topup/topup_64 $FSL_DIR/bin/topup # dont overwrite for fsl ver. 5
-  echo "Don't overwrite for FSL ver. 5 if asked!"
-  cp -iv fsl/topup/applytopup_64 $FSL_DIR/bin/applytopup # dont overwrite for fsl ver. 5
-  echo "Don't overwrite for FSL ver. 5 if asked!"
-  cp -iv fsl/tbss_x/swap_voxelwise_64 $FSL_DIR/bin/swap_voxelwise # dont overwrite for fsl ver. 5
-  echo "Don't overwrite for FSL ver. 5 if asked!"
-  cp -iv fsl/tbss_x/swap_subjectwise_64 $FSL_DIR/bin/swap_subjectwise # dont overwrite for fsl ver. 5
+  if [ $v5 -eq 0 ] ; then
+    #echo "Don't overwrite for FSL ver. 5 if asked!"
+    cp -iv fsl/topup/topup_64 $FSL_DIR/bin/topup # dont overwrite for fsl ver. 5
+    #echo "Don't overwrite for FSL ver. 5 if asked!"
+    cp -iv fsl/topup/applytopup_64 $FSL_DIR/bin/applytopup # dont overwrite for fsl ver. 5
+    #echo "Don't overwrite for FSL ver. 5 if asked!"
+    cp -iv fsl/tbss_x/swap_voxelwise_64 $FSL_DIR/bin/swap_voxelwise # dont overwrite for fsl ver. 5
+    #echo "Don't overwrite for FSL ver. 5 if asked!"
+    cp -iv fsl/tbss_x/swap_subjectwise_64 $FSL_DIR/bin/swap_subjectwise # dont overwrite for fsl ver. 5
+  fi
   
   cp -iv afni/3dDespike_64 $FSL_DIR/bin/3dDespike
   cp -iv afni/3dTcat_64 $FSL_DIR/bin/3dTcat
@@ -46,15 +50,16 @@ if [ $1 -eq 64 ] ; then
 fi
 
 if [ $1 -eq 32 ] ; then
-
-  echo "Don't overwrite for FSL ver. 5 if asked!"
-  cp -iv fsl/topup/topup_32 $FSL_DIR/bin/topup # dont overwrite for fsl ver. 5
-  echo "Don't overwrite for FSL ver. 5 if asked!"
-  cp -iv fsl/topup/applytopup_32 $FSL_DIR/bin/applytopup # dont overwrite for fsl ver. 5
-  echo "Don't overwrite for FSL ver. 5 if asked!"
-  cp -iv fsl/tbss_x/swap_voxelwise_32 $FSL_DIR/bin/swap_voxelwise # dont overwrite for fsl ver. 5
-  echo "Don't overwrite for FSL ver. 5 if asked!"
-  cp -iv fsl/tbss_x/swap_subjectwise_32 $FSL_DIR/bin/swap_subjectwise # dont overwrite for fsl ver. 5
+  if [ $v5 -eq 0 ] ; then
+    #echo "Don't overwrite for FSL ver. 5 if asked!"
+    cp -iv fsl/topup/topup_32 $FSL_DIR/bin/topup # dont overwrite for fsl ver. 5
+    #echo "Don't overwrite for FSL ver. 5 if asked!"
+    cp -iv fsl/topup/applytopup_32 $FSL_DIR/bin/applytopup # dont overwrite for fsl ver. 5
+    #echo "Don't overwrite for FSL ver. 5 if asked!"
+    cp -iv fsl/tbss_x/swap_voxelwise_32 $FSL_DIR/bin/swap_voxelwise # dont overwrite for fsl ver. 5
+    #echo "Don't overwrite for FSL ver. 5 if asked!"
+    cp -iv fsl/tbss_x/swap_subjectwise_32 $FSL_DIR/bin/swap_subjectwise # dont overwrite for fsl ver. 5
+  fi 
   
   cp -iv afni/3dDespike_32 $FSL_DIR/bin/3dDespike 
   cp -iv afni/3dTcat_32 $FSL_DIR/bin/3dTcat

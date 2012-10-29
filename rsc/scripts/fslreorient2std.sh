@@ -7,4 +7,5 @@ output=$(remove_ext "$2")
 
 fslreorient2std $input $output
 
+if [ -f ${output}.nii -a -f ${output}.nii.gz ] ; then rm ${output}.nii.gz ; fi # delete duplicate
 if [ -f ${output}.nii ] ; then fslmaths $output $output ; rm ${output}.nii ; fi
