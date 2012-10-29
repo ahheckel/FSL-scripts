@@ -3894,7 +3894,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
     if [ x"$DUALREG_INPUT_BOLD_FILE" = "x" ] ; then
       # this applies when MELODIC-GUI was used
       if [ -f $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf ] ; then
-        echo "DUALREG : taking basic input filename from '${DUALREG_INPUT_ICA_DIRNAME}.fsf' (first entry therein)"
+        echo "DUALREG : taking basic input filename from '$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf' (first entry therein)"
         _inputfile=$(basename $(cat $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf | grep "set feat_files(1)" | cut -d "\"" -f 2))  # get inputfile basename from melodic *.fsf file... (assuming same basename for all included subjects/sessions) (!)
         _inputfile=$(remove_ext $_inputfile)_${DUALREG_INPUT_ICA_DIRNAME}.ica/reg_standard/filtered_func_data.nii.gz
       # this applies when MELODIC command line tool was used
