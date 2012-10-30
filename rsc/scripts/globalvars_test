@@ -252,8 +252,8 @@ ALFF_HPF_CUTOFF=""                                              # enter "none", 
 ALFF_BANDPASS="0.01,0.1"                                        # enter bandpass (default: "0.01,0.1")
 ALFF_FSLV5=0                                                    # in v.5 naming of unwarp shiftmap and its location is different
 ALFF_FEATDIR="bold/preprocBOLD_uw??_st0_s0_hpf100.feat"         # e.g. "bold/preprocBOLD_uw??_st0_s0_hpf100.feat"
-ALFF_MNI_AFFINE="reg_longt/example_func2longt_brain.mat"        # e.g. "reg_longt/example_func2longt_brain.mat"
-ALFF_MNI_WARP="reg_longt/longt_head2longt_standard_warp.nii.gz" # e.g. "reg_longt/longt_head2longt_standard_warp.nii.gz"
+ALFF_MNI_AFFINE="reg_longt/example_func2longt_brain.mat"        # e.g. "reg_longt/example_func2longt_brain.mat" or "reg/example_func2highres.mat"
+ALFF_MNI_WARP="reg_longt/longt_head2longt_standard_warp.nii.gz" # e.g. "reg_longt/longt_head2longt_standard_warp.nii.gz" or "reg/highres2standard_warp.nii.gz"
 ALFF_RESAMPLING_RESOLUTIONS="2"                                 # enter resolution (default: "2")
 
 #-----------------------------------------------------------------------

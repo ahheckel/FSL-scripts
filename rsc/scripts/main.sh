@@ -1105,13 +1105,13 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       # merge corrected files
       if [ $TOPUP_USE_NATIVE -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : merging topup-corrected DWIs..."
-        #fsl_sub -l $logdir -N topup_merge_corr_$(subjsess) fslmerge -t $fldr/$(subjsess)_topup_corr_merged $(imglob $fldr/*_topup_corr)
-        fslmerge -t $fldr/$(subjsess)_topup_corr_merged $(imglob $fldr/*_topup_corr)
+        #fsl_sub -l $logdir -N topup_merge_corr_$(subjsess) fslmerge -t $fldr/$(subjsess)_topup_corr_merged $(imglob $fldr/*_topup_corr.nii.gz)
+        fslmerge -t $fldr/$(subjsess)_topup_corr_merged $(imglob $fldr/*_topup_corr.nii.gz)
       fi
       if [ $TOPUP_USE_EC -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : merging topup-corrected & eddy-corrected DWIs..."
-        #fsl_sub -l $logdir -N topup_merge_corr_ec_$(subjsess) fslmerge -t $fldr/$(subjsess)_topup_corr_ec_merged $(imglob $fldr/*_topup_corr_ec)
-        fslmerge -t $fldr/$(subjsess)_topup_corr_ec_merged $(imglob $fldr/*_topup_corr_ec)
+        #fsl_sub -l $logdir -N topup_merge_corr_ec_$(subjsess) fslmerge -t $fldr/$(subjsess)_topup_corr_ec_merged $(imglob $fldr/*_topup_corr_ec.nii.gz)
+        fslmerge -t $fldr/$(subjsess)_topup_corr_ec_merged $(imglob $fldr/*_topup_corr_ec.nii.gz)
       fi
     done
   done
