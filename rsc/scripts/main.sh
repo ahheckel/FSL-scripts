@@ -15,6 +15,9 @@ if [ x$FSL_DIR = "x" ] ; then FSL_DIR="$FSLDIR" ; fi
 if [ x$FSL_DIR = "x" ] ; then echo "\$FSL_DIR and \$FSLDIR variable not definied - exiting"  ; exit ; fi
 echo ""; echo "FSL version is $(cat $FSL_DIR/etc/fslversion)." ; echo "" ; sleep 1
 
+# display JOB-Id
+echo "JOB-Id : $$"
+
 # source environment variables
 if [ ! -f ./globalvars ] ; then echo "ERROR: 'globalvars' not found - exiting." ; exit ; fi
 source ./globalvars

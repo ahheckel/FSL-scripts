@@ -248,12 +248,58 @@ function isClusterBusy()
   echo "$n_total - $n_dr - $n_dt" | bc -l # ignore zombie jobs
 }
 
+function isStillRunning() 
+{ 
+  if [ "x$SGE_ROOT" = "x" ] ; then echo "0"; return; fi # is cluster environment present ?
+  
+  # does qstat work ?
+  qstat &>/dev/null
+  if [ $? != 0 ] ; then 
+    echo "ERROR : qstat failed on $(date). Is Network available ?" >&2
+    echo "1"
+    return
+  fi
+  
+  local ID=$1
+  local user=`whoami | cut -c 1-10`
+  local stillrunnning=`qstat | grep $user | awk '{print $1}' | grep $ID | wc -l`
+  echo $stillrunnning
+}
+
 function waitIfBusy() 
 {
-  if [ `isClusterBusy` -gt 0 ] ; then
+  local JIDfile="$1"
+  local nojidfile=1
+  local ID=""
+  
+  # is job-ID file present ?
+  if [ x"$JIDfile" = "x" ] ; then 
+    nojidfile=1
+  elif [ ! -f $JIDfile ] ; then
+    nojidfile=1    
+  else
+    nojidfile=0
+  fi
+  
+  # w/0 job-ID file
+  if [ $nojidfile -eq 1 ] ; then
+    if [ `isClusterBusy` -gt 0 ] ; then
+      echo -n "waiting..."
+      while [ `isClusterBusy` -gt 0 ] ; do echo -n '.' ; sleep 30 ; done
+      echo "done."
+    fi
+  fi
+  
+  # with job-ID file - cycle through IDs and wait until every job in the list has completed.
+  if [ $nojidfile -eq 0 ] ; then
     echo -n "waiting..."
-    while [ `isClusterBusy` -gt 0 ] ; do echo -n '.' ; sleep 30 ; done
+    for ID in $(cat $JIDfile) ; do
+      if [ `isStillRunning $ID` -gt 0 ] ; then
+        while [ `isStillRunning $ID` -gt 0 ] ; do echo -n '.' ; sleep 30 ; done
+      fi
+    done
     echo "done."
+    rm $JIDfile ; touch $JIDfile
   fi
 }
 
