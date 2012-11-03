@@ -10,9 +10,21 @@ set -e
 # define error trap
 trap 'finishdate_sec=$(date +"%s") ; diff=$(($finishdate_sec-$startdate_sec)) ; echo "$0 : An ERROR has occured on `date`. Time elapsed since start: $(echo "scale=4 ; $diff / 3600" | bc -l) h ($(echo "scale=0 ; $diff / 60" | bc -l) min)"' ERR # don't exit on trap (!)
 
+# display FSL version
+if [ x$FSL_DIR = "x" ] ; then FSL_DIR="$FSLDIR" ; fi
+if [ x$FSL_DIR = "x" ] ; then echo "\$FSL_DIR and \$FSLDIR variable not definied - exiting"  ; exit ; fi
+echo ""; echo "FSL version is $(cat $FSL_DIR/etc/fslversion)." ; echo "" ; sleep 1
+
+# source environment variables
+if [ ! -f ./globalvars ] ; then echo "ERROR: 'globalvars' not found - exiting." ; exit ; fi
+source ./globalvars
+
+# source environment functions
+source $scriptdir/globalfuncs
+
 # define current working directory
 wd=`pwd`
-# check lock
+# create and check lock
 set +e
   lock="$wd/.lockdir121978"
   echo "creating lock [ '$lock' ]"
@@ -22,21 +34,11 @@ set +e
   echo ""
 set -e
 
-# source environment variables
-if [ ! -f ./globalvars ] ; then echo "ERROR: 'globalvars' not found - exiting." ; exit ; fi
-source ./globalvars
-
-# display FSL version
-echo "FSL version is $(cat $FSL_DIR/etc/fslversion)." ; echo "" ; sleep 1
-
 # create subjects-dir.
 mkdir -p $subjdir
 
 # remove lock on exit
 trap "save_config $studydir $subjdir ; rmdir $wd/.lockdir121978 ; echo \"Lock removed.\" ; time_elapsed $startdate_sec ; echo \"Exiting on `date`\" ; exit" EXIT
-
-# source environment functions
-source $scriptdir/globalfuncs
 
 # remove duplicates in string arrays (to avoid collisions on the cluster)
 FIRSTLEV_SUBJECTS=$(echo $FIRSTLEV_SUBJECTS | row2col | sort -u)
@@ -49,7 +51,6 @@ BOLD_SLICETIMING_VALUES=$(echo $BOLD_SLICETIMING_VALUES | row2col | sort -u)
 BOLD_SMOOTHING_KRNLS=$(echo $BOLD_SMOOTHING_KRNLS | row2col | sort -u)
 BOLD_HPF_CUTOFFS=$(echo $BOLD_HPF_CUTOFFS | row2col | sort -u)
 BOLD_DENOISE_SMOOTHING_KRNLS=$(echo $BOLD_DENOISE_SMOOTHING_KRNLS | row2col | sort -u)
-BOLD_DENOISE_HPF_CUTOFFS=$(echo $BOLD_DENOISE_HPF_CUTOFFS | row2col | sort -u)
 BOLD_DENOISE_MASKS_NAT=$(echo $BOLD_DENOISE_MASKS_NAT | row2col | sort -u)
 BOLD_DENOISE_MASKS_MNI=$(echo $BOLD_DENOISE_MASKS_MNI | row2col | sort -u)
 BOLD_DENOISE_USE_MOVPARS_NAT=$(echo $BOLD_DENOISE_USE_MOVPARS_NAT | row2col | sort -u)
@@ -362,6 +363,9 @@ if [ x"$SGE_ROOT" != "x" ] ; then
   echo ""
   qstat -f
   echo ""
+else
+  echo "SGE_ROOT variable not set -> not using randomise_parallel."
+  RANDOMISE_PARALLEL=0
 fi
 
 # check if source directory exists (where nifti originals are located)
@@ -2487,25 +2491,23 @@ if [ $BOLD_STG3 -eq 1 ] ; then
     
   # substitutions
   if [ x"$BOLD_DENOISE_SMOOTHING_KRNLS" = "x" ] ; then BOLD_DENOISE_SMOOTHING_KRNLS=0; fi
-  if [ x"$BOLD_DENOISE_HPF_CUTOFFS" = "x" ] ; then BOLD_DENOISE_HPF_CUTOFFS=none ; fi
   if [ x"$BOLD_DENOISE_USE_MOVPARS_NAT" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS_NAT=0 ; fi
  
   # mind the \' \' -> necessary, otw. string gets split up when a) being inside double-quotes 
   # (e.g., echo redirection to a cmd-file for fsl_sub) and b) being passed as an argument to a function (!)
   BOLD_DENOISE_MASKS_NAT=\'$BOLD_DENOISE_MASKS_NAT\'
   BOLD_DENOISE_SMOOTHING_KRNLS=\'$BOLD_DENOISE_SMOOTHING_KRNLS\'
-  BOLD_DENOISE_HPF_CUTOFFS=\'$BOLD_DENOISE_HPF_CUTOFFS\'
   BOLD_DENOISE_USE_MOVPARS_NAT=\'$BOLD_DENOISE_USE_MOVPARS_NAT\'   
   
   for subj in `cat subjects` ; do
     
     if [ x"$BOLD_DENOISE_MASKS_NAT" = "x" ] ; then echo "BOLD : subj $subj : ERROR : no masks for signal extraction specified -> no denoising possible -> breaking loop..." ; break ; fi
-    
-    # check if we have acquisition parameters
-    defineBOLDparams $subjdir/config_acqparams_bold $subj $sess
 
     for sess in `cat ${subj}/sessions_func` ; do
-    
+        
+      # check if we have acquisition parameters
+      defineBOLDparams $subjdir/config_acqparams_bold $subj $sess
+      
       fldr=$subjdir/$subj/$sess/bold
       sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
       
@@ -2535,8 +2537,8 @@ if [ $BOLD_STG3 -eq 1 ] ; then
             mkdir -p $featdir/noise
             ln -sf ../filtered_func_data.nii.gz $featdir/noise/filtered_func_data.nii.gz
             echo "$scriptdir/fs_create_masks.sh $SUBJECTS_DIR ${subj}${sess_t1} $featdir/example_func $featdir/noise $subj $sess ; \
-            $scriptdir/denoise4D.sh $featdir/noise/filtered_func_data "$BOLD_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS_NAT" $featdir/noise/filtered_func_data_dn${dntag_boldnat} $subj $sess ; \
-            $scriptdir/feat_smooth.sh $featdir/noise/filtered_func_data_dn${dntag_boldnat} $featdir/filtered_func_data_dn${dntag_boldnat} "$BOLD_DENOISE_SMOOTHING_KRNLS" "$BOLD_DENOISE_HPF_CUTOFFS" $TR_bold $subj $sess" > $featdir/bold_denoise.cmd
+            $scriptdir/denoise4D.sh $featdir/noise/filtered_func_data "$BOLD_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS_NAT" $hpf_cut $TR_bold $featdir/noise/filtered_func_data_dn${dntag_boldnat} $subj $sess ; \
+            $scriptdir/feat_smooth.sh $featdir/noise/filtered_func_data_dn${dntag_boldnat} $featdir/filtered_func_data_dn${dntag_boldnat} "$BOLD_DENOISE_SMOOTHING_KRNLS" none $TR_bold $subj $sess" > $featdir/bold_denoise.cmd
             
             # executing...
             $scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N bold_denoise_$(subjsess) -t $featdir/bold_denoise.cmd
@@ -2770,7 +2772,10 @@ if [ $BOLD_STG5 -eq 1 ]; then
   
     if [ x"$BOLD_DENOISE_MASKS_MNI" = "x" ] ; then echo "BOLD : subj $subj : ERROR : no masks for nuisance extraction in MNI space specified -> no denoising possible -> breaking loop..." ; break ; fi
 
-    for sess in `cat ${subj}/sessions_func` ; do      
+    for sess in `cat ${subj}/sessions_func` ; do
+      
+      # check if we have acquisition parameters
+      defineBOLDparams $subjdir/config_acqparams_bold $subj $sess 
     
       for hpf_cut in $BOLD_HPF_CUTOFFS ; do
         for sm_krnl in $BOLD_SMOOTHING_KRNLS ; do
@@ -2814,7 +2819,7 @@ if [ $BOLD_STG5 -eq 1 ]; then
             fslmaths $FSL_DIR/data/standard/avg152T1_white_bin.nii.gz -mas $noisedir/MNI_WB.nii.gz $noisedir/MNI_WM.nii.gz
             imrm $noisedir/min            
             # estimate nuisance regressors
-            $scriptdir/denoise4D.sh -m $noisedir/${data_file} "$BOLD_DENOISE_MASKS_MNI" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS_MNI" $noisedir/$(remove_ext $data_file)_dn${dntag_boldmni} $subj $sess 
+            $scriptdir/denoise4D.sh -m $noisedir/${data_file} "$BOLD_DENOISE_MASKS_MNI" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS_MNI" $hpf_cut $TR_bold $noisedir/$(remove_ext $data_file)_dn${dntag_boldmni} $subj $sess 
    
             
             for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do
@@ -3155,13 +3160,18 @@ if [ $ALFF_STG1 -eq 1 ] ; then
   echo "----- BEGIN ALFF_STG1 -----"
 
   sm=$ALFF_SMOOTHING_KERNEL
+  if [ x"${ALFF_HPF_CUTOFF}" = "x" -o x"${ALFF_HPF_CUTOFF}" = "xnone" ] ; then ALFF_HPF_CUTOFF="Inf" ; fi
   ALFF_DENOISE_MASKS_NAT=\'$ALFF_DENOISE_MASKS_NAT\'
   ALFF_DENOISE_USE_MOVPARS_NAT=\'$ALFF_DENOISE_USE_MOVPARS_NAT\'
   jid="1"
 
   # prepare
   for subj in `cat subjects` ; do
-    for sess in `cat ${subj}/sessions_func` ; do      
+    for sess in `cat ${subj}/sessions_func` ; do
+      
+      # check if we have acquisition parameters
+      defineBOLDparams $subjdir/config_acqparams_bold $subj $sess
+      
       # declare vars
       out=$fldr/$(subjsess)
       uwdir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
@@ -3217,7 +3227,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       
       imrm $fldr/_tmp $fldr/__tmp $fldr/_m $fldr/_dm 
       
-      if [ x"$ALFF_HPF_CUTOFF" = "x" -o "$ALFF_HPF_CUTOFF" = "Inf" -o "$ALFF_HPF_CUTOFF" = "none" ] ; then
+      if [ "$ALFF_HPF_CUTOFF" = "Inf" ] ; then
 
         echo "ALFF : subj $subj , sess $sess : detrending (using AFNI tools)..."
 
@@ -3260,17 +3270,20 @@ if [ $ALFF_STG1 -eq 1 ] ; then
   # denoise
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_func` ; do
+          
+      # check if we have acquisition parameters
+      defineBOLDparams $subjdir/config_acqparams_bold $subj $sess
+      
       # declare vars
       uwdir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess` ; featdir=$subjdir/$subj/$sess/$(echo "$ALFF_FEATDIR" | sed "s|??|$uwdir|g")
       fldr=$subjdir/$subj/$sess/alff
       
       cmd=$fldr/alff_denoise.cmd ; rm -f $cmd
-      
+
       # create cmd
       echo "ALFF : subj $subj , sess $sess : denoising (tag: ${dntag_alff})..."
       mkdir -p $fldr/noise ; ln -sf ../filtered_func_data.nii.gz $fldr/noise/filtered_func_data.nii.gz
-      echo "    $scriptdir/denoise4D.sh $fldr/noise/filtered_func_data "$ALFF_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$ALFF_DENOISE_USE_MOVPARS_NAT" $fldr/noise/filtered_func_data_dn${dntag_alff} $subj $sess" > $cmd
-      #tail $cmd
+      echo "    $scriptdir/denoise4D.sh $fldr/noise/filtered_func_data "$ALFF_DENOISE_MASKS_NAT" $featdir/mc/prefiltered_func_data_mcf.par "$ALFF_DENOISE_USE_MOVPARS_NAT" $ALFF_HPF_CUTOFF $TR_bold $fldr/noise/filtered_func_data_dn${dntag_alff} $subj $sess" > $cmd
       
       echo "ALFF : execute cmd:"
       cat -nb $cmd        
@@ -3283,9 +3296,13 @@ if [ $ALFF_STG1 -eq 1 ] ; then
   # mask & smooth
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_func` ; do
+      
+      # check if we have acquisition parameters
+      defineBOLDparams $subjdir/config_acqparams_bold $subj $sess
+      
       # declare vars
       fldr=$subjdir/$subj/$sess/alff
-      sm=$ALFF_SMOOTHING_KERNEL ; #hpf=$ALFF_HPF_CUTOFF
+      sm=$ALFF_SMOOTHING_KERNEL
       
       cmd=$fldr/alff_smooth.cmd ; rm -f $cmd
       
@@ -3316,7 +3333,7 @@ if [ $ALFF_STG2 -eq 1 ] ; then
       # declare vars
       fldr=$subjdir/$subj/$sess/alff
       out=$fldr/$(subjsess)
-      sm=$ALFF_SMOOTHING_KERNEL ; #hpf=$ALFF_HPF_CUTOFF
+      sm=$ALFF_SMOOTHING_KERNEL
       
       cmd=$fldr/alff_createALFF.cmd ; rm -f $cmd
       

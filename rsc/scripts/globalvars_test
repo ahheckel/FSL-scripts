@@ -233,7 +233,6 @@ BOLD_PTTRN_HIGHRES_STRUC="*_FS_struc.nii.gz"                  # pattern of t1 no
 BOLD_DENOISE_MASKS_NAT="EF_CSF EF_WM"                         # masks used for denoising [EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz EF_GM.nii.gz] located in feat-dir (need FS-recons for creation) -> see FS_create_masks.sh
 BOLD_DENOISE_USE_MOVPARS_NAT="1"                              # 0: none - 1: orig - 2: squared - 3: abs - 4: 1st deriv. with leading zero - 5: 1st deriv. with trailing zero ; CAVE: cannot take more than 4 motion related modes (4*6=24 regressors -> more lead to fsl_regfilt error (at least at 32 bit)) (!)
 BOLD_DENOISE_SMOOTHING_KRNLS="4"                              # smooth denoised data (NOTE: denoising of native data requires feat-processed data without smoothing applied)
-BOLD_DENOISE_HPF_CUTOFFS=""                                   # high-pass filer denoised and smoothed data, but it may be better to do hpf before not after denoising... (?) (!)
 #---------------------
 BOLD_REGISTER_TO_MNI=1                                        # enable MNI registration
 BOLD_USE_FS_LONGT_TEMPLATE=2                                  # using FS's mid-long template as unbiased registration basis for multisession designs (0: off / 1: bold->t1->long.template / 2: bold->long.template)

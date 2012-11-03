@@ -55,7 +55,7 @@ for f in $files ; do
       if [ $anal = "tbss" ] ; then
         JHU1=$(atlasquery  -a "JHU ICBM-DTI-81 White-Matter Labels" -c ${x},${y},${z} | cut -d ">" -f 4)
         JHU2=$(atlasquery  -a "JHU White-Matter Tractography Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)      
-        printf '   %5.3f t/f=%4.2f (%5i) at [ %5.1f %5.1f %5.1f ] (mm) \n' $max $tval $size $x $y $z
+        printf '   %5.3f t/f=%4.2f (%5i) at [ %5.1f %5.1f %5.1f ] (mm) \n' $max $tval $size $x $y $z | tee -a $logfile
         printf '\t JHU1: %s\n' "$JHU1" | tee -a $logfile
         printf '\t JHU2: %s\n' "$JHU2" | tee -a $logfile
       fi
@@ -63,7 +63,7 @@ for f in $files ; do
         HAV1=$(atlasquery  -a "Harvard-Oxford Cortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         HAV2=$(atlasquery  -a "Harvard-Oxford Subcortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         TAL=$(atlasquery  -a "Talairach Daemon Labels" -c ${x},${y},${z} | cut -d ">" -f 4)
-        printf '   %5.3f t/f=%4.2f (%5i) at [ %5.1f %5.1f %5.1f ] (mm) \n' $max $tval $size $x $y $z
+        printf '   %5.3f t/f=%4.2f (%5i) at [ %5.1f %5.1f %5.1f ] (mm) \n' $max $tval $size $x $y $z | tee -a $logfile
         printf '\t TAL:  %s \n' "$TAL" | tee -a $logfile
         printf '\t HAV1: %s \n' "$HAV1" | tee -a $logfile
         printf '\t HAV2: %s \n' "$HAV2" | tee -a $logfile

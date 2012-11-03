@@ -7,7 +7,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <4dinput> <output> <hpf> <TR> <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` <4dinput> <output> <hpf(s)> <TR(s)> <subj_idx> <sess_idx>"
     echo ""
     exit 1
 }

@@ -7,7 +7,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` [-m] <input4D> <"mask1 mask2 ..." |none> <movpar|none> <movpar_calcs 0:none|1:orig|2:^2|3:abs|4:diff+|5:diff-> <output> <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` [-m] <input4D> <"mask1 mask2 ..." |none> <movpar|none> <movpar_calcs 0:none|1:orig|2:^2|3:abs|4:diff+|5:diff-> <hpf-cutoff(s)|Inf> <TR(s)> <output> <subj_idx> <sess_idx>"
     echo "        Options:      -m     just create confound matrix, don't denoise"
     echo ""
     exit 1
@@ -29,14 +29,16 @@ else
   denoise=1
 fi
 
-[ "$5" = "" ] && Usage
+[ "$7" = "" ] && Usage
 input=$(remove_ext "$1")
 masks="$2"
 movpar="$3" ; 
 movpar_calcs="$4"
-output=$(remove_ext "$5")
-subj="$6"  # optional
-sess="$7"  # optional
+hpf=$5
+TR=$6
+output=$(remove_ext "$7")
+subj="$8"  # optional
+sess="$9"  # optional
 
 outdir=`dirname $output`
 indir=`dirname $input`
@@ -121,6 +123,13 @@ ones=$outdir/ones
 n=`fslinfo  $input| grep ^dim4 | awk '{print $2}'`
 c=$(octave -q --eval "ones($n,1)") ; echo $c | cut -d "=" -f 2- |  row2col > $ones
 
+
+# create matrix - hp-filter processed motion regressors, if applicable
+if [ $hpf != "Inf" -a x${movpar_proc} != "x" ] ; then
+  $(dirname $0)/hpf_movpar.sh $movpar_proc ${movpar_proc}.hpf $hpf $TR $subj $sess
+  movpar_proc=${movpar_proc}.hpf
+fi
+
 # create matrix - confounds
 confounds="${output}_nuisance_meants.mat"
 echo "`basename $0` : subj $subj , sess $sess : creating nuisance matrix '$confounds' and '${confounds%.mat}_proc.mat'..."
@@ -134,7 +143,8 @@ if [ $denoise -eq 1 ] ; then
   #echo $cmd ; $cmd
   #fslmaths $input -Tmean ${input}_mean
   #fslmaths ${output} -add ${input}_mean ${output} # otw. speckled results...
-
+  
+  # determine number of nuisance regressors
   if [ x$movpar = "x" ] ; then 
     n_movpar=0
   else
@@ -147,13 +157,14 @@ if [ $denoise -eq 1 ] ; then
   fi
   n_total=$(echo "scale=0; $n_movpar + $n_masks + 1" | bc) # add 1 for the mean regressor (!)
   comps=$(echo `seq 1 $n_total` | sed "s| |","|g")
-
+  
+  # execute
   cmd="fsl_regfilt -i $input -o ${output} -d ${confounds%.mat}_proc.mat -f $comps"
   echo $cmd | tee ${output}.cmd ; $cmd
 fi
 
 # cleanup
-rm -f $ones $ts_list_proc $movpar_proc
+rm -f $ones $ts_list_proc # $movpar_proc
 imrm ${input}_mean
 
 echo "`basename $0` : subj $subj , sess $sess : done."
