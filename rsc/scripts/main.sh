@@ -15,8 +15,8 @@ if [ x$FSL_DIR = "x" ] ; then FSL_DIR="$FSLDIR" ; fi
 if [ x$FSL_DIR = "x" ] ; then echo "\$FSL_DIR and \$FSLDIR variable not definied - exiting"  ; exit ; fi
 echo ""; echo "FSL version is $(cat $FSL_DIR/etc/fslversion)." ; echo "" ; sleep 1
 
-# display JOB-Id
-echo "JOB-Id : $$"
+# display Job-Id
+echo "Job-Id : $$"
 
 # source environment variables
 if [ ! -f ./globalvars ] ; then echo "ERROR: 'globalvars' not found - exiting." ; exit ; fi
@@ -1852,7 +1852,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
   
   waitIfBusy
   
-  # also execute fsl_anat scirpt (fsl v.5) if applicable
+  # also execute fsl_anat script (fsl v.5) if applicable
   if [ $VBM_FSLV5 -eq 1 ] ; then
     if [ ! -f $FSL_DIR/bin/fsl_anat ] ; then echo "VBM PREPROC : ERROR : fsl_anat not found... is this really FSL v.5 ? Exiting." ; exit ; fi
     for subj in `cat subjects`; do 
@@ -3451,7 +3451,7 @@ if [ $ALFF_2NDLEV_STG2 -eq 1 ] ; then
       cat $glmdir_alff/designs | xargs -I{} cp -r $glmdir_alff/{} $statdir; cp $glmdir_alff/designs $statdir
       
       echo "ALFF_2NDLEV : starting permutations for fALFF-maps..."
-      _randomise $statdir falff "fALFF_Z_merged" "-m ../brain_mask -d design.mat -t design.con -e design.grp -T -V -D -x -n $ALFF_RANDOMISE_NPERM" 0 brain_mask.nii.gz $RANDOMISE_PARALLEL
+      _randomise $statdir falff "fALFF_Z_merged" "-m ../brain_mask -d design.mat -t design.con -e design.grp $ALFF_RANDOMISE_OPTS" 0 brain_mask.nii.gz $RANDOMISE_PARALLEL
       waitIfBusy
     done    
   done
@@ -3463,7 +3463,7 @@ if [ $ALFF_2NDLEV_STG2 -eq 1 ] ; then
     
     for statdir in $statdirs ; do
       echo "ALFF_2NDLEV : starting permutations for ALFF-maps..."
-      _randomise $statdir alff "ALFF_Z_merged" "-m ../brain_mask -d design.mat -t design.con -e design.grp -T -V -D -x -n $ALFF_RANDOMISE_NPERM" 0 brain_mask.nii.gz $RANDOMISE_PARALLEL
+      _randomise $statdir alff "ALFF_Z_merged" "-m ../brain_mask -d design.mat -t design.con -e design.grp $ALFF_RANDOMISE_OPTS" 0 brain_mask.nii.gz $RANDOMISE_PARALLEL
       waitIfBusy
     done
   done
@@ -3534,7 +3534,7 @@ if [ $TBSS_STG3 -eq 1 ] ; then
       echo "TBSS: copying GLM designs to $statdir"
       cat $glmdir_tbss/designs | xargs -I{} cp -r $glmdir_tbss/{} $statdir; cp $glmdir_tbss/designs $statdir
       echo "TBSS: starting permutations..."
-      _randomise $statdir tbss "all_FA_skeletonised" "-m ../mean_FA_skeleton_mask -d design.mat -t design.con -e design.grp --T2 -V -D -x -n $TBSS_RANDOMISE_NPERM" $TBSS_Z_TRANSFORM mean_FA_skeleton_mask.nii.gz $RANDOMISE_PARALLEL
+      _randomise $statdir tbss "all_FA_skeletonised" "-m ../mean_FA_skeleton_mask -d design.mat -t design.con -e design.grp $TBSS_RANDOMISE_OPTS" $TBSS_Z_TRANSFORM mean_FA_skeleton_mask.nii.gz $RANDOMISE_PARALLEL
 
     done
   done
@@ -3659,8 +3659,8 @@ if [ $TBSS_STG5 -eq 1 ] ; then
       echo "TBSSX: copying GLM designs to $statdir"
       cat $glmdir_tbss/designs | xargs -I{} cp -r $glmdir_tbss/{} $statdir; cp $glmdir_tbss/designs $statdir
       echo "TBSSX: starting permutations..."
-      _randomise $statdir tbssxF1 "all_F1_x_skeletonised" "-m ../mean_FA_skeleton_mask -d design.mat -t design.con -e design.grp --T2 -V -D -x -n $TBSS_RANDOMISE_NPERM" $TBSS_Z_TRANSFORM mean_FA_skeleton_mask.nii.gz $RANDOMISE_PARALLEL
-      _randomise $statdir tbssxF2 "all_F2_x_skeletonised" "-m ../mean_FA_skeleton_mask -d design.mat -t design.con -e design.grp --T2 -V -D -x -n $TBSS_RANDOMISE_NPERM" $TBSS_Z_TRANSFORM mean_FA_skeleton_mask.nii.gz $RANDOMISE_PARALLEL
+      _randomise $statdir tbssxF1 "all_F1_x_skeletonised" "-m ../mean_FA_skeleton_mask -d design.mat -t design.con -e design.grp $TBSS_RANDOMISE_OPTS" $TBSS_Z_TRANSFORM mean_FA_skeleton_mask.nii.gz $RANDOMISE_PARALLEL
+      _randomise $statdir tbssxF2 "all_F2_x_skeletonised" "-m ../mean_FA_skeleton_mask -d design.mat -t design.con -e design.grp $TBSS_RANDOMISE_OPTS" $TBSS_Z_TRANSFORM mean_FA_skeleton_mask.nii.gz $RANDOMISE_PARALLEL
     done
   done
 fi
@@ -3707,7 +3707,7 @@ if [ $VBM_2NDLEV_STG3 -eq 1 ] ; then
       echo "VBM_2NDLEV : copying GLM designs to $i"
       cat $glmdir_vbm/designs | xargs -I{} cp -r $glmdir_vbm/{} $i; cp $glmdir_vbm/designs $i
       echo "VBM_2NDLEV : starting permutations..."
-      _randomise $i vbm "GM_mod_merg_smoothed" "-m ../GM_mask -d design.mat -t design.con -e design.grp -T -V -D -x -n $VBM_RANDOMISE_NPERM" $VBM_Z_TRANSFORM GM_mask.nii.gz $RANDOMISE_PARALLEL
+      _randomise $i vbm "GM_mod_merg_smoothed" "-m ../GM_mask -d design.mat -t design.con -e design.grp $VBM_RANDOMISE_OPTS" $VBM_Z_TRANSFORM GM_mask.nii.gz $RANDOMISE_PARALLEL
     done
   done
 fi
