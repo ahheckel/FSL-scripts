@@ -48,6 +48,7 @@ function save_config()
     if [ -f ../log ] ; then 
       log="../logfile"
       cp ../log $log
+     #mv ../log ../log.sav
     fi
     if [ $(ls config_* | wc -l) -gt 0 ] ; then _config=$(ls config_*) ; fi
     tar -cvzf $_studydir/.cfg/conf_${_date}.tar.gz -C $_subjdir ../globalvars $_config $log
