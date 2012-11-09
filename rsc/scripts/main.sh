@@ -8,12 +8,12 @@ startdate_sec=$(date +"%s")
 set -e
 
 # define error trap
-trap 'finishdate_sec=$(date +"%s") ; diff=$(($finishdate_sec-$startdate_sec)) ; echo "$0 : An ERROR has occured on `date`. Time elapsed since start: $(echo "scale=4 ; $diff / 3600" | bc -l) h ($(echo "scale=0 ; $diff / 60" | bc -l) min)"' ERR # don't exit on trap (!)
+trap 'finishdate_sec=$(date +"%s") ; diff=$(($finishdate_sec-$startdate_sec)) ; echo "$0 : An ERROR has occured on `date` (Job-Id : $$). Time elapsed since start: $(echo "scale=4 ; $diff / 3600" | bc -l) h ($(echo "scale=0 ; $diff / 60" | bc -l) min)"' ERR # don't exit on trap (!)
 
 # display FSL version
 if [ x$FSL_DIR = "x" ] ; then FSL_DIR="$FSLDIR" ; fi
 if [ x$FSL_DIR = "x" ] ; then echo "\$FSL_DIR and \$FSLDIR variable not definied - exiting"  ; exit ; fi
-echo ""; echo "FSL version is $(cat $FSL_DIR/etc/fslversion)." ; echo "" ; sleep 1
+echo ""; echo "FSL version is $(cat $(dirname $(dirname `which imglob`))/etc/fslversion)." ; echo "" ; sleep 1
 
 # display Job-Id
 echo "Job-Id : $$"
@@ -41,7 +41,7 @@ set -e
 mkdir -p $subjdir
 
 # remove lock on exit
-trap "save_config $studydir $subjdir ; rmdir $wd/.lockdir121978 ; echo \"Lock removed.\" ; time_elapsed $startdate_sec ; echo \"Exiting on `date`\" ; exit" EXIT
+trap "save_config $studydir $subjdir \"$startdate\" ; rmdir $wd/.lockdir121978 ; echo \"Lock removed.\" ; time_elapsed $startdate_sec ; echo \"Exiting on `date`\" ; exit" EXIT
 
 # remove duplicates in string arrays (to avoid collisions on the cluster)
 FIRSTLEV_SUBJECTS=$(echo $FIRSTLEV_SUBJECTS | row2col | sort -u)

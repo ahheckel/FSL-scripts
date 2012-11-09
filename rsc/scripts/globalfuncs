@@ -33,25 +33,30 @@ function save_config()
 {
   local _studydir="$1"
   local _subjdir="$2"
+  local _stamp="$3"
   local _config=""
+  local savdir="$_studydir/.cfg"
   local log=""
   local wdir=`pwd`
   local _date=$(date | sed "s|[: ]|-|g")
  
-  echo "" ; echo "saving configuration:"
+  echo "" ; echo "saving configuration..."
   if [ x"$_subjdir" = "x" ] ; then echo "ERROR: 'subjdir' var. not defined - cannot save..." ; return ; fi
   if [ x"$_studydir" = "x" ] ; then echo "ERROR: 'studydir' var. not defined - cannot save..." ; return ; fi
-  if [ ! -d $_subjdir ] ; then echo "ERROR: '$_subjdir'  not found - cannot save..." ; return ; fi
-  if [ ! -d $_studydir ] ; then echo "ERROR: '$_studydir'  not found - cannot save..." ; return ; fi
+  if [ ! -d $_subjdir ] ; then echo "ERROR: '$_subjdir' not found - cannot save..." ; return ; fi
+  if [ ! -d $_studydir ] ; then echo "ERROR: '$_studydir' not found - cannot save..." ; return ; fi
+  
   cd $_subjdir  
-    mkdir -p $_studydir/.cfg 
-    if [ -f ../log ] ; then 
-      log="../logfile"
-      cp ../log $log
-     #mv ../log ../log.sav
+    mkdir -p $savdir
+    if [ -f ../log ] ; then
+      if [ $(cat ../log | grep "$(echo $_stamp)" | wc -l) -gt 0 ] ; then
+        echo "...including logfile."
+        log="../logfile"
+        cp ../log $log
+      fi      
     fi
     if [ $(ls config_* | wc -l) -gt 0 ] ; then _config=$(ls config_*) ; fi
-    tar -cvzf $_studydir/.cfg/conf_${_date}.tar.gz -C $_subjdir ../globalvars $_config $log
+    tar -czf $savdir/conf_${_date}.tar.gz -C $_subjdir ../globalvars $_config $log
     rm -f $log    
   cd $wdir
   
