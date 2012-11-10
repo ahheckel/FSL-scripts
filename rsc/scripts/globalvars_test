@@ -265,6 +265,7 @@ TBSS_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_STRUC  # sessions to be included in t
 TBSS_USE_BPX_FROM_TRACULA=0                       # use BedpostX files from TRACULA, otherwise use from BPX stream
 TBSS_BPX_INDIR_PREFIX="bpx"                       # prefix of BedpostX input directory (for TBSSX, if files from TRACULA stream are not used)
 TBSS_OUTDIR_PREFIX="tbss"                         # prefix of output directory
+TBSS_USE_B0_4_FS_LONGT=fdt/uw_nodif               # use FREESURFER'S longtitudinal template to register the b0 to (default "", e.g. "topup/fm/uw_lowb_mean_brain" or "fdt/uw_nodif")
 TBSS_THRES="0.2 0.3 0.4"                          # cycle through some skeleton-threshold values
 TBSS_Z_TRANSFORM=1                                # z-transform FA skeletons
 TBSS_RANDOMISE_OPTS="--T2 -V -D -x -n 5000"       # randomise options (e.g.: "--T2 -V -D -x -n 5000")

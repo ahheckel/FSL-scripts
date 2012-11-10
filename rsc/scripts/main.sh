@@ -369,6 +369,7 @@ if [ x"$SGE_ROOT" != "x" ] ; then
 else
   echo "SGE_ROOT variable not set -> not using randomise_parallel."
   RANDOMISE_PARALLEL=0
+  echo ""
 fi
 
 # check if source directory exists (where nifti originals are located)
@@ -2770,6 +2771,11 @@ if [ $BOLD_STG5 -eq 1 ]; then
   if [ x"$BOLD_DENOISE_USE_MOVPARS_MNI" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS_NAT=0 ; fi
   if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
   if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
+  # mind the \' \' -> necessary, otw. string gets split up when a) being inside double-quotes 
+  # (e.g., echo redirection to a cmd-file for fsl_sub) and b) being passed as an argument to a function (!)
+  BOLD_DENOISE_MASKS_MNI=\'$BOLD_DENOISE_MASKS_MNI\'
+  BOLD_DENOISE_USE_MOVPARS_MNI=\'$BOLD_DENOISE_USE_MOVPARS_MNI\'
+  
   
   for subj in `cat subjects` ; do
   
@@ -2806,6 +2812,7 @@ if [ $BOLD_STG5 -eq 1 ]; then
             # estimate nuisance regressors on resolution 2
             mni_res=2       
             data_file=filtered_func_data${ltag}_mni${mni_res}.nii.gz
+            cmd_file=${featdir}/bold_denoise-prep_$(remove_ext $data_file).cmd
             if [ $(_imtest $featdir/reg_standard/$data_file) != 1 ] ; then
                 echo "BOLD : subj $subj , sess $sess : WARNING : estimating nuisance regressors : volume '$featdir/reg_standard/$data_file' not found. Continuing loop..."
                 continue
@@ -2814,17 +2821,18 @@ if [ $BOLD_STG5 -eq 1 ]; then
             # copy masks (1000 connectomes)
             echo "BOLD : subj $subj , sess $sess : creating masks..."
             echo "BOLD : subj $subj , sess $sess : masking 1000 connectome WM/CSF masks with whole-brain mask..."
+            echo "BOLD : subj $subj , sess $sess : estimating nuisance regressors..."
             ln -sf ../$data_file $noisedir/$data_file
-            fslmaths $noisedir/$data_file -Tmin $noisedir/min
-            bet $noisedir/min $noisedir/min -f 0.3
-            fslmaths $noisedir/min -thr 0 -bin -ero $noisedir/MNI_WB.nii.gz
-            fslmaths $FSL_DIR/data/standard/avg152T1_csf_bin.nii.gz   -mas $noisedir/MNI_WB.nii.gz $noisedir/MNI_CSF.nii.gz
-            fslmaths $FSL_DIR/data/standard/avg152T1_white_bin.nii.gz -mas $noisedir/MNI_WB.nii.gz $noisedir/MNI_WM.nii.gz
-            imrm $noisedir/min            
-            # estimate nuisance regressors
-            $scriptdir/denoise4D.sh -m $noisedir/${data_file} "$BOLD_DENOISE_MASKS_MNI" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS_MNI" $hpf_cut $TR_bold $noisedir/$(remove_ext $data_file)_dn${dntag_boldmni} $subj $sess 
-   
-            
+            echo "fslmaths $noisedir/$data_file -Tmin $noisedir/min ; \
+            bet $noisedir/min $noisedir/min -f 0.3 ; \
+            fslmaths $noisedir/min -thr 0 -bin -ero $noisedir/MNI_WB.nii.gz ; \
+            fslmaths $FSL_DIR/data/standard/avg152T1_csf_bin.nii.gz   -mas $noisedir/MNI_WB.nii.gz $noisedir/MNI_CSF.nii.gz ; \
+            fslmaths $FSL_DIR/data/standard/avg152T1_white_bin.nii.gz -mas $noisedir/MNI_WB.nii.gz $noisedir/MNI_WM.nii.gz ; \
+            imrm $noisedir/min ; \
+            $scriptdir/denoise4D.sh -m $noisedir/${data_file} "$BOLD_DENOISE_MASKS_MNI" $featdir/mc/prefiltered_func_data_mcf.par "$BOLD_DENOISE_USE_MOVPARS_MNI" $hpf_cut $TR_bold $noisedir/$(remove_ext $data_file)_dn${dntag_boldmni} $subj $sess" > $cmd_file
+            # execute
+            jid=`fsl_sub -l $logdir -N bold_denoise-prep_mni${mni_res}_$(subjsess) -t $cmd_file`
+
             for mni_res in $BOLD_MNI_RESAMPLE_RESOLUTIONS ; do
               
               data_file=filtered_func_data${ltag}_mni${mni_res}.nii.gz
@@ -2840,7 +2848,7 @@ if [ $BOLD_STG5 -eq 1 ]; then
            
               # executing...
               ln -sf ../$data_file $noisedir/$data_file
-              fsl_sub -l $logdir -N bold_denoise_mni${mni_res}_$(subjsess) -t $cmd_file
+              fsl_sub -j $jid -l $logdir -N bold_denoise_mni${mni_res}_$(subjsess) -t $cmd_file
               
               # creating link...
               echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-denoised 4D BOLD."
