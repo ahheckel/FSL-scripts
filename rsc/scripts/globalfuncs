@@ -726,35 +726,38 @@ function prepareTBSS()
       echo "prepareTBSS(): gathering FA-files from directory tree ($sourcedir) and copying them to tbss-directory..."
       find ${sourcedir} -name "$pttrn_files" | grep /${FAdir}/ | sort | xargs -I{} cp -v {} $destdir
     else
-      ## begin bbreg (to FS longt. template for unbiased initialisation, if applicable)
-      #local nobbreg=0 ; local dwi=uw_nodif     
-      #for subj in $TBSS_INCLUDED_SUBJECTS ; do
-        #for sess in $TBSS_INCLUDED_SESSIONS ; do
-          #if [ ! -f $FS_subjdir/$subj/fsl_reg/longt_brain2longt_standard.mat -o ! -f $subjdir/$subj/$sess/fdt/${dwi}.nii.gz ] ; then nobbreg=1 ; fi
-        #done
-      #done
-      #if [ $nobbreg -eq 0 ] ; then
-        #rm -f $destdir/reg_longt.cmd
-        #mkdir -p $destdir/reg_longt ; mkdir -p $destdir/FA
-        #for subj in $TBSS_INCLUDED_SUBJECTS ; do
-          #for sess in $TBSS_INCLUDED_SESSIONS ; do
-            #if [ -f $FS_subjdir/$subj/fsl_reg/longt_brain2longt_standard.mat -a -f $subjdir/$subj/$sess/fdt/${dwi}.nii.gz ] ; then
-              #echo "prepareTBSS(): subj $subj, sess $sess : performing Freesurfer's boundary based registration (unwarped b0 -> T1) and creating unbiased initialisation for TBSS registration..."
-              
-              #echo "bbregister --s ${subj} --mov $subjdir/$subj/$sess/fdt/${dwi}.nii.gz --init-fsl --reg $destdir/reg_longt/$(subjsess)_${dwi}2highres_bbr.dat --t2 --fslmat $destdir/reg_longt/$(subjsess)_${dwi}2highres_bbr.mat ; \
-              #convert_xfm -omat $destdir/reg_longt/$(subjsess)_${dwi}2MNI.mat -concat $FS_subjdir/$subj/fsl_reg/longt_brain2longt_standard.mat $destdir/reg_longt/$(subjsess)_${dwi}2highres_bbr.mat ; \
-              #cp -v $destdir/reg_longt/$(subjsess)_${dwi}2MNI.mat $destdir/FA/$(subjsess)_$(ls $subjdir/$subj/$sess/$FAdir/$pttrn_files | head -n1 | xargs -I {} remove_ext {} | xargs -I {} basename {} | cut -d _ -f 2- )_FA.mat" >> $destdir/reg_longt.cmd
-            #else
-              #echo "prepareTBSS(): subj $subj, sess $sess : WARNING : Freesurfer's boundary based registration is not possible !"
-            #fi
-          #done
-        #done
-        #fsl_sub -l $logdir -N tbss_reg_longt -t $destdir/reg_longt.cmd
-        #waitIfBusy
-      #else
-        #echo "prepareTBSS(): WARNING : Cannot perform Freesurfer's boundary based registration (unwarped b0 -> T1) due to missing files !"
-      #fi
-      ## end bbreg
+      # begin bbreg (to FS longt. template for unbiased initialisation, if applicable)
+      if [ $TBSS_USE_FS_LONGT -eq 1 ] ; then
+        local nobbreg=0 ; local dwi=uw_nodif     
+        for subj in $TBSS_INCLUDED_SUBJECTS ; do
+          for sess in $TBSS_INCLUDED_SESSIONS ; do
+            if [ ! -f $FS_subjdir/$subj/fsl_reg/longt_brain2longt_standard.mat -o ! -f $subjdir/$subj/$sess/fdt/${dwi}.nii.gz ] ; then nobbreg=1 ; fi
+          done
+        done
+        if [ $nobbreg -eq 0 ] ; then
+          rm -f $destdir/reg_longt.cmd
+          mkdir -p $destdir/reg_longt ; mkdir -p $destdir/FA
+          for subj in $TBSS_INCLUDED_SUBJECTS ; do
+            for sess in $TBSS_INCLUDED_SESSIONS ; do
+              if [ -f $FS_subjdir/$subj/fsl_reg/longt_brain2longt_standard.mat -a -f $subjdir/$subj/$sess/fdt/${dwi}.nii.gz ] ; then
+                echo "prepareTBSS(): subj $subj, sess $sess : performing Freesurfer's boundary based registration (unwarped b0 -> T1) and creating unbiased initialisation for TBSS registration..."
+                
+                echo "bbregister --s ${subj} --mov $subjdir/$subj/$sess/fdt/${dwi}.nii.gz --init-fsl --reg $destdir/reg_longt/$(subjsess)_${dwi}2highres_bbr.dat --t2 --fslmat $destdir/reg_longt/$(subjsess)_${dwi}2highres_bbr.mat ; \
+                convert_xfm -omat $destdir/reg_longt/$(subjsess)_${dwi}2MNI.mat -concat $FS_subjdir/$subj/fsl_reg/longt_brain2longt_standard.mat $destdir/reg_longt/$(subjsess)_${dwi}2highres_bbr.mat ; \
+                cp -v $destdir/reg_longt/$(subjsess)_${dwi}2MNI.mat $destdir/FA/$(subjsess)_$(ls $subjdir/$subj/$sess/$FAdir/$pttrn_files | head -n1 | xargs -I {} remove_ext {} | xargs -I {} basename {} | cut -d _ -f 2- )_FA.mat" >> $destdir/reg_longt.cmd
+              else
+                echo "prepareTBSS(): subj $subj, sess $sess : WARNING : Freesurfer's boundary based registration is not possible !"
+              fi
+            done
+          done
+          fsl_sub -l $logdir -N tbss_reg_longt -t $destdir/reg_longt.cmd
+          waitIfBusy
+        else
+          echo "prepareTBSS(): ERROR : Cannot perform Freesurfer's boundary based registration (unwarped b0 -> T1) due to missing files ! Exiting..."
+          exit 1
+        fi
+      fi
+      # end bbreg
 
       echo "prepareTBSS(): copying FA files to tbss-directory..."
       for subj in $TBSS_INCLUDED_SUBJECTS ; do
@@ -776,8 +779,11 @@ function prepareTBSS()
     tbss_1_preproc *nii.gz
 
     echo "prepareTBSS(): executing 'tbss_2_reg $reg_opt'..."
-    tbss_2_reg "$reg_opt"
-    #$scriptdir/tbss_2_reg_longt "$reg_opt" # patched for unbiased initialisation (longt. designs)
+    if [ $TBSS_USE_FS_LONGT -eq 1 ] ; then
+      $scriptdir/tbss_2_reg_longt "$reg_opt" # patched for unbiased initialisation (longt. designs)
+    else
+      tbss_2_reg "$reg_opt"
+    fi
 
     waitIfBusy # ...because tbss_2_reg uses fsl_sub
 
