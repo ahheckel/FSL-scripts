@@ -1,2 +1,26 @@
 #!/bin/bash
-fslview $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS
+FREESURFER_HOME=/usr/local/freesurfer
+source $FREESURFER_HOME/SetUpFreeSurfer.sh
+
+if [ -d /tmp ] ; then
+  wdir=/tmp/.fslviewscript$$
+else
+  wdir=`pwd`/.fslviewscript$$
+fi
+mkdir -p $wdir
+trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
+
+n=0 ; files=""
+for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
+  bn=$(basename $i) ; ext=`echo ${bn##*.}` ;  bn0=${bn%.*}
+  if [ "$ext" = "mgz" ] ; then
+    #zenity --info --text="   mri_convert $i $wdir/$bn0.nii.gz $FSLDIR"
+    mri_convert $i $wdir/${bn0}.nii.gz
+    files=$files" "$wdir/${bn0}.nii.gz
+    n=$[$n+1]
+  else
+    files=$files" "$i
+  fi
+done
+
+fslview $files
