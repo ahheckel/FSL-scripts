@@ -1,5 +1,6 @@
 #!/bin/bash
 FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
+
 freeview $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS
 

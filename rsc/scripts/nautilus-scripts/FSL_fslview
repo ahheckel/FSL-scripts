@@ -1,4 +1,6 @@
 #!/bin/bash
+# fslview wrapper. Also converts and displays .mgz files.
+
 FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
@@ -8,6 +10,7 @@ else
   wdir=`pwd`/.fslviewscript$$
 fi
 mkdir -p $wdir
+
 trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
 
 n=0 ; files=""
