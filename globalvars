@@ -60,7 +60,7 @@ RECON_STG5=0               # RECON-ALL register FS's longtitudinal template (if 
 FIELDMAP_STG1=0            # FIELDMAP prepare
 FIELDMAP_STG2=0            # FIELDMAP create
 
-TOPUP_STG1=0               # TOPUP prepare
+TOPUP_STG1=1               # TOPUP prepare
 TOPUP_STG2=0               # TOPUP low-B images: create index and extract
 TOPUP_STG3=0               # TOPUP merge B0 images
 TOPUP_STG4=0               # TOPUP execute topup
@@ -337,6 +337,6 @@ BETSTRUC0_INFO="0.30 na na na"  # default bet values for t1 structurals (CoG na)
 BETSTRUC1_INFO="0.10 na na na"  # default bet values for t1 structurals (CoG na) - final skullstrip (SSM)
 DWIUNWARP_INFO="+y"             # default direction values for unwarping DWIs (default: -y)
 BOLDUNWARP_INFO="+y"            # default direction values for unwarping BOLDs (default: -y)
-CHECK_CONSISTENCY_DIFFS=0       # checks number of bvals/bvecs entries at startup
+CHECK_CONSISTENCY_DIFFS=1       # checks number of bvals/bvecs entries at startup
 RANDOMISE_PARALLEL=1            # use randomise_parallel for clusters
 DELAYINSECS=150

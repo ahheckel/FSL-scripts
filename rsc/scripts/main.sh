@@ -401,7 +401,7 @@ for subj in `cat $subjdir/subjects` ; do
     done
   done
 done
-echo "...done."
+echo "...done." ; echo ""
 
 # check bvals, bvecs and diff. files for consistent number of entries
 if [ $CHECK_CONSISTENCY_DIFFS = 1 ] ; then
@@ -413,6 +413,7 @@ if [ $CHECK_CONSISTENCY_DIFFS = 1 ] ; then
       checkConsistency "$fldr/$pttrn_diffs" "$fldr/$pttrn_bvals" "$fldr/$pttrn_bvecs"
     done
   done
+  echo ""
 fi
 
 # make log directory for fsl_sub
@@ -760,6 +761,40 @@ waitIfBusy
 # TOPUP prepare
 if [ $TOPUP_STG1 -eq 1 ] ; then
   echo "----- BEGIN TOPUP_STG1 -----"
+  
+  # check bvals, bvecs and diff. files for consistent number of entries
+  errflag=0
+  echo "TOPUP : Checking bvals/bvecs- and DWI files for consistent number of entries..."
+  for subj in `cat $subjdir/subjects` ; do
+    for sess in `cat $subjdir/$subj/sessions_struc` ; do
+      fldr=$srcdir/$subj/$sess/
+
+      n_bvalsplus=`cat $fldr/$pttrn_bvalsplus | wc -w` ; n_bvecsplus=`cat $fldr/$pttrn_bvecsplus | wc -w`
+      n_bvalsminus=`cat $fldr/$pttrn_bvalsminus | wc -w` ; n_bvecsminus=`cat $fldr/$pttrn_bvecsminus | wc -w`
+      nvolplus=`countVols "$fldr/$pttrn_diffsplus"` ; nvolminus=`countVols "$fldr/$pttrn_diffsminus"`
+      if [ $n_bvalsplus -eq $nvolplus -a $n_bvecsplus=$(echo "scale=0 ; 3*$n_bvalsplus" | bc -l) ] ; then 
+        echo "TOPUP : subj $subj , sess $sess : blip(+)   : consistent number of entries in bval/bvec/dwi files ($n_bvalsplus)"
+      else
+        echo "TOPUP : subj $subj , sess $sess : blip(+)   : ERROR : inconsistent number of entries in bval:$n_bvalsplus / bvec:$(echo "scale=0; $n_bvecsplus/3" | bc -l) / dwi:$nvolplus" ; errflag=1
+      fi
+      if [ $n_bvalsminus -eq $nvolminus -a $n_bvecsminus=$(echo "scale=0 ; 3*$n_bvalsminus" | bc -l) ] ; then 
+        echo "TOPUP : subj $subj , sess $sess : blip(-)   : consistent number of entries in bval/bvec/dwi files ($n_bvalsminus)"
+      else
+        echo "TOPUP : subj $subj , sess $sess : blip(-)   : ERROR : inconsistent number of entries in bval:$n_bvalsminus / bvec:$(echo "scale=0; $n_bvecsminus/3" | bc -l) / dwi:$nvolminus" ; errflag=1
+      fi
+      if [ $n_bvalsplus -eq $n_bvalsminus ] ; then 
+        echo "TOPUP : subj $subj , sess $sess : blip(+/-) : consistent number of entries ($n_bvalsminus)"
+      else
+        echo "TOPUP : subj $subj , sess $sess : blip(+/-) : ERROR : inconsistent number of entries (+: $n_bvalsplus -: $n_bvalsminus)" ; errflag=1
+      fi
+
+    done
+  done
+  if [ $errflag -eq 1 ] ; then echo "DWI consistency check : Exiting due to errors !" ; exit ; fi
+  n_bvalsplus="" ; n_bvalsminus="" ; n_bvecsplus="" ; n_bvecsminus="" ; nvolplus="" ; nvolminus="" ; errflag="" ; fldr="" ; subj="" ; sess=""
+  echo ""
+  # end check 
+  
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do
     

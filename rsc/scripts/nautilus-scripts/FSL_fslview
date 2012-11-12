@@ -16,7 +16,7 @@ trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exi
 n=0 ; files=""
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   bn=$(basename $i) ; ext=`echo ${bn##*.}` ;  bn0=${bn%.*}
-  if [ "$ext" = "mgz" ] ; then
+  if [ "$ext" = "mgz" -o "$ext" = "mgh" ] ; then
     #zenity --info --text="   mri_convert $i $wdir/$bn0.nii.gz $FSLDIR"
     mri_convert $i $wdir/${bn0}.nii.gz
     files=$files" "$wdir/${bn0}.nii.gz

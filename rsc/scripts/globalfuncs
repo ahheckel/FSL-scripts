@@ -586,7 +586,7 @@ function average()
 
 function getB0Index()
 { 
-  if [ "x$1" = "x" -o "x$2" = "x" ] ; then echo "usage:  getB0Index <bval file> <dest dir>" ; fi
+  if [ "x$1" = "x" -o "x$2" = "x" ] ; then echo "Usage:  getB0Index <bval file> <dest dir>" ; fi
   
   local bval_pttrn=$1
   local dest=$2
@@ -605,7 +605,7 @@ function getB0Index()
 
 function checkConsistency()
 {
-  if [ "x$1" = "x" -o "x$2" = "x" -o "x$3" = "x" ] ; then echo "usage: checkConsistency <DWI file-pattern> <bval file> <bvec file>" ; fi
+  if [ "x$1" = "x" -o "x$2" = "x" -o "x$3" = "x" ] ; then echo "Usage: checkConsistency <DWI file-pattern> <bval file> <bvec file>" ; fi
   
   local diff_pttrn="$1"
   local bval_file="$2"
