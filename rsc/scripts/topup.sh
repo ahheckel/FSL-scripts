@@ -10,8 +10,8 @@ source $(dirname $0)/globalfuncs
 Usage() {
     echo ""
     echo "Usage: `basename $0` <out-dir> <isBOLD: 0|1> [n_dummyB0] <dwi-plus> <dwi-minus> <TotalReadoutTime(s)> <use noec: 0|1> <use ec: 0|1> [<dof> <costfunction>] <subj> <sess>"
-    echo "Example: topup.sh topupdir 0 dwi*+.nii.gz dwi*-.nii.gz 0.023 1 1 12 corratio 01 a"
-    echo "         topup.sh topupdir 1 4 bold*+.nii.gz bold*-.nii.gz 0.023 1 1 6 mutualinfo 01 a"
+    echo "Example: topup.sh topupdir 0 \"dwi*+.nii.gz\" \"dwi*-.nii.gz\" 0.023 1 1 12 corratio 01 a"
+    echo "         topup.sh topupdir 1 4 \"bold*+.nii.gz\" \"bold*-.nii.gz\" 0.023 1 1 6 mutualinfo 01 a"
     echo "NOTE:    Alphabetical listings of blip+ and blip- images (dwi*+, dwi*-) must match !"
     echo ""
     exit 1
@@ -52,14 +52,17 @@ tmpltdir=$(dirname $scriptdir)/templates
 sdir=`pwd`
 
 # define bval/bvec files
-pttrn_bvalsplus=`remove_ext $pttrn_diffsplus`_bvals
-pttrn_bvalsminus=`remove_ext $pttrn_diffsminus`_bvals
-pttrn_bvecsplus=`remove_ext $pttrn_diffsplus`_bvecs
-pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
+fldr=$outdir ; mkdir -p $fldr
+ls $pttrn_diffsplus > $fldr/dwi+.files
+ls $pttrn_diffsminus > $fldr/dwi-.files
+rm -f $fldr/bvec+.files ; for i in $(cat $fldr/dwi+.files) ; do echo $(remove_ext $i)_bvecs >> $fldr/bvec+.files  ; done
+rm -f $fldr/bvec-.files ; for i in $(cat $fldr/dwi-.files) ; do echo $(remove_ext $i)_bvecs >> $fldr/bvec-.files  ; done
+rm -f $fldr/bval+.files ; for i in $(cat $fldr/dwi+.files) ; do echo $(remove_ext $i)_bvals >> $fldr/bval+.files  ; done
+rm -f $fldr/bval-.files ; for i in $(cat $fldr/dwi-.files) ; do echo $(remove_ext $i)_bvals >> $fldr/bval-.files  ; done
+cat $fldr/bvec-.files $fldr/bvec+.files > $fldr/bvec.files
+cat $fldr/bval-.files $fldr/bval+.files > $fldr/bval.files
 
 # create bval/bvec dummy files
-ls $pttrn_diffsplus 1>/dev/null
-ls $pttrn_diffsminus 1>/dev/null
 for i in $(ls $pttrn_diffsplus) ; do
   i_bval=`remove_ext ${i}`_bvals
   i_bvec=`remove_ext ${i}`_bvecs  
@@ -87,12 +90,12 @@ for i in $(ls $pttrn_diffsminus) ; do
 done
 
 # count input files
-n_dwi_m=$(ls $pttrn_diffsplus | wc -l)
-n_dwi_p=$(ls $pttrn_diffsminus | wc -l)
-n_bval_m=$(ls `remove_ext $pttrn_diffsminus`_bvals| wc -l)
-n_bvec_m=$(ls `remove_ext $pttrn_diffsminus`_bvecs| wc -l)
-n_bval_p=$(ls `remove_ext $pttrn_diffsplus`_bvals| wc -l)
-n_bvec_p=$(ls `remove_ext $pttrn_diffsplus`_bvecs| wc -l)
+n_dwi_plus=$(cat $fldr/dwi+.files | wc -l)
+n_dwi_minus=$(cat $fldr/dwi-.files | wc -l)
+n_vec_plus=`cat $fldr/bvec+.files | wc -l`
+n_vec_minus=`cat $fldr/bvec-.files | wc -l`
+n_val_plus=`cat $fldr/bval+.files | wc -l`
+n_val_minus=`cat $fldr/bval-.files | wc -l`
 
 # enable stages
 TOPUP_STG1=1
@@ -110,54 +113,60 @@ if [ $TOPUP_USE_EC -eq 1 ] ; then
   echo "`basename $0`: TOPUP_EC_DOF=$TOPUP_EC_DOF"
   echo "`basename $0`: TOPUP_EC_COST=$TOPUP_EC_COST"
 fi
-echo "`basename $0`: n_dwi- : $n_dwi_m"
-echo "`basename $0`: n_dwi+ : $n_dwi_p"
-echo "`basename $0`: n_bval-: $n_bval_m"
-echo "`basename $0`: n_bval+: $n_bval_p"
-echo "`basename $0`: n_bvec-: $n_bvec_m"
-echo "`basename $0`: n_bvec+: $n_bvec_p"
+echo "`basename $0`: n_dwi- : $n_dwi_minus"
+echo "`basename $0`: n_dwi+ : $n_dwi_plus"
+echo "`basename $0`: n_bval-: $n_val_minus"
+echo "`basename $0`: n_bval+: $n_val_plus"
+echo "`basename $0`: n_bvec-: $n_vec_minus"
+echo "`basename $0`: n_bvec+: $n_vec_plus"
 echo "`basename $0`: TOPUP_STG1=$TOPUP_STG1"
 echo "`basename $0`: TOPUP_STG2=$TOPUP_STG2"
 echo "`basename $0`: TOPUP_STG3=$TOPUP_STG3"               
 echo "`basename $0`: TOPUP_STG4=$TOPUP_STG4"               
 echo "`basename $0`: TOPUP_STG5=$TOPUP_STG5"                              
 echo "`basename $0`: TOPUP_STG6=$TOPUP_STG6"                              
+echo ""
+
+# check bvals, bvecs and dwi files for consistent number of entries
+errflag=0
+echo "TOPUP : Checking bvals/bvecs- and DWI files for consistent number of entries..."
+for subj in `cat $outdir/.subjects` ; do
+  for sess in `cat $outdir/.sessions_struc` ; do
+    i=1
+    for dwi_p in $(cat $fldr/dwi+.files) ; do
+      dwi_m=$(cat $fldr/dwi-.files | sed -n ${i}p)
+      n_bvalsplus=`cat $fldr/bval+.files | sed -n ${i}p | xargs cat | wc -w` ;  n_bvecsplus=`cat $fldr/bvec+.files | sed -n ${i}p | xargs cat | wc -w`
+      n_bvalsminus=`cat $fldr/bval-.files | sed -n ${i}p | xargs cat | wc -w` ; n_bvecsminus=`cat $fldr/bvec-.files | sed -n ${i}p | xargs cat | wc -w`
+      nvolplus=`countVols "$dwi_p"` ; nvolminus=`countVols "$dwi_m"`
+      if [ $n_bvalsplus -eq $nvolplus -a $n_bvecsplus=$(echo "scale=0 ; 3*$n_bvalsplus" | bc -l) ] ; then 
+        echo "TOPUP : subj $subj , sess $sess : $(basename $dwi_p) : consistent number of entries in bval/bvec/dwi files ($n_bvalsplus)"
+      else
+        echo "TOPUP : subj $subj , sess $sess : $(basename $dwi_p) : ERROR : inconsistent number of entries in bval:$n_bvalsplus / bvec:$(echo "scale=0; $n_bvecsplus/3" | bc -l) / dwi:$nvolplus" ; errflag=1
+      fi
+      if [ $n_bvalsminus -eq $nvolminus -a $n_bvecsminus=$(echo "scale=0 ; 3*$n_bvalsminus" | bc -l) ] ; then 
+        echo "TOPUP : subj $subj , sess $sess : $(basename $dwi_m) : consistent number of entries in bval/bvec/dwi files ($n_bvalsminus)"
+      else
+        echo "TOPUP : subj $subj , sess $sess : $(basename $dwi_m) : ERROR : inconsistent number of entries in bval:$n_bvalsminus / bvec:$(echo "scale=0; $n_bvecsminus/3" | bc -l) / dwi:$nvolminus" ; errflag=1
+      fi
+      if [ $n_bvalsplus -eq $n_bvalsminus ] ; then 
+        echo "TOPUP : subj $subj , sess $sess : blip(+/-) : consistent number of entries ($n_bvalsminus)"
+      else
+        echo "TOPUP : subj $subj , sess $sess : blip(+/-) : ERROR : inconsistent number of entries (+: $n_bvalsplus -: $n_bvalsminus)" ; errflag=1
+      fi
+      i=$[$i+1]
+    done
+  done
+done
+if [ $errflag -eq 1 ] ; then echo "DWI consistency check : Exiting due to errors !" ; exit 1 ; fi
+n_bvalsplus="" ; n_bvalsminus="" ; n_bvecsplus="" ; n_bvecsminus="" ; nvolplus="" ; nvolminus="" ; errflag="" ; subj="" ; sess="" ; i="" ; dwi_m="" ; dwi_p=""
+echo "TOPUP : ...done." ; echo ""
+# end check 
+
+#------------------------------
 
 # TOPUP prepare
 if [ $TOPUP_STG1 -eq 1 ] ; then
   echo "----- BEGIN TOPUP_STG1 -----"
-  
-  ## check bvals, bvecs and diff. files for consistent number of entries
-  #errflag=0
-  #echo "TOPUP : Checking bvals/bvecs- and DWI files for consistent number of entries..."
-  #for subj in `cat $outdir/.subjects` ; do
-    #for sess in `cat $outdir/.sessions_struc` ; do
-
-      #n_bvalsplus=`cat $pttrn_bvalsplus | wc -w` ; n_bvecsplus=`cat $pttrn_bvecsplus | wc -w`
-      #n_bvalsminus=`cat $pttrn_bvalsminus | wc -w` ; n_bvecsminus=`cat $pttrn_bvecsminus | wc -w`
-      #nvolplus=`countVols "$pttrn_diffsplus"` ; nvolminus=`countVols "$pttrn_diffsminus"`
-      #if [ $n_bvalsplus -eq $nvolplus -a $n_bvecsplus=$(echo "scale=0 ; 3*$n_bvalsplus" | bc -l) ] ; then 
-        #echo "TOPUP : subj $subj , sess $sess : blip(+)   : consistent number of entries in bval/bvec/dwi files ($n_bvalsplus)"
-      #else
-        #echo "TOPUP : subj $subj , sess $sess : blip(+)   : ERROR : inconsistent number of entries in bval:$n_bvalsplus / bvec:$(echo "scale=0; $n_bvecsplus/3" | bc -l) / dwi:$nvolplus" ; errflag=1
-      #fi
-      #if [ $n_bvalsminus -eq $nvolminus -a $n_bvecsminus=$(echo "scale=0 ; 3*$n_bvalsminus" | bc -l) ] ; then 
-        #echo "TOPUP : subj $subj , sess $sess : blip(-)   : consistent number of entries in bval/bvec/dwi files ($n_bvalsminus)"
-      #else
-        #echo "TOPUP : subj $subj , sess $sess : blip(-)   : ERROR : inconsistent number of entries in bval:$n_bvalsminus / bvec:$(echo "scale=0; $n_bvecsminus/3" | bc -l) / dwi:$nvolminus" ; errflag=1
-      #fi
-      #if [ $n_bvalsplus -eq $n_bvalsminus ] ; then 
-        #echo "TOPUP : subj $subj , sess $sess : blip(+/-) : consistent number of entries ($n_bvalsminus)"
-      #else
-        #echo "TOPUP : subj $subj , sess $sess : blip(+/-) : ERROR : inconsistent number of entries (+: $n_bvalsplus -: $n_bvalsminus)" ; errflag=1
-      #fi
-
-    #done
-  #done
-  #if [ $errflag -eq 1 ] ; then echo "DWI consistency check : Exiting due to errors !" ; exit 1 ; fi
-  #n_bvalsplus="" ; n_bvalsminus="" ; n_bvecsplus="" ; n_bvecsminus="" ; nvolplus="" ; nvolminus="" ; errflag="" ; subj="" ; sess=""
-  #echo ""
-  ## end check 
    
   for subj in `cat $outdir/.subjects` ; do
     for sess in `cat $outdir/.sessions_struc` ; do
@@ -165,7 +174,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       ## check if we have acquisition parameters
       #defineDWIparams config_acqparams_dwi $subj $sess
     
-      if [ "x$pttrn_diffsplus" = "x" -o "x$pttrn_diffsminus" = "x" -o "x$pttrn_bvalsplus" = "x" -o "x$pttrn_bvalsminus" = "x" -o "x$pttrn_bvecsplus" = "x" -o "x$pttrn_bvecsminus" = "x" ] ; then
+      if [ "x$pttrn_diffsplus" = "x" -o "x$pttrn_diffsminus" = "x" ] ; then
         echo "TOPUP : subj $subj , sess $sess : ERROR : file search pattern for blipUp/blipDown DWIs not set..."
         continue
       fi
@@ -188,12 +197,6 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       fi
                         
       # count +/- bvec/bval-files
-      ls $pttrn_bvecsplus > $fldr/bvec+.files
-      ls $pttrn_bvecsminus > $fldr/bvec-.files
-      cat $fldr/bvec-.files $fldr/bvec+.files > $fldr/bvec.files
-      ls $pttrn_bvalsplus > $fldr/bval+.files
-      ls $pttrn_bvalsminus > $fldr/bval-.files
-      cat $fldr/bval-.files $fldr/bval+.files > $fldr/bval.files
       n_vec_plus=`cat $fldr/bvec+.files | wc -l`
       n_vec_minus=`cat $fldr/bvec-.files | wc -l`
       n_val_plus=`cat $fldr/bval+.files | wc -l`
@@ -218,10 +221,10 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       fi
       
       # concatenate +bvecs and -bvecs
-      concat_bvals "$pttrn_bvalsminus" $fldr/bvalsminus_concat.txt
-      concat_bvals "$pttrn_bvalsplus" $fldr/bvalsplus_concat.txt 
-      concat_bvecs "$pttrn_bvecsminus" $fldr/bvecsminus_concat.txt
-      concat_bvecs "$pttrn_bvecsplus" $fldr/bvecsplus_concat.txt 
+      concat_bvals "$(cat $fldr/bval-.files)" $fldr/bvalsminus_concat.txt
+      concat_bvals "$(cat $fldr/bval+.files)" $fldr/bvalsplus_concat.txt 
+      concat_bvecs "$(cat $fldr/bvec-.files)" $fldr/bvecsminus_concat.txt
+      concat_bvecs "$(cat $fldr/bvec+.files)" $fldr/bvecsplus_concat.txt 
 
       nbvalsplus=$(wc -w $fldr/bvalsplus_concat.txt | cut -d " " -f 1)
       nbvalsminus=$(wc -w $fldr/bvalsminus_concat.txt | cut -d " " -f 1)
