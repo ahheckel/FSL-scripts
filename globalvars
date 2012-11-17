@@ -60,7 +60,7 @@ RECON_STG5=0               # RECON-ALL register FS's longtitudinal template (if 
 FIELDMAP_STG1=0            # FIELDMAP prepare
 FIELDMAP_STG2=0            # FIELDMAP create
 
-TOPUP_STG1=1               # TOPUP prepare
+TOPUP_STG1=0               # TOPUP prepare
 TOPUP_STG2=0               # TOPUP low-B images: create index and extract
 TOPUP_STG3=0               # TOPUP merge B0 images
 TOPUP_STG4=0               # TOPUP execute topup
@@ -114,7 +114,7 @@ MELODIC_2NDLEV_STG2=0      # MELODIC create sym-links to t1-structurals
 
 MELODIC_CMD_STG1=0         # MELODIC use melodic-command line tool (optional)
 
-DUALREG_STG1=1             # DUALREG prepare for randomise
+DUALREG_STG1=0             # DUALREG prepare for randomise
 DUALREG_STG2=0             # DUALREG randomise
 
 ALFF_2NDLEV_STG1=0         # ALFF prepare
