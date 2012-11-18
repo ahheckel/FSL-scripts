@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
+
 # echo date
 startdate=$(date) ; echo $startdate
 startdate_sec=$(date +"%s")
@@ -1926,7 +1932,7 @@ if [ $VBM_STG2 -eq 1 ] ; then
       echo "VBM PREPROC : subj $subj , sess $sess : bet: FI Threshold: $f"
       
       ## use t2 image for betting if available
-      #betT2=""
+      betT2=""
       #if [ -d $subjdir/$subj/$sess/fdt -a x"$pttrn_diffs" != "x" -a x"$pttrn_bvals" != "x" ] ; then 
         #dwi=$(ls $srcdir/$subj/$sess/$pttrn_diffs | head -n1)
         #bval=$(ls $srcdir/$subj/$sess/$pttrn_bvals | head -n1)

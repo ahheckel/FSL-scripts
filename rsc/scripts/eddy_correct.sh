@@ -1,4 +1,11 @@
-#!/bin/sh
+#!/bin/bash
+# Modification of FSL's eddy_correct (v.4.1.9). 
+
+# Adapted by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 trap 'echo "$0 : An ERROR has occured." ; exit 1' ERR
 

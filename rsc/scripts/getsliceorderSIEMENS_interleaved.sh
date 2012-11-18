@@ -1,4 +1,11 @@
 #!/bin/bash
+# Writes slice-order file for interleaved acquisitions (SIEMENS scanners).
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 set -e
 

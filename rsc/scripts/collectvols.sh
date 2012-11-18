@@ -1,5 +1,11 @@
 #!/bin/bash
-# collect and merge volumes from the directory tree
+# Collects and merges volumes from the directory tree.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 set -e
 

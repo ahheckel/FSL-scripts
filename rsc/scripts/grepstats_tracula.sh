@@ -1,4 +1,11 @@
 #!/bin/bash
+# Searches recursively in current working directory for tracula's pathstats.overall.txt and extracts values belonging to a given variable name.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 

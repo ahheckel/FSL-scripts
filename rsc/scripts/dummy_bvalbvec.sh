@@ -1,5 +1,5 @@
 #!/bin/bash
-# creating pseudo bval/bvec files
+# Creates pseudo bval/bvec files.
 
 set -e
 

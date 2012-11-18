@@ -1,5 +1,12 @@
 #!/bin/bash
-# writes input to MNI space according to given transforms
+# Writes input to MNI space according to given transforms.
+
+# Based on FSL's featlib.tcl (v. 4.1.9). 
+# Adapted by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 

@@ -1,11 +1,18 @@
 #!/bin/bash
+# Finds significant activation clusters.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <tbss|vbm> <dir> <search-pttrn> <thres> <fslview 1|0>"
+    echo "Usage: `basename $0` <atlas:tbss|vbm> <dir> <search-pttrn> <thres> <fslview 1|0>"
     echo "Example: `basename $0` vbm ./stats \"*_corrp_*\" 0.95 1"
     echo "         `basename $0` vbm ./stats \"*_corrp_*\" -1"
     echo "          NOTE: thres=-1 reports only the most significant result."

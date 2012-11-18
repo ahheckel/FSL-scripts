@@ -1,5 +1,5 @@
 #!/bin/bash
-# overwrite FSL-scripts with new version
+# Overwrites /FSL-scripts with new version.
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 

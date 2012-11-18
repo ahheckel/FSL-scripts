@@ -1,5 +1,11 @@
 #!/bin/bash
-# fslview wrapper. Also converts and displays .mgz files.
+# Fslview wrapper for Nautilus. Also converts and displays Freesurfer volumes.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh

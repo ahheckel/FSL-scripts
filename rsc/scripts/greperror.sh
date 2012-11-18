@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
+
 Usage() {
     echo ""
     echo "Usage: `basename $0` <path>"

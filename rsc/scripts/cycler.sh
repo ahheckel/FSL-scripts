@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#cycler
+# cycler
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 

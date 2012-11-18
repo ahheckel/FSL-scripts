@@ -1,5 +1,11 @@
 #!/bin/bash
-# Create pseudoimage from motion paramaters and apply high-pass filter on it.
+# Creates pseudoimage from motion paramaters and applies high-pass filter on it.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 

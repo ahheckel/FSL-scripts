@@ -1,4 +1,11 @@
 #!/bin/bash
+# Extracts and merges volumes from a series of 4D input files.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 set -e
 

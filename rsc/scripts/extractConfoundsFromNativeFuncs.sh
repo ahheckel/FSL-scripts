@@ -1,5 +1,11 @@
 #! /bin/bash
 
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
+
 set -e
 
 if [ $# -lt 4 ]  ; then echo "Usage: `basename $0` <in> <out> <ref_pos> <struc>" ; exit 1 ; fi

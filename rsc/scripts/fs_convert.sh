@@ -1,5 +1,11 @@
 #!/bin/bash
-# convert FS format to FSL format / normalize WM-intensity and conform to 256^3 at 1mm (or another isotropic resolution)
+# Converts FS-format to FSL-format / normalizes WM-intensity and conforms to 256^3 at 1mm (or another isotropic resolution).
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 

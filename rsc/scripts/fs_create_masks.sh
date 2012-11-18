@@ -1,5 +1,11 @@
 #!/bin/bash
-# extract nuisance confounds from 4D functional in native space using Freesurfer recons & Freesurfer's bbregister
+# Extracts nuisance confounds from 4D functional in native space using Freesurfer recons & Freesurfer's bbregister.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 

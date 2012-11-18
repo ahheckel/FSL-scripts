@@ -1,6 +1,6 @@
 #!/bin/sh
-# adapted by HKL: address sections (mask / dualreg / randomise) separately & insert exchangeability block file into randomise call & voxel-wise stats & name randomise results according 
-# to the name of the used design & delete ${LOGDIR}/dr[ABCD] cmd-file to avoid accumulation on re-run. randomise_parallel or randomise are used on demand, randomise_parallel however
+# Adapted by HKL: address sections (mask / dualreg / randomise) separately & insert exchangeability block file into randomise call & voxel-wise stats & naming of randomise results based on 
+# the name of the used design & delete ${LOGDIR}/dr[ABCD] cmd-file to avoid accumulation on re-run. randomise_parallel or randomise are used on demand, randomise_parallel, however,
 # only works if /bin/sh points to /bin/bash ! (!)
 
 Usage() {

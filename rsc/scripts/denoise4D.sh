@@ -1,5 +1,11 @@
 #!/bin/bash
-# removes nuisance confounds from 4D functional using masks
+# Removes nuisance confounds from 4D functional using masks.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 

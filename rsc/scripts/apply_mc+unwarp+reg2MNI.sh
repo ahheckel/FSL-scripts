@@ -1,5 +1,11 @@
 #!/bin/bash
-# writes func -> standard space w/o intermediary write-outs.
+# Writes func -> standard space w/o intermediary write-outs.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 

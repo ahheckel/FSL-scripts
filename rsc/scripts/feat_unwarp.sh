@@ -1,6 +1,13 @@
 #!/bin/bash
 # Feat's (v.4.1.9) unwarp module.
 
+# Based on FSL's featlib.tcl (v. 4.1.9). 
+# Adapted by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
+
 set -e
 
 trap 'echo "$0 : An ERROR has occured."' ERR

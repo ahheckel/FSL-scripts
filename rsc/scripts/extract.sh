@@ -1,5 +1,12 @@
 #!/bin/bash
-# extract images from 4D volume
+# Extracts images from 4D volume.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
+
 set -e
 
 trap 'echo "$0 : An ERROR has occured."' ERR

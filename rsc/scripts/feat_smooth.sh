@@ -1,6 +1,12 @@
 #!/bin/bash
-# The FEAT way of smoothing.
-# NOTE: also performs grand mean scaling.
+# The FEAT way of smoothing. Also performs grand mean scaling.
+
+# Based on FSL's featlib.tcl (v. 4.1.9). 
+# Adapted by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
