@@ -1846,26 +1846,31 @@ if [ $VBM_STG1 -eq 1 ] ; then
       # convert to .mnc & perform non-uniformity correction
       if [ $VBM_NU_CORRECT_T1 -eq 1 ] ; then
         echo "VBM PREPROC : subj $subj , sess $sess : performing non-uniformity correction..."
-        mri_convert ${fldr}/$(subjsess)_t1_reor.nii.gz $fldr/tmp.mnc # &>$logdir/vbm_mri_convert01_$(subjsess) 
-        fsl_sub -l $logdir -N vbm_nu_correct_$(subjsess) nu_correct -clobber $fldr/tmp.mnc $fldr/t1_nu_struc.mnc
+        echo "mri_convert ${fldr}/$(subjsess)_t1_reor.nii.gz $fldr/tmp.mnc ; \
+        nu_correct -clobber $fldr/tmp.mnc $fldr/t1_nu_struc.mnc; \
+        mri_convert $fldr/t1_nu_struc.mnc $fldr/$(subjsess)_t1_nu_struc.nii.gz -odt float; \
+        rm -f $fldr/tmp.mnc ; rm -f $fldr/t1_nu_struc.mnc ; \
+        ln -sf $(subjsess)_t1_nu_struc.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz" > $fldr/vbm_nu_correct.cmd
+        
+        fsl_sub -l $logdir -N vbm_nu_correct_$(subjsess) -t $fldr/vbm_nu_correct.cmd
       fi      
     done
   done
   
-  if [ $VBM_NU_CORRECT_T1 -eq 1 ] ; then
-    # wait until nu_correct has finished...
-    waitIfBusy       
-    # re-convert to .nii.gz format and delete temporary files
-    for subj in `cat subjects`; do 
-      for sess in `cat ${subj}/sessions_struc` ; do
-        fldr=$subjdir/$subj/$sess/vbm
-        mri_convert $fldr/t1_nu_struc.mnc $fldr/$(subjsess)_t1_nu_struc.nii.gz &>$logdir/vbm01_mri_convert02_$(subjsess) -odt float
-        rm -f $fldr/tmp.mnc
-        rm -f $fldr/t1_nu_struc.mnc
-        ln -sf $(subjsess)_t1_nu_struc.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz
-      done
-    done    
-  fi
+  #if [ $VBM_NU_CORRECT_T1 -eq 1 ] ; then
+    ## wait until nu_correct has finished...
+    #waitIfBusy       
+    ## re-convert to .nii.gz format and delete temporary files
+    #for subj in `cat subjects`; do 
+      #for sess in `cat ${subj}/sessions_struc` ; do
+        #fldr=$subjdir/$subj/$sess/vbm
+        #mri_convert $fldr/t1_nu_struc.mnc $fldr/$(subjsess)_t1_nu_struc.nii.gz &>$logdir/vbm01_mri_convert02_$(subjsess) -odt float
+        #rm -f $fldr/tmp.mnc
+        #rm -f $fldr/t1_nu_struc.mnc
+        #ln -sf $(subjsess)_t1_nu_struc.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz
+      #done
+    #done    
+  #fi
   
   waitIfBusy
   
@@ -1919,13 +1924,25 @@ if [ $VBM_STG2 -eq 1 ] ; then
       echo "VBM PREPROC : subj $subj , sess $sess : bet: Center of Gravity: $CoG"
       f=`getBetThres ${subjdir}/config_bet_struc0 $subj $sess`
       echo "VBM PREPROC : subj $subj , sess $sess : bet: FI Threshold: $f"
+      
+      ## use t2 image for betting if available
+      #betT2=""
+      #if [ -d $subjdir/$subj/$sess/fdt -a x"$pttrn_diffs" != "x" -a x"$pttrn_bvals" != "x" ] ; then 
+        #dwi=$(ls $srcdir/$subj/$sess/$pttrn_diffs | head -n1)
+        #bval=$(ls $srcdir/$subj/$sess/$pttrn_bvals | head -n1)
+        ## get B0 index
+        #b0idx=`getB0Index $bval $fldr/b0.idx | cut -d " " -f 1` ; min=`getB0Index $bval $fldr/b0.idx | cut -d " " -f 2`
+        #fslroi $dwi $fldr/b0 $b0idx 1
+        #betT2="-A2 $fldr/b0.nii.gz"
+        #rm $fldr/b0.idx
+      #fi
 
       # betting (if no externally modified skull-stripped volume is supplied)
       if [ $f = "mod" ] ; then 
         imcp ${fldr}/$(subjsess)_t1_betted_initbrain_mod ${fldr}/$(subjsess)_t1_betted_initbrain
         ln -sf $(subjsess)_t1_betted_initbrain_mod $fldr/$(subjsess)_t1_initbrain.nii.gz       
       else
-        fsl_sub -l $logdir -N vbm_bet_$(subjsess) bet ${fldr}/$(subjsess)_t1_struc  ${fldr}/$(subjsess)_t1_betted_initbrain `getBetCoGOpt "$CoG"` `getBetFIOpt $f`
+        fsl_sub -l $logdir -N vbm_bet_$(subjsess) bet ${fldr}/$(subjsess)_t1_struc  ${fldr}/$(subjsess)_t1_betted_initbrain `getBetCoGOpt "$CoG"` `getBetFIOpt $f` $betT2
         fsl_sub -l $logdir -N vbm_watershed_$(subjsess) mri_watershed ${fldr}/$(subjsess)_t1_struc.nii.gz  ${fldr}/$(subjsess)_t1_watershed_initbrain.nii.gz
         
         if [ $VBM_USE_WATERSHED_INIT -eq 1 ] ; then

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Estimates the mean deformation (mean and median) of a fnirt warpfield to have a goodness of fit measure of the preceding affine registration.
+# Estimates the deformation (mean and median) of a fnirt warpfield to have a goodness of fit measure of the preceding affine registration.
 
 set -e
 
@@ -21,5 +21,5 @@ fslmaths ${wf} -sqr -Tmean ${wf}_tmp
 result=$(fslstats ${wf}_tmp -M -P 50) # > ${wf}_warp.msf
 imrm ${wf}_tmp
 
-echo "mean/median deformation of '$wf' : $result" 
+echo "`basename $0`: mean/median deformation of '$wf' : $result" 
 #echo "`basename $0`: done."
