@@ -1,4 +1,4 @@
-#! /bin/bash
+#!/bin/bash
 
 # Written by Andreas Heckel
 # University of Heidelberg
