@@ -18,8 +18,9 @@ trap 'finishdate_sec=$(date +"%s") ; diff=$(($finishdate_sec-$startdate_sec)) ; 
 
 # display FSL version
 if [ x$FSL_DIR = "x" ] ; then FSL_DIR="$FSLDIR" ; fi
-if [ x$FSL_DIR = "x" ] ; then echo "\$FSL_DIR and \$FSLDIR variable not definied - exiting"  ; exit ; fi
-echo ""; echo "FSL version is $(cat $(dirname $(dirname `which imglob`))/etc/fslversion)." ; echo "" ; sleep 1
+if [ x$FSL_DIR = "x" ] ; then echo "ERROR : \$FSL_DIR and \$FSLDIR variable not definied - exiting"  ; exit ; fi
+fslversion=$(cat $(dirname $(dirname `which imglob`))/etc/fslversion)
+echo ""; echo "FSL version is ${fslversion}." ; echo "" ; sleep 1
 
 # display Job-Id
 echo "Job-Id : $$"
@@ -1909,7 +1910,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
       for sess in `cat ${subj}/sessions_struc` ; do
         echo "VBM PREPROC : subj $subj , sess $sess : 'fsl_anat' is being executed..."
         fldr=$subjdir/$subj/$sess/vbm
-        fsl_sub -l $logdir -N vbm_fsl_anat_$(subjsess) fsl_anat --clobber -i ${fldr}/$(subjsess)_t1_orig
+        fsl_sub -l $logdir -N vbm_fsl_anat_$(subjsess) fsl_anat --clobber --noseg --nosubcortseg -i ${fldr}/$(subjsess)_t1_orig
       done
     done
   fi
