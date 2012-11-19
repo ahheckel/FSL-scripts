@@ -1706,8 +1706,19 @@ if [ $BPX_STG1 -eq 1 ] ; then
   
   # define bedpostx subdirectories
   bpx_dir=""
-  bpx_opts="-n 2 -w 1 -b 1000"
-
+  
+  # define bedpostx options
+  if [ x"$BPX_MODEL" != "x" ] ; then
+    if [ $(echo $fslversion | cut -d . -f 1) -lt 5 ] ; then
+      echo "BEDPOSTX : ERROR : bedpostx switch '-model $BPX_MODEL' is not supported in FSL v${fslversion} - exiting." ; exit
+    else
+      echo "BEDPOSTX : FSL version is ${fslversion}. Using bedpostx switch '-model $BPX_MODEL'."
+      bpx_opts="-n 2 -w 1 -b 1000 -model $BPX_MODEL"
+    fi
+  else
+    bpx_opts="-n 2 -w 1 -b 1000"
+  fi
+  
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do
       if [ $BPX_USE_NOEC -eq 1 ] ; then
