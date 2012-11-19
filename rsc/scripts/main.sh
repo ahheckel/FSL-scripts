@@ -18,7 +18,7 @@ trap 'finishdate_sec=$(date +"%s") ; diff=$(($finishdate_sec-$startdate_sec)) ; 
 
 # display FSL version
 if [ x$FSL_DIR = "x" ] ; then FSL_DIR="$FSLDIR" ; fi
-if [ x$FSL_DIR = "x" ] ; then echo "ERROR : \$FSL_DIR and \$FSLDIR variable not definied - exiting"  ; exit ; fi
+if [ x$FSL_DIR = "x" ] ; then echo "ERROR : \$FSL_DIR and \$FSLDIR variable not definied - exiting"  ; exit 1 ; fi
 fslversion=$(cat $(dirname $(dirname `which imglob`))/etc/fslversion)
 echo ""; echo "FSL version is ${fslversion}." ; echo "" ; sleep 1
 
@@ -26,7 +26,7 @@ echo ""; echo "FSL version is ${fslversion}." ; echo "" ; sleep 1
 echo "Job-Id : $$"
 
 # source environment variables
-if [ ! -f ./globalvars ] ; then echo "ERROR: 'globalvars' not found - exiting." ; exit ; fi
+if [ ! -f ./globalvars ] ; then echo "ERROR: 'globalvars' not found - exiting." ; exit 1 ; fi
 source ./globalvars
 
 # source environment functions
@@ -39,7 +39,7 @@ set +e
   lock="$wd/.lockdir121978"
   echo "creating lock [ '$lock' ]"
   mkdir $lock &>/dev/null  
-  if [ $? -gt 0 ] ; then echo "$0 : --> another instance is already running - exiting." ; exit ; fi
+  if [ $? -gt 0 ] ; then echo "$0 : --> another instance is already running - exiting." ; exit 1 ; fi
   lock=""
   echo ""
 set -e
@@ -98,7 +98,7 @@ if [ "x$FIRSTLEV_SUBJECTS" != "x" -a "x$FIRSTLEV_SESSIONS_FUNC" != "x" -a "x$FIR
   
   #errflag=0
   #for i in $FIRSTLEV_SUBJECTS ; do if [ ! -d ${subjdir}/$i ] ; then errflag=1 ; echo "ERROR: '${subjdir}/$i' does not exist!" ; fi ; done
-  #if [ $errflag -eq 1 ] ; then echo "...exiting." ; exit ; fi
+  #if [ $errflag -eq 1 ] ; then echo "...exiting." ; exit 1 ; fi
   
   echo $FIRSTLEV_SUBJECTS | row2col > ${subjdir}/subjects
   cat -n ${subjdir}/subjects
@@ -117,9 +117,9 @@ fi
 # are all progs installed ?
 progs="$FSL_DIR/bin/tbss_x $FSL_DIR/bin/swap_voxelwise $FSL_DIR/bin/swap_subjectwise $FREESURFER_HOME/bin/trac-all $FSL_DIR/etc/flirtsch/b02b0.cnf $FSL_DIR/bin/topup $FSL_DIR/bin/applytopup"
 for prog in $progs ; do
-  if [ ! -f $prog ] ; then echo "ERROR : '$prog' is not installed. Exiting." ; exit ; fi
+  if [ ! -f $prog ] ; then echo "ERROR : '$prog' is not installed. Exiting." ; exit 1 ; fi
 done
-if [ x$(which octave) = "x" ] ; then echo "ERROR : OCTAVE does not seem to be installed on your system ! Exiting..." ; exit ; fi
+if [ x$(which octave) = "x" ] ; then echo "ERROR : OCTAVE does not seem to be installed on your system ! Exiting..." ; exit 1 ; fi
 
 # is sh linked to bash ?
 if [ ! -z $(which sh) ] ; then
@@ -154,10 +154,10 @@ if [ $CHECK_INFOFILES = 1 ] ; then
       fi
     fi
     if [ ! -f ${subjdir}/${subj}/sessions_struc ] ; then
-      read -p "Session File for structural processing not present in ${subjdir}/${subj}. You will need to create that file. Exiting..." ; exit ; 
+      read -p "Session File for structural processing not present in ${subjdir}/${subj}. You will need to create that file. Exiting..." ; exit 1 ; 
     fi
     if [ ! -f ${subjdir}/${subj}/sessions_func ] ; then
-      read -p "Session File for functional processing not present in ${subjdir}/${subj}. You will need to create that file. Exiting..." ; exit ; 
+      read -p "Session File for functional processing not present in ${subjdir}/${subj}. You will need to create that file. Exiting..." ; exit 1 ; 
     fi
   done
 
@@ -699,7 +699,7 @@ if [ $FIELDMAP_STG2 -eq 1 ]; then
       # bet, if necessary
       if [ $f = "mod" ] ; then
         if [ ! -f ${fldr}/magn_brain_${f}.nii.gz -o ! -f ${fldr}/magn_brain_${f}_mask.nii.gz ] ; then
-          echo "FIELDMAP : subj $subj , sess $sess : externally modified volume (magn_brain_${f}.nii.gz) & mask (magn_brain_${f}_mask.nii.gz) not found - exiting..." ; exit          
+          echo "FIELDMAP : subj $subj , sess $sess : ERROR : externally modified volume (magn_brain_${f}.nii.gz) & mask (magn_brain_${f}_mask.nii.gz) not found - exiting..." ; exit 1      
         fi
       else
         echo "FIELDMAP : subj $subj , sess $sess : betted magnitude image with fi=${f}..."
@@ -1353,7 +1353,7 @@ if [ $FDT_STG1 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do    
       fldr=$subj/$sess/fdt ; mkdir -p $fldr
       
-      if [ -z $pttrn_diffs ] ; then echo "FDT : ERROR : search pattern for DWI files not defined - exiting..." ; exit ; fi
+      if [ -z $pttrn_diffs ] ; then echo "FDT : ERROR : search pattern for DWI files not defined - exiting..." ; exit 1 ; fi
       
       # merge diffs...
       echo "FDT : subj $subj , sess $sess : merging diffs..."
@@ -1432,7 +1432,7 @@ if [ $FDT_STG3 -eq 1 ] ; then
       # bet, if necessary
       if [ $f = "mod" ] ; then
         if [ ! -f $fldr/nodif_brain_${f}.nii.gz  -o ! -f $fldr/nodif_brain_${f}_mask.nii.gz ] ; then   
-          echo "FDT : subj $subj , sess $sess : externally modified volume (nodif_brain_${f}) & mask (nodif_brain_${f}_mask) not found - exiting..." ; exit          
+          echo "FDT : subj $subj , sess $sess : ERROR : externally modified volume (nodif_brain_${f}) & mask (nodif_brain_${f}_mask) not found - exiting..." ; exit 1         
         fi
       else
         echo "FDT : subj $subj , sess $sess : betting B0 image with fi=${f}..."
@@ -1444,8 +1444,8 @@ if [ $FDT_STG3 -eq 1 ] ; then
       # define magnitude and fieldmap
       fmap=$subjdir/$subj/$sess/$(remove_ext $FDT_FMAP).nii.gz
       fmap_magn=$subjdir/$subj/$sess/$(remove_ext $FDT_MAGN).nii.gz
-      if [ $(_imtest $fmap) -eq 0 ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
-      if [ $(_imtest $fmap_magn) -eq 0 ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
+      if [ $(_imtest $fmap) -eq 0 ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit 1 ; fi
+      if [ $(_imtest $fmap_magn) -eq 0 ] ; then echo "FDT : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit 1 ; fi
       
       # get unwarp dir.
       uw_dir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
@@ -1917,7 +1917,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
   
   # also execute fsl_anat script (fsl v.5) if applicable
   if [ $VBM_FSLV5 -eq 1 ] ; then
-    if [ ! -f $FSL_DIR/bin/fsl_anat ] ; then echo "VBM PREPROC : ERROR : fsl_anat not found... is this really FSL v.5 ? Exiting." ; exit ; fi
+    if [ ! -f $FSL_DIR/bin/fsl_anat ] ; then echo "VBM PREPROC : ERROR : fsl_anat not found... is this really FSL v.5 ? Exiting." ; exit 1 ; fi
     for subj in `cat subjects`; do 
       for sess in `cat ${subj}/sessions_struc` ; do
         echo "VBM PREPROC : subj $subj , sess $sess : 'fsl_anat' is being executed..."
@@ -2127,7 +2127,7 @@ waitIfBusy
 # TRACULA prepare 
 if [ $TRACULA_STG1 -eq 1 ] ; then
   echo "----- BEGIN TRACULA_STG1 -----"
-  if [ ! -f $tmpltdir/template_tracula.rc ] ; then echo "TRACULA : template file not found. Exiting..." ; exit ; fi
+  if [ ! -f $tmpltdir/template_tracula.rc ] ; then echo "TRACULA : ERROR : template file not found. Exiting..." ; exit 1 ; fi
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
     
@@ -2255,7 +2255,7 @@ if [ $TRACULA_STG2 -eq 1 ] ; then
       if [ ! -f $fldr/mri/aparc+aseg.mgz ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : aparc+aseg.mgz file not found - did you run recon-all ?" ; errflag=1 ;  fi
     done
   done
-  if [ $errflag = 1 ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : you must run recon-all for all subjects before executing TRACULA - exiting..." ; exit ; fi
+  if [ $errflag = 1 ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : you must run recon-all for all subjects before executing TRACULA - exiting..." ; exit 1 ; fi
   
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
@@ -2363,8 +2363,8 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       fmap=$subjdir/$subj/$sess/$(remove_ext $BOLD_FMAP).nii.gz
       fmap_magn=$subjdir/$subj/$sess/$(remove_ext $BOLD_MAGN).nii.gz
       if [ $BOLD_UNWARP -eq 1 ] ; then
-        if [ $(_imtest $fmap) -eq 0 ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit ; fi
-        if [ $(_imtest $fmap_magn) -eq 0 ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit ; fi
+        if [ $(_imtest $fmap) -eq 0 ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap image '$fmap' not found ! Exiting..." ; exit 1 ; fi
+        if [ $(_imtest $fmap_magn) -eq 0 ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit 1 ; fi
       fi
       
       # create symlinks to t1-structurals (highres registration reference)
@@ -3272,9 +3272,9 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       fi
       
       # check
-      if [ ! -d $featdir ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: directory '$featdir' not found - exiting..." ; exit ; fi
-      if [ ! -d $featdir/mc ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$featdir/mc' not found - exiting..." ; exit ; fi
-      if [ ! -f $alff_uw_shiftmap ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$alff_uw_shiftmap' not found - exiting..." ; exit ; fi
+      if [ ! -d $featdir ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: directory '$featdir' not found - exiting..." ; exit 1 ; fi
+      if [ ! -d $featdir/mc ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$featdir/mc' not found - exiting..." ; exit 1 ; fi
+      if [ ! -f $alff_uw_shiftmap ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$alff_uw_shiftmap' not found - exiting..." ; exit 1 ; fi
       
       # mkdir
       fldr=$subjdir/$subj/$sess/alff
@@ -3455,8 +3455,8 @@ if [ $ALFF_STG3 -eq 1 ] ; then
       MNI_file=$FSL_DIR/data/standard/MNI152_T1_2mm_brain.nii.gz
       
       # check
-      if [ ! -f $affine ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$affine' not found. Exiting..." ; exit ; fi
-      if [ $(_imtest $warp) -eq 0 ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$warp' not found. Exiting..." ; exit ; fi
+      if [ ! -f $affine ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$affine' not found. Exiting..." ; exit 1 ; fi
+      if [ $(_imtest $warp) -eq 0 ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$warp' not found. Exiting..." ; exit 1 ; fi
           
       # copy template
       cp $MNI_file $fldr/standard.nii.gz
@@ -3628,7 +3628,7 @@ waitIfBusy
 if [ $TBSS_STG4 -eq 1 ] ; then
   echo "----- BEGIN TBSS_STG4 -----"
   ## bedpostX files present ?
-  #if [ ! -d $FS_subjdir/$(subjsess)/dmri.bedpostX ] ; then echo "TBSSX: dmri.bedpostX directory not found for TBSSX - you must run TRACULA first. Exiting ..." ; exit ; fi
+  #if [ ! -d $FS_subjdir/$(subjsess)/dmri.bedpostX ] ; then echo "TBSSX: dmri.bedpostX directory not found for TBSSX - you must run TRACULA first. Exiting ..." ; exit 1 ; fi
   
   # define tbss subdirectories
   tbss_dirs=""
@@ -3641,7 +3641,7 @@ if [ $TBSS_STG4 -eq 1 ] ; then
   if [ $TBSS_USE_TOPUP_EC_BVECROT -eq 1 ] ; then tbss_dirs=$tbss_dirs" "$tbssdir/${TBSS_OUTDIR_PREFIX}_topup_ec_bvecrot ; fi
 
   for tbss_dir  in $tbss_dirs ; do
-    if [ ! $tbss_dir ] ; then echo "TBSS: ERROR: $tbss_dir not found - exiting..." ; exit ; fi
+    if [ ! $tbss_dir ] ; then echo "TBSS: ERROR: $tbss_dir not found - exiting..." ; exit 1 ; fi
     
     # define dti type
     FA_type=$(basename $tbss_dir | sed "s|^${TBSS_OUTDIR_PREFIX}_||g")
@@ -3649,7 +3649,7 @@ if [ $TBSS_STG4 -eq 1 ] ; then
     # change directory
     echo "TBSSX: changing to <$tbss_dir>"
     cd  $tbss_dir
-      if [ ! -d stats -a ! -d _stats ] ; then echo "TBSSX: ERROR: $tbss_dir/[_]stats not found - you must run the TBSS stream first; exiting..." ; exit ; fi
+      if [ ! -d stats -a ! -d _stats ] ; then echo "TBSSX: ERROR: $tbss_dir/[_]stats not found - you must run the TBSS stream first; exiting..." ; exit 1 ; fi
        
       # cleanup prev. runs
       rm -f F1/* F2/* D1/* D2/*       
@@ -3662,7 +3662,7 @@ if [ $TBSS_STG4 -eq 1 ] ; then
         for subj in $TBSS_INCLUDED_SUBJECTS ; do
           for sess in $TBSS_INCLUDED_SESSIONS ; do
             fname=$(subjsess)_dti_${FA_type}_FA.nii.gz
-            if [ ! -d $FS_subjdir/$(subjsess)/dmri.bedpostX ] ; then echo "TBSSX: ERROR: directory '$FS_subjdir/$(subjsess)/dmri.bedpostX' not found  - you must run the TRACULA stream first..." ; exit ; fi
+            if [ ! -d $FS_subjdir/$(subjsess)/dmri.bedpostX ] ; then echo "TBSSX: ERROR: directory '$FS_subjdir/$(subjsess)/dmri.bedpostX' not found  - you must run the TRACULA stream first..." ; exit 1 ; fi
             echo "TBSSX: copying..."
             cp -v $FS_subjdir/$(subjsess)/dmri.bedpostX/dyads1.nii.gz D1/$fname
             cp -v $FS_subjdir/$(subjsess)/dmri.bedpostX/dyads2.nii.gz D2/$fname
@@ -3679,7 +3679,7 @@ if [ $TBSS_STG4 -eq 1 ] ; then
             if [ ! -d $bpx_dir ] ; then echo "TBSSX: ERROR: directory '$bpx_dir' not found - you must run BedpostX first..." ; errflag=1 ; fi
           done 
         done
-        if [ $errflag -eq 1 ] ; then echo "... exiting." ; exit ; fi
+        if [ $errflag -eq 1 ] ; then echo "... exiting." ; exit 1 ; fi
         
         echo "TBSSX: copying..."
         for subj in $TBSS_INCLUDED_SUBJECTS ; do
@@ -3815,8 +3815,8 @@ if [ $MELODIC_2NDLEV_STG1 -eq 1 ]; then
   
   echo "MELODIC_GROUP: creating MELODIC configuration file '$conffile'..."
  
-  if [ ! -f $templateICA ] ; then echo "MELODIC_GROUP: ERROR: MELODIC template file not found - exiting..." ; exit ; fi
-  if [ ! -f $subjdir/config_func2highres.reg ] ; then echo "MELODIC_GROUP: ERROR: registration mapping between functionals and t1 reference not found - exiting..." ; exit ; fi
+  if [ ! -f $templateICA ] ; then echo "MELODIC_GROUP: ERROR: MELODIC template file not found - exiting..." ; exit 1 ; fi
+  if [ ! -f $subjdir/config_func2highres.reg ] ; then echo "MELODIC_GROUP: ERROR: registration mapping between functionals and t1 reference not found - exiting..." ; exit 1 ; fi
 
   cat $templateICA > $conffile
  
@@ -3963,7 +3963,7 @@ if [ $MELODIC_CMD_STG1 -eq 1 ]; then
       
       done
     done    
-    if [ $err -eq 1 ] ; then echo "MELODIC_CMD : an ERROR has occurred - exiting..." ; exit ; fi
+    if [ $err -eq 1 ] ; then echo "MELODIC_CMD : an ERROR has occurred - exiting..." ; exit 1 ; fi
     
     # shall we bet ?
     opts=""
@@ -4036,11 +4036,11 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
         inputfiles=$inputfiles" "$inputfile
       done
     done    
-    if [ $err -eq 1 ] ; then echo "DUALREG : An ERROR has occured. Exiting..." ; exit ; fi
+    if [ $err -eq 1 ] ; then echo "DUALREG : An ERROR has occured. Exiting..." ; exit 1 ; fi
     
     # check if number of rows in design file and number of input-files 
-    if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : ERROR : file '$glmdir_dr/designs' not found - exiting..." ; exit ; fi
-    if [ -z "$(cat $glmdir_dr/designs)" ] ; then echo "DUALREG : ERROR : no designs specified in file '$glmdir_dr/designs' - exiting..." ; exit ; fi
+    if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : ERROR : file '$glmdir_dr/designs' not found - exiting..." ; exit 1 ; fi
+    if [ -z "$(cat $glmdir_dr/designs)" ] ; then echo "DUALREG : ERROR : no designs specified in file '$glmdir_dr/designs' - exiting..." ; exit 1 ; fi
     dr_glm_names=$(cat $glmdir_dr/designs)
     for dr_glm_name in $dr_glm_names ; do
       n_files=$(echo $inputfiles | wc -w)
@@ -4058,7 +4058,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
     for IC_fname in $DUALREG_IC_FILENAMES ; do
       ICfile=$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
       dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAME}_$(remove_ext $IC_fname)
-      if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit ; fi
+      if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit 1 ; fi
       
       # cleanup previous run
       if [ -d $dr_outdir ] ; then
@@ -4104,15 +4104,15 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
     for IC_fname in $DUALREG_IC_FILENAMES ; do
       dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAME}_$(remove_ext $IC_fname)
       ICfile=$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
-      if [ ! -d $dr_outdir ] ; then echo "DUALREG : ERROR : output directory '$dr_outdir' not found - exiting..." ; exit ; fi
-      if [ ! -f $dr_outdir/inputfiles ] ; then echo "DUALREG : ERROR : inputfiles textfile not found, you must run stage1 first - exiting..." ; exit ; fi
-      if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit ; fi
+      if [ ! -d $dr_outdir ] ; then echo "DUALREG : ERROR : output directory '$dr_outdir' not found - exiting..." ; exit 1 ; fi
+      if [ ! -f $dr_outdir/inputfiles ] ; then echo "DUALREG : ERROR : inputfiles textfile not found, you must run stage1 first - exiting..." ; exit 1 ; fi
+      if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit 1 ; fi
 
       echo "DUALREG : using output-directory '$dr_outdir'..."
       
       # check if number of rows in design file and number of input-files 
-      if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : ERROR : file '$glmdir_dr/designs' not found - exiting..." ; exit ; fi
-      if [ -z "$(cat $glmdir_dr/designs)" ] ; then echo "DUALREG : ERROR : no designs specified in file '$glmdir_dr/designs' - exiting..." ; exit ; fi
+      if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : ERROR : file '$glmdir_dr/designs' not found - exiting..." ; exit 1 ; fi
+      if [ -z "$(cat $glmdir_dr/designs)" ] ; then echo "DUALREG : ERROR : no designs specified in file '$glmdir_dr/designs' - exiting..." ; exit 1 ; fi
       dr_glm_names=$(cat $glmdir_dr/designs)
       for dr_glm_name in $dr_glm_names ; do
         n_files=$(echo $(cat $dr_outdir/inputfiles) | wc -w)
