@@ -775,8 +775,8 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
   echo "TOPUP : Checking bvals/bvecs- and DWI files for consistent number of entries..."
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do
-      i=1
       fldr=$srcdir/$subj/$sess
+      i=1
       for dwi_p in $(ls $fldr/$pttrn_diffsplus) ; do
         dwi_m=$(ls $fldr/$pttrn_diffsminus | sed -n ${i}p)
         n_bvalsplus=`ls $fldr/$pttrn_bvalsplus | sed -n ${i}p | xargs cat | wc -w` ; n_bvecsplus=`ls $fldr/$pttrn_bvecsplus | sed -n ${i}p | xargs cat | wc -w`
