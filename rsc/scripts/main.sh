@@ -1353,7 +1353,7 @@ if [ $FDT_STG1 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do    
       fldr=$subj/$sess/fdt ; mkdir -p $fldr
       
-      if [ -z $pttrn_diffs ] ; then echo "FDT : search pattern for DWI files not defined - exiting..." ; exit ; fi
+      if [ -z $pttrn_diffs ] ; then echo "FDT : ERROR : search pattern for DWI files not defined - exiting..." ; exit ; fi
       
       # merge diffs...
       echo "FDT : subj $subj , sess $sess : merging diffs..."
@@ -2252,10 +2252,10 @@ if [ $TRACULA_STG2 -eq 1 ] ; then
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$FS_subjdir/$(subjsess)
-      if [ ! -f $fldr/mri/aparc+aseg.mgz ] ; then echo "TRACULA : subj $subj , sess $sess : aparc+aseg.mgz file not found - did you run recon-all ?" ; errflag=1 ;  fi
+      if [ ! -f $fldr/mri/aparc+aseg.mgz ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : aparc+aseg.mgz file not found - did you run recon-all ?" ; errflag=1 ;  fi
     done
   done
-  if [ $errflag = 1 ] ; then echo "TRACULA : subj $subj , sess $sess : you must run recon-all for all subjects before executing TRACULA - exiting..." ; exit ; fi
+  if [ $errflag = 1 ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : you must run recon-all for all subjects before executing TRACULA - exiting..." ; exit ; fi
   
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
@@ -3641,7 +3641,7 @@ if [ $TBSS_STG4 -eq 1 ] ; then
   if [ $TBSS_USE_TOPUP_EC_BVECROT -eq 1 ] ; then tbss_dirs=$tbss_dirs" "$tbssdir/${TBSS_OUTDIR_PREFIX}_topup_ec_bvecrot ; fi
 
   for tbss_dir  in $tbss_dirs ; do
-    if [ ! $tbss_dir ] ; then echo "TBSS: $tbss_dir not found - exiting..." ; exit ; fi
+    if [ ! $tbss_dir ] ; then echo "TBSS: ERROR: $tbss_dir not found - exiting..." ; exit ; fi
     
     # define dti type
     FA_type=$(basename $tbss_dir | sed "s|^${TBSS_OUTDIR_PREFIX}_||g")
@@ -3649,7 +3649,7 @@ if [ $TBSS_STG4 -eq 1 ] ; then
     # change directory
     echo "TBSSX: changing to <$tbss_dir>"
     cd  $tbss_dir
-      if [ ! -d stats -a ! -d _stats ] ; then echo "TBSSX: $tbss_dir/[_]stats not found - you must run the TBSS stream first; exiting..." ; exit ; fi
+      if [ ! -d stats -a ! -d _stats ] ; then echo "TBSSX: ERROR: $tbss_dir/[_]stats not found - you must run the TBSS stream first; exiting..." ; exit ; fi
        
       # cleanup prev. runs
       rm -f F1/* F2/* D1/* D2/*       
@@ -4036,11 +4036,11 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
         inputfiles=$inputfiles" "$inputfile
       done
     done    
-    if [ $err -eq 1 ] ; then echo "DUALREG : An Error has occured. Exiting..." ; exit ; fi
+    if [ $err -eq 1 ] ; then echo "DUALREG : An ERROR has occured. Exiting..." ; exit ; fi
     
     # check if number of rows in design file and number of input-files 
-    if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : file '$glmdir_dr/designs' not found - exiting..." ; exit ; fi
-    if [ -z "$(cat $glmdir_dr/designs)" ] ; then echo "DUALREG : no designs specified in file '$glmdir_dr/designs' - exiting..." ; exit ; fi
+    if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : ERROR : file '$glmdir_dr/designs' not found - exiting..." ; exit ; fi
+    if [ -z "$(cat $glmdir_dr/designs)" ] ; then echo "DUALREG : ERROR : no designs specified in file '$glmdir_dr/designs' - exiting..." ; exit ; fi
     dr_glm_names=$(cat $glmdir_dr/designs)
     for dr_glm_name in $dr_glm_names ; do
       n_files=$(echo $inputfiles | wc -w)
@@ -4111,8 +4111,8 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
       echo "DUALREG : using output-directory '$dr_outdir'..."
       
       # check if number of rows in design file and number of input-files 
-      if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : file '$glmdir_dr/designs' not found - exiting..." ; exit ; fi
-      if [ -z "$(cat $glmdir_dr/designs)" ] ; then echo "DUALREG : no designs specified in file '$glmdir_dr/designs' - exiting..." ; exit ; fi
+      if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : ERROR : file '$glmdir_dr/designs' not found - exiting..." ; exit ; fi
+      if [ -z "$(cat $glmdir_dr/designs)" ] ; then echo "DUALREG : ERROR : no designs specified in file '$glmdir_dr/designs' - exiting..." ; exit ; fi
       dr_glm_names=$(cat $glmdir_dr/designs)
       for dr_glm_name in $dr_glm_names ; do
         n_files=$(echo $(cat $dr_outdir/inputfiles) | wc -w)
