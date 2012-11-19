@@ -1,6 +1,11 @@
 #!/bin/bash
+# Cycler.
 
-# cycler
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/18/2012
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
@@ -8,7 +13,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <'cmd'> <'A B C...'> <'a b c...'< <'1 2 3...'>"
+    echo "Usage: `basename $0` <'cmd'> <'01 02 03...'> <'A B C...'< <'a b c...'>"
     echo "example: `basename $0` 'ls @^/@^^' '01 02 03' 'a b c'"
     echo ""
     exit 1
