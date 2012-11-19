@@ -802,7 +802,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
     done
   done
   if [ $errflag -eq 1 ] ; then echo "DWI consistency check : Exiting due to errors !" ; exit 1 ; fi
-  n_bvalsplus="" ; n_bvalsminus="" ; n_bvecsplus="" ; n_bvecsminus="" ; nvolplus="" ; nvolminus="" ; errflag="" ; subj="" ; sess="" ; i="" ; dwi_m="" ; dwi_p=""
+  fldr="" ; n_bvalsplus="" ; n_bvalsminus="" ; n_bvecsplus="" ; n_bvecsminus="" ; nvolplus="" ; nvolminus="" ; errflag="" ; subj="" ; sess="" ; i="" ; dwi_m="" ; dwi_p=""
   echo "TOPUP : ...done." ; echo ""
   # end check    
  
