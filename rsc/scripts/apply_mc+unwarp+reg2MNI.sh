@@ -62,12 +62,12 @@ fslroi $input ${output}_example_func $mid 1
   $cmd
   
   
-  cmd="convertwarp --ref=${FSL_DIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --warp1=${f2mni_warp} --premat=${f2t1_mat} --out=${output}_WARP2 --relout"
+  cmd="convertwarp --ref=${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --warp1=${f2mni_warp} --premat=${f2t1_mat} --out=${output}_WARP2 --relout"
   echo $cmd
   $cmd
   
  
-  cmd="convertwarp --ref=${FSL_DIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --warp1=${output}_WARP1  --warp2=${output}_WARP2 --out=${output}_WARP --relout" 
+  cmd="convertwarp --ref=${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --warp1=${output}_WARP1  --warp2=${output}_WARP2 --out=${output}_WARP --relout" 
   echo $cmd
   $cmd  
 
@@ -83,13 +83,13 @@ for file in $full_list ; do
       line1=$(echo "$i*8 + 4" | bc -l)
       line2=$(echo "$i*8 + 7" | bc -l)
       cat ${mcdir} | sed -n "$line1,$line2"p > ${output}_tmp_ecclog.mat
-      cmd="applywarp --ref=${FSL_DIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --in=${file} --warp=${output}_WARP --premat=${output}_tmp_ecclog.mat --rel --out=${file} --interp=${interp}"
+      cmd="applywarp --ref=${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --in=${file} --warp=${output}_WARP --premat=${output}_tmp_ecclog.mat --rel --out=${file} --interp=${interp}"
     elif [ $sinlgemat -eq 1 ] ; then    
-      cmd="applywarp --ref=${FSL_DIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --in=${file} --warp=${output}_WARP --premat=${mcdir} --rel --out=${file} --interp=${interp}"
+      cmd="applywarp --ref=${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --in=${file} --warp=${output}_WARP --premat=${mcdir} --rel --out=${file} --interp=${interp}"
     fi
   else
     i=`zeropad $i 4`
-    cmd="applywarp --ref=${FSL_DIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --in=${file} --warp=${output}_WARP --premat=${mcdir}/MAT_${i} --rel --out=${file} --interp=${interp}"
+    cmd="applywarp --ref=${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --in=${file} --warp=${output}_WARP --premat=${mcdir}/MAT_${i} --rel --out=${file} --interp=${interp}"
   fi
   echo $cmd
   $cmd

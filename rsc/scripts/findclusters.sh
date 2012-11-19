@@ -95,7 +95,7 @@ if [ $anal = "tbss" ] ; then
       if [ "$statsdir" = "." ] ; then statsdir=".." ; else statsdir=$(dirname $(dirname $f)) ; fi
       res=$(fslinfo $f | grep pixdim1 | awk {'print $2'}) ; res=$(printf '%.0f' $res)
       fslview $statsdir/mean_FA.nii.gz $statsdir/mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $f -l "Red" -b 0.75,0.9
-      #fslview ${FSL_DIR}/data/standard/MNI152_T1_${res}mm_brain $statsdir/mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $f -l "Red" -b 0.75,0.9
+      #fslview ${FSLDIR}/data/standard/MNI152_T1_${res}mm_brain $statsdir/mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $f -l "Red" -b 0.75,0.9
     done
   fi
 fi

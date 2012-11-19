@@ -1,5 +1,5 @@
 #!/bin/bash
-# Extracts and merges volumes from a series of 4D input files.
+# Extracts and merges volumes from a series of 4D input files (for clusters).
 
 # Written by Andreas Heckel
 # University of Heidelberg

@@ -45,7 +45,7 @@ echo "Input does not exist or is not in a supported format"
     exit 1
 fi
 
-fslversion=$(cat $FSL_DIR/etc/fslversion | cut -d . -f 1)
+fslversion=$(cat $FSLDIR/etc/fslversion | cut -d . -f 1)
 echo "FSL    : v.${fslversion}"
 echo "dof    : $dof"
 echo "cost   : $cost"
@@ -85,7 +85,7 @@ for i in $full_list ; do
   else
     echo "" >> ${output}.ecclog.tmp
     echo "Final result:" >> ${output}.ecclog.tmp
-    cat $FSL_DIR/etc/flirtsch/ident.mat >> ${output}.ecclog.tmp
+    cat $FSLDIR/etc/flirtsch/ident.mat >> ${output}.ecclog.tmp
     echo "" >> ${output}.ecclog.tmp 
   fi
 

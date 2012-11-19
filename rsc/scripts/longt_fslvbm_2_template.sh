@@ -45,7 +45,7 @@ echo Running segmentation: ID=$fslvbm2a_id
 /bin/rm -f fslvbm2b
 for g in `$FSLDIR/bin/imglob *_longt-struc.*` ; do
   subj=$(echo $g | cut -d _ -f 1) ; _gg=$(imglob $subj*_struc.*) ;
-  echo "flirt -in ${g} -ref $FSL_DIR/data/standard/MNI152_T1_2mm.nii.gz -init LIA_to_LAS_conformed.mat -omat ${subj}_init.mat ;\
+  echo "flirt -in ${g} -ref $FSLDIR/data/standard/MNI152_T1_2mm.nii.gz -init LIA_to_LAS_conformed.mat -omat ${subj}_init.mat ;\
   ${FSLDIR}/bin/fsl_reg ${g}_GM $T ${g}_GM_to_T -a -flirt \"-init ${subj}_init.mat\"" >> fslvbm2b
   for gg in $_gg ; do
     subjsess=$(echo $gg | cut -d _ -f 1) ;  gg_mat=${subjsess}_to_${subj}.mat ; gg_lta=${subjsess}_to_${subj}.lta

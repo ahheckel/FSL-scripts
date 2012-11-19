@@ -100,7 +100,7 @@ mkdir -p $(dirname $out)
 files=$(find ./subj -name $file | grep /$subdir/reg_standard/ | sort)
 c=1; for i in $files ; do echo "$(zeropad $c 3) $i" ; c=$[$c+1] ; done ; c=0 
 extractmerge.sh $out 0 "$files"
-cmd="fslview ${out} $FSL_DIR/data/standard/avg152T1_csf_bin.nii.gz -l "Blue" -t 0.5 $FSL_DIR/data/standard/avg152T1_white_bin.nii.gz -l "Yellow" -t 0.5" 
+cmd="fslview ${out} $FSLDIR/data/standard/avg152T1_csf_bin.nii.gz -l "Blue" -t 0.5 $FSLDIR/data/standard/avg152T1_white_bin.nii.gz -l "Yellow" -t 0.5" 
 echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
 
 
