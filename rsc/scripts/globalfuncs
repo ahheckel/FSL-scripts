@@ -791,7 +791,7 @@ function prepareTBSS()
 
     echo "prepareTBSS(): executing 'tbss_2_reg $reg_opt'..."
     if [ x"$TBSS_USE_B0_4_FS_LONGT" != "x" ] ; then
-      $scriptdir/longt_tbss_2_reg.sh "$reg_opt" # patched for unbiased initialisation (longt. designs)
+      $scriptdir/longt_tbss_2_reg.sh "$reg_opt" # patched for unbiased initialisation (longit. designs)
     else
       tbss_2_reg "$reg_opt"
     fi

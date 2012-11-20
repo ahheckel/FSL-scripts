@@ -1,6 +1,12 @@
 #!/bin/bash
 # Creates pseudo bval/bvec files.
 
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 11/20/2012
+
 set -e
 
 trap 'echo "$0 : An ERROR has occured."' ERR

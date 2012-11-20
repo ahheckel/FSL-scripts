@@ -35,12 +35,12 @@ if [ x"$interp" = "x" ] ; then interp="trilinear" ; fi
 ecclog=0 ; sinlgemat=0
 if [ ! -d $mcdir ] ; then
   echo "`basename $0`: '$mcdir' is not a directory..."
-  if [ -f $mcdir -a ${mcdir#*.} = "ecclog" ] ; then
+  if [ -f $mcdir -a ${mcdir##*.} = "ecclog" ] ; then
     echo "`basename $0`: '$mcdir' is an .ecclog file."
     ecclog=1
   elif [ -f $mcdir ] ; then
     sinlgemat=1
-    echo "`basename $0`: '$mcdir' is not an .ecclog file - let's assume that it is a text file with a transformation matrix in it..."
+    echo "`basename $0`: '$mcdir' is not an .ecclog file - let's assume that it is a text file with a single transformation matrix in it..."
   else
     echo "`basename $0`: '$mcdir' not found. Exiting..." ; exit 1
   fi
