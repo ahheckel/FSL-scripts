@@ -34,8 +34,10 @@ preAlpha (experimental)
 
 h3. Links
 
-FSL: http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/
-Freesurfer: http://surfer.nmr.mgh.harvard.edu/fswiki
-TRACULA: http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/Tracula
-1000FunctionalConnectomes: http://www.nitrc.org/projects/fcon_1000/
+FSL http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/
+Freesurfer http://surfer.nmr.mgh.harvard.edu/fswiki
+TRACULA http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/Tracula
+1000FunctionalConnectomes http://www.nitrc.org/projects/fcon_1000/
+FSL-compatible-transformation-matrix http://www.mathworks.es/matlabcentral/fileexchange/30804-make-fsl-compatible-transformation-matrix
+ImageMagick http://www.imagemagick.org/script/index.php
 
