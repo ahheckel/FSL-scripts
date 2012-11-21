@@ -25,7 +25,16 @@ h3. Requirements
 * Freesurfer 5.1.0
 * SunGridEngine > 6.1u6
 * Octave > 3.0.5
+* Gnome > 2.32
 
 h3. Status
 
 preAlpha (experimental)
+
+h3. Links
+
+FSL:http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/
+Freesurfer:http://surfer.nmr.mgh.harvard.edu/fswiki
+TRACULA:http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/Tracula
+1000FunctionalConnectomes:http://www.nitrc.org/projects/fcon_1000/
+
