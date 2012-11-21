@@ -32,9 +32,9 @@ h3. Status
 preAlpha (experimental)
 
 h3. Links
-bq.
-FSL:http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/
-Freesurfer:http://surfer.nmr.mgh.harvard.edu/fswiki
-TRACULA:http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/Tracula
-1000FunctionalConnectomes:http://www.nitrc.org/projects/fcon_1000/
+
+FSL: http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/
+Freesurfer: http://surfer.nmr.mgh.harvard.edu/fswiki
+TRACULA: http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/Tracula
+1000FunctionalConnectomes: http://www.nitrc.org/projects/fcon_1000/
 
