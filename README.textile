@@ -14,7 +14,8 @@ h3. Features
 ** FSL's Voxel-Based Morphometry (VBM)
 ** Freesurfer cross-sectional / longitudinal streams
 ** Freesurfer's TRActs Constrained by UnderLying Anatomy (TRACULA)
-* cluster engines are adressed via FSL's fsl_sub
+* Cluster engines are addressed via FSL's fsl_sub
+* Nautilus scripts for easy viewing
 
 h3. Requirements
 
