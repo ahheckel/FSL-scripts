@@ -1113,7 +1113,7 @@ function _randomise()
   local input4D=$3
   local _opts=$4
   local ztransform=$5
-  local mask=$6 # masking is useful if z-transforming (otw. just enter a dummy filename)
+  local mask=$6 # masking is useful if z-transforming (o.w. just enter a dummy filename)
   local randparallel=$7
   local design=""
   local opts=""

@@ -2470,7 +2470,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
                 
                 # set t1 highres structural & create sym-links
                 echo "# Subject's structural image for analysis 1" >> $conffile
-                echo "set highres_files(1) \"$(remove_ext $t1_brain)\"" >> $conffile # removing the file extension is very important, otw. the non-brain extracted T1 is not found and non-linear registration will become highly inaccurate (feat does not throw an error here!) (!)
+                echo "set highres_files(1) \"$(remove_ext $t1_brain)\"" >> $conffile # removing the file extension is very important, o.w. the non-brain extracted T1 is not found and non-linear registration will become highly inaccurate (feat does not throw an error here!) (!)
               else
                 # disable MNI registration
                 sed -i "s|set fmri(reghighres_yn) .*|set fmri(reghighres_yn) 0|g" $conffile # unset registration to highres
@@ -2566,7 +2566,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
   if [ x"$BOLD_DENOISE_SMOOTHING_KRNLS" = "x" ] ; then BOLD_DENOISE_SMOOTHING_KRNLS=0; fi
   if [ x"$BOLD_DENOISE_USE_MOVPARS_NAT" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS_NAT=0 ; fi
  
-  # mind the \' \' -> necessary, otw. string gets split up when a) being inside double-quotes 
+  # mind the \' \' -> necessary, o.w. string gets split up when a) being inside double-quotes 
   # (e.g., echo redirection to a cmd-file for fsl_sub) and b) being passed as an argument to a function (!)
   BOLD_DENOISE_MASKS_NAT=\'$BOLD_DENOISE_MASKS_NAT\'
   BOLD_DENOISE_SMOOTHING_KRNLS=\'$BOLD_DENOISE_SMOOTHING_KRNLS\'
@@ -2840,7 +2840,7 @@ if [ $BOLD_STG5 -eq 1 ]; then
   if [ x"$BOLD_DENOISE_USE_MOVPARS_MNI" = "x" ] ; then BOLD_DENOISE_USE_MOVPARS_NAT=0 ; fi
   if [ x"${BOLD_SMOOTHING_KRNLS}" = "x" ] ; then BOLD_SMOOTHING_KRNLS=0 ; fi
   if [ x"${BOLD_HPF_CUTOFFS}" = "x" ] ; then BOLD_HPF_CUTOFFS="Inf" ; fi
-  # mind the \' \' -> necessary, otw. string gets split up when a) being inside double-quotes 
+  # mind the \' \' -> necessary, o.w. string gets split up when a) being inside double-quotes 
   # (e.g., echo redirection to a cmd-file for fsl_sub) and b) being passed as an argument to a function (!)
   BOLD_DENOISE_MASKS_MNI=\'$BOLD_DENOISE_MASKS_MNI\'
   BOLD_DENOISE_USE_MOVPARS_MNI=\'$BOLD_DENOISE_USE_MOVPARS_MNI\'
@@ -3698,7 +3698,7 @@ if [ $TBSS_STG4 -eq 1 ] ; then
         if [ "x$statdir" = "x" ] ; then echo "TBSSX: directory <stats_${thres}> not found in <$tbss_dir> - continuing loop..." ; continue ; fi
         # create link
         echo "TBSSX: creating link 'stats' -> <$statdir>..."
-        ln -sfnv `basename $statdir` stats # mind the -n option, otw. the dir-link is not overwritten on each iteration (!)
+        ln -sfnv `basename $statdir` stats # mind the -n option, o.w. the dir-link is not overwritten on each iteration (!)
         # execute tbss_x script
         tbss_x F1 F2 D1 D2
         cd $tbss_dir           
@@ -3843,7 +3843,7 @@ if [ $MELODIC_2NDLEV_STG1 -eq 1 ]; then
       bold=$subjdir/$subj/$sess/bold/$MELODIC_INPUT_FILE
       
       echo "# 4D AVW data or FEAT directory ($n)" >> $conffile
-      echo "set feat_files($n) \"$(remove_ext $bold)\"" >> $conffile # remove extension, otw. *.ica directories are not properly named (!)
+      echo "set feat_files($n) \"$(remove_ext $bold)\"" >> $conffile # remove extension, o.w. *.ica directories are not properly named (!)
       
       #sess_t1=`cat $subjdir/config_func2highres.reg | grep ^$(subjsess) | cut -f2`
       line=`cat $subjdir/config_func2highres.reg | awk '{print $1}' | grep -nx $(subjsess) | cut -d : -f1`
@@ -3853,7 +3853,7 @@ if [ $MELODIC_2NDLEV_STG1 -eq 1 ]; then
       
       echo "MELODIC_GROUP: using t1_brain from session '$sess_t1' as reference for '$bold'"
       echo "# Subject's structural image for analysis $n" >> $conffile
-      echo "set highres_files($n) \"$t1_brain\"" >> $conffile # no file extension here, otw. the non-brain extracted T1 is not found and non-linear registration will become highly inaccurate (feat does not throw an error here!) (!)  
+      echo "set highres_files($n) \"$t1_brain\"" >> $conffile # no file extension here, o.w. the non-brain extracted T1 is not found and non-linear registration will become highly inaccurate (feat does not throw an error here!) (!)  
     done
   done
   

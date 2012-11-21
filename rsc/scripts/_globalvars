@@ -205,8 +205,8 @@ VBM_FSLV5=0                # perform fsl_anat script
 VBM_NU_CORRECT_T1=0        # perform non-uniformity correction prior to t1 skull-stripping - useful for mri_watershed (default: 0)
 VBM_SSM_ERODE_STEPS=3
                            # mutually exclusive:
-VBM_USE_BETTED_INIT=1      # use betted brain as init. for standard space masking (default: 1)
 VBM_USE_WATERSHED_INIT=0   # use watershed brain to initialize standard space masking
+VBM_USE_BETTED_INIT=1      # use betted brain as init. for standard space masking (default: 1)
 
 # TRACULA
 # mutually exclusive:
@@ -231,6 +231,7 @@ BOLD_HPF_CUTOFFS="100"                                        # enter "Inf" or "
 BOLD_REGISTER_TO_STRUC_DOF=6                                  # degrees of freedom when registering bold -> T1
 BOLD_PTTRN_HIGHRES_BRAIN="*_FS_brain.nii.gz"                  # pattern of t1 skull-stripped image
 BOLD_PTTRN_HIGHRES_STRUC="*_FS_struc.nii.gz"                  # pattern of t1 non-skull-stripped image
+#---------------------
 BOLD_DENOISE_MASKS_NAT="EF_CSF EF_WM"                         # masks used for denoising [EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz EF_GM.nii.gz] located in feat-dir (need FS-recons for creation) -> see FS_create_masks.sh
 BOLD_DENOISE_USE_MOVPARS_NAT="1"                              # 0: none - 1: orig - 2: squared - 3: abs - 4: 1st deriv. with leading zero - 5: 1st deriv. with trailing zero ; CAVE: cannot take more than 4 motion related modes (4*6=24 regressors -> more lead to fsl_regfilt error (at least at 32 bit)) (!)
 BOLD_DENOISE_SMOOTHING_KRNLS="4"                              # smooth denoised data (NOTE: denoising of native data requires feat-processed data without smoothing applied)
@@ -240,18 +241,18 @@ BOLD_USE_FS_LONGT_TEMPLATE=2                                  # using FS's mid-l
 BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data      filtered_func_data_denoised_s2      filtered_func_data_denoised_s4"              # cycle through 4Ds that are to be resampled in MNI space
 BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                           # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
 BOLD_MNI_RESAMPLE_INTERP="trilinear"                          # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)
+#---------------------
 BOLD_DENOISE_MASKS_MNI="MNI_CSF MNI_WM"                       # masks used for denoising in MNI space (filtered_func_data with 2mm resolution must be present to estimate nuisance matrix)
 BOLD_DENOISE_USE_MOVPARS_MNI="1"                              # see above
 
 # ALFF
-#ALFF_DENOISE_MASKS_NAT="EF_CSF EF_WB EF_WM"
-ALFF_DENOISE_MASKS_NAT="none"                                   # enter "none" to switch off (default none), otw. e.g. "EF_CSF EF_WB EF_WM"
+ALFF_DENOISE_MASKS_NAT="none"                                   # enter "none" to switch off (default none), o.w. e.g. "EF_CSF EF_WB EF_WM"
 ALFF_DENOISE_USE_MOVPARS_NAT="0"                                # enter "0" to switch off (default 0)
 ALFF_SMOOTHING_KERNEL=6                                         # enter FWHM in mm (default 6)
 ALFF_HPF_CUTOFF=""                                              # enter "none", "" or "Inf" to use AFNI's detrending tool (default "")
 ALFF_BANDPASS="0.01,0.1"                                        # enter bandpass (default: "0.01,0.1")
-ALFF_FSLV5=0                                                    # in v.5 naming of unwarp shiftmap and its location is different
-ALFF_FEATDIR="bold/preprocBOLD_uw??_st0_s0_hpf100.feat"         # e.g. "bold/preprocBOLD_uw??_st0_s0_hpf100.feat"
+ALFF_FSLV5=0                                                    # in FSL v.5 naming of unwarp shiftmap and its location is different
+ALFF_FEATDIR="bold/preprocBOLD_uw??_st0_s0_hpf100.feat"         # featdir where transforms are located: e.g. "bold/preprocBOLD_uw??_st0_s0_hpf100.feat"
 ALFF_MNI_AFFINE="reg_longt/example_func2longt_brain.mat"        # e.g. "reg_longt/example_func2longt_brain.mat" or "reg/example_func2highres.mat"
 ALFF_MNI_WARP="reg_longt/longt_head2longt_standard_warp.nii.gz" # e.g. "reg_longt/longt_head2longt_standard_warp.nii.gz" or "reg/highres2standard_warp.nii.gz"
 ALFF_RESAMPLING_RESOLUTIONS="2"                                 # enter resolution (default: "2")
