@@ -1,4 +1,5 @@
 #!/bin/bash
+# Recursively searches directory tree for error related keywords.
 
 # Written by Andreas Heckel
 # University of Heidelberg

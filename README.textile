@@ -26,6 +26,7 @@ h3. Requirements
 * SunGridEngine > 6.1u6
 * Octave > 3.0.5
 * Gnome > 2.32
+* ImageMagick > 6.7.5-3 
 
 h3. Status
 

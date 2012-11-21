@@ -257,7 +257,8 @@ function isClusterBusy()
   local n_total=`qstat | grep $user | wc -l`
   local n_dr=`qstat | grep $user| awk '{print $5}' | grep dr | wc -l`
   local n_dt=`qstat | grep $user| awk '{print $5}' | grep dt | wc -l` 
-  echo "$n_total - $n_dr - $n_dt" | bc -l # ignore zombie jobs
+  #echo "$n_total - $n_dr - $n_dt" | bc -l # ignore zombie jobs
+  echo "$n_total"
 }
 
 function isStillRunning() 
@@ -293,7 +294,7 @@ function waitIfBusy()
     nojidfile=0
   fi
   
-  # w/0 job-ID file
+  # w/o job-ID file
   if [ $nojidfile -eq 1 ] ; then
     if [ `isClusterBusy` -gt 0 ] ; then
       echo -n "waiting..."
