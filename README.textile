@@ -3,6 +3,7 @@ h2. FSL-scripts
 Script-framework using FSL, Freesurfer and AFNI functionality for high-throughput processing of large-scale cross-sectional and longitudinal MRI data.
 
 h3. Features
+
 * Functional analyses
 ** FSL's Independent Component Analysis (Melodic-ICA)
 ** Amplitute of Low Frequency Fluctuations (ALFF)
@@ -12,14 +13,15 @@ h3. Features
 ** FSL's Tract-Based Spatial Statistics (crossing fibres) (TBSSX)
 ** FSL's Voxel-Based Morphometry (VBM)
 ** Freesurfer cross-sectional / longitudinal streams
-** Freesurfer'S TRACULA
+** Freesurfer's TRActs Constrained by UnderLying Anatomy (TRACULA)
 * cluster engines are adressed via FSL's fsl_sub
-* suitable for cross-sectional/longitudinal analyses
 
 h3. Requirements
+
+* Linux (CentOS5 or compatible)
 * Bash > 3.2.25 
 * FSL 4.9.1 / 5.0
-* Freesurfer 5.0
+* Freesurfer 5.1.0
 * SunGridEngine > 6.1u6
 * Octave > 3.0.5
 
