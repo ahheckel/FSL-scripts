@@ -10,15 +10,18 @@
 FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
-vollist="" ; surflist="" ; overlist=""
+vollist="" ; surflist="" ; overlist="" ; annotlist=""
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   niigz=$(echo $i | grep .nii.gz$ | wc -l)
   nii=$(echo $i | grep .nii$ | wc -l)
   mgh=$(echo $i | grep .mgh$ | wc -l)
   mgz=$(echo $i | grep .mgz$ | wc -l)
+  annot=$(echo $i | grep .annot$ | wc -l)
   
   if [ $niigz -eq 1 -o $nii -eq 1 -o $mgh -eq 1 -o $mgz -eq 1 ] ; then # file is a volume
-    vollist=$vollist" -v $i" 
+    vollist=$vollist" -v $i"
+  elif [ $annot -eq 1 ] ; then # file is annotation
+    annotlist=$annotlist":annot=$i"
   else
     type=$(mri_info $i | grep type: | head -n1 | cut -d : -f 2)
     if [ $type = "curv" ] ; then # file is an overlay
@@ -32,5 +35,5 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
 done
 
 #zenity --info --text="$vollist ${surflist}${overlist}"
-freeview $vollist $surflist"$overlist"
+freeview $vollist ${surflist}${annotlist}${overlist}
 

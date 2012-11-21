@@ -446,7 +446,7 @@ done
 
 
 #################################
-# check longt. VBM using freeview
+# check longit. VBM using freeview
 #################################
 subj=01
 base=./subj/FS_subj/${subj}

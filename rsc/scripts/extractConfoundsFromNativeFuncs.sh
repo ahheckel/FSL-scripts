@@ -14,17 +14,17 @@ flirt_in=`remove_ext $1`
 flirt_out=`remove_ext $2`
 ref_pos=`remove_ext $3`
 struc=`remove_ext $4`
+
 fldr=$(dirname $flirt_out)
 al_exf=$fldr/al_example_func
 exf=$fldr/example_func
-
 
 echo "extracting example_func from '$flirt_in' at position ${ref_pos}..."
 fslroi $flirt_in $exf $ref_pos 1
 
 echo "flirting example_func to '$struc'"
 #flirt -in $exf -ref $struc -dof 12 -cost corratio -omat $fldr/BOLD2T1.mat -out $al_exf
-flirt -in $exf -ref $struc -dof 12 -cost mutualinfo -omat $fldr/BOLD2T1.mat -out $al_exf # mutualinfo is much better than corratio!
+flirt -in $exf -ref $struc -dof 12 -cost mutualinfo -omat $fldr/BOLD2T1.mat -out $al_exf # mutualinfo may be better than corratio
 
 echo "flirting 4D-BOLD to structural...."
 rm -f ${flirt_out}.flirtlog ${flirt_out}_tmp_????.*

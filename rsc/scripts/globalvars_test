@@ -53,9 +53,9 @@ SCRATCH=0                  # execute scratchpad and exit
 
 RECON_STG1=0               # RECON-ALL prepare (copy and convert T1 nifti)
 RECON_STG2=0               # RECON-ALL execute cross-sectional stream
-RECON_STG3=0               # RECON-ALL execute longtitudinal stream's template creation
-RECON_STG4=0               # RECON-ALL execute longtitudinal processing for each timepoint
-RECON_STG5=0               # RECON-ALL register FS's longtitudinal template (if applicable) or brain.mgz to FSL's MNI152 template using fnirt
+RECON_STG3=0               # RECON-ALL execute longitudinal stream's template creation
+RECON_STG4=0               # RECON-ALL execute longitudinal processing for each timepoint
+RECON_STG5=0               # RECON-ALL register FS's longitudinal template (if applicable) or brain.mgz to FSL's MNI152 template using fnirt
 
 FIELDMAP_STG1=0            # FIELDMAP prepare
 FIELDMAP_STG2=0            # FIELDMAP create
@@ -210,7 +210,7 @@ VBM_USE_WATERSHED_INIT=0   # use watershed brain to initialize standard space ma
 
 # TRACULA
 # mutually exclusive:
-TRACULA_USE_NATIVE=0             # use unprocessed merged DWI files
+TRACULA_USE_NATIVE=0             # use unprocessed merged DWI files (TRACULA does eddy-correction and bvec. rotation)
 TRACULA_USE_UNWARPED_BVECROT=0   # use unwarped and eddy-corrected merged DWI files and corrected b-vectors
 TRACULA_USE_TOPUP_NOEC_BVECROT=0 # use TOPUP corrected merged DWI files with corrected b-vectors
 TRACULA_USE_TOPUP_EC_BVECROT=1   # use TOPUP corrected & eddy-corrected merged DWI files with corrected b-vectors
@@ -266,7 +266,7 @@ TBSS_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_STRUC  # sessions to be included in t
 TBSS_USE_BPX_FROM_TRACULA=0                       # use BedpostX files from TRACULA, otherwise use from BPX stream
 TBSS_BPX_INDIR_PREFIX="bpx"                       # prefix of BedpostX input directory (for TBSSX, if files from TRACULA stream are not used)
 TBSS_OUTDIR_PREFIX="tbss"                         # prefix of output directory
-TBSS_USE_B0_4_FS_LONGT=fdt/uw_nodif               # use FREESURFER'S longtitudinal template to register the b0 to (default "", e.g. "topup/fm/uw_lowb_mean_brain" or "fdt/uw_nodif")
+TBSS_USE_B0_4_FS_LONGT=fdt/uw_nodif               # use FREESURFER'S longitudinal template to register the b0 to (default "", e.g. "topup/fm/uw_lowb_mean_brain" or "fdt/uw_nodif")
 TBSS_THRES="0.2 0.3 0.4"                          # cycle through some skeleton-threshold values
 TBSS_Z_TRANSFORM=1                                # z-transform FA skeletons
 TBSS_RANDOMISE_OPTS="--T2 -V -D -x -n 5000"       # randomise options (e.g.: "--T2 -V -D -x -n 5000")
@@ -284,7 +284,7 @@ TBSS_USE_TOPUP_EC_BVECROT=1                       # use FA maps from TOPUP-corre
 VBM_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included in the VBM analysis
 VBM_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_STRUC   # subjects to be included in the VBM analysis
 VBM_OUTDIRNAME="vbm_FS"                           # name of output directory
-VBM_USE_FS_LONGT=0                                # use FREESURFER'S longtitudinal template (default 0)
+VBM_USE_FS_LONGT=0                                # use FREESURFER'S longitudinal template (default 0)
 VBM_PTTRN_BRAIN="*_FS_brain.nii.gz"               # search pattern for brain-extracted structurals
 VBM_PTTRN_STRUC="*_FS_struc.nii.gz"               # search pattern for original structurals (w/o skull-strip)
 VBM_SMOOTHING_KRNL="2 3 4"                        # cycle through some smoothing kernels

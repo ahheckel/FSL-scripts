@@ -732,7 +732,7 @@ function prepareTBSS()
       echo "prepareTBSS(): gathering FA-files from directory tree ($sourcedir) and copying them to tbss-directory..."
       find ${sourcedir} -name "$pttrn_files" | grep /${FAdir}/ | sort | xargs -I{} cp -v {} $destdir
     else
-      # begin bbreg (to FS longt. template for unbiased initialisation, if applicable)
+      # begin bbreg (to FS longit. template for unbiased initialisation, if applicable)
       if [ x"$TBSS_USE_B0_4_FS_LONGT" != "x" ] ; then
         local nobbreg=0 ; TBSS_USE_B0_4_FS_LONGT=$(remove_ext $TBSS_USE_B0_4_FS_LONGT).nii.gz
         for subj in $TBSS_INCLUDED_SUBJECTS ; do
