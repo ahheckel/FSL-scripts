@@ -190,8 +190,8 @@ FDT_MAGN="fm/magn_brain"       # rel. path to magnitude (default: "fm/magn_brain
 FDT_SIGNLOSS_THRES=100         # signal loss threshold (%)
 
 # BPX
-BPX_MODEL=1                    # 1 for monoexponential, 2 for multiexponential. BPX_MODEL="" for FSL version < 5 (model switch not supported in FSL 4).
 BPX_OUTDIR_PREFIX="bpx"
+BPX_OPTIONS="-n 2 -w 1 -b 1000 -model 2"  # default: "-n 2 -w 1 -b 1000" ; CAVE: -model switch not supported in FSL 4.
 BPX_USE_NOEC=0
 BPX_USE_EC_NOROT=0
 BPX_USE_EC_BVECROT=0
