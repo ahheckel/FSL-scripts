@@ -7,7 +7,7 @@
 # 11/18/2012
 
 # echo date
-startdate=$(date) ; echo $startdate
+startdate=$(date) ; echo "Executing '$0' on ${startdate}..."
 startdate_sec=$(date +"%s")
 
 # exit on error
@@ -3993,29 +3993,28 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
   
   # where to look for input files...
   for DUALREG_INPUT_ICA_DIRNAME in $DUALREG_INPUT_ICA_DIRNAMES ; do
-    if [ x"$DUALREG_INPUT_BOLD_FILE" = "x" ] ; then
-      # this applies when MELODIC-GUI was used
-      if [ -f $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf ] ; then
-        echo "DUALREG : taking basic input filename from '$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf' (first entry therein)"
-        _inputfile=$(basename $(cat $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf | grep "set feat_files(1)" | cut -d "\"" -f 2))  # get inputfile basename from melodic *.fsf file... (assuming same basename for all included subjects/sessions) (!)
-        _inputfile=$(remove_ext $_inputfile)_${DUALREG_INPUT_ICA_DIRNAME}.ica/reg_standard/filtered_func_data.nii.gz
-      # this applies when MELODIC command line tool was used
-      elif [ -f $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files ] ; then
-        echo "DUALREG : taking basic input filename from '${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files' (first entry therein)"
-        _inputfile=$(basename $(head -n 1 $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files)) # get inputfile basename from melodic input-file list...(assuming same basename for all included subjects/sessions) (!)
-      fi
+    # this applies when inputfile variable is set
+    if [ x"$DUALREG_INPUT_BOLD_FILE" != "x" ] ; then
+      _inputfile=$DUALREG_INPUT_BOLD_FILE
+    # this applies when MELODIC-GUI was used
+    elif [ -f $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf ] ; then
+      echo "DUALREG : taking basic input filename from '$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf' (first entry therein)"
+      _inputfile=$(basename $(cat $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf | grep "set feat_files(1)" | cut -d "\"" -f 2)) # get inputfile basename from melodic *.fsf file... (assuming same basename for all included subjects/sessions) (!)
+      _inputfile=$(remove_ext $_inputfile)_${DUALREG_INPUT_ICA_DIRNAME}.ica/reg_standard/filtered_func_data.nii.gz
+    # this applies when MELODIC command line tool was used
+    elif [ -f $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files ] ; then
+      echo "DUALREG : taking basic input filename from '${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files' (first entry therein)"
+      _inputfile=$(basename $(head -n 1 $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files)) # get inputfile basename from melodic input-file list...(assuming same basename for all included subjects/sessions) (!)
+    else
+      echo "DUALREG : ERROR : no input files defined - exiting..." ; exit 1
     fi
-
+    
     # gather input-files
     inputfiles="" ; inputfile="" ; err=0
     for subj in $DUALREG_INCLUDED_SUBJECTS ; do
       for sess in $DUALREG_INCLUDED_SESSIONS ; do        
-        # test if inputfile is present
-        if [ x"$DUALREG_INPUT_BOLD_FILE" = "x" ] ; then
-          inputfile=$subjdir/$subj/$sess/bold/${_inputfile}
-        else
-          inputfile=$subjdir/$subj/$sess/bold/$DUALREG_INPUT_BOLD_FILE
-        fi 
+
+        inputfile=$subjdir/$subj/$sess/bold/${_inputfile}
                 
         if [ $(_imtest $inputfile) -eq 0 ] ; then echo "DUALREG : subj $subj , sess $sess : ERROR : standard-space registered input file '$inputfile' not found - continuing..." ; err=1 ; continue ; fi
         
