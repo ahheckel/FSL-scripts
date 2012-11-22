@@ -1,6 +1,6 @@
 h2. FSL-scripts
 
-Script-framework using FSL, Freesurfer and AFNI functionality for high-throughput processing of large-scale cross-sectional and longitudinal MRI data.
+Script-framework using FSL, Freesurfer and AFNI functionality for automatization and high-throughput processing of MRI data in clustered environments.
 
 h3. Features
 

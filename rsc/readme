@@ -2,25 +2,25 @@ Modifications of original FSL / Freesurfer files.
 
 All modifications are indicated in the respective files (HKL).
 
-fsl/fsl_sub
-fsl/fsl_sub_v5
-  A RAM limit was added to avoid cluster overload.
+  fsl/fsl_sub
+  fsl/fsl_sub_v5
+A RAM limit was added to avoid cluster overload.
 
-scripts/fsl_sub_NOPOSIXLY.sh
-scripts/fsl_sub_v5_NOPOSIXLY.sh
-  POSIXLY_CORRECT variable was commented out to ensure compatibility with recon-all.
+  scripts/fsl_sub_NOPOSIXLY.sh
+  scripts/fsl_sub_v5_NOPOSIXLY.sh
+POSIXLY_CORRECT variable was commented out to ensure compatibility with recon-all.
   
-fsl/featlib.tcl  
-  Cross-modal affine registrations use mutualinfo (rather than corratio) as cost-function. 
-  Unwarping: +/- y unwarp example files are created.
-  Only for use with FSL 4.9.1.
+  fsl/featlib.tcl  
+Cross-modal affine registrations use mutualinfo (rather than corratio) as cost-function. 
+Unwarping: +/- y unwarp example files are created.
+Only for use with FSL 4.9.1.
   
-fs/trac-all
-  adapted to work with SunGridEngine.
+  fs/trac-all
+adapted to work with SunGridEngine.
   
-scripts/longt_tbss_2_reg.sh
-  affine registration is initialised with transform b0->T1->MNI, where T1 is the unbiased template of the Freesurfer longit. stream,
-  and b0->T1 is done via Freesurfer's bbregister.
+  scripts/longt_tbss_2_reg.sh
+affine registration is initialised with transform b0->T1->MNI, where T1 is the unbiased template of the Freesurfer longit. stream,
+and b0->T1 is done via Freesurfer's bbregister.
   
 
 Notes.
