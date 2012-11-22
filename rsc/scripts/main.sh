@@ -48,7 +48,7 @@ set -e
 mkdir -p $subjdir
 
 # remove lock on exit
-trap "save_config $studydir $subjdir \"$startdate\" ; rmdir $wd/.lockdir121978 ; echo \"Lock removed.\" ; time_elapsed $startdate_sec ; echo \"Exiting on `date`\" ; exit" EXIT
+trap "set +e ; save_config $studydir $subjdir \"$startdate\" ; rmdir $wd/.lockdir121978 ; echo \"Lock removed.\" ; time_elapsed $startdate_sec ; echo \"Exiting on `date`\" ; exit" EXIT
 
 # remove duplicates in string arrays (to avoid collisions on the cluster)
 FIRSTLEV_SUBJECTS=$(echo $FIRSTLEV_SUBJECTS | row2col | sort -u)
@@ -4083,11 +4083,11 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
       # executing dualreg...
       echo "DUALREG : executing dualreg script on group-level ICs in '$ICfile' - writing to folder '$dr_outdir'..."
       
-      if [ x"$DUALREG_USE_MOVPARS_HPF" = "x" ] ; then usemov=0 ; DUALREG_USE_MOVPARS_HPF="Inf" ; else usemov=1 ; echo "DUALREG : Motion parameters will be used in dual-regressions." ; fi      
-      cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $usemov $DUALREG_USE_MOVPARS_HPF $TR_bold 1 0 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
+      if [ x"$DUALREG_USE_MOVPARS_HPF" = "x" ] ; then usemov=0 ; DUALREG_USE_MOVPARS_HPF="Inf" ; else usemov=1 ; echo "DUALREG : Motion parameters will be used in dual-regressions (hpf-cutoff (s): ${DUALREG_USE_MOVPARS_HPF})." ; fi      
+      cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 0 dummy dummy 1 0 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
       $cmd ; waitIfBusy
       
-      cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $usemov $DUALREG_USE_MOVPARS_HPF $TR_bold 0 1 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
+      cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $usemov $TR_bold $DUALREG_USE_MOVPARS_HPF 0 1 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
       $cmd ; waitIfBusy
     done
   done
@@ -4159,7 +4159,7 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
         echo "DUALREG : copying GLM design '$dr_glm_name' to '$dr_outdir/stats'"
         mkdir -p $dr_outdir/stats ; cp -r $glmdir_dr/$dr_glm_name $dr_outdir/stats/ ; imcp $ICfile $dr_outdir/stats/
         echo "DUALREG : calling '$RANDCMD' for folder '$dr_outdir/stats/$dr_glm_name' ($DUALREG_NPERM permutations)."
-        cmd="${scriptdir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp $RANDCMD $DUALREG_NPERM $dr_outdir 0 0 1 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
+        cmd="${scriptdir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp $RANDCMD $DUALREG_NPERM $dr_outdir 0 dummy dummy 0 0 1 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
         $cmd ; waitIfBusy # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
       done
     done

@@ -1,6 +1,8 @@
 #!/bin/sh
-# Adapted by HKL: address sections (mask / dualreg / randomise) separately & insert exchangeability block file into randomise call & voxel-wise stats & naming of randomise results based on 
-# the name of the used design & delete ${LOGDIR}/dr[ABCD] cmd-file to avoid accumulation on re-run. randomise_parallel or randomise are used on demand, randomise_parallel, however,
+# original version by C. Beckmann: http://www.fmrib.ox.ac.uk/analysis/dualreg/dual_regression
+
+# Adapted by HKL (11/22/2012): address sections (mask / dualreg / randomise) separately & insert exchangeability block file into randomise call & voxel-wise stats & naming of randomise results based on 
+# the name of the design used & delete ${LOGDIR}/dr[ABCD] cmd-file to avoid accumulation on re-run. randomise_parallel or randomise are used on demand, randomise_parallel, however,
 # only works if /bin/sh points to /bin/bash ! (!) High-pass filtered motion parameters can be used for dr_stage2.
 
 Usage() {
@@ -71,6 +73,19 @@ while [ _$1 != _ ] ; do
   shift
 done
 
+echo "ICA_MAPS:        $ICA_MAPS"
+echo "DES_NORM:        $DES_NORM"
+echo "DESIGN:          $DESIGN"
+echo "NPERM:           $NPERM"
+echo "OUTPUT:          $OUTPUT"
+echo "USE_MOVPARS:     $USE_MOVPARS"
+echo "USE_MOVPARS_TR:  $USE_MOVPARS_TR"
+echo "USE_MOVPARS_HPF: $USE_MOVPARS_HPF"
+echo "DO_MASK:         $DO_MASK"
+echo "DO_DUALREG:      $DO_DUALREG"
+echo "DO_RANDOMISE:    $DO_RANDOMISE"
+
+
 ############################################################################
 
 mkdir -p $OUTPUT
@@ -87,7 +102,7 @@ if [ $DO_MASK -eq 1 ] ; then
 rm -f ${LOGDIR}/drA # delete cmd-file to avoid accumulation on re-run (HKL)
 rm -f ${LOGDIR}/drB # delete cmd-file to avoid accumulation on re-run (HKL)
 
-echo "creating common mask"
+echo "`basename $0` : creating common mask"
 j=0
 for i in $INPUTS ; do
   echo "$FSLDIR/bin/fslmaths $i -Tstd -bin ${OUTPUT}/mask_`${FSLDIR}/bin/zeropad $j 5` -odt char" >> ${LOGDIR}/drA
@@ -126,7 +141,7 @@ if [ $USE_MOVPARS -eq 1 ] ; then
       i=$(remove_ext $i)
       featdir=$(dirname $i)/$(readlink ${i}.nii.gz | cut -d / -f 2 | grep .feat$)
       movparfile=$featdir/mc/prefiltered_func_data_mcf.par
-      $scriptdir/hpf_movpar.sh $movparfile $OUTPUT/movpar_hpf_$s.txt $USE_MOVPARS_HPF $USE_MOVPARS_TR
+      $(dirname $0)/hpf_movpar.sh $movparfile $OUTPUT/movpar_hpf_$s.txt $USE_MOVPARS_HPF $USE_MOVPARS_TR
       j=`echo "$j 1 + p" | dc -`
     done
   else
@@ -137,7 +152,7 @@ else
 fi
 # end HKL
 
-echo "doing the dual regressions"
+echo "`basename $0` : doing the dual regressions"
 j=0
 for i in $INPUTS ; do
   s=subject`${FSLDIR}/bin/zeropad $j 5`
@@ -169,7 +184,7 @@ if [ "$DESIGN" != -1 ] ; then
   /bin/cp $dgrp $OUTPUT/stats/$dname/  
 fi
 
-echo "sorting maps and running randomise on design '$dname'"
+echo "`basename $0` : sorting maps and running randomise on design '$dname'"
 j=0
 Nics=`$FSLDIR/bin/fslnvols $ICA_MAPS`
 while [ $j -lt $Nics ] ; do
