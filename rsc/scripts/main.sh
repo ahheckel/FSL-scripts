@@ -4083,7 +4083,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
       # executing dualreg...
       echo "DUALREG : executing dualreg script on group-level ICs in '$ICfile' - writing to folder '$dr_outdir'..."
       
-      if [ x"$DUALREG_USE_MOVPARS_HPF" = "x" ] ; then usemov=0 ; DUALREG_USE_MOVPARS_HPF="Inf" ; else usemov=1 ; echo "DUALREG : Motion parameters will be used in dual-regressions (hpf-cutoff (s): ${DUALREG_USE_MOVPARS_HPF})." ; fi      
+      if [ x"$DUALREG_USE_MOVPARS_HPF" = "x" ] ; then usemov=0 ; DUALREG_USE_MOVPARS_HPF="dummy" ; else usemov=1 ; echo "DUALREG : Motion parameters will be used in dual-regressions (hpf-cutoff (s): ${DUALREG_USE_MOVPARS_HPF})." ; fi      
       cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 0 dummy dummy 1 0 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
       $cmd ; waitIfBusy
       
