@@ -18,9 +18,9 @@ trap 'finishdate_sec=$(date +"%s") ; diff=$(($finishdate_sec-$startdate_sec)) ; 
 
 # display FSL version
 if [ x$FSL_DIR = "x" ] ; then FSL_DIR="$FSLDIR" ; fi
-if [ x$FSL_DIR = "x" ] ; then echo "ERROR : \$FSL_DIR and \$FSLDIR variable not definied - exiting"  ; exit 1 ; fi
+if [ x$FSL_DIR = "x" ] ; then echo "ERROR : \$FSL_DIR and \$FSLDIR variable not defined - exiting."  ; exit 1 ; fi
 fslversion=$(cat $(dirname $(dirname `which imglob`))/etc/fslversion)
-echo ""; echo "FSL version is ${fslversion}." ; echo "" ; sleep 1
+echo ""; echo "FSL version is ${fslversion}." ; echo "" ; sleep 0
 
 # display Job-Id
 echo "Job-Id : $$"

@@ -9,6 +9,8 @@
 
 FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
+#FSLDIR=/usr/share/fsl/4.1
+#zenity --info --text="$FSLDIR"
 
 if [ -d /tmp ] ; then
   wdir=/tmp/.fslviewscript$$
@@ -31,5 +33,12 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     files=$files" "$i
   fi
 done
+
+#for i in $files ; do
+  #sizex=$($FSLDIR/bin/fslinfo $i | grep pixdim1 | cut -d " " -f 2-)
+  #sizey=$($FSLDIR/bin/fslinfo $i | grep pixdim2 | cut -d " " -f 2-)
+  #sizez=$($FSLDIR/bin/fslinfo $i | grep pixdim3 | cut -d " " -f 2-)
+  #zenity --info --text="$i $sizex $sizey $sizez"
+#done
 
 fslview $files
