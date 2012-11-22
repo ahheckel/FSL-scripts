@@ -1,7 +1,7 @@
 #!/bin/sh
 # Adapted by HKL: address sections (mask / dualreg / randomise) separately & insert exchangeability block file into randomise call & voxel-wise stats & naming of randomise results based on 
 # the name of the used design & delete ${LOGDIR}/dr[ABCD] cmd-file to avoid accumulation on re-run. randomise_parallel or randomise are used on demand, randomise_parallel, however,
-# only works if /bin/sh points to /bin/bash ! (!)
+# only works if /bin/sh points to /bin/bash ! (!) High-pass filtered motion parameters can be used for dr_stage2.
 
 Usage() {
     cat <<EOF
@@ -10,7 +10,7 @@ dual_regression v0.5 (beta)
 
 ***NOTE*** ORDER OF COMMAND-LINE ARGUMENTS IS DIFFERENT FROM PREVIOUS VERSION
 
-Usage: dual_regression <group_IC_maps> <des_norm> <design.mat> <design.con> <design.grp> <n_perm> <output_directory> <DO_MASK> <DO_DUALREG> <DO_RANDOMISE> <input1> <input2> <input3> .........
+Usage: dual_regression <group_IC_maps> <des_norm> <design.mat> <design.con> <design.grp> <n_perm> <output_directory> <USE_MOVPARS> <USE_MOVPARS_TR> <USE_MOVPARS_HPF> <DO_MASK> <DO_DUALREG> <DO_RANDOMISE> <input1> <input2> <input3> .........
 e.g.   dual_regression groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat design.con 500 grot \`cat groupICA.gica/.filelist\`
 
 <group_IC_maps_4D>            4D image containing spatial IC maps (melodic_IC) from the whole-group ICA analysis
@@ -58,6 +58,10 @@ NPERM=$1 ; shift
 
 OUTPUT=`${FSLDIR}/bin/remove_ext $1` ; shift
 
+USE_MOVPARS=$1 ; shift
+USE_MOVPARS_TR=$1 ; shift
+USE_MOVPARS_HPF=$1 ; shift
+
 DO_MASK=$1 ; shift
 DO_DUALREG=$1 ; shift
 DO_RANDOMISE=$1 ; shift
@@ -104,13 +108,50 @@ if [ $DO_DUALREG -eq 1 ] ; then
 
 rm -f ${LOGDIR}/drC # delete cmd-file to avoid accumulation on re-run (HKL)
 
+# find motion parameter files... (added by HKL)
+if [ $USE_MOVPARS -eq 1 ] ; then
+  movpar=1 
+  for i in $INPUTS ; do
+    i=$(remove_ext $i)
+    featdir=$(dirname $i)/$(readlink ${i}.nii.gz | cut -d / -f 2 | grep .feat$)
+    movparfile=$featdir/mc/prefiltered_func_data_mcf.par
+    echo "`basename $0` : detecting motion parameter file: '$movparfile'"
+    if [ ! -f $movparfile ] ; then echo "`basename $0` : WARNING : motion-parameter file '$movparfile' does not exist." ; movpar=0 ; fi
+  done
+  # high-pass filter motion parameter files...
+  if [ $movpar -eq 1 ] ; then
+    j=0 ; hpf=100 ; TR=3.30
+    for i in $INPUTS ; do
+      s=subject`${FSLDIR}/bin/zeropad $j 5`
+      i=$(remove_ext $i)
+      featdir=$(dirname $i)/$(readlink ${i}.nii.gz | cut -d / -f 2 | grep .feat$)
+      movparfile=$featdir/mc/prefiltered_func_data_mcf.par
+      $scriptdir/hpf_movpar.sh $movparfile $OUTPUT/movpar_hpf_$s.txt $USE_MOVPARS_HPF $USE_MOVPARS_TR
+      j=`echo "$j 1 + p" | dc -`
+    done
+  else
+    echo "`basename $0` : ERROR : at least one motion parameter file is missing -> cannot include motion parameters as confounds in DUALREG-stage2... exiting." ; exit 1
+  fi
+else
+  movpar=0 
+fi
+# end HKL
+
 echo "doing the dual regressions"
 j=0
 for i in $INPUTS ; do
   s=subject`${FSLDIR}/bin/zeropad $j 5`
+  if [ $movpar -eq 1 ] ; then
+  echo "$FSLDIR/bin/fsl_glm -i $i -d $ICA_MAPS -o $OUTPUT/_dr_stage1_${s}.txt --demean -m $OUTPUT/mask ; \
+        paste $OUTPUT/_dr_stage1_${s}.txt $OUTPUT/movpar_hpf_$s.txt > $OUTPUT/dr_stage1_${s}.txt ; \
+        rm $OUTPUT/_dr_stage1_${s}.txt ; \
+        $FSLDIR/bin/fsl_glm -i $i -d $OUTPUT/dr_stage1_${s}.txt -o $OUTPUT/dr_stage2_$s --out_z=$OUTPUT/dr_stage2_${s}_Z --demean -m $OUTPUT/mask $DES_NORM ; \
+        $FSLDIR/bin/fslsplit $OUTPUT/dr_stage2_$s $OUTPUT/dr_stage2_${s}_ic" >> ${LOGDIR}/drC
+  else
   echo "$FSLDIR/bin/fsl_glm -i $i -d $ICA_MAPS -o $OUTPUT/dr_stage1_${s}.txt --demean -m $OUTPUT/mask ; \
         $FSLDIR/bin/fsl_glm -i $i -d $OUTPUT/dr_stage1_${s}.txt -o $OUTPUT/dr_stage2_$s --out_z=$OUTPUT/dr_stage2_${s}_Z --demean -m $OUTPUT/mask $DES_NORM ; \
         $FSLDIR/bin/fslsplit $OUTPUT/dr_stage2_$s $OUTPUT/dr_stage2_${s}_ic" >> ${LOGDIR}/drC
+  fi
   j=`echo "$j 1 + p" | dc -`
 done
 ID_drC=`$FSLDIR/bin/fsl_sub -T 30 -N drC -l $LOGDIR -t ${LOGDIR}/drC` # HKL removed  switch "-j $ID_drB"

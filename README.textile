@@ -6,6 +6,7 @@ h3. Features
 
 * Functional analyses
 ** FSL's Independent Component Analysis (Melodic-ICA)
+** FSL's dual regression
 ** Amplitute of Low Frequency Fluctuations (ALFF)
 ** fractional Amplitute of Low Frequency Fluctuations (fALFF)
 * Structural analyses

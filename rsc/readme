@@ -1,5 +1,30 @@
+Modifications of original FSL / Freesurfer files.
+
+All modifications are indicated in the respective files (HKL).
+
+fsl/fsl_sub
+fsl/fsl_sub_v5
+  A RAM limit was added to avoid cluster overload.
+
+scripts/fsl_sub_NOPOSIXLY.sh
+scripts/fsl_sub_v5_NOPOSIXLY.sh
+  POSIXLY_CORRECT variable was commented out to ensure compatibility with recon-all.
+  
+fsl/featlib.tcl  
+  Cross-modal affine registrations use mutualinfo (rather than corratio) as cost-function. 
+  Unwarping: +/- y unwarp example files are created.
+  Only for use with FSL 4.9.1.
+  
+fs/trac-all
+  adapted to work with SunGridEngine.
+  
+scripts/longt_tbss_2_reg.sh
+  affine registration is initialised with transform b0->T1->MNI, where T1 is the unbiased template of the Freesurfer longit. stream,
+  and b0->T1 is done via Freesurfer's bbregister.
+  
+
+Notes.
+
 /FSL-scripts must be exportet and mounted on all nodes
-install imagemagick (compile)
-fsl_sub: comment out POSIXLY_CORRECT=1 <-- consult fsl list, but seems to give problems with "feat" -> maintain two separate versions for fsl and freesurfer
-recon-all -use-mritotal may give better talairach registrations
-topup/appplytopup is from fsl v.5
+"recon-all -use-mritotal" may give better talairach registrations in some cases
+

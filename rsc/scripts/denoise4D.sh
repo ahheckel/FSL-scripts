@@ -148,7 +148,7 @@ if [ $denoise -eq 1 ] ; then
   #cmd="fsl_glm -i $input -d ${confounds%.mat}_proc.mat --demean --out_res=${output}"
   #echo $cmd ; $cmd
   #fslmaths $input -Tmean ${input}_mean
-  #fslmaths ${output} -add ${input}_mean ${output} # otw. speckled results...
+  #fslmaths ${output} -add ${input}_mean ${output} # o.w. speckled results...
   
   # determine number of nuisance regressors
   if [ x$movpar = "x" ] ; then 

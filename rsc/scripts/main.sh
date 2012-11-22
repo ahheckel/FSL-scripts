@@ -4077,13 +4077,17 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
       ## creating link to logdir
       #ln -sfn ../$(basename $grpdir)/$(basename $dregdir)/$DUALREG_INPUT_ICA_DIRNAME/scripts+logs $logdir/dualreg_${DUALREG_INPUT_ICA_DIRNAME}_scripts+logs # create link to dualreg-logfiles in log-directory
       
+      # check if we have acquisition parameters
+      defineBOLDparams $subjdir/config_acqparams_bold # assuming that TR is the same for all datasets
+      
       # executing dualreg...
       echo "DUALREG : executing dualreg script on group-level ICs in '$ICfile' - writing to folder '$dr_outdir'..."
       
-      cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 1 0 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
+      if [ x"$DUALREG_USE_MOVPARS_HPF" = "x" ] ; then usemov=0 ; DUALREG_USE_MOVPARS_HPF="Inf" ; else usemov=1 ; echo "DUALREG : Motion parameters will be used in dual-regressions." ; fi      
+      cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $usemov $DUALREG_USE_MOVPARS_HPF $TR_bold 1 0 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
       $cmd ; waitIfBusy
       
-      cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 0 1 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
+      cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $usemov $DUALREG_USE_MOVPARS_HPF $TR_bold 0 1 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
       $cmd ; waitIfBusy
     done
   done
