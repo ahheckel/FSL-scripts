@@ -141,7 +141,7 @@ if [ $USE_MOVPARS -eq 1 ] ; then
       i=$(remove_ext $i)
       featdir=$(dirname $i)/$(readlink ${i}.nii.gz | cut -d / -f 2 | grep .feat$)
       movparfile=$featdir/mc/prefiltered_func_data_mcf.par
-      $(dirname $0)/hpf_movpar.sh $movparfile $OUTPUT/movpar_hpf_$s.txt $USE_MOVPARS_HPF $USE_MOVPARS_TR
+      $(dirname $0)/hpf_movpar.sh $movparfile $OUTPUT/movpar_${s}.hpf${USE_MOVPARS_HPF} $USE_MOVPARS_HPF $USE_MOVPARS_TR
       j=`echo "$j 1 + p" | dc -`
     done
   else
@@ -158,7 +158,7 @@ for i in $INPUTS ; do
   s=subject`${FSLDIR}/bin/zeropad $j 5`
   if [ $movpar -eq 1 ] ; then
   echo "$FSLDIR/bin/fsl_glm -i $i -d $ICA_MAPS -o $OUTPUT/_dr_stage1_${s}.txt --demean -m $OUTPUT/mask ; \
-        paste $OUTPUT/_dr_stage1_${s}.txt $OUTPUT/movpar_hpf_$s.txt > $OUTPUT/dr_stage1_${s}.txt ; \
+        paste $OUTPUT/_dr_stage1_${s}.txt $OUTPUT/movpar_${s}.hpf${USE_MOVPARS_HPF} > $OUTPUT/dr_stage1_${s}.txt ; \
         rm $OUTPUT/_dr_stage1_${s}.txt ; \
         $FSLDIR/bin/fsl_glm -i $i -d $OUTPUT/dr_stage1_${s}.txt -o $OUTPUT/dr_stage2_$s --out_z=$OUTPUT/dr_stage2_${s}_Z --demean -m $OUTPUT/mask $DES_NORM ; \
         $FSLDIR/bin/fslsplit $OUTPUT/dr_stage2_$s $OUTPUT/dr_stage2_${s}_ic" >> ${LOGDIR}/drC
