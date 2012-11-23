@@ -35,7 +35,7 @@ preAlpha (experimental)
 
 h3. Contact
 
-Dr. Andi Heckel, M.sc.
+Dr. Andi Heckel, M.Sc.
 University of Heidelberg
 Department of Neuroradiology
 heckelandreas@googlemail.com
