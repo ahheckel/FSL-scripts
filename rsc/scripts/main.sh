@@ -4,7 +4,9 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 11/18/2012
+# 11/23/2012
+
+echo "---------------------------"
 
 # echo date
 startdate=$(date) ; echo "Executing '$0' on ${startdate}..."
@@ -23,7 +25,7 @@ fslversion=$(cat $(dirname $(dirname `which imglob`))/etc/fslversion)
 echo ""; echo "FSL version is ${fslversion}." ; echo "" ; sleep 0
 
 # display Job-Id
-echo "Job-Id : $$"
+echo "Job-Id : $$" ; echo ""
 
 # source environment variables
 if [ ! -f ./globalvars ] ; then echo "ERROR: 'globalvars' not found - exiting." ; exit 1 ; fi
@@ -31,6 +33,14 @@ source ./globalvars
 
 # source environment functions
 source $scriptdir/globalfuncs
+
+# check for RAM dumps
+dumps=$(find ./ -maxdepth 2 -name "core*")
+if [ $(echo $dumps | wc -w) -gt 0 ] ; then
+  echo "ERROR: memory dumps (core-files) detected - you should look into this. Exiting... "
+  echo $dumps | row2col
+  exit 1
+fi
 
 # define current working directory
 wd=`pwd`
@@ -426,6 +436,7 @@ fi
 
 # make log directory for fsl_sub
 mkdir -p $logdir
+#$scriptdir/delbrokenlinks.sh $logdir
 
 # make temp directory
 mkdir -p $tmpdir
@@ -2546,6 +2557,8 @@ if [ $BOLD_STG2 -eq 1 ] ; then
             echo "BOLD : subj $subj , sess $sess : creating symlink to unwarped 4D BOLD."
             lname=$(echo "$featdir" | sed "s|"uw[-+0][y0]"|"uw"|g") # remove unwarp direction from link's name
             ln -sfv ./$(basename $featdir)/filtered_func_data.nii.gz ${lname%.feat}_filtered_func_data.nii.gz
+            # create a link to report_log.html in logdir.
+            ln -sfv $featdir/report_log.html $logdir/$(basename $featdir)_report_log_$(subjsess).html
    
           done # end stc_val
         done # end sm_krnl        
