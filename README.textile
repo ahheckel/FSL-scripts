@@ -6,7 +6,7 @@ h3. Features
 
 * Functional analyses
 ** FSL's Independent Component Analysis (Melodic-ICA)
-** FSL's dual regression
+** FSL's Dual Regression
 ** Amplitute of Low Frequency Fluctuations (ALFF)
 ** fractional Amplitute of Low Frequency Fluctuations (fALFF)
 * Structural analyses
@@ -32,6 +32,13 @@ h3. Requirements
 h3. Status
 
 preAlpha (experimental)
+
+h3. Contact
+
+Dr. Andi Heckel, M.sc.
+University of Heidelberg
+Department of Neuroradiology
+heckelandreas@googlemail.com
 
 h3. Links
 
