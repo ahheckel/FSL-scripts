@@ -111,7 +111,7 @@ file=filtered_func_data_mni2.nii.gz ; subdir=bold/SESSA_uw+y_st0_s0_hpfInf.feat 
 subj=$(find ./subj -mindepth 1 -maxdepth 1 -type d | grep -v FS_ | sort)
 sess="a b c d e"
 
-mkdir -p $(dirname $out) ; imrm ${out}tmp_????
+mkdir -p $(dirname $out) ; imrm ${out}tmp_????.*
 f_WM=""; f_CSF=""; f_WB=""; f_bold=""
 c=1 ; for i in $subj ; do
   for j in $sess ; do 
@@ -132,7 +132,7 @@ fslmerge -t ${out}WM_merged  $f_WM 2>/dev/null
 fslmerge -t ${out}CSF_merged  $f_CSF 2>/dev/null
 fslmerge -t ${out}WB_merged  $f_WB 2>/dev/null
 fslmerge -t ${out}merged $f_bold 2>/dev/null
-imrm ${out}tmp_????
+imrm ${out}tmp_????.*
 cmd="fslview ${out}merged ${out}WB_merged -t 0 ${out}CSF_merged -l "Blue" -t 0.5 ${out}WM_merged -l "Yellow" -t 0.5"
 echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
 
@@ -140,11 +140,11 @@ echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
 ###################################
 # check denoise masks (native bold)
 ###################################
-file=example_func.nii.gz ; subdir=bold/SESSA_uw+y_st0_s0_hpfInf.feat ; out=chk/EF_bold_
+file=example_func.nii.gz ; subdir=bold/SESSA_uw?y_st0_s0_hpfInf.feat ; out=chk/EF_bold_
 subj=$(find ./subj -mindepth 1 -maxdepth 1 -type d | grep -v FS_ | sort)
 sess="a b c d e"
 
-mkdir -p $(dirname $out) ; imrm ${out}tmp_????
+mkdir -p $(dirname $out) ; imrm ${out}tmp_????.*
 f_WM=""; f_CSF=""; f_WB=""; f_bold=""
 c=1 ; for i in $subj ; do
   for j in $sess ; do 
@@ -164,7 +164,7 @@ fslmerge -t ${out}WM_merged  $f_WM 2>/dev/null
 fslmerge -t ${out}CSF_merged  $f_CSF 2>/dev/null
 fslmerge -t ${out}WB_merged  $f_WB 2>/dev/null
 fslmerge -t ${out}merged $f_bold 2>/dev/null
-imrm ${out}tmp_????
+imrm ${out}tmp_????.*
 cmd="fslview ${out}merged ${out}WB_merged -t 0 ${out}CSF_merged -l "Blue" -t 0.5 ${out}WM_merged -l "Yellow" -t 0.5"
 echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
 
@@ -176,7 +176,7 @@ struc=*_t1_orig.nii.gz ; brain=*_t1_watershed_initbrain.nii.gz ; out=chk/vbm_
 subj=$(find ./subj -mindepth 1 -maxdepth 1 -type d | grep -v FS_ | sort)
 sess="a b c d e"
 
-mkdir -p $(dirname $out) ; imrm ${out}tmp_????
+mkdir -p $(dirname $out) ; imrm ${out}tmp_????.*
 f_brain=""; f_struc=""
 c=1 ; for i in $subj ; do
   for j in $sess ; do 
@@ -200,11 +200,11 @@ echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
 ###################
 # check bold unwarp
 ###################
-file=bold/preprocBOLD_hpf100_s4_uw-y.feat/filtered_func_data.nii.gz ; file2=$(dirname $file)/unwarp/EF_UD_fmap_mag_brain.nii.gz ; out=chk/EF_bold_
+file=bold/SESSA_uw?y_st0_s0_hpfInf.feat/filtered_func_data.nii.gz ; file2=$(dirname $file)/unwarp/EF_UD_fmap_mag_brain.nii.gz ; out=chk/EF_bold_
 subj=$(find ./subj -mindepth 1 -maxdepth 1 -type d | grep -v FS_ | sort)
 sess="a b c d e"
 
-mkdir -p $(dirname $out) ; imrm ${out}tmp_????
+mkdir -p $(dirname $out) ; imrm ${out}tmp_????.*
 files=""; files2="";
 c=1 ; for i in $subj ; do
   for j in $sess ; do 
@@ -222,7 +222,7 @@ c=1 ; for i in $subj ; do
 done ; c=0
 fslmerge -t ${out}merged $files 2>/dev/null
 fslmerge -t ${out}magn_merged $files2 2>/dev/null
-imrm ${out}tmp_????
+imrm ${out}tmp_????.*
 cmd="fslview ${out}magn_merged -l "Blue-Lightblue" ${out}merged"
 echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
 
@@ -234,7 +234,7 @@ file=bold/preprocBOLD_uw+y_st0_s0_hpf100.feat/reg_longt/example_func2highres_bbr
 subj=$(find ./subj -mindepth 1 -maxdepth 1 -type d | grep -v FS_ | sort)
 sess="a b c d e"
 
-mkdir -p $(dirname $out) ; imrm ${out}tmp_????
+mkdir -p $(dirname $out) ; imrm ${out}tmp_????.*
 files=""; files2="";
 c=1 ; for i in $subj ; do
   for j in $sess ; do 
@@ -250,7 +250,7 @@ c=1 ; for i in $subj ; do
 done ; c=0
 fslmerge -t ${out}bold_bbreg $files 2>/dev/null
 fslmerge -t ${out}T1 $files2 2>/dev/null
-imrm ${out}tmp_????
+imrm ${out}tmp_????.*
 cmd="fslview ${out}bold_bbreg  ${out}T1"
 echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
 
@@ -262,7 +262,7 @@ file=fdt/unwarpDWI_y.feat/filtered_func_data.nii.gz ; file2=$(dirname $file)/unw
 subj=$(find ./subj -mindepth 1 -maxdepth 1 -type d | grep -v FS_ | sort)
 sess="a c e"
 
-mkdir -p $(dirname $out) ; imrm ${out}tmp_????
+mkdir -p $(dirname $out) ; imrm ${out}tmp_????.*
 files=""; files2="";
 c=1 ; for i in $subj ; do
   for j in $sess ; do 
@@ -280,7 +280,7 @@ c=1 ; for i in $subj ; do
 done ; c=0
 fslmerge -t ${out}merged $files 2>/dev/null
 fslmerge -t ${out}magn_merged $files2 2>/dev/null
-imrm ${out}tmp_????
+imrm ${out}tmp_????.*
 cmd="fslview ${out}magn_merged -l "Blue-Lightblue" ${out}merged"
 echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
 
@@ -390,7 +390,7 @@ c=1 ; for i in $subj ; do
 done ; c=0
 fslmerge -t ${out}merged $files 2>/dev/null
 fslmerge -t ${out}filt $files2 2>/dev/null
-imrm ${out}tmp_????
+imrm ${out}tmp_????.*
 cmd="fslview ${out}filt ${out}merged"
 echo $cmd | tee ${out}.cmd ; chmod +x ${out}.cmd ; $cmd
 
