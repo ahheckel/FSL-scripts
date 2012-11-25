@@ -1,5 +1,5 @@
 #!/bin/bash
-# Removes nuisance confounds from 4D functional using masks.
+# Removes confounds from 4D functionals using masks.
 
 # Written by Andreas Heckel
 # University of Heidelberg

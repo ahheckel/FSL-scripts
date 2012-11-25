@@ -1,5 +1,5 @@
 #!/bin/sh
-# original version by C. Beckmann: http://www.fmrib.ox.ac.uk/analysis/dualreg/dual_regression
+# Original version by C. Beckmann. For more information see http://www.fmrib.ox.ac.uk/analysis/dualreg/dual_regression
 
 # Adapted by HKL (11/22/2012): address sections (mask / dualreg / randomise) separately & insert exchangeability block file into randomise call & voxel-wise stats & naming of randomise results based on 
 # the name of the design used & delete ${LOGDIR}/dr[ABCD] cmd-file to avoid accumulation on re-run. randomise_parallel or randomise are used on demand, randomise_parallel, however,
@@ -12,7 +12,7 @@ dual_regression v0.5 (beta)
 
 ***NOTE*** ORDER OF COMMAND-LINE ARGUMENTS IS DIFFERENT FROM PREVIOUS VERSION
 
-Usage: dual_regression <group_IC_maps> <des_norm> <design.mat> <design.con> <design.grp> <n_perm> <output_directory> <USE_MOVPARS> <USE_MOVPARS_TR> <USE_MOVPARS_HPF> <DO_MASK> <DO_DUALREG> <DO_RANDOMISE> <input1> <input2> <input3> .........
+Usage: dual_regression <group_IC_maps> <des_norm> <design.mat> <design.con> <design.grp> <randomise||randomise_parallel> <n_perm> <output_directory> <USE_MOVPARS> <USE_MOVPARS_TR> <USE_MOVPARS_HPF> <DO_MASK> <DO_DUALREG> <DO_RANDOMISE> <input1> <input2> <input3> .........
 e.g.   dual_regression groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat design.con 500 grot \`cat groupICA.gica/.filelist\`
 
 <group_IC_maps_4D>            4D image containing spatial IC maps (melodic_IC) from the whole-group ICA analysis
@@ -96,6 +96,7 @@ echo $ORIG_COMMAND > $LOGDIR/command
   #/bin/cp $dm $OUTPUT/design.mat
   #/bin/cp $dc $OUTPUT/design.con
 #fi
+JID=1 # dummy jobID (HKL)
 
 if [ $DO_MASK -eq 1 ] ; then
 
@@ -116,8 +117,13 @@ cat <<EOF > ${LOGDIR}/drB
 \$FSLDIR/bin/imrm $OUTPUT/mask_*
 EOF
 chmod a+x ${LOGDIR}/drB
-ID_drB=`$FSLDIR/bin/fsl_sub -j $ID_drA -T 5 -N drB -l $LOGDIR ${LOGDIR}/drB`
+#ID_drB=`$FSLDIR/bin/fsl_sub -j $ID_drA -T 5 -N drB -l $LOGDIR ${LOGDIR}/drB`
+JID=`$FSLDIR/bin/fsl_sub -j $ID_drA -T 5 -N drB -l $LOGDIR ${LOGDIR}/drB`
 fi
+
+
+################################
+
 
 if [ $DO_DUALREG -eq 1 ] ; then
 
@@ -135,7 +141,7 @@ if [ $USE_MOVPARS -eq 1 ] ; then
   done
   # high-pass filter motion parameter files...
   if [ $movpar -eq 1 ] ; then
-    j=0 ; hpf=100 ; TR=3.30
+    j=0
     for i in $INPUTS ; do
       s=subject`${FSLDIR}/bin/zeropad $j 5`
       i=$(remove_ext $i)
@@ -169,8 +175,13 @@ for i in $INPUTS ; do
   fi
   j=`echo "$j 1 + p" | dc -`
 done
-ID_drC=`$FSLDIR/bin/fsl_sub -T 30 -N drC -l $LOGDIR -t ${LOGDIR}/drC` # HKL removed  switch "-j $ID_drB"
+#ID_drC=`$FSLDIR/bin/fsl_sub -T 30 -N drC -l $LOGDIR -t ${LOGDIR}/drC` # HKL removed  switch "-j $ID_drB"
+JID=`$FSLDIR/bin/fsl_sub -j $JID -T 30 -N drC -l $LOGDIR -t ${LOGDIR}/drC` # HKL removed  switch "-j $ID_drB"
 fi
+
+
+################################
+
 
 if [ $DO_RANDOMISE -eq 1 ] ; then
 
@@ -204,6 +215,7 @@ while [ $j -lt $Nics ] ; do
         $FSLDIR/bin/imrm \`\$FSLDIR/bin/imglob $OUTPUT/dr_stage2_subject*_ic${jj}.*\` ; $RAND" >> ${LOGDIR}/drD
   j=`echo "$j 1 + p" | dc -`
 done
-ID_drD=`$FSLDIR/bin/fsl_sub -T 60 -N drD -l $LOGDIR -t ${LOGDIR}/drD` # HKL removed  switch "-j $ID_drC"
+#ID_drD=`$FSLDIR/bin/fsl_sub -T 60 -N drD -l $LOGDIR -t ${LOGDIR}/drD` # HKL removed  switch "-j $ID_drC"
+JID=`$FSLDIR/bin/fsl_sub -j $JID -T 60 -N drD -l $LOGDIR -t ${LOGDIR}/drD` # HKL removed  switch "-j $ID_drC"
 fi
 

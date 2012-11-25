@@ -2558,7 +2558,7 @@ if [ $BOLD_STG2 -eq 1 ] ; then
             lname=$(echo "$featdir" | sed "s|"uw[-+0][y0]"|"uw"|g") # remove unwarp direction from link's name
             ln -sfv ./$(basename $featdir)/filtered_func_data.nii.gz ${lname%.feat}_filtered_func_data.nii.gz
             # create a link to report_log.html in logdir.
-            ln -sfv $featdir/report_log.html $logdir/$(basename $featdir)_report_log_$(subjsess).html
+            ln -sfv $featdir/report_log.html $logdir/bold_reportlog_$(basename $featdir)_$(subjsess).html
    
           done # end stc_val
         done # end sm_krnl        
