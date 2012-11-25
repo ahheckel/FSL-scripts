@@ -1,5 +1,5 @@
 #!/bin/bash
-# Writes func -> standard space w/o intermediary write-outs.
+# Applies func -> standard space transforms w/o intermediary write-outs.
 
 # Written by Andreas Heckel
 # University of Heidelberg

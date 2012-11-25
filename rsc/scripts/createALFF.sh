@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ## This is an adaptation of the 1000 Connectome script written by Xi-Nian Zuo, Maarten Mennes & Michael Milham.
-## for more information see www.nitrc.org/projects/fcon_1000
+## For more information see www.nitrc.org/projects/fcon_1000
 
 set -e
 
