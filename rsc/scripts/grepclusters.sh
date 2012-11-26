@@ -60,14 +60,14 @@ for f in $files ; do
       #tval=$(fslmeants -i $(echo $f | sed "s|tfce_||g" | sed "s|corrp_||g" | sed "s|p_||g" | sed "s|vox_||g") --usemm -c $x $y $z) # query t-value
       tval=$(fslmeants -i $(echo $f | sed "s|_tfce_|_|g" | sed "s|_corrp_|_|g" | sed "s|_p_|_|g" | sed "s|_vox_|_|g") --usemm -c $x $y $z) # query t-value
       
-      if [ $anal = "tbss" ] ; then
+      if [ $anal = "-tbss" ] ; then
         JHU1=$(atlasquery  -a "JHU ICBM-DTI-81 White-Matter Labels" -c ${x},${y},${z} | cut -d ">" -f 4)
         JHU2=$(atlasquery  -a "JHU White-Matter Tractography Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)      
         printf '   %5.3f t/f=%4.2f (%5i) at [ %5.1f %5.1f %5.1f ] (mm) \n' $max $tval $size $x $y $z | tee -a $logfile
         printf '\t JHU1: %s\n' "$JHU1" | tee -a $logfile
         printf '\t JHU2: %s\n' "$JHU2" | tee -a $logfile
       fi
-      if [ $anal = "vbm" ] ; then
+      if [ $anal = "-vbm" ] ; then
         HAV1=$(atlasquery  -a "Harvard-Oxford Cortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         HAV2=$(atlasquery  -a "Harvard-Oxford Subcortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         TAL=$(atlasquery  -a "Talairach Daemon Labels" -c ${x},${y},${z} | cut -d ">" -f 4)
@@ -89,7 +89,7 @@ done
 
 rm -f $tmpfile
 
-if [ $anal = "tbss" ] ; then
+if [ $anal = "-tbss" ] ; then
   if [ $fslview -eq 1 ] ; then
     for f in $collect ; do
       statsdir=$(dirname $f);
@@ -101,7 +101,7 @@ if [ $anal = "tbss" ] ; then
   fi
 fi
 
-if [ $anal = "vbm" ] ; then
+if [ $anal = "-vbm" ] ; then
   if [ $fslview -eq 1 ] ; then
     for f in $collect ; do
       statsdir=$(dirname $f);
