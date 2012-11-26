@@ -1,5 +1,5 @@
 #!/bin/bash
-# Finds significant activation clusters.
+# Finds significant activation clusters in directory tree.
 
 # Written by Andreas Heckel
 # University of Heidelberg
@@ -12,15 +12,16 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <atlas:tbss|vbm> <dir> <search-pttrn> <thres> <fslview 1|0>"
-    echo "Example: `basename $0` vbm ./stats \"*_corrp_*\" 0.95 1"
-    echo "         `basename $0` vbm ./stats \"*_corrp_*\" -1"
-    echo "          NOTE: thres=-1 reports only the most significant result."
+    echo "Usage: `basename $0` <atlas:-tbss|-vbm> <dir> <search-pttrn> <thres> <fslview 1|0>"
+    echo "Example: `basename $0` -vbm ./stats \"*_corrp_*\" 0.95 1"
+    echo "         `basename $0` -vbm ./stats \"*_corrp_*\" -1"
+    echo "         NOTE: thres=-1 reports only the most significant result."
     echo ""
     exit 1
 }
 
 if [ $# -lt 4 ] ; then Usage ; fi
+if [ $(echo $1 | grep ^- | wc -l) -eq 0 ] ; then Usage ; fi
 anal=$1
 dir=$2
 pttrn=$3
