@@ -1,5 +1,5 @@
 #!/bin/bash
-# Applies EDDY (FSL v5) to TOPUP directory, which was created with topup.sh.
+# Applies EDDY (FSL v5) to a TOPUP directory, which was created with topup.sh.
 
 # Written by Andreas Heckel
 # University of Heidelberg
