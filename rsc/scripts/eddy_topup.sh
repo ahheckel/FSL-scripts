@@ -25,13 +25,13 @@ fldr="$1"
 out="$2"
 wd="`pwd`"
 
-# check version ofldrf FSL
+# check version of FSL
 fslversion=$(cat $FSLDIR/etc/fslversion | cut -d . -f 1)
-if [ $fslversion -lt 5 ] ; then echo "`basename $0`: ERROR: only works with FSL >= 5 ! (FSL v$(cat $FSLDIR/etc/fslversion) was detected.)  Exiting." exit 1 ; fi
+if [ $fslversion -lt 5 ] ; then echo "`basename $0`: ERROR : only works with FSL >= 5 ! (FSL $(cat $FSLDIR/etc/fslversion) was detected.)  Exiting." ; exit 1 ; fi
 
 # concatenate bvals/bvecs (minus first)
+paste -d " " $fldr/bvalsminus_concat.txt $fldr/bvalsplus_concat.txt > $fldr/eddy_bvals_concat.txt
 paste -d " " $fldr/bvecsminus_concat.txt $fldr/bvecsplus_concat.txt > $fldr/eddy_bvecs_concat.txt
-echo "`cat $fldr/bvalsminus_concat.txt`" "`cat $fldr/bvalsplus_concat.txt`" > $fldr/eddy_bvals_concat.txt
 
 # create eddy's index text file
 N=$(for i in `seq 1 $(cat $fldr/diff.files | wc -l)` ; do cat $fldr/diff.files | sed -n ${i}p | cut -d : -f 2 ; done)
@@ -61,7 +61,9 @@ cd $fldr
   echo "`basename $0`: eddy_index     : $eddy_index"
 
   # execute eddy...
-  eddy --imain=${dwi} --mask=${mask} --bvecs=${bvecs} --bvals=${bvals} --out=${out} --acqp=${acqp} --topup=${topup_basename} --index=${eddy_index} -v
+  echo "`basename $0`: executing eddy:"
+  cmd="eddy --imain=${dwi} --mask=${mask} --bvecs=${bvecs} --bvals=${bvals} --out=${out} --acqp=${acqp} --topup=${topup_basename} --index=${eddy_index} -v"
+  echo "    $cmd" ; $cmd
 
 # change to prev. working directory
 cd $wd

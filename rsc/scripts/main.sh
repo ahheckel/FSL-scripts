@@ -1010,9 +1010,10 @@ if [ $TOPUP_STG2 -eq 1 ] ; then
       if [ ! -f $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
       
       # display info
-      echo "TOPUP : subj $subj , sess $sess : concatenate bvals... "
+      echo "TOPUP : subj $subj , sess $sess : concatenate bvals and bvecs... "
       echo "`cat $fldr/bvalsminus_concat.txt`" "`cat $fldr/bvalsplus_concat.txt`" > $fldr/bvals_concat.txt
-       
+      paste -d " " $fldr/bvecsminus_concat.txt $fldr/bvecsplus_concat.txt > $fldr/bvecs_concat.txt
+
       # get B0 index
       min=`row2col $fldr/bvals_concat.txt | getMin` # find minimum value (usually representing the "B0" image)
       echo "TOPUP : subj $subj , sess $sess : minimum b-value in merged diff. is $min"

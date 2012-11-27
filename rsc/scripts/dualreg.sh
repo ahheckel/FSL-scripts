@@ -73,17 +73,17 @@ while [ _$1 != _ ] ; do
   shift
 done
 
-echo "ICA_MAPS:        $ICA_MAPS"
-echo "DES_NORM:        $DES_NORM"
-echo "DESIGN:          $DESIGN"
-echo "NPERM:           $NPERM"
-echo "OUTPUT:          $OUTPUT"
-echo "USE_MOVPARS:     $USE_MOVPARS"
-echo "USE_MOVPARS_TR:  $USE_MOVPARS_TR"
-echo "USE_MOVPARS_HPF: $USE_MOVPARS_HPF"
-echo "DO_MASK:         $DO_MASK"
-echo "DO_DUALREG:      $DO_DUALREG"
-echo "DO_RANDOMISE:    $DO_RANDOMISE"
+echo "`basename $0` : ICA_MAPS:        $ICA_MAPS"
+echo "`basename $0` : DES_NORM:        $DES_NORM"
+echo "`basename $0` : DESIGN:          $DESIGN"
+echo "`basename $0` : NPERM:           $NPERM"
+echo "`basename $0` : OUTPUT:          $OUTPUT"
+echo "`basename $0` : USE_MOVPARS:     $USE_MOVPARS"
+echo "`basename $0` : USE_MOVPARS_TR:  $USE_MOVPARS_TR"
+echo "`basename $0` : USE_MOVPARS_HPF: $USE_MOVPARS_HPF"
+echo "`basename $0` : DO_MASK:         $DO_MASK"
+echo "`basename $0` : DO_DUALREG:      $DO_DUALREG"
+echo "`basename $0` : DO_RANDOMISE:    $DO_RANDOMISE"
 
 
 ############################################################################
