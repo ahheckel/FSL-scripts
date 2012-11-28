@@ -50,6 +50,9 @@ for file in $inputs ; do
 done
 if [ $err -eq 1 ] ; then "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
 
+# delete outdir if present
+if [ -f $outdir/$subdir/report/00index.html ] ; then echo "" ; echo "`basename $0`: WARNING : output directory '$outdir/$subdir' already exists - deleting it..." ; echo "" ; rm -r $outdir/$subdir ; fi
+
 # create command options
 opts="-v --tr=${TR} --report --guireport=$outdir/$subdir/report.html -d 0 --mmthresh=0.5 --Oall $_opts"
 if [ $gica -eq 1 ] ; then opts="$opts -a concat" ; fi
@@ -58,14 +61,14 @@ if [ $gica -eq 1 ] ; then opts="$opts -a concat" ; fi
 mkdir -p $outdir/$subdir
 
 # gather inputs
-err=0 ; rm -f $outdir/input.files ; i=1
+err=0 ; rm -f $outdir/melodic.inputfiles ; i=1
 for file in $inputs ; do
-  if [ -f $file ] ; then echo "`basename $0`: $i adding '$file' to input filelist..." ; echo $file >> $outdir/input.files ; i=$[$i+1] ; else echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
+  if [ -f $file ] ; then echo "`basename $0`: $i adding '$file' to input filelist..." ; echo $file >> $outdir/melodic.inputfiles ; i=$[$i+1] ; else echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
 done
 if [ $err -eq 1 ] ; then "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
 
 # execute melodic
-cmd="melodic -i $outdir/input.files -o $outdir/$subdir $opts"
+cmd="melodic -i $outdir/melodic.inputfiles -o $outdir/$subdir $opts"
 echo $cmd | tee $outdir/melodic.cmd
 . $outdir/melodic.cmd
 
