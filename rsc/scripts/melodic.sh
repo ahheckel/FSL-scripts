@@ -21,6 +21,21 @@ Usage() {
     exit 1
 }
 
+function _imtest()
+{
+  local vol="$1"
+ 
+  if [ -f ${vol} -o -f ${vol}.nii -o -f ${vol}.nii.gz -o -f ${vol}.hdr -o -f ${vol}.img ] ; then
+    if [ $(fslinfo $vol 2>/dev/null | wc -l) -gt 0 ] ; then
+      echo "1"
+    else
+      echo "0"
+    fi
+  else
+    echo "0" 
+  fi  
+}
+
 [ "$3" = "" ] && Usage
 inputs="$1"
 TR=$2
@@ -30,12 +45,12 @@ _opts="$4"
 # single session ICA ?
 gica=1
 if [ $(echo "$inputs" | wc -w) -eq 1 ] ; then
-  if [ -f $inputs ] ; then # single session ICA
+  if [ $(_imtest $inputs) -eq 1 ] ; then # single session ICA
     gica=0
     if [ "$outdir" = "-1" ] ; then outdir="$(dirname $inputs)" ; fi
     subdir=$(remove_ext $(basename $inputs)).ica    
   else # assume group ICA
-    inputs="$(cat $inputs)"
+    inputs="$(cat $inputs)" # assuming ascii list with volumes
     subdir=groupmelodic.ica
   fi
 else # assume group ICA
