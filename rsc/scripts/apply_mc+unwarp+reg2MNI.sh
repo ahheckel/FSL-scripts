@@ -57,19 +57,15 @@ mid=$(echo "scale=0 ; $nvol / 2" | bc)
 fslroi $input ${output}_example_func $mid 1
 
 # convert warps
-  cmd="convertwarp --ref=${output}_example_func --shiftmap=${shiftmap} --shiftdir=${uwdir} --out=${output}_WARP1 --relout"
-  echo $cmd
-  $cmd
-  
-  
-  cmd="convertwarp --ref=${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --warp1=${f2mni_warp} --premat=${f2t1_mat} --out=${output}_WARP2 --relout"
-  echo $cmd
-  $cmd
-  
- 
-  cmd="convertwarp --ref=${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --warp1=${output}_WARP1  --warp2=${output}_WARP2 --out=${output}_WARP --relout" 
-  echo $cmd
-  $cmd  
+cmd="convertwarp --ref=${output}_example_func --shiftmap=${shiftmap} --shiftdir=${uwdir} --out=${output}_WARP1 --relout"
+echo $cmd
+$cmd
+cmd="convertwarp --ref=${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --warp1=${f2mni_warp} --premat=${f2t1_mat} --out=${output}_WARP2 --relout"
+echo $cmd
+$cmd
+cmd="convertwarp --ref=${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii.gz --warp1=${output}_WARP1  --warp2=${output}_WARP2 --out=${output}_WARP --relout" 
+echo $cmd
+$cmd  
 
 # apply transforms
 imrm ${output}_tmp_????.*

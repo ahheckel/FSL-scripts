@@ -18,26 +18,29 @@ delJIDs() {
      done
   fi
   rm -f $jidfile
-  if [ $j -eq 0 ] ; then echo "`basename $0`: no job left to erase." ; fi
+  if [ $j -eq 0 ] ; then echo "`basename $0`: no job left to erase (OK)." ; fi
 }
 
+# set error trap
 trap 'echo "$0 : An ERROR has occured."' ERR
 
+# create temporary dir.
+wdir=`pwd`/.topup$$ ; mkdir -p $wdir
+
 # create joblist file for SGE
-echo "`basename $0`: touching SGE job control file in /tmp."
-JIDfile="/tmp/$(basename $0)_$$.sge"
+echo "`basename $0`: touching SGE job control file in '$wdir'."
+JIDfile="$wdir/$(basename $0)_$$.sge"
 touch $JIDfile
 
-trap "echo -e \"\n`basename $0`: cleanup: erasing Job-IDs in '$JIDfile'\" ; delJIDs $JIDfile ; exit" EXIT
-
-# source commonly used functions
-source $(dirname $0)/globalfuncs
+# set exit trap
+trap "echo -e \"\n`basename $0`: cleanup: erasing Job-IDs in '$JIDfile'\" ; delJIDs $JIDfile ;  rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
 
 Usage() {
     echo ""
     echo "Usage: `basename $0` <out-dir> <isBOLD: 0|1> [n_dummyB0] <dwi-blip+> <dwi-blip-> <unwarp-dir> <TotalReadoutTime(s)> <use noec: 0|1> <use ec: 0|1> [<dof> <costfunction>] [<subj>] [<sess>]"
     echo "Example: topup.sh topupdir 0 \"dwi*+.nii.gz\" \"dwi*-.nii.gz\" -y 0.02975 1 1 12 corratio 01 a"
     echo "         topup.sh topupdir 1 4 \"bold*+.nii.gz\" \"bold*-.nii.gz\" +x 0.02975 1 1 6 mutualinfo 01 a"
+    echo ""
     echo "NOTE:    -requires same number of blipup and blipdown images."
     echo "         -bvals/bvecs files are detected by suffix <dwi-blip+>_bvals and <dwi-blip->_bvecs."
     echo "         -alphabetical listings of blipup/blipdown images (dwi*+, dwi*-) and bvals/bvecs must match !"
@@ -69,6 +72,9 @@ sess=${10} # optional
 # display info
 echo "`basename $0`: starting TOPUP..."
 
+# source commonly used functions
+source $(dirname $0)/globalfuncs
+
 # check SGE
 if [ x"$SGE_ROOT" != "x" ] ; then
   echo "`basename $0`: checking SGE..."
@@ -88,12 +94,12 @@ sdir=`pwd`
 
 # define bval/bvec files
 fldr=$outdir ; mkdir -p $fldr
-ls $pttrn_diffsplus > $fldr/dwi+.files
-ls $pttrn_diffsminus > $fldr/dwi-.files
-rm -f $fldr/bvec+.files ; for i in $(cat $fldr/dwi+.files) ; do echo $(remove_ext $i)_bvecs >> $fldr/bvec+.files  ; done
-rm -f $fldr/bvec-.files ; for i in $(cat $fldr/dwi-.files) ; do echo $(remove_ext $i)_bvecs >> $fldr/bvec-.files  ; done
-rm -f $fldr/bval+.files ; for i in $(cat $fldr/dwi+.files) ; do echo $(remove_ext $i)_bvals >> $fldr/bval+.files  ; done
-rm -f $fldr/bval-.files ; for i in $(cat $fldr/dwi-.files) ; do echo $(remove_ext $i)_bvals >> $fldr/bval-.files  ; done
+ls $pttrn_diffsplus > $fldr/diff+.files
+ls $pttrn_diffsminus > $fldr/diff-.files
+rm -f $fldr/bvec+.files ; for i in $(cat $fldr/diff+.files) ; do echo $(remove_ext $i)_bvecs >> $fldr/bvec+.files  ; done
+rm -f $fldr/bvec-.files ; for i in $(cat $fldr/diff-.files) ; do echo $(remove_ext $i)_bvecs >> $fldr/bvec-.files  ; done
+rm -f $fldr/bval+.files ; for i in $(cat $fldr/diff+.files) ; do echo $(remove_ext $i)_bvals >> $fldr/bval+.files  ; done
+rm -f $fldr/bval-.files ; for i in $(cat $fldr/diff-.files) ; do echo $(remove_ext $i)_bvals >> $fldr/bval-.files  ; done
 cat $fldr/bvec-.files $fldr/bvec+.files > $fldr/bvec.files
 cat $fldr/bval-.files $fldr/bval+.files > $fldr/bval.files
 
@@ -103,7 +109,7 @@ for i in $(ls $pttrn_diffsplus) ; do
   i_bvec=`remove_ext ${i}`_bvecs  
   #if [ ! -f $(dirname $pttrn_diffsplus)/$i_bval -a ! -f $(dirname $pttrn_diffsplus)/$i_bvec ] ; then
   if [ $isBOLD -eq 1 ] ; then
-      echo "`basename $0`: isBOLD=1 -> creating dummy files."
+      echo "`basename $0`: isBOLD=1 -> creating dummy bval/bvec files."
       if [ -f $i_bval ] ; then echo "`basename $0`: WARNING: '$i_bval' already exists - will overwrite..." ; fi
       if [ -f $i_bvec ] ; then echo "`basename $0`: WARNING: '$i_bvec' already exists - will overwrite..." ; fi
       cmd="$(dirname $0)/dummy_bvalbvec.sh $i $n_b0"
@@ -125,8 +131,8 @@ for i in $(ls $pttrn_diffsminus) ; do
 done
 
 # count input files
-n_dwi_plus=$(cat $fldr/dwi+.files | wc -l)
-n_dwi_minus=$(cat $fldr/dwi-.files | wc -l)
+n_dwi_plus=$(cat $fldr/diff+.files | wc -l)
+n_dwi_minus=$(cat $fldr/diff-.files | wc -l)
 n_vec_plus=`cat $fldr/bvec+.files | wc -l`
 n_vec_minus=`cat $fldr/bvec-.files | wc -l`
 n_val_plus=`cat $fldr/bval+.files | wc -l`
@@ -168,8 +174,8 @@ echo "TOPUP : Checking bvals/bvecs- and DWI files for consistent number of entri
 for subj in `cat $outdir/.subjects` ; do
   for sess in `cat $outdir/.sessions_struc` ; do
     i=1
-    for dwi_p in $(cat $fldr/dwi+.files) ; do
-      dwi_m=$(cat $fldr/dwi-.files | sed -n ${i}p)
+    for dwi_p in $(cat $fldr/diff+.files) ; do
+      dwi_m=$(cat $fldr/diff-.files | sed -n ${i}p)
       n_bvalsplus=`cat $fldr/bval+.files | sed -n ${i}p | xargs cat | wc -w` ;  n_bvecsplus=`cat $fldr/bvec+.files | sed -n ${i}p | xargs cat | wc -w`
       n_bvalsminus=`cat $fldr/bval-.files | sed -n ${i}p | xargs cat | wc -w` ; n_bvecsminus=`cat $fldr/bvec-.files | sed -n ${i}p | xargs cat | wc -w`
       nvolplus=`countVols "$dwi_p"` ; nvolminus=`countVols "$dwi_m"`
@@ -256,15 +262,15 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       fi
       
       # concatenate +bvecs and -bvecs
-      concat_bvals "$(cat $fldr/bval-.files)" $fldr/bvalsminus_concat.txt
-      concat_bvals "$(cat $fldr/bval+.files)" $fldr/bvalsplus_concat.txt 
-      concat_bvecs "$(cat $fldr/bvec-.files)" $fldr/bvecsminus_concat.txt
-      concat_bvecs "$(cat $fldr/bvec+.files)" $fldr/bvecsplus_concat.txt 
+      concat_bvals "$(cat $fldr/bval-.files)" $fldr/bvals-_concat.txt
+      concat_bvals "$(cat $fldr/bval+.files)" $fldr/bvals+_concat.txt 
+      concat_bvecs "$(cat $fldr/bvec-.files)" $fldr/bvecs-_concat.txt
+      concat_bvecs "$(cat $fldr/bvec+.files)" $fldr/bvecs+_concat.txt 
 
-      nbvalsplus=$(wc -w $fldr/bvalsplus_concat.txt | cut -d " " -f 1)
-      nbvalsminus=$(wc -w $fldr/bvalsminus_concat.txt | cut -d " " -f 1)
-      nbvecsplus=$(wc -w $fldr/bvecsplus_concat.txt | cut -d " " -f 1)
-      nbvecsminus=$(wc -w $fldr/bvecsplus_concat.txt | cut -d " " -f 1)      
+      nbvalsplus=$(wc -w $fldr/bvals+_concat.txt | cut -d " " -f 1)
+      nbvalsminus=$(wc -w $fldr/bvals-_concat.txt | cut -d " " -f 1)
+      nbvecsplus=$(wc -w $fldr/bvecs+_concat.txt | cut -d " " -f 1)
+      nbvecsminus=$(wc -w $fldr/bvecs-_concat.txt | cut -d " " -f 1)      
      
       # check number of entries in concatenated bvals/bvecs files
       n_entries=`countVols "$pttrn_diffsplus"` 
@@ -278,8 +284,8 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       
       # check if +/- bval entries are the same
       i=1
-      for bval in `cat $fldr/bvalsplus_concat.txt` ; do
-        if [ $bval != $(cat $fldr/bvalsminus_concat.txt | cut -d " " -f $i)  ] ; then 
+      for bval in `cat $fldr/bvals+_concat.txt` ; do
+        if [ $bval != $(cat $fldr/bvals-_concat.txt | cut -d " " -f $i)  ] ; then 
           echo "TOPUP : subj $subj , sess $sess : ERROR : +bval entries do not match -bval entries (they should have the same values !) - exiting..."
           exit
         fi        
@@ -435,7 +441,8 @@ if [ $TOPUP_STG2 -eq 1 ] ; then
       
       # display info
       echo "TOPUP : subj $subj , sess $sess : concatenate bvals... "
-      echo "`cat $fldr/bvalsminus_concat.txt`" "`cat $fldr/bvalsplus_concat.txt`" > $fldr/bvals_concat.txt
+      echo "`cat $fldr/bvals-_concat.txt`" "`cat $fldr/bvals+_concat.txt`" > $fldr/bvals_concat.txt
+      paste -d " " $fldr/bvecs-_concat.txt $fldr/bvecs+_concat.txt > $fldr/bvecs_concat.txt
        
       # get B0 index
       min=`row2col $fldr/bvals_concat.txt | getMin` # find minimum value (usually representing the "B0" image)
@@ -576,7 +583,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         b0minus=$(echo $lines_b0m | cut -d " " -f $i)
         
         n=`printf %03i $i`
-        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" | tee -a $fldr/applytopup.cmd
+        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
         #echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
       done
       
@@ -594,7 +601,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         
         n=`printf %03i $i`
         #echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
-        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec"  | tee -a $fldr/applytopup_ec.cmd
+        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
       done
     done
   done
@@ -606,10 +613,12 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
   
       if [ $TOPUP_USE_NATIVE -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : applying warps to native DWIs..."
+        cat $fldr/applytopup.cmd
         fsl_sub -l $logdir -N topup_applytopup_$(subjsess) -t $fldr/applytopup.cmd >> $JIDfile
       fi
       if [ $TOPUP_USE_EC -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : applying warps to eddy-corrected DWIs..."
+        cat $fldr/applytopup_ec.cmd
         fsl_sub -l $logdir -N topup_applytopup_ec_$(subjsess) -t $fldr/applytopup_ec.cmd >> $JIDfile
       fi
     done
@@ -661,7 +670,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ; fi ;
       if [ ! -f $fldr/fm/fmap_rads.nii.gz ] ; then  echo "TOPUP : subj $subj , sess $sess : ERROR : fieldmap not found in '$fldr/fm/' - exiting..." ; exit 1 ; fi
       min=`row2col $fldr/bvals_concat.txt | getMin`
-      b0idces=`getIdx $fldr/bvalsminus_concat.txt $min` 
+      b0idces=`getIdx $fldr/bvals-_concat.txt $min` 
       lowbs=""
       for b0idx in $b0idces ; do 
         lowb="$fldr/fm/uw_b${min}_`printf '%05i' $b0idx`"
@@ -700,7 +709,7 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
       
       # averaging +/- bvecs & bvals...
       # NOTE: bvecs are averaged further below (following rotation)
-      average $fldr/bvalsminus_concat.txt $fldr/bvalsplus_concat.txt > $fldr/avg_bvals.txt
+      average $fldr/bvals-_concat.txt $fldr/bvals+_concat.txt > $fldr/avg_bvals.txt
       
       # rotate bvecs to compensate for eddy-correction, if applicable
       if [ $TOPUP_USE_EC -eq 1 ] ; then

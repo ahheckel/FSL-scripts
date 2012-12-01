@@ -4,7 +4,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 11/23/2012
+# 12/01/2012
 
 echo "---------------------------"
 
@@ -876,15 +876,15 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       fi
       
       # concatenate +bvecs and -bvecs
-      concat_bvals $srcdir/$subj/$sess/"$pttrn_bvalsminus" $fldr/bvalsminus_concat.txt
-      concat_bvals $srcdir/$subj/$sess/"$pttrn_bvalsplus" $fldr/bvalsplus_concat.txt 
-      concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecsminus" $fldr/bvecsminus_concat.txt
-      concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecsplus" $fldr/bvecsplus_concat.txt 
+      concat_bvals $srcdir/$subj/$sess/"$pttrn_bvalsminus" $fldr/bvals-_concat.txt
+      concat_bvals $srcdir/$subj/$sess/"$pttrn_bvalsplus" $fldr/bvals+_concat.txt 
+      concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecsminus" $fldr/bvecs-_concat.txt
+      concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecsplus" $fldr/bvecs+_concat.txt 
 
-      nbvalsplus=$(wc -w $fldr/bvalsplus_concat.txt | cut -d " " -f 1)
-      nbvalsminus=$(wc -w $fldr/bvalsminus_concat.txt | cut -d " " -f 1)
-      nbvecsplus=$(wc -w $fldr/bvecsplus_concat.txt | cut -d " " -f 1)
-      nbvecsminus=$(wc -w $fldr/bvecsplus_concat.txt | cut -d " " -f 1)      
+      nbvalsplus=$(wc -w $fldr/bvals+_concat.txt | cut -d " " -f 1)
+      nbvalsminus=$(wc -w $fldr/bvals-_concat.txt | cut -d " " -f 1)
+      nbvecsplus=$(wc -w $fldr/bvecs+_concat.txt | cut -d " " -f 1)
+      nbvecsminus=$(wc -w $fldr/bvecs-_concat.txt | cut -d " " -f 1)      
      
       # check number of entries in concatenated bvals/bvecs files
       n_entries=`countVols $srcdir/$subj/$sess/"$pttrn_diffsplus"` 
@@ -898,8 +898,8 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       
       # check if +/- bval entries are the same
       i=1
-      for bval in `cat $fldr/bvalsplus_concat.txt` ; do
-        if [ $bval != $(cat $fldr/bvalsminus_concat.txt | cut -d " " -f $i)  ] ; then 
+      for bval in `cat $fldr/bvals+_concat.txt` ; do
+        if [ $bval != $(cat $fldr/bvals-_concat.txt | cut -d " " -f $i)  ] ; then 
           echo "TOPUP : subj $subj , sess $sess : ERROR : +bval entries do not match -bval entries (they should have the same values !) - exiting..."
           exit
         fi        
@@ -1032,8 +1032,8 @@ if [ $TOPUP_STG2 -eq 1 ] ; then
       
       # display info
       echo "TOPUP : subj $subj , sess $sess : concatenate bvals and bvecs... "
-      echo "`cat $fldr/bvalsminus_concat.txt`" "`cat $fldr/bvalsplus_concat.txt`" > $fldr/bvals_concat.txt
-      paste -d " " $fldr/bvecsminus_concat.txt $fldr/bvecsplus_concat.txt > $fldr/bvecs_concat.txt
+      echo "`cat $fldr/bvals-_concat.txt`" "`cat $fldr/bvals+_concat.txt`" > $fldr/bvals_concat.txt
+      paste -d " " $fldr/bvecs-_concat.txt $fldr/bvecs+_concat.txt > $fldr/bvecs_concat.txt
 
       # get B0 index
       min=`row2col $fldr/bvals_concat.txt | getMin` # find minimum value (usually representing the "B0" image)
@@ -1154,7 +1154,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         b0minus=$(echo $lines_b0m | cut -d " " -f $i)
 
         n=`printf %03i $i`
-        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" | tee -a $fldr/applytopup.cmd
+        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
       done
       
       # generate commando with eddy-correction
@@ -1170,7 +1170,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         b0minus=$(echo $lines_b0m | cut -d " " -f $i)
         
         n=`printf %03i $i`
-        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec"  | tee -a $fldr/applytopup_ec.cmd
+        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
       done
     done
   done
@@ -1182,10 +1182,12 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
   
       if [ $TOPUP_USE_NATIVE -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : applying warps to native DWIs..."
+        cat $fldr/applytopup.cmd
         fsl_sub -l $logdir -N topup_applytopup_$(subjsess) -t $fldr/applytopup.cmd
       fi
       if [ $TOPUP_USE_EC -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : applying warps to eddy-corrected DWIs..."
+        cat $fldr/applytopup_ec.cmd
         fsl_sub -l $logdir -N topup_applytopup_ec_$(subjsess) -t $fldr/applytopup_ec.cmd
       fi
     done
@@ -1237,7 +1239,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ; fi ;
       if [ ! -f $fldr/fm/fmap_rads.nii.gz ] ; then  echo "TOPUP : subj $subj , sess $sess : ERROR : fieldmap not found in '$fldr/fm/' - exiting..." ; exit 1 ; fi
       min=`row2col $fldr/bvals_concat.txt | getMin`
-      b0idces=`getIdx $fldr/bvalsminus_concat.txt $min` 
+      b0idces=`getIdx $fldr/bvals-_concat.txt $min` 
       lowbs=""
       for b0idx in $b0idces ; do 
         lowb="$fldr/fm/uw_b${min}_`printf '%05i' $b0idx`"
@@ -1276,7 +1278,7 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
 
       # averaging +/- bvecs & bvals...
       # NOTE: bvecs are averaged further below (following rotation)
-      average $fldr/bvalsminus_concat.txt $fldr/bvalsplus_concat.txt > $fldr/avg_bvals.txt
+      average $fldr/bvals-_concat.txt $fldr/bvals+_concat.txt > $fldr/avg_bvals.txt
       
       # rotate bvecs to compensate for eddy-correction, if applicable
       if [ $TOPUP_USE_EC -eq 1 ] ; then
@@ -2952,11 +2954,11 @@ if [ $BOLD_STG5 -eq 1 ]; then
               data_ref=filtered_func_data${ltag}_mni2.nii.gz # the file we derived the nuisance regressors from
               cmd_file=${featdir}/bold_denoise_$(remove_ext $data_file).cmd
               
-              echo "BOLD : subj $subj , sess $sess : denoising '$data_file' in MNI space using 1000 connectome masks and nusiance matrix '$(remove_ext $data_ref)_dn${dntag_boldmni}_nuisance_meants_proc.mat' ..."
+              echo "BOLD : subj $subj , sess $sess : denoising '$data_file' in MNI space using 1000 connectome masks and nusiance matrix '$(remove_ext $data_ref)_dn${dntag_boldmni}_nuisance_proc.mat' ..."
                           
               # creating command for fsl_sub
               ln -sf ../$data_file $noisedir/$data_file
-              echo "$scriptdir/rem_noise.sh $noisedir/${data_file} $noisedir/$(remove_ext $data_ref)_dn${dntag_boldmni}_nuisance_meants_proc.mat $noisedir/$(remove_ext $data_file)_dn${dntag_boldmni} $subj $sess ; \
+              echo "$scriptdir/rem_noise.sh $noisedir/${data_file} $noisedir/$(remove_ext $data_ref)_dn${dntag_boldmni}_nuisance_proc.mat $noisedir/$(remove_ext $data_file)_dn${dntag_boldmni} $subj $sess ; \
               immv $noisedir/$(remove_ext $data_file)_dn${dntag_boldmni} $featdir/reg_standard/" > $cmd_file
            
               # executing...

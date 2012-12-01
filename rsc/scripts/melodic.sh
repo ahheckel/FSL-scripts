@@ -69,7 +69,7 @@ if [ $(echo "$inputs" | wc -w) -eq 1 ] ; then
     inputs="$(cat $inputs)" # assuming ascii list with volumes
     subdir=groupmelodic.ica
   else
-    echo "`basename $0`: ERROR : inputfile '$inputs' seems odd - exiting." ; exit 1 
+    echo "`basename $0`: ERROR : cannot read inputfile '$inputs' - exiting." ; exit 1 
   fi
 else # assume group ICA
   gica=1

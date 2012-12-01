@@ -5,7 +5,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 11/18/2012
+# 12/01/2012
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
@@ -137,10 +137,10 @@ if [ $hpf != "Inf" -a x${movpar_proc} != "x" ] ; then
 fi
 
 # create matrix - confounds
-confounds="${output}_nuisance_meants.mat"
+confounds="${output}_nuisance.mat"
 echo "`basename $0` : subj $subj , sess $sess : creating nuisance matrix '$confounds' and '${confounds%.mat}_proc.mat'..."
-paste -d " " $ts_list_proc $movpar_proc $ones > ${confounds%.mat}_proc.mat
 paste -d " " $ts_list $movpar $ones > $confounds
+paste -d " " $ts_list_proc $movpar_proc $ones > ${confounds%.mat}_proc.mat
 
 # denoise
 if [ $denoise -eq 1 ] ; then
