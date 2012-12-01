@@ -51,12 +51,6 @@ pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
 
 SCRATCH=0                  # execute scratchpad and exit
 
-RECON_STG1=0               # RECON-ALL prepare (copy and convert T1 nifti)
-RECON_STG2=0               # RECON-ALL execute cross-sectional stream
-RECON_STG3=0               # RECON-ALL execute longitudinal stream's template creation
-RECON_STG4=0               # RECON-ALL execute longitudinal processing for each timepoint
-RECON_STG5=0               # RECON-ALL register FS's longitudinal template (if applicable) or brain.mgz to FSL's MNI152 template using fnirt
-
 FIELDMAP_STG1=0            # FIELDMAP prepare
 FIELDMAP_STG2=0            # FIELDMAP create
 
@@ -73,6 +67,12 @@ FDT_STG3=0                 # FDT unwarp the DWIs
 FDT_STG4=0                 # FDT estimate tensor model
 
 BPX_STG1=0                 # BedpostX - execute
+
+RECON_STG1=0               # RECON-ALL prepare (copy and convert T1 nifti)
+RECON_STG2=0               # RECON-ALL execute cross-sectional stream
+RECON_STG3=0               # RECON-ALL execute longitudinal stream's template creation
+RECON_STG4=0               # RECON-ALL execute longitudinal processing for each timepoint
+RECON_STG5=0               # RECON-ALL register FS's longitudinal template (if applicable) or brain.mgz to FSL's MNI152 template using fnirt
 
 VBM_STG1=0                 # VBM prepare T1
 VBM_STG2=0                 # VBM initial skull strip
@@ -167,10 +167,6 @@ TE_bold=30                      # BOLD TE (ms)
 # first level analyses -------------------------------------------------
 #-----------------------------------------------------------------------
 
-# RECON-ALL
-RECON_USE_CUDA=0           # use CUDA for recon-all, if available
-RECON_USE_MRITOTAL=1       # may improve talairach registration
-
 # FIELDMAP
 deltaTEphase=0.00246       # in seconds
 PI=3.1415926532            # =$(echo "scale=10; 4*a(1)" | bc -l) # define pi
@@ -199,6 +195,10 @@ BPX_USE_UNWARPED_NOROT=0
 BPX_USE_UNWARPED_BVECROT=0
 BPX_USE_TOPUP_NOEC_BVECROT=0
 BPX_USE_TOPUP_EC_BVECROT=1
+
+# RECON-ALL
+RECON_USE_CUDA=0           # use CUDA for recon-all, if available
+RECON_USE_MRITOTAL=1       # may improve talairach registration
 
 # VBM_PREPROC
 VBM_FSLV5=0                # perform fsl_anat script
