@@ -5,21 +5,42 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 11/18/2012
+# 12/01/2012
 
 set -e
 
+delJIDs() {
+  if [ x"SGE_ROOT" != "x" ] ; then
+     local jidfile="$1" ; local i="" ; local j=0
+     for i in $(cat $jidfile) ; do
+        qdel $i
+        j=$[$j+1]
+     done
+  fi
+  rm -f $jidfile
+  if [ $j -eq 0 ] ; then echo "`basename $0`: no job left to erase." ; fi
+}
+
 trap 'echo "$0 : An ERROR has occured."' ERR
+
+# create joblist file for SGE
+echo "`basename $0`: touching SGE job control file in /tmp."
+JIDfile="/tmp/$(basename $0)_$$.sge"
+touch $JIDfile
+
+trap "echo -e \"\n`basename $0`: cleanup: erasing Job-IDs in '$JIDfile'\" ; delJIDs $JIDfile ; exit" EXIT
 
 # source commonly used functions
 source $(dirname $0)/globalfuncs
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <out-dir> <isBOLD: 0|1> [n_dummyB0] <dwi-plus> <dwi-minus> <TotalReadoutTime(s)> <use noec: 0|1> <use ec: 0|1> [<dof> <costfunction>] <subj> <sess>"
-    echo "Example: topup.sh topupdir 0 \"dwi*+.nii.gz\" \"dwi*-.nii.gz\" 0.023 1 1 12 corratio 01 a"
-    echo "         topup.sh topupdir 1 4 \"bold*+.nii.gz\" \"bold*-.nii.gz\" 0.023 1 1 6 mutualinfo 01 a"
-    echo "NOTE:    Alphabetical listings of blip+ and blip- images (dwi*+, dwi*-) must match !"
+    echo "Usage: `basename $0` <out-dir> <isBOLD: 0|1> [n_dummyB0] <dwi-blip+> <dwi-blip-> <unwarp-dir> <TotalReadoutTime(s)> <use noec: 0|1> <use ec: 0|1> [<dof> <costfunction>] [<subj>] [<sess>]"
+    echo "Example: topup.sh topupdir 0 \"dwi*+.nii.gz\" \"dwi*-.nii.gz\" -y 0.02975 1 1 12 corratio 01 a"
+    echo "         topup.sh topupdir 1 4 \"bold*+.nii.gz\" \"bold*-.nii.gz\" +x 0.02975 1 1 6 mutualinfo 01 a"
+    echo "NOTE:    -requires same number of blipup and blipdown images."
+    echo "         -bvals/bvecs files are detected by suffix <dwi-blip+>_bvals and <dwi-blip->_bvecs."
+    echo "         -alphabetical listings of blipup/blipdown images (dwi*+, dwi*-) and bvals/bvecs must match !"
     echo ""
     exit 1
 }
@@ -33,19 +54,26 @@ if [ $isBOLD -eq 1 ] ; then
 fi
 pttrn_diffsplus="$3"
 pttrn_diffsminus="$4"
-TROT_topup=$5 # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
-TOPUP_USE_NATIVE=$6
-TOPUP_USE_EC=$7
+uw_dir="$5"
+TROT_topup=$6 # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
+TOPUP_USE_NATIVE=$7
+TOPUP_USE_EC=$8
 if [ $TOPUP_USE_EC -eq 1 ] ; then
-  TOPUP_EC_DOF=$8 # degrees of freedom used by eddy-correction
-  TOPUP_EC_COST=$9 # cost-function used by eddy-correction
+  TOPUP_EC_DOF=$9 # degrees of freedom used by eddy-correction
+  TOPUP_EC_COST=${10} # cost-function used by eddy-correction
   shift 2
 fi
-subj=$8 # optional
-sess=$9 # optional
+subj=$9 # optional
+sess=${10} # optional
 
 # display info
 echo "`basename $0`: starting TOPUP..."
+
+# check SGE
+if [ x"$SGE_ROOT" != "x" ] ; then
+  echo "`basename $0`: checking SGE..."
+  qstat &>/dev/null
+fi
 
 # defines vars
 if [ x"$subj" = "x" ] ; then subj="_" ; fi
@@ -209,7 +237,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       n_val_plus=`cat $fldr/bval+.files | wc -l`
       n_val_minus=`cat $fldr/bval-.files | wc -l`
       
-      #  are the +/- bvec-files equal in number ?
+      # are the +/- bvec-files equal in number ?
       if [ ! $n_vec_plus -eq $n_vec_minus ] ; then 
         echo "TOPUP : subj $subj , sess $sess : ERROR : number of +blips bvec-files ($n_vec_plus) != number of -blips bvec-files ($n_vec_minus) - continuing loop..."
         continue
@@ -218,7 +246,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
         continue
       fi
       
-      #  are the +/- bval-files equal in number ?
+      # are the +/- bval-files equal in number ?
       if [ ! $n_val_plus -eq $n_val_minus ] ; then 
         echo "TOPUP : subj $subj , sess $sess : ERROR : number of +blips bval-files ($n_val_plus) != number of -blips bval-files ($n_val_minus) - continuing loop..."
         continue
@@ -257,18 +285,38 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
         fi        
         i=$[$i+1]
       done
-
+      
+      # getting unwarp direction
+      echo "TOPUP : subj $subj , sess $sess : unwarp direction is '$uw_dir'."
+      x=0 ; y=0 ; z=0; 
+      if [ "$uw_dir" = "+x" ] ; then x=1  ; fi
+      if [ "$uw_dir" = "-x" ] ; then x=-1 ; fi
+      if [ "$uw_dir" = "+y" ] ; then y=1  ; fi
+      if [ "$uw_dir" = "-y" ] ; then y=-1 ; fi
+      if [ "$uw_dir" = "+z" ] ; then z=1  ; fi
+      if [ "$uw_dir" = "-z" ] ; then z=-1 ; fi
+      mx=$(echo "scale=0; -1 * ${x}" | bc -l)
+      my=$(echo "scale=0; -1 * ${y}" | bc -l)
+      mz=$(echo "scale=0; -1 * ${z}" | bc -l)
+      blipdownline="$mx $my $mz $TROT_topup"
+      blipupline="$x $y $z $TROT_topup"
+      
+      # display info
+      echo "TOPUP : subj $subj , sess $sess : example blip-down line:"
+      echo "        $blipdownline"
+      echo "TOPUP : subj $subj , sess $sess : example blip-up line:"
+      echo "        $blipupline"
+      
       # creating index file for TOPUP
       echo "TOPUP : subj $subj , sess $sess : creating index file for TOPUP..."      
-      rm -f $fldr/$(subjsess)_acqparam.txt ; rm -f $fldr/$(subjsess)_acqparam_inv.txt ; rm -f $fldr/diff.files # clean-up previous runs...
-      
+      rm -f $fldr/$(subjsess)_acqparam.txt ; rm -f $fldr/$(subjsess)_acqparam_inv.txt ; rm -f $fldr/diff.files # clean-up previous runs...    
       diffsminus=`ls ${pttrn_diffsminus}`
       for file in $diffsminus ; do
         nvol=`fslinfo $file | grep ^dim4 | awk '{print $2}'`
         echo "$file n:${nvol}" | tee -a $fldr/diff.files
         for i in `seq 1 $nvol`; do
-          echo "0 -1 0 $TROT_topup" >> $fldr/$(subjsess)_acqparam.txt
-          echo "0 1 0 $TROT_topup" >> $fldr/$(subjsess)_acqparam_inv.txt
+          echo "$blipdownline" >> $fldr/$(subjsess)_acqparam.txt
+          echo "$blipupline" >> $fldr/$(subjsess)_acqparam_inv.txt
         done
       done
       
@@ -277,18 +325,42 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
         nvol=`fslinfo $file | grep ^dim4 | awk '{print $2}'`
         echo "$file n:${nvol}" | tee -a $fldr/diff.files
         for i in `seq 1 $nvol`; do
-          echo "0 1 0 $TROT_topup" >> $fldr/$(subjsess)_acqparam.txt
-          echo "0 -1 0 $TROT_topup" >> $fldr/$(subjsess)_acqparam_inv.txt
+          echo "$blipupline" >> $fldr/$(subjsess)_acqparam.txt
+          echo "$blipdownline" >> $fldr/$(subjsess)_acqparam_inv.txt
         done
       done
+      
+      ## creating index file for TOPUP
+      #echo "TOPUP : subj $subj , sess $sess : creating index file for TOPUP..."      
+      #rm -f $fldr/$(subjsess)_acqparam.txt ; rm -f $fldr/$(subjsess)_acqparam_inv.txt ; rm -f $fldr/diff.files # clean-up previous runs...
+      
+      #diffsminus=`ls ${pttrn_diffsminus}`
+      #for file in $diffsminus ; do
+        #nvol=`fslinfo $file | grep ^dim4 | awk '{print $2}'`
+        #echo "$file n:${nvol}" | tee -a $fldr/diff.files
+        #for i in `seq 1 $nvol`; do
+          #echo "0 -1 0 $TROT_topup" >> $fldr/$(subjsess)_acqparam.txt
+          #echo "0 1 0 $TROT_topup" >> $fldr/$(subjsess)_acqparam_inv.txt
+        #done
+      #done
+      
+      #diffsplus=`ls ${pttrn_diffsplus}`
+      #for file in $diffsplus ; do
+        #nvol=`fslinfo $file | grep ^dim4 | awk '{print $2}'`
+        #echo "$file n:${nvol}" | tee -a $fldr/diff.files
+        #for i in `seq 1 $nvol`; do
+          #echo "0 1 0 $TROT_topup" >> $fldr/$(subjsess)_acqparam.txt
+          #echo "0 -1 0 $TROT_topup" >> $fldr/$(subjsess)_acqparam_inv.txt
+        #done
+      #done
             
       # merging diffusion images for TOPUP    
       echo "TOPUP : subj $subj , sess $sess : merging diffs... "
-      fsl_sub -l $logdir -N topup_fslmerge_$(subjsess) fslmerge -t $fldr/diffs_merged $(cat $fldr/diff.files | cut -d " " -f 1)
+      fsl_sub -l $logdir -N topup_fslmerge_$(subjsess) fslmerge -t $fldr/diffs_merged $(cat $fldr/diff.files | cut -d " " -f 1) >> $JIDfile
     done
   done
   
-  waitIfBusy
+  waitIfBusy $JIDfile
   
   # perform eddy-correction, if applicable
   if [ $TOPUP_USE_EC -eq 1 ] ; then
@@ -317,12 +389,12 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
           
           # eddy-correct
           echo "TOPUP : subj $subj , sess $sess : eddy_correction of '$dwifile' (ec_diffs_merged_${i}) is using volume no. $b0img as B0 (val:${min})..."
-          fsl_sub -l $logdir -N topup_eddy_correct_$(subjsess) -t $fldr/topup_ec_${i}.cmd
+          fsl_sub -l $logdir -N topup_eddy_correct_$(subjsess) -t $fldr/topup_ec_${i}.cmd >> $JIDfile
         done        
       done
     done
     
-    waitIfBusy    
+    waitIfBusy $JIDfile    
     
     # plot ecclogs...
     for subj in `cat $outdir/.subjects` ; do
@@ -350,7 +422,7 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
   fi
 fi
 
-waitIfBusy
+waitIfBusy $JIDfile
 
 # TOPUP low-B images: create index and extract
 if [ $TOPUP_STG2 -eq 1 ] ; then
@@ -380,30 +452,30 @@ if [ $TOPUP_STG2 -eq 1 ] ; then
         cat $fldr/$(subjsess)_acqparam_inv.txt | sed -n ${line}p >> $fldr/$(subjsess)_acqparam_lowb_inv.txt
       done
           
-      # creating index file for topup (only the first low-B image in each dwi file)
-      echo "TOPUP : subj $subj , sess $sess : creating index file for TOPUP (only the first low-B image in each dwi-file)..." 
-      c=0 ; _nvol=0 ; nvol=0
-      rm -f $fldr/$(subjsess)_acqparam_lowb_1st.txt ; rm -f $fldr/$(subjsess)_acqparam_lowb_1st_inv.txt # clean-up previous runs...
-      for i in $(cat $fldr/bval.files) ; do
-        _min=`row2col $i | getMin`
-        _idx=`getIdx $i $_min` ;  _idx=$(echo $_idx | cut -d " " -f 1) ; _idx=$(echo "$_idx + 1" | bc -l)
-        if [ $c -gt 0 ] ; then
-          _nvol=$(cat $fldr/diff.files | sed -n ${c}p | cut -d ":" -f 2-) ;
-        fi
-        nvol=$(( $nvol + $_nvol ))
-        _line=$(echo "$nvol + $_idx" | bc -l)
+      ## creating index file for topup (only the first low-B image in each dwi file)
+      #echo "TOPUP : subj $subj , sess $sess : creating index file for TOPUP (only the first low-B image in each dwi-file)..." 
+      #c=0 ; _nvol=0 ; nvol=0
+      #rm -f $fldr/$(subjsess)_acqparam_lowb_1st.txt ; rm -f $fldr/$(subjsess)_acqparam_lowb_1st_inv.txt # clean-up previous runs...
+      #for i in $(cat $fldr/bval.files) ; do
+        #_min=`row2col $i | getMin`
+        #_idx=`getIdx $i $_min` ;  _idx=$(echo $_idx | cut -d " " -f 1) ; _idx=$(echo "$_idx + 1" | bc -l)
+        #if [ $c -gt 0 ] ; then
+          #_nvol=$(cat $fldr/diff.files | sed -n ${c}p | cut -d ":" -f 2-) ;
+        #fi
+        #nvol=$(( $nvol + $_nvol ))
+        #_line=$(echo "$nvol + $_idx" | bc -l)
         
-        cat $fldr/$(subjsess)_acqparam.txt | sed -n ${_line}p >> $fldr/$(subjsess)_acqparam_lowb_1st.txt
-        cat $fldr/$(subjsess)_acqparam_inv.txt | sed -n ${_line}p >> $fldr/$(subjsess)_acqparam_lowb_1st_inv.txt
-        c=$[$c+1]
-      done   
+        #cat $fldr/$(subjsess)_acqparam.txt | sed -n ${_line}p >> $fldr/$(subjsess)_acqparam_lowb_1st.txt
+        #cat $fldr/$(subjsess)_acqparam_inv.txt | sed -n ${_line}p >> $fldr/$(subjsess)_acqparam_lowb_1st_inv.txt
+        #c=$[$c+1]
+      #done   
       
       # extract B0 images
       lowbs=""
       for b0idx in $b0idces ; do    
         echo "TOPUP : subj $subj , sess $sess : found B0 image in merged diff. at pos. $b0idx (val:${min}) - extracting..."
         lowb="$fldr/b${min}_`printf '%05i' $b0idx`"
-        fsl_sub -l $logdir -N topup_fslroi_$(subjsess) fslroi $fldr/diffs_merged $lowb $b0idx 1
+        fsl_sub -l $logdir -N topup_fslroi_$(subjsess) fslroi $fldr/diffs_merged $lowb $b0idx 1  >> $JIDfile
         lowbs=$lowbs" "$lowb
       done
       
@@ -411,12 +483,12 @@ if [ $TOPUP_STG2 -eq 1 ] ; then
       echo "$lowbs" > $fldr/lowb.files; lowbs=""
       
       # wait here to prevent overload...
-      waitIfBusy
+      waitIfBusy $JIDfile
     done
   done
 fi
 
-waitIfBusy
+waitIfBusy $JIDfile
 
 # TOPUP merge B0 images
 if [ $TOPUP_STG3 -eq 1 ] ; then
@@ -429,13 +501,13 @@ if [ $TOPUP_STG3 -eq 1 ] ; then
       
       # merge B0 images
       echo "TOPUP : subj $subj , sess $sess : merging low-B volumes..."
-      fsl_sub -l $logdir -N topup_fslmerge_$(subjsess) fslmerge -t $fldr/$(subjsess)_lowb_merged $(cat $fldr/lowb.files)
+      fsl_sub -l $logdir -N topup_fslmerge_$(subjsess) fslmerge -t $fldr/$(subjsess)_lowb_merged $(cat $fldr/lowb.files) >> $JIDfile
       
     done
   done
 fi
 
-waitIfBusy
+waitIfBusy $JIDfile
 
 # TOPUP execute TOPUP
 if [ $TOPUP_STG4 -eq 1 ] ; then
@@ -450,8 +522,8 @@ if [ $TOPUP_STG4 -eq 1 ] ; then
       echo "TOPUP : subj $subj , sess $sess : executing TOPUP on merged low-B volumes..."
       mkdir -p $fldr/fm # dir. for fieldmap related stuff
       echo "topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/fm/field_Hz_lowb --iout=$fldr/fm/uw_lowb_merged_chk ; \
-      fslmaths $fldr/fm/field_Hz_lowb -mul 6.2832 $fldr/fm/fmap_rads" > $fldr/topup.cmd
-      fsl_sub -l $logdir -N topup_topup_$(subjsess) -t $fldr/topup.cmd
+      fslmaths $fldr/fm/field_Hz_lowb -mul 6.2832 $fldr/fm/fmap_rads" | tee $fldr/topup.cmd
+      fsl_sub -l $logdir -N topup_topup_$(subjsess) -t $fldr/topup.cmd  >> $JIDfile
       #echo "fsl_sub -l $logdir -N topup_topup_$(subjsess) topup -v --imain=$fldr/$(subjsess)_lowb_merged --datain=$fldr/$(subjsess)_acqparam_lowb.txt --config=b02b0.cnf --out=$fldr/$(subjsess)_field_lowb --fout=$fldr/$(subjsess)_fieldHz_lowb --iout=$fldr/$(subjsess)_unwarped_lowb" > $fldr/topup.cmd
       #. $fldr/topup.cmd      
      
@@ -459,7 +531,7 @@ if [ $TOPUP_STG4 -eq 1 ] ; then
   done
 fi
 
-waitIfBusy
+waitIfBusy $JIDfile
 
 # TOPUP apply warp
 if [ $TOPUP_STG5 -eq 1 ] ; then
@@ -470,6 +542,27 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       
       if [ ! -f $fldr/$(subjsess)_acqparam.txt ] ; then echo "TOPUP : subj $subj , sess $sess : ERROR : parameter file $fldr/$(subjsess)_acqparam.txt not found - continuing loop..." ; continue ; fi
       
+      # for applywarp: get appropriate line in TOPUP index file (containing parameters pertaining to the B0 images) that refers to the first b0 volume in the respective DWI input file.
+      line_b0=1 ; j=0 ; lines_b0p=""; lines_b0m=""
+      for i in $(cat $fldr/bval-.files) ; do
+        min=`row2col $i | getMin`
+        nb0=$(echo `getIdx $i $min` | wc -w)
+        if [ $j -gt 0 ] ; then
+          line_b0=$(echo "scale=0; $line_b0 + $nb0" | bc -l)
+        fi
+        lines_b0m=$lines_b0m" "$line_b0
+        j=$[$j+1]
+      done      
+      for i in $(cat $fldr/bval+.files) ; do
+        min=`row2col $i | getMin`
+        nb0=$(echo `getIdx $i $min` | wc -w)
+        if [ $j -gt 0 ] ; then
+          line_b0=$(echo "scale=0; $line_b0 + $nb0" | bc -l)
+        fi
+        lines_b0p=$lines_b0p" "$line_b0
+        j=$[$j+1]
+      done
+      
       # generate commando without eddy-correction
       nplus=`ls $pttrn_diffsplus | wc -l`      
       rm -f $fldr/applytopup.cmd
@@ -479,8 +572,12 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         blipdown=`ls $pttrn_diffsminus | sed -n ${i}p`
         blipup=`ls $pttrn_diffsplus | sed -n ${i}p`
         
+        b0plus=$(echo $lines_b0p | cut -d " " -f $i)
+        b0minus=$(echo $lines_b0m | cut -d " " -f $i)
+        
         n=`printf %03i $i`
-        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
+        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" | tee -a $fldr/applytopup.cmd
+        #echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
       done
       
       # generate commando with eddy-correction
@@ -492,8 +589,12 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         blipdown=$fldr/ec_diffs_merged_$(printf %03i $i)
         blipup=$fldr/ec_diffs_merged_$(printf %03i $j)
         
+        b0plus=$(echo $lines_b0p | cut -d " " -f $i)
+        b0minus=$(echo $lines_b0m | cut -d " " -f $i)
+        
         n=`printf %03i $i`
-        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
+        #echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
+        echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec"  | tee -a $fldr/applytopup_ec.cmd
       done
     done
   done
@@ -505,16 +606,16 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
   
       if [ $TOPUP_USE_NATIVE -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : applying warps to native DWIs..."
-        fsl_sub -l $logdir -N topup_applytopup_$(subjsess) -t $fldr/applytopup.cmd
+        fsl_sub -l $logdir -N topup_applytopup_$(subjsess) -t $fldr/applytopup.cmd >> $JIDfile
       fi
       if [ $TOPUP_USE_EC -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : applying warps to eddy-corrected DWIs..."
-        fsl_sub -l $logdir -N topup_applytopup_ec_$(subjsess) -t $fldr/applytopup_ec.cmd
+        fsl_sub -l $logdir -N topup_applytopup_ec_$(subjsess) -t $fldr/applytopup_ec.cmd >> $JIDfile
       fi
     done
   done
        
-  waitIfBusy
+  waitIfBusy $JIDfile
       
   # merge corrected files and remove negative values
   for subj in `cat $outdir/.subjects` ; do
@@ -535,7 +636,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
     done
   done
   
-  waitIfBusy
+  waitIfBusy $JIDfile
   
   # remove negative values
   for subj in `cat $outdir/.subjects` ; do
@@ -543,12 +644,12 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       fldr=$outdir
       
       echo "TOPUP : subj $subj , sess $sess : zeroing negative values in topup-corrected DWIs..."
-      if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_merged -thr 0 $fldr/$(subjsess)_topup_corr_merged ; fi
-      if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_ec_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_ec_merged -thr 0 $fldr/$(subjsess)_topup_corr_ec_merged ; fi
+      if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_merged -thr 0 $fldr/$(subjsess)_topup_corr_merged >> $JIDfile ; fi
+      if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_ec_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_ec_merged -thr 0 $fldr/$(subjsess)_topup_corr_ec_merged >> $JIDfile ; fi
     done
   done
   
-  waitIfBusy
+  waitIfBusy $JIDfile
   
   # create masked fieldmap
   for subj in `cat $outdir/.subjects` ; do
@@ -574,7 +675,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       fslmaths $fldr/fm/uw_lowb_merged -Tmean $fldr/fm/uw_lowb_mean ; \
       bet $fldr/fm/uw_lowb_mean $fldr/fm/uw_lowb_mean_brain_${fithres} -f $fithres -m ; \
       fslmaths $fldr/fm/fmap_rads -mas $fldr/fm/uw_lowb_mean_brain_${fithres}_mask $fldr/fm/fmap_rads_masked" > $fldr/topup_b0mask.cmd
-      fsl_sub -l $logdir -N topup_b0mask_$(subjsess) -t $fldr/topup_b0mask.cmd
+      fsl_sub -l $logdir -N topup_b0mask_$(subjsess) -t $fldr/topup_b0mask.cmd >> $JIDfile
       
       # link to mask
       echo "TOPUP : subj $subj , sess $sess : link to unwarped mask..."
@@ -588,7 +689,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
   done    
 fi
 
-waitIfBusy
+waitIfBusy $JIDfile
 
 # TOPUP estimate tensor model
 if [ $TOPUP_STG6 -eq 1 ] ; then
@@ -689,11 +790,11 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
       # estimate tensor model (rotated bvecs)
       if [ $TOPUP_USE_NATIVE -eq 1 ] ; then           
         echo "TOPUP : subj $subj , sess $sess : dtifit is estimating tensor model with rotated b-vectors (no eddy-correction)..."
-        fsl_sub -l $logdir -N topup_dtifit_noec_bvecrot_$(subjsess) dtifit -k $fldr/$(subjsess)_topup_corr_merged -m $fldr/uw_nodif_brain_mask -r $fldr/avg_bvecs_topup.rot -b $fldr/avg_bvals.txt  -o $fldr/$(subjsess)_dti_topup_noec_bvecrot
+        fsl_sub -l $logdir -N topup_dtifit_noec_bvecrot_$(subjsess) dtifit -k $fldr/$(subjsess)_topup_corr_merged -m $fldr/uw_nodif_brain_mask -r $fldr/avg_bvecs_topup.rot -b $fldr/avg_bvals.txt  -o $fldr/$(subjsess)_dti_topup_noec_bvecrot >> $JIDfile
       fi
       if [ $TOPUP_USE_EC -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : dtifit is estimating tensor model with rotated b-vectors (incl. eddy-correction)..."
-        fsl_sub -l $logdir -N topup_dtifit_ec_bvecrot_$(subjsess) dtifit -k $fldr/$(subjsess)_topup_corr_ec_merged -m $fldr/uw_nodif_brain_mask -r $fldr/avg_bvecs_topup_ec.rot  -b $fldr/avg_bvals.txt  -o $fldr/$(subjsess)_dti_topup_ec_bvecrot
+        fsl_sub -l $logdir -N topup_dtifit_ec_bvecrot_$(subjsess) dtifit -k $fldr/$(subjsess)_topup_corr_ec_merged -m $fldr/uw_nodif_brain_mask -r $fldr/avg_bvecs_topup_ec.rot  -b $fldr/avg_bvals.txt  -o $fldr/$(subjsess)_dti_topup_ec_bvecrot >> $JIDfile
       fi
     done
   done

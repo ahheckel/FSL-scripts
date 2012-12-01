@@ -12,7 +12,20 @@ set -e
 input=$(remove_ext "$1")
 output=$(remove_ext "$2")
 
-fslreorient2std $input $output
+cmd="fslreorient2std $input ${output}_$$"
+echo $cmd
+$cmd
 
-if [ -f ${output}.nii -a -f ${output}.nii.gz ] ; then rm ${output}.nii.gz ; fi # delete duplicate
-if [ -f ${output}.nii ] ; then fslmaths $output $output ; rm ${output}.nii ; fi
+# reslice was applied or input is nii.gz
+if [ -f ${output}_$$.nii.gz ] ; then
+  cmd="mv ${output}_$$.nii.gz ${output}.nii.gz"
+  echo $cmd;
+  $cmd
+fi
+# no reslice was applied -> convert to .nii.gz via fslmaths, if input was .nii
+if [ -f ${output}_$$.nii ] ; then
+  cmd="fslmaths ${output}_$$ ${output}"
+  echo $cmd ; $cmd
+  cmd="rm ${output}_$$.nii"
+  echo $cmd ; $cmd
+fi 
