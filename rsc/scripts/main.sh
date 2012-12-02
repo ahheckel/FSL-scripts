@@ -3652,7 +3652,7 @@ if [ $TBSS_STG3 -eq 1 ] ; then
   for tbss_dir in $tbss_dirs ; do
     for thres in $TBSS_THRES ; do
       statdir=$tbss_dir/stats_${thres}
-      if [ ! -d $statdir ] ; then echo "TBSS: <$statdir> not found - continuing loop..." ; continue ; fi
+      if [ ! -d $statdir ] ; then echo "TBSS: WARNING: <$statdir> not found - continuing loop..." ; continue ; fi
     
       echo "TBSS: copying GLM designs to $statdir"
       cat $glmdir_tbss/designs | xargs -I{} cp -r $glmdir_tbss/{} $statdir; cp $glmdir_tbss/designs $statdir
@@ -3777,7 +3777,7 @@ if [ $TBSS_STG5 -eq 1 ] ; then
   for tbss_dir in $tbss_dirs ; do
     for thres in $TBSS_THRES ; do
       statdir=$tbss_dir/stats_${thres}
-      if [ ! -d $statdir ] ; then echo "TBSSX: <$statdir> not found - continuing loop..." ; continue ; fi
+      if [ ! -d $statdir ] ; then echo "TBSSX: WARNING: <$statdir> not found - continuing loop..." ; continue ; fi
     
       echo "TBSSX: copying GLM designs to $statdir"
       cat $glmdir_tbss/designs | xargs -I{} cp -r $glmdir_tbss/{} $statdir; cp $glmdir_tbss/designs $statdir

@@ -1038,11 +1038,13 @@ function prepareALFF()
   echo "prepareALFF(): changing to ${destdir}..."
   cd ${destdir} 
   
-  # normalise using group mask or use natively normalised volumes
+  # normalize to Z-score using group mask or use natively normalized volumes (i.e. volumes that already have been normalized to Z-score using the native mask on the first level)
+  # note that the brain mask is used later with randomise in any case (Z-score with native mask or Z-score with group mask)
   if [ $ztransform2ndlev -eq 1 ] ; then
   
     echo "prepareALFF(): normalizing ALFF/fALFF to Z-score across full brain..."
     
+    # normalizing ALFF using group mask
     alff_list=`${FSLDIR}/bin/imglob $pttrn_ALFF`
     alffZ_list=""
     rm -f mean_ALFF.txt std_ALFF.txt filelist_ALFF.txt
@@ -1058,7 +1060,7 @@ function prepareALFF()
       alffZ_list=$alffZ_list" "${i}_Z.nii.gz
     done
        
-    
+    # normalizing fALFF using group mask
     falff_list=`${FSLDIR}/bin/imglob $pttrn_fALFF`
     falffZ_list=""
     rm -f mean_fALFF.txt std_fALFF.txt filelist_fALFF.txt
@@ -1085,7 +1087,7 @@ function prepareALFF()
     #imrm $falffZ_list
   
   else
-  
+    # just merge ALLF/fALFF (that had been normalized in native space)
     alffZ_list=`${FSLDIR}/bin/imglob $pttrn_ALFF`
     falffZ_list=`${FSLDIR}/bin/imglob $pttrn_fALFF`
     

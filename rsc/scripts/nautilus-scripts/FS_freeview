@@ -5,12 +5,15 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 11/19/2012
+# 12/01/2012
 
 FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
-vollist="" ; surflist="" ; overlist="" ; annotlist=""
+vollist_lh=""   ; vollist_rh=""
+surflist_lh=""  ; surflist_rh=""
+overlist_lh=""  ; overlist_rh=""
+annotlist_lh="" ; annotlist_rh=""
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   niigz=$(echo $i | grep .nii.gz$ | wc -l)
   nii=$(echo $i | grep .nii$ | wc -l)
@@ -18,22 +21,45 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   mgz=$(echo $i | grep .mgz$ | wc -l)
   annot=$(echo $i | grep .annot$ | wc -l)
   
-  if [ $niigz -eq 1 -o $nii -eq 1 -o $mgh -eq 1 -o $mgz -eq 1 ] ; then # file is a volume
-    vollist=$vollist" -v $i"
-  elif [ $annot -eq 1 ] ; then # file is annotation
-    annotlist=$annotlist":annot=$i"
+  # left or right hemisphere ?
+  lh=0 ; rh=0
+  if [ "$(echo $(basename $i) | cut -d . -f 1)" = "lh" ] ; then
+    lh=1
+  else
+    rh=1
+  fi
+  #zenity --info --text="$rh $lh"
+  
+  if [ $niigz -eq 1 -o $nii -eq 1 -o $mgh -eq 1 -o $mgz -eq 1 ] ; then # file is a volume...
+    if [ $lh -eq 1 ] ; then # ...of the left hemi.
+      vollist_lh=$vollist_lh" -v $i"
+    elif [ $rh -eq 1 ] ; then # ...of the right hemi.
+      vollist_rh=$vollist_rh" -v $i"
+    fi
+  elif [ $annot -eq 1 ] ; then # file is an annotation...
+    if [ $lh -eq 1 ] ; then # ...of the left hemi.
+      annotlist_lh=$annotlist_lh":annot=$i"
+    elif [ $rh -eq 1 ] ; then # ...of the right hemi.
+      annotlist_rh=$annotlist_rh":annot=$i"
+    fi
   else
     type=$(mri_info $i | grep type: | head -n1 | cut -d : -f 2)
-    if [ $type = "curv" ] ; then # file is an overlay
-      overlist=$overlist":overlay=$i"
-    elif [ x$type = "x" ] ; then # file is a surface
-      surflist=$surflist" -f $i"
-    #else
-      #vollist=$vollist" -v $i"
-    fi
+    if [ $type = "curv" ] ; then # file is an overlay...
+      if [ $lh -eq 1 ] ; then # ...of the left hemi.
+        overlist_lh=$overlist_lh":overlay=$i"
+      elif [ $rh -eq 1 ] ; then # ...of the right hemi.
+        overlist_rh=$overlist_rh":overlay=$i"
+      fi
+    elif [ x$type = "x" ] ; then # file is a surface...
+      if [ $lh -eq 1 ] ; then # ...of the left hemi.
+        surflist_lh=$surflist_lh" -f $i"
+      elif [ $rh -eq 1 ] ; then # ...of the right hemi.
+        surflist_rh=$surflist_rh" -f $i"
+      fi
+    fi    
   fi
-done
+done # end for loop
 
-#zenity --info --text="$vollist ${surflist}${overlist}"
-freeview $vollist ${surflist}${annotlist}${overlist}
+#zenity --info --text="$vollist ${surflist_lh}${annotlist_lh}${overlist_lh} ${surflist_rh}${annotlist_rh}${overlist_rh}"
+freeview ${vollist_lh} ${vollist_rh} ${surflist_lh}${annotlist_lh}${overlist_lh} ${surflist_rh}${annotlist_rh}${overlist_rh}
 
