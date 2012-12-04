@@ -19,7 +19,14 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   nii=$(echo $i | grep .nii$ | wc -l)
   mgh=$(echo $i | grep .mgh$ | wc -l)
   mgz=$(echo $i | grep .mgz$ | wc -l)
+  
   annot=$(echo $i | grep .annot$ | wc -l)
+  
+  sig=$(echo $(basename $i) | grep ^sig.mgh$ | wc -l)
+  F=$(echo $(basename $i) | grep ^F.mgh$ | wc -l)
+  gamma=$(echo $(basename $i) | grep ^gamma.mgh$ | wc -l)
+  gammavar=$(echo $(basename $i) | grep ^gammavar.mgh$ | wc -l)
+  cnr=$(echo $(basename $i) | grep ^cnr.mgh$ | wc -l)
   
   # left or right hemisphere ?
   lh=0 ; rh=0
@@ -28,9 +35,17 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   else
     rh=1
   fi
+  
+  # check
   #zenity --info --text="$rh $lh"
   
-  if [ $niigz -eq 1 -o $nii -eq 1 -o $mgh -eq 1 -o $mgz -eq 1 ] ; then # file is a volume...
+  if [ $sig -eq 1 -o $F -eq 1 -o $gamma -eq 1 -o $gammavar -eq 1 -o $cnr -eq 1 ] ; then # file is a statistical map...  
+    if [ $lh -eq 1 ] ; then # ...of the left hemi.
+      overlist_lh=$overlist_lh":overlay=$i"
+    elif [ $rh -eq 1 ] ; then # ...of the right hemi.
+      overlist_rh=$overlist_rh":overlay=$i"
+    fi
+  elif [ $niigz -eq 1 -o $nii -eq 1 -o $mgh -eq 1 -o $mgz -eq 1 ] ; then # file is a volume...    
     if [ $lh -eq 1 ] ; then # ...of the left hemi.
       vollist_lh=$vollist_lh" -v $i"
     elif [ $rh -eq 1 ] ; then # ...of the right hemi.
@@ -60,6 +75,12 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   fi
 done # end for loop
 
-#zenity --info --text="$vollist ${surflist_lh}${annotlist_lh}${overlist_lh} ${surflist_rh}${annotlist_rh}${overlist_rh}"
-freeview ${vollist_lh} ${vollist_rh} ${surflist_lh}${annotlist_lh}${overlist_lh} ${surflist_rh}${annotlist_rh}${overlist_rh}
+# remove spaces before ':' in freeview arguments
+opts=$(echo "${vollist_lh} ${vollist_rh} ${surflist_lh}${annotlist_lh}${overlist_lh} ${surflist_rh}${annotlist_rh}${overlist_rh}" | sed "s| :|:|g") 
+
+# check
+#zenity --info --text="$opts"
+
+# execute
+freeview ${opts}
 

@@ -33,7 +33,7 @@ JIDfile="$wdir/$(basename $0)_$$.sge"
 touch $JIDfile
 
 # set exit trap
-trap "echo -e \"\n`basename $0`: cleanup: erasing Job-IDs in '$JIDfile'\" ; delJIDs $JIDfile ;  rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
+trap "set +e ; echo -e \"\n`basename $0`: cleanup: erasing Job-IDs in '$JIDfile'\" ; delJIDs $JIDfile ;  rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
 
 Usage() {
     echo ""
