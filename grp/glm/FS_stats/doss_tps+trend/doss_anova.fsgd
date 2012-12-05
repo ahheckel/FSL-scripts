@@ -1,0 +1,42 @@
+GroupDescriptorFile	1					
+Class	Subject1					
+Class	Subject2					
+Class	Subject3					
+Class	Subject4					
+Class	Subject5					
+Class	Subject6					
+Class	Subject7					
+Class	Subject8					
+Class	Subject9					
+Class	Subject10					
+Variables			TP1-vs-TP2	TP1-vs-TP3	TP1-vs-TP2-vs-TP3	
+Input	01a.long.01	Subject1	1	1	-0.5	
+Input	01c.long.01	Subject1	-1	0	1	
+Input	01e.long.01	Subject1	0	-1	-0.5	
+Input	02a.long.02	Subject2	1	1	-0.5	
+Input	02c.long.02	Subject2	-1	0	1	
+Input	02e.long.02	Subject2	0	-1	-0.5	
+Input	03a.long.03	Subject3	1	1	-0.5	
+Input	03c.long.03	Subject3	-1	0	1	
+Input	03e.long.03	Subject3	0	-1	-0.5	
+Input	04a.long.04	Subject4	1	1	-0.5	
+Input	04c.long.04	Subject4	-1	0	1	
+Input	04e.long.04	Subject4	0	-1	-0.5	
+Input	05a.long.05	Subject5	1	1	-0.5	
+Input	05c.long.05	Subject5	-1	0	1	
+Input	05e.long.05	Subject5	0	-1	-0.5	
+Input	06a.long.06	Subject6	1	1	-0.5	
+Input	06c.long.06	Subject6	-1	0	1	
+Input	06e.long.06	Subject6	0	-1	-0.5	
+Input	07a.long.07	Subject7	1	1	-0.5	
+Input	07c.long.07	Subject7	-1	0	1	
+Input	07e.long.07	Subject7	0	-1	-0.5	
+Input	08a.long.08	Subject8	1	1	-0.5	
+Input	08c.long.08	Subject8	-1	0	1	
+Input	08e.long.08	Subject8	0	-1	-0.5	
+Input	09a.long.09	Subject9	1	1	-0.5	
+Input	09c.long.09	Subject9	-1	0	1	
+Input	09e.long.09	Subject9	0	-1	-0.5	
+Input	10a.long.10	Subject10	1	1	-0.5	
+Input	10c.long.10	Subject10	-1	0	1	
+Input	10e.long.10	Subject10	0	-1	-0.5	
