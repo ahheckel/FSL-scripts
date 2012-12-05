@@ -46,7 +46,7 @@ SUBJECTS_DIR="$1"
 glmdir_FS="$2"
 FSstatsdir="$3"
 krnls="$4"
-measure="$5"
+measures="$5"
 resamp=$6
 smooth=$7
 glmstats=$8
@@ -80,10 +80,12 @@ if [ $resamp -eq 1 ] ; then
   for design in $designs ; do
     fsgd_file=$(ls $glmdir_FS/$design/*.fsgd)
     for hemi in lh rh ; do
-      output=${design}.${hemi}.${measure}.mgh
-      
-      echo "$(basename $0): resampling data pertaining to design file '$fsgd_file' onto average subject (output: '${FSstatsdir}/$output')..."
-      echo "    mris_preproc --fsgd ${fsgd_file} --target fsaverage --hemi ${hemi} --meas ${measure} --out ${FSstatsdir}/$output" >> $cmdtxt
+      for measure in $measures ; do
+        output=${design}.${hemi}.${measure}.mgh
+        
+        echo "$(basename $0): resampling data pertaining to design file '$fsgd_file' onto average subject (output: '${FSstatsdir}/$output')..."
+        echo "    mris_preproc --fsgd ${fsgd_file} --target fsaverage --hemi ${hemi} --meas ${measure} --out ${FSstatsdir}/$output" >> $cmdtxt
+      done # end measure
     done # end hemi
   done # end design
   jid=`fsl_sub -l $logdir -N mris_preproc_${output%%mgh} -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
@@ -107,13 +109,15 @@ if [ $smooth -eq 1 ] ; then
   for design in $designs ; do
     for hemi in lh rh ; do
       for sm in $krnls ; do
-        output=${design}.${hemi}.${measure}.s${sm}.mgh
-        input=${FSstatsdir}/${design}.${hemi}.${measure}.mgh
-        
-        if [ ! -f $input ] ; then echo "$(basename $0): ERROR: file not found: '$input' - exiting." ; exit 1 ; fi
-        
-        echo "$(basename $0): smoothing with (kernel: ${sm}mm FWHM -> output: '${FSstatsdir}/$output')..."
-        echo "    mri_surf2surf --hemi ${hemi} --s fsaverage --sval $input --fwhm ${sm} --cortex --tval ${FSstatsdir}/$output" >> $cmdtxt
+        for measure in $measures ; do
+          output=${design}.${hemi}.${measure}.s${sm}.mgh
+          input=${FSstatsdir}/${design}.${hemi}.${measure}.mgh
+          
+          if [ ! -f $input ] ; then echo "$(basename $0): ERROR: file not found: '$input' - exiting." ; exit 1 ; fi
+          
+          echo "$(basename $0): smoothing with (kernel: ${sm}mm FWHM -> output: '${FSstatsdir}/$output')..."
+          echo "    mri_surf2surf --hemi ${hemi} --s fsaverage --sval $input --fwhm ${sm} --cortex --tval ${FSstatsdir}/$output" >> $cmdtxt
+        done # end measure
       done # end sm
     done # end hemi
   done # end design
@@ -134,13 +138,15 @@ if [ $glmstats -eq 1 ] ; then
     for hemi in lh rh ; do
       for sm in $krnls ; do
         for mtx in $mtx_files ; do
-          output=${design}.${hemi}.${measure}.s${sm}.glmdir
-          input=${FSstatsdir}/${design}.${hemi}.${measure}.s${sm}.mgh
-          
-          if [ ! -f $input ] ; then echo "$(basename $0): ERROR: file not found: '$input' - exiting." ; exit 1 ; fi
-          
-          echo "$(basename $0): performing GLM analysis: glmdir: '$output' --- type: '$type' --- contrast: '$(basename $mtx)'"
-          echo "    mri_glmfit --y $input --fsgd ${fsgd_file} $type --C ${mtx} --surf fsaverage ${hemi} --cortex --glmdir $FSstatsdir/${output}" >> $cmdtxt
+          for measure in $measures ; do
+            output=${design}.${hemi}.${measure}.s${sm}.glmdir
+            input=${FSstatsdir}/${design}.${hemi}.${measure}.s${sm}.mgh
+            
+            if [ ! -f $input ] ; then echo "$(basename $0): ERROR: file not found: '$input' - exiting." ; exit 1 ; fi
+            
+            echo "$(basename $0): performing GLM analysis: glmdir: '$output' --- type: '$type' --- contrast: '$(basename $mtx)'"
+            echo "    mri_glmfit --y $input --fsgd ${fsgd_file} $type --C ${mtx} --surf fsaverage ${hemi} --cortex --glmdir $FSstatsdir/${output}" >> $cmdtxt
+          done # end measure
         done # end mtx
       done # end sm
     done # end hemi
@@ -151,38 +157,40 @@ if [ $glmstats -eq 1 ] ; then
 
   waitIfBusy $JIDfile
 
+  # copy files...
   ##make absolute paths
   ##if [ $(echo $glmdir_FS | grep ^/ | wc -l) -eq 0 ] ; then glmdir_FS=`pwd`/$glmdir_FS ; fi
   ##if [ $(echo $SUBJECTS_DIR | grep ^/ | wc -l) -eq 0 ] ; then SUBJECTS_DIR=`pwd`/$SUBJECTS_DIR ; fi
   ##if [ $(echo $FSstatsdir | grep ^/ | wc -l) -eq 0 ] ; then FSstatsdir=`pwd`/$FSstatsdir ; fi
-
   for design in $designs ; do
     mtx_files=$(ls $glmdir_FS/$design/*.mtx)
     for hemi in lh rh ; do
       for sm in $krnls ; do
-        glmdir="$FSstatsdir/${design}.${hemi}.${measure}.s${sm}.glmdir"
-        echo "$(basename $0): copying files to '$(basename $glmdir)':"
-        cp -v $fsgd_file $glmdir/
-        cp -v $mtx_files $glmdir/
-        
-        for mtx in $mtx_files ; do      
-          mtx=$(basename $mtx)
-          if [ ! -d $glmdir/${mtx%%.mtx} ] ; then 
-            echo "$(basename $0): ERROR: directory '$glmdir/${mtx%%.mtx}' does not exist! Maybe GLM has failed! Continuing loop..."
-            err=1
-            continue 
-          fi
-          #rel=`path_abs2rel $glmdir/ $SUBJECTS_DIR/fsaverage/`
-          #ln -sf $rel/surf/${hemi}.inflated $glmdir/${hemi}.inflated        
-          #ln -sf $rel/surf/${hemi}.curv $glmdir/${hemi}.curv
-          #ln -sf $rel/label/${hemi}.aparc.a2009s.annot $glmdir/${hemi}.aparc.a2009s.annot
-          cp -v $SUBJECTS_DIR/fsaverage/surf/${hemi}.inflated $glmdir/${mtx%%.mtx}/
-          cp -v $SUBJECTS_DIR/fsaverage/surf/${hemi}.curv $glmdir/${mtx%%.mtx}/
-          cp -v $SUBJECTS_DIR/fsaverage/label/${hemi}.aparc.a2009s.annot $glmdir/${mtx%%.mtx}/
-     
-          cp -Pv $SUBJECTS_DIR/fsaverage $glmdir/${mtx%%.mtx}/ # copy the symbolic links
-        done
-        echo "$(basename $0):------------------------------"
+        for measure in $measures ; do
+          glmdir="$FSstatsdir/${design}.${hemi}.${measure}.s${sm}.glmdir"
+          echo "$(basename $0): copying files to '$(basename $glmdir)':"
+          cp -v $fsgd_file $glmdir/
+          cp -v $mtx_files $glmdir/
+          
+          for mtx in $mtx_files ; do      
+            mtx=$(basename $mtx)
+            if [ ! -d $glmdir/${mtx%%.mtx} ] ; then 
+              echo "$(basename $0): ERROR: directory '$glmdir/${mtx%%.mtx}' does not exist! Maybe GLM has failed! Continuing loop..."
+              err=1
+              continue 
+            fi
+            #rel=`path_abs2rel $glmdir/ $SUBJECTS_DIR/fsaverage/`
+            #ln -sf $rel/surf/${hemi}.inflated $glmdir/${hemi}.inflated        
+            #ln -sf $rel/surf/${hemi}.curv $glmdir/${hemi}.curv
+            #ln -sf $rel/label/${hemi}.aparc.a2009s.annot $glmdir/${hemi}.aparc.a2009s.annot
+            cp -v $SUBJECTS_DIR/fsaverage/surf/${hemi}.inflated $glmdir/${mtx%%.mtx}/
+            cp -v $SUBJECTS_DIR/fsaverage/surf/${hemi}.curv $glmdir/${mtx%%.mtx}/
+            cp -v $SUBJECTS_DIR/fsaverage/label/${hemi}.aparc.a2009s.annot $glmdir/${mtx%%.mtx}/
+       
+            cp -Pv $SUBJECTS_DIR/fsaverage $glmdir/${mtx%%.mtx}/ # copy the symbolic links
+          done
+          echo "$(basename $0):------------------------------"
+        done # end measure
       done # end sm
     done # end hemi
   done # end design
