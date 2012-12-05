@@ -14,11 +14,13 @@ tbssdir=$grpdir/tbss
 vbmdir=$grpdir/vbm
 alffdir=$grpdir/alff
 dregdir=$grpdir/dualreg
+fstatsdir=$grpdir/FS_stats
 glmdir=$grpdir/glm
 glmdir_tbss=$glmdir/tbss
 glmdir_vbm=$glmdir/vbm
 glmdir_alff=$glmdir/alff
 glmdir_dr=$glmdir/dualreg
+glmdir_fs=$glmdir/FS_stats
 logdir=$studydir/logs 
 tmpdir=$studydir/.tmp
 FS_subjdir=$subjdir/FS_subj
@@ -104,6 +106,10 @@ TBSS_STG2=0                # TBSS threshold skeleton
 TBSS_STG3=0                # TBSS permutation testing
 TBSS_STG4=0                # TBSSX prepare - needs BedpostX (!)
 TBSS_STG5=0                # TBSSX permutation testing
+
+FS_STATS_STG1=0            # FS_STATS resample thickness measure to average surface
+FS_STATS_STG2=0            # FS_STATS smoothing
+FS_STATS_STG3=0            # FS_STATS GLM
 
 VBM_2NDLEV_STG1=0          # VBM prepare 
 VBM_2NDLEV_STG2=0          # VBM smooth
@@ -280,6 +286,10 @@ TBSS_USE_UNWARPED_NOROT=0                         # use FA maps from eddy-correc
 TBSS_USE_UNWARPED_BVECROT=0                       # use FA maps from eddy-corrected & unwarped DWIs with b-vector compensation applied
 TBSS_USE_TOPUP_NOEC_BVECROT=0                     # use FA maps from TOPUP-corrected DWIs (w/o eddy-correction) with b-vector compensation applied
 TBSS_USE_TOPUP_EC_BVECROT=1                       # use FA maps from TOPUP-corrected & eddy-corrected DWIs with b-vector compensation applied
+
+# FS_STATS
+FS_STATS_MEASURES="thickness"                     # list of dependent variables of FREESURFER analysis (e.g., "thickness")
+FS_STATS_SMOOTHING_KRNLS="5 10 15 20"             # smoothing kernels (e.g., "5 10 15")
 
 # VBM
 VBM_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included in the VBM analysis

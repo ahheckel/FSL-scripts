@@ -3796,6 +3796,35 @@ fi
 waitIfBusy
 
 
+############################
+# ----- BEGIN FS_STATS -----
+############################
+
+
+# resampling to average space
+if [ $FS_STATS_STG1 -eq 1 ] ; then
+  $scriptdir/fs_glm.sh $SUBJECTS_DIR $glmdir_fs $fstatsdir "$FS_STATS_MEASURES" "$FS_STATS_SMOOTHING_KRNLS" 1 0 0 $logdir
+fi
+
+# smoothing
+if [ $FS_STATS_STG2 -eq 1 ] ; then
+  $scriptdir/fs_glm.sh $SUBJECTS_DIR $glmdir_fs $fstatsdir "$FS_STATS_MEASURES" "$FS_STATS_SMOOTHING_KRNLS" 0 1 0 $logdir
+fi
+
+# GLM
+if [ $FS_STATS_STG3 -eq 1 ] ; then
+  $scriptdir/fs_glm.sh $SUBJECTS_DIR $glmdir_fs $fstatsdir "$FS_STATS_MEASURES" "$FS_STATS_SMOOTHING_KRNLS" 0 0 1 $logdir
+fi
+
+
+##########################
+# ----- END FS_STATS -----
+##########################
+
+
+waitIfBusy
+
+
 #######################
 # ----- BEGIN VBM -----
 #######################
