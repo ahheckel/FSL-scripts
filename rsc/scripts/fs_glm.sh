@@ -24,8 +24,8 @@ delJIDs() {
 
 Usage() {
     echo ""
-    echo "Usage:   `basename $0` <SUBJECTS_DIR> <glm-dir> <stats-dir> <smoothing-kernels> <do-resamp:0|1> <do-smooth:0|1> <do-glm:0|1> [<sge-logdir>]"
-    echo "Example: `basename $0` ./subj/FS_subj ./grp/glm/FS_stats ./grp/FS_stats \"5 10 15 20 25\" 1 1 1 ./logs"
+    echo "Usage:   `basename $0` <SUBJECTS_DIR> <glm-dir> <stats-dir> <measure> <smoothing-kernels> <do-resamp:0|1> <do-smooth:0|1> <do-glm:0|1> [<sge-logdir>]"
+    echo "Example: `basename $0` ./subj/FS_subj ./grp/glm/FS_stats ./grp/FS_stats \"thickness\" \"5 10 15 20 25\" 1 1 1 ./logs"
     echo ""
     exit 1 
 }
@@ -41,15 +41,16 @@ touch $JIDfile
 # set exit trap
 trap "set +e ; echo -e \"\n`basename $0`: cleanup: erasing Job-IDs in '$JIDfile'\" ; delJIDs $JIDfile ;  rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
 
-[ "$7" = "" ] && Usage
+[ "$8" = "" ] && Usage
 SUBJECTS_DIR="$1"
 glmdir_FS="$2"
 FSstatsdir="$3"
 krnls="$4"
-resamp=$5
-smooth=$6
-glmstats=$7
-logdir="$8"
+measure="$5"
+resamp=$6
+smooth=$7
+glmstats=$8
+logdir="$9"
 if [ "$logdir" = "" ] ; then logdir=/tmp ; fi
 jid=1
 
@@ -79,13 +80,10 @@ if [ $resamp -eq 1 ] ; then
   for design in $designs ; do
     fsgd_file=$(ls $glmdir_FS/$design/*.fsgd)
     for hemi in lh rh ; do
-      output=${design}.${hemi}.thickness.mgh
-      #cmdtxt=$FSstatsdir/scripts/${output%%.mgh}.cmd
+      output=${design}.${hemi}.${measure}.mgh
       
       echo "$(basename $0): resampling data pertaining to design file '$fsgd_file' onto average subject (output: '${FSstatsdir}/$output')..."
-      #echo "    mris_preproc --fsgd ${fsgd_file} --target fsaverage --hemi ${hemi} --meas thickness --out ${FSstatsdir}/$output" | tee $cmdtxt
-      echo "    mris_preproc --fsgd ${fsgd_file} --target fsaverage --hemi ${hemi} --meas thickness --out ${FSstatsdir}/$output" >> $cmdtxt
-      #fsl_sub -l $logdir -t $cmdtxt >> $JIDfile
+      echo "    mris_preproc --fsgd ${fsgd_file} --target fsaverage --hemi ${hemi} --meas ${measure} --out ${FSstatsdir}/$output" >> $cmdtxt
     done # end hemi
   done # end design
   jid=`fsl_sub -l $logdir -N mris_preproc_${output%%mgh} -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
@@ -109,16 +107,13 @@ if [ $smooth -eq 1 ] ; then
   for design in $designs ; do
     for hemi in lh rh ; do
       for sm in $krnls ; do
-        output=${design}.${hemi}.thickness.s${sm}.mgh
-        input=${FSstatsdir}/${design}.${hemi}.thickness.mgh
+        output=${design}.${hemi}.${measure}.s${sm}.mgh
+        input=${FSstatsdir}/${design}.${hemi}.${measure}.mgh
         
         if [ ! -f $input ] ; then echo "$(basename $0): ERROR: file not found: '$input' - exiting." ; exit 1 ; fi
-        #cmdtxt=$FSstatsdir/scripts/${output%%.mgh}.cmd
         
         echo "$(basename $0): smoothing with (kernel: ${sm}mm FWHM -> output: '${FSstatsdir}/$output')..."
-        #echo "    mri_surf2surf --hemi ${hemi} --s fsaverage --sval ${FSstatsdir}/${design}.${hemi}.thickness.mgh  --fwhm ${sm} --cortex --tval ${FSstatsdir}/$output" | tee $cmdtxt
         echo "    mri_surf2surf --hemi ${hemi} --s fsaverage --sval $input --fwhm ${sm} --cortex --tval ${FSstatsdir}/$output" >> $cmdtxt
-        #fsl_sub -l $logdir -t $cmdtxt >> $JIDfile
       done # end sm
     done # end hemi
   done # end design
@@ -139,16 +134,13 @@ if [ $glmstats -eq 1 ] ; then
     for hemi in lh rh ; do
       for sm in $krnls ; do
         for mtx in $mtx_files ; do
-          output=${design}.${hemi}.thickness.s${sm}.glmdir
-          input=${FSstatsdir}/${design}.${hemi}.thickness.s${sm}.mgh
+          output=${design}.${hemi}.${measure}.s${sm}.glmdir
+          input=${FSstatsdir}/${design}.${hemi}.${measure}.s${sm}.mgh
           
           if [ ! -f $input ] ; then echo "$(basename $0): ERROR: file not found: '$input' - exiting." ; exit 1 ; fi
-          #cmdtxt=$FSstatsdir/scripts/${output%%.glmdir}__$(basename $mtx).cmd
           
           echo "$(basename $0): performing GLM analysis: glmdir: '$output' --- type: '$type' --- contrast: '$(basename $mtx)'"
-          #echo "    mri_glmfit --y ${FSstatsdir}/${design}.${hemi}.thickness.s${sm}.mgh --fsgd ${fsgd_file} $type --C ${mtx} --surf fsaverage ${hemi} --cortex --glmdir $FSstatsdir/${output}" | tee $cmdtxt
           echo "    mri_glmfit --y $input --fsgd ${fsgd_file} $type --C ${mtx} --surf fsaverage ${hemi} --cortex --glmdir $FSstatsdir/${output}" >> $cmdtxt
-          #fsl_sub -l $logdir -t $cmdtxt >> $JIDfile                 
         done # end mtx
       done # end sm
     done # end hemi
@@ -159,7 +151,6 @@ if [ $glmstats -eq 1 ] ; then
 
   waitIfBusy $JIDfile
 
-  # copy files
   ##make absolute paths
   ##if [ $(echo $glmdir_FS | grep ^/ | wc -l) -eq 0 ] ; then glmdir_FS=`pwd`/$glmdir_FS ; fi
   ##if [ $(echo $SUBJECTS_DIR | grep ^/ | wc -l) -eq 0 ] ; then SUBJECTS_DIR=`pwd`/$SUBJECTS_DIR ; fi
@@ -169,7 +160,7 @@ if [ $glmstats -eq 1 ] ; then
     mtx_files=$(ls $glmdir_FS/$design/*.mtx)
     for hemi in lh rh ; do
       for sm in $krnls ; do
-        glmdir="$FSstatsdir/${design}.${hemi}.thickness.s${sm}.glmdir"
+        glmdir="$FSstatsdir/${design}.${hemi}.${measure}.s${sm}.glmdir"
         echo "$(basename $0): copying files to '$(basename $glmdir)':"
         cp -v $fsgd_file $glmdir/
         cp -v $mtx_files $glmdir/
