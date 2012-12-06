@@ -13,8 +13,22 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 wdir=`pwd`/.extmerge$$
 mkdir -p $wdir
-trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
- 
+touch $wdir/jid.list
+
+delJIDs() {
+  if [ x"SGE_ROOT" != "x" ] ; then
+     local jidfile="$1" ; local i="" ; local j=0
+     for i in $(cat $jidfile) ; do
+        qdel $i
+        j=$[$j+1]
+     done
+  fi
+  rm -f $jidfile
+  if [ $j -eq 0 ] ; then echo "`basename $0`: no job left to erase (OK)." ; fi
+}
+
+trap "set +e ; echo -e \"\n`basename $0`: erasing Job-IDs in '$wdir/jid.list'\" ; delJIDs $wdir/jid.list ; rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
+
 function isStillRunning() 
 { 
   if [ "x$SGE_ROOT" = "x" ] ; then echo "0"; return; fi # is cluster environment present ?
@@ -44,7 +58,7 @@ function waitIfBusyIDs()
     fi
   done
   echo "done."
-  rm $IDfile
+  rm $IDfile ; touch $IDfile
 }
     
 Usage() {

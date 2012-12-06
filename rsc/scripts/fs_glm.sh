@@ -51,7 +51,7 @@ resamp=$6
 smooth=$7
 glmstats=$8
 logdir="$9"
-if [ "$logdir" = "" ] ; then logdir=/tmp ; fi
+if [ "$logdir" = "" ] ; then logdir=/tmp ; fi ; echo "$(basename $0): logir is '$logdir'"
 jid=1
 
 # source globalfuncs
@@ -94,10 +94,11 @@ if [ $resamp -eq 1 ] ; then
 
   waitIfBusy $JIDfile
 
-
-  ## cleanup mris_preproc
-  #echo "$(basename $0): cleaning up mris_preproc run..."
-  #rm -rv $FSstatsdir/tmp.mris_preproc.[0-9]*
+  # cleanup mris_preproc
+  echo "$(basename $0): cleaning up previously unfinished mris_preproc runs..."
+  rm -rfv $FSstatsdir/tmp.mris_preproc.[0-9]*
+  ##rm -fv  $FSstatsdir/*.mris_preproc.log.bak
+  
   #echo "$(basename $0):------------------------------"
 fi
 
