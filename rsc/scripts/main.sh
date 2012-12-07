@@ -131,8 +131,9 @@ progs="$FSL_DIR/bin/tbss_x $FSL_DIR/bin/swap_voxelwise $FSL_DIR/bin/swap_subject
 for prog in $progs ; do
   if [ ! -f $prog ] ; then echo "ERROR : '$prog' is not installed. Exiting." ; exit 1 ; fi
 done
-if [ x$(which octave) = "x" ] ; then echo "ERROR : OCTAVE does not seem to be installed on your system ! Exiting..." ; exit 1 ; fi
-if [ x$(which tee) = "x" ] ; then echo "ERROR : bash utility 'tee' does not seem to be installed on your system ! Exiting..." ; exit 1 ; fi
+for prog in octave 3dDespike 3dDetrend 3dTcat ; do
+  if [ x$(which $prog) = "x" ] ; then echo "ERROR : '$prog' does not seem to be installed on your system ! Exiting..." ; exit 1 ; fi
+done
 
 # is sh linked to bash ?
 if [ ! -z $(which sh) ] ; then

@@ -8,6 +8,18 @@
 
 # function declarations
 
+function delJIDs() {
+  if [ x"SGE_ROOT" != "x" ] ; then
+     local jidfile="$1" ; local i="" ; local j=0
+     for i in $(cat $jidfile) ; do
+        qdel $i
+        j=$[$j+1]
+     done
+  fi
+  rm -f $jidfile
+  if [ $j -eq 0 ] ; then echo "`basename $0`: delJIDs(): no jobs left to erase (OK)." ; fi
+}
+
 function path_abs2rel() 
 {
   # both $1 and $2 are absolute paths (need to end with '/')

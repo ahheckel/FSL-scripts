@@ -19,7 +19,7 @@ delJIDs() {
      done
   fi
   rm -f $jidfile
-  if [ $j -eq 0 ] ; then echo "`basename $0`: no job left to erase (OK)." ; fi
+  if [ $j -eq 0 ] ; then echo "`basename $0`: no jobs left to erase (OK)." ; fi
 }
 
 Usage() {
@@ -41,6 +41,7 @@ touch $JIDfile
 # set exit trap
 trap "set +e ; echo -e \"\n`basename $0`: cleanup: erasing Job-IDs in '$JIDfile'\" ; delJIDs $JIDfile ;  rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
 
+# declare vars
 [ "$8" = "" ] && Usage
 SUBJECTS_DIR="$1"
 glmdir_FS="$2"
@@ -51,8 +52,8 @@ resamp=$6
 smooth=$7
 glmstats=$8
 logdir="$9"
-if [ "$logdir" = "" ] ; then logdir=/tmp ; fi ; echo "$(basename $0): logir is '$logdir'"
-jid=1
+if [ "$logdir" = "" ] ; then logdir=/tmp ; fi ; echo "$(basename $0): logdir is '$logdir'"
+jid=1 # init jobID
 
 # display info
 echo "`basename $0` : SUBJECTS_DIR     : $SUBJECTS_DIR"
@@ -92,7 +93,7 @@ if [ $resamp -eq 1 ] ; then
   echo "$(basename $0): cleaning up previously unfinished mris_preproc runs..."
   rm -rfv $FSstatsdir/tmp.mris_preproc.[0-9]*
   ##rm -fv  $FSstatsdir/*.mris_preproc.log.bak  
-  echo "$(basename $0):------------------------------"
+  echo "------------------------------"
   
   # now execute mris_preproc
   cmdtxt=$FSstatsdir/scripts/mris_preproc.cmd ; rm -f $cmdtxt
@@ -109,7 +110,7 @@ if [ $resamp -eq 1 ] ; then
   done # end design
   jid=`fsl_sub -l $logdir -N mris_preproc_${output%%mgh} -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
     
-  echo "$(basename $0):------------------------------"
+  echo "------------------------------"
 
   waitIfBusy $JIDfile
   
