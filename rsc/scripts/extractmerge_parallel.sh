@@ -5,7 +5,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 11/18/2012
+# 12/06/2012
 
 set -e
 

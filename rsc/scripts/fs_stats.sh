@@ -4,7 +4,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 12/05/2012
+# 12/06/2012
 
 set -e
 
@@ -24,7 +24,7 @@ delJIDs() {
 
 Usage() {
     echo ""
-    echo "Usage:   `basename $0` <SUBJECTS_DIR> <glm-dir> <stats-dir> <measure> <smoothing-kernels> <do-resamp:0|1> <do-smooth:0|1> <do-glm:0|1> [<sge-logdir>]"
+    echo "Usage:   `basename $0` <SUBJECTS_DIR> <glm-dir> <out-dir> <measure> <smoothing-kernels(FWHM)> <do-resamp:0|1> <do-smooth:0|1> <do-glm:0|1> [<sge-logdir>]"
     echo "Example: `basename $0` ./subj/FS_subj ./grp/glm/FS_stats ./grp/FS_stats \"thickness\" \"5 10 15 20 25\" 1 1 1 ./logs"
     echo ""
     exit 1 
@@ -45,14 +45,25 @@ trap "set +e ; echo -e \"\n`basename $0`: cleanup: erasing Job-IDs in '$JIDfile'
 SUBJECTS_DIR="$1"
 glmdir_FS="$2"
 FSstatsdir="$3"
-krnls="$4"
-measures="$5"
+measures="$4"
+krnls="$5"
 resamp=$6
 smooth=$7
 glmstats=$8
 logdir="$9"
 if [ "$logdir" = "" ] ; then logdir=/tmp ; fi ; echo "$(basename $0): logir is '$logdir'"
 jid=1
+
+# display info
+echo "`basename $0` : SUBJECTS_DIR     : $SUBJECTS_DIR"
+echo "`basename $0` : glm-dir          : $glmdir_FS"
+echo "`basename $0` : out-dir          : $FSstatsdir"
+echo "`basename $0` : smoothing-krnls  : $krnls"
+echo "`basename $0` : measures         : $measures"
+echo "`basename $0` : do-resamp        : $resamp"
+echo "`basename $0` : do-smooth        : $smooth"
+echo "`basename $0` : do-glm           : $glmstats"
+echo "`basename $0` : logdir           : $logdir"
 
 # source globalfuncs
 source $(dirname $0)/globalfuncs
@@ -76,6 +87,14 @@ if [ $err -eq 1 ] ; then exit 1 ; fi
 
 # resampling to FS average space
 if [ $resamp -eq 1 ] ; then
+       
+  # cleanup mris_preproc
+  echo "$(basename $0): cleaning up previously unfinished mris_preproc runs..."
+  rm -rfv $FSstatsdir/tmp.mris_preproc.[0-9]*
+  ##rm -fv  $FSstatsdir/*.mris_preproc.log.bak  
+  echo "$(basename $0):------------------------------"
+  
+  # now execute mris_preproc
   cmdtxt=$FSstatsdir/scripts/mris_preproc.cmd ; rm -f $cmdtxt
   for design in $designs ; do
     fsgd_file=$(ls $glmdir_FS/$design/*.fsgd)
@@ -93,13 +112,7 @@ if [ $resamp -eq 1 ] ; then
   echo "$(basename $0):------------------------------"
 
   waitIfBusy $JIDfile
-
-  # cleanup mris_preproc
-  echo "$(basename $0): cleaning up previously unfinished mris_preproc runs..."
-  rm -rfv $FSstatsdir/tmp.mris_preproc.[0-9]*
-  ##rm -fv  $FSstatsdir/*.mris_preproc.log.bak
   
-  #echo "$(basename $0):------------------------------"
 fi
 
 waitIfBusy $JIDfile
@@ -124,7 +137,7 @@ if [ $smooth -eq 1 ] ; then
   done # end design
   jid=`fsl_sub -l $logdir -N mri_surf2surf_${output%%mgh} -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
 
-  echo "$(basename $0):------------------------------"
+  echo "------------------------------"
 fi
   
 waitIfBusy $JIDfile
@@ -154,7 +167,7 @@ if [ $glmstats -eq 1 ] ; then
   done # end design
   jid=`fsl_sub -l $logdir -N mri_glmfit_${output%%glmdir} -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
 
-  echo "$(basename $0):------------------------------"
+  echo "------------------------------"
 
   waitIfBusy $JIDfile
 
@@ -169,9 +182,9 @@ if [ $glmstats -eq 1 ] ; then
       for sm in $krnls ; do
         for measure in $measures ; do
           glmdir="$FSstatsdir/${design}.${hemi}.${measure}.s${sm}.glmdir"
-          echo "$(basename $0): copying files to '$(basename $glmdir)':"
-          cp -v $fsgd_file $glmdir/
-          cp -v $mtx_files $glmdir/
+          echo "$(basename $0): copying files to '$(basename $glmdir)'..."
+          cp $fsgd_file $glmdir/
+          cp $mtx_files $glmdir/
           
           for mtx in $mtx_files ; do      
             mtx=$(basename $mtx)
@@ -184,13 +197,13 @@ if [ $glmstats -eq 1 ] ; then
             #ln -sf $rel/surf/${hemi}.inflated $glmdir/${hemi}.inflated        
             #ln -sf $rel/surf/${hemi}.curv $glmdir/${hemi}.curv
             #ln -sf $rel/label/${hemi}.aparc.a2009s.annot $glmdir/${hemi}.aparc.a2009s.annot
-            cp -v $SUBJECTS_DIR/fsaverage/surf/${hemi}.inflated $glmdir/${mtx%%.mtx}/
-            cp -v $SUBJECTS_DIR/fsaverage/surf/${hemi}.curv $glmdir/${mtx%%.mtx}/
-            cp -v $SUBJECTS_DIR/fsaverage/label/${hemi}.aparc.a2009s.annot $glmdir/${mtx%%.mtx}/
+            cp $SUBJECTS_DIR/fsaverage/surf/${hemi}.inflated $glmdir/${mtx%%.mtx}/
+            cp $SUBJECTS_DIR/fsaverage/surf/${hemi}.curv $glmdir/${mtx%%.mtx}/
+            cp $SUBJECTS_DIR/fsaverage/label/${hemi}.aparc.a2009s.annot $glmdir/${mtx%%.mtx}/
        
-            cp -Pv $SUBJECTS_DIR/fsaverage $glmdir/${mtx%%.mtx}/ # copy the symbolic links
+            cp -P $SUBJECTS_DIR/fsaverage $glmdir/${mtx%%.mtx}/ # copy the symbolic links
           done
-          echo "$(basename $0):------------------------------"
+          echo "------------------------------"
         done # end measure
       done # end sm
     done # end hemi

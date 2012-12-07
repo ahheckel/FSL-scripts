@@ -83,6 +83,8 @@ ALFF_RESAMPLING_RESOLUTIONS=$(echo $ALFF_RESAMPLING_RESOLUTIONS | row2col | sort
 TBSS_INCLUDED_SUBJECTS=$(echo $TBSS_INCLUDED_SUBJECTS | row2col | sort -u)
 TBSS_INCLUDED_SESSIONS=$(echo $TBSS_INCLUDED_SESSIONS | row2col | sort -u)
 TBSS_THRES=$(echo $TBSS_THRES | row2col | sort -u)
+FS_STATS_MEASURES=$(echo $FS_STATS_MEASURES | row2col | sort -u)
+FS_STATS_SMOOTHING_KRNLS=$(echo $FS_STATS_SMOOTHING_KRNLS | row2col | sort -u)
 VBM_INCLUDED_SUBJECTS=$(echo $VBM_INCLUDED_SUBJECTS | row2col | sort -u)
 VBM_INCLUDED_SESSIONS=$(echo $VBM_INCLUDED_SESSIONS | row2col | sort -u)
 VBM_SMOOTHING_KRNL=$(echo $VBM_SMOOTHING_KRNL | row2col | sort -u)
@@ -130,6 +132,7 @@ for prog in $progs ; do
   if [ ! -f $prog ] ; then echo "ERROR : '$prog' is not installed. Exiting." ; exit 1 ; fi
 done
 if [ x$(which octave) = "x" ] ; then echo "ERROR : OCTAVE does not seem to be installed on your system ! Exiting..." ; exit 1 ; fi
+if [ x$(which tee) = "x" ] ; then echo "ERROR : bash utility 'tee' does not seem to be installed on your system ! Exiting..." ; exit 1 ; fi
 
 # is sh linked to bash ?
 if [ ! -z $(which sh) ] ; then
@@ -369,6 +372,7 @@ echo -n "--- BOLD      :    " ; [ $BOLD_STG1 = 1 ] && echo -n "STG1 " ; [ $BOLD_
 echo -n "--- ALFF      :    " ; [ $ALFF_STG1 = 1 ] && echo -n "STG1 " ; [ $ALFF_STG2 = 1 ] && echo -n "STG2 " ; [ $ALFF_STG3 = 1 ] && echo -n "STG3 " ; echo ""
 echo "2ND LEVEL processing streams selected:"
 echo -n "--- TBSS           :    " ; [ $TBSS_STG1 = 1 ] && echo -n "STG1 " ; [ $TBSS_STG2 = 1 ] && echo -n "STG2 " ; [ $TBSS_STG3 = 1 ] && echo -n "STG3 " ; [ $TBSS_STG4 = 1 ] && echo -n "STG4 " ; [ $TBSS_STG5 = 1 ] && echo -n "STG5 " ; echo ""
+echo -n "--- FS_STATS       :    " ; [ $FS_STATS_STG1 = 1 ] && echo -n "STG1 " ; [ $FS_STATS_STG2 = 1 ] && echo -n "STG2 " ; [ $FS_STATS_STG3 = 1 ] && echo -n "STG3 " ; echo ""
 echo -n "--- VBM_2NDLEV     :    " ; [ $VBM_2NDLEV_STG1 = 1 ] && echo -n "STG1 " ; [ $VBM_2NDLEV_STG2 = 1 ] && echo -n "STG2 " ; [ $VBM_2NDLEV_STG3 = 1 ] && echo -n "STG3 " ; echo ""
 echo -n "--- MELODIC_2NDLEV :    " ; [ $MELODIC_2NDLEV_STG1 = 1 ] && echo -n "STG1 " ; [ $MELODIC_2NDLEV_STG2 = 1 ] && echo -n "STG2 " ; echo ""
 echo -n "--- MELODIC_CMD    :    " ; [ $MELODIC_CMD_STG1 = 1 ] && echo -n "STG1 " ; echo ""
@@ -3800,22 +3804,36 @@ waitIfBusy
 # ----- BEGIN FS_STATS -----
 ############################
 
+FS_STATS_SMOOTHING_KRNLS=\'$FS_STATS_SMOOTHING_KRNLS\'
+FS_STATS_MEASURES=\'$FS_STATS_MEASURES\'
 
 # resampling to average space
 if [ $FS_STATS_STG1 -eq 1 ] ; then
-  $scriptdir/fs_glm.sh $SUBJECTS_DIR $glmdir_fs $fstatsdir "$FS_STATS_MEASURES" "$FS_STATS_SMOOTHING_KRNLS" 1 0 0 $logdir
+  echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $glmdir_fs $FSstatsdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "1 0 0 $logdir" > $FSstatsdir/fs_stats_01.cmd  
+  . $FSstatsdir/fs_stats_01.cmd
+  echo ""
+  echo ""
 fi
+
+waitIfBusy
 
 # smoothing
 if [ $FS_STATS_STG2 -eq 1 ] ; then
-  $scriptdir/fs_glm.sh $SUBJECTS_DIR $glmdir_fs $fstatsdir "$FS_STATS_MEASURES" "$FS_STATS_SMOOTHING_KRNLS" 0 1 0 $logdir
+  echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $glmdir_fs $FSstatsdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "0 1 0 $logdir" > $FSstatsdir/fs_stats_02.cmd  
+  . $FSstatsdir/fs_stats_02.cmd
+  echo ""
+  echo ""
 fi
+
+waitIfBusy
 
 # GLM
 if [ $FS_STATS_STG3 -eq 1 ] ; then
-  $scriptdir/fs_glm.sh $SUBJECTS_DIR $glmdir_fs $fstatsdir "$FS_STATS_MEASURES" "$FS_STATS_SMOOTHING_KRNLS" 0 0 1 $logdir
+  echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $glmdir_fs $FSstatsdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "0 0 1 $logdir" > $FSstatsdir/fs_stats_03.cmd  
+  . $FSstatsdir/fs_stats_03.cmd
+  echo ""
+  echo ""
 fi
-
 
 ##########################
 # ----- END FS_STATS -----
