@@ -24,7 +24,7 @@ delJIDs() {
 
 Usage() {
     echo ""
-    echo "Usage:   `basename $0` <SUBJECTS_DIR> <glm-dir> <out-dir> <measure> <smoothing-kernels(FWHM)> <do-resamp:0|1> <do-smooth:0|1> <do-glm:0|1> [<sge-logdir>]"
+    echo "Usage:   `basename $0` <SUBJECTS_DIR> <glm-dir> <out-dir> <measure> <smoothing-kernels(FWHM)> <do-resamp:0|1> <do-smooth:0|1> <do-glm:0|1> <do-glm_sim: 0|1> <Nsim> [<sge-logdir>]"
     echo "Example: `basename $0` ./subj/FS_subj ./grp/glm/FS_stats ./grp/FS_stats \"thickness\" \"5 10 15 20 25\" 1 1 1 ./logs"
     echo ""
     exit 1 
@@ -51,7 +51,9 @@ krnls="$5"
 resamp=$6
 smooth=$7
 glmstats=$8
-logdir="$9"
+glm_sim=$9
+Nsim=${10}
+logdir="${11}"
 if [ "$logdir" = "" ] ; then logdir=/tmp ; fi ; echo "$(basename $0): logdir is '$logdir'"
 jid=1 # init jobID
 
@@ -64,6 +66,8 @@ echo "`basename $0` : measures         : $measures"
 echo "`basename $0` : do-resamp        : $resamp"
 echo "`basename $0` : do-smooth        : $smooth"
 echo "`basename $0` : do-glm           : $glmstats"
+echo "`basename $0` : do-glm_sim       : $glm_sim"
+echo "`basename $0` : Nsim             : $Nsim"
 echo "`basename $0` : logdir           : $logdir"
 
 # source globalfuncs
@@ -108,7 +112,7 @@ if [ $resamp -eq 1 ] ; then
       done # end measure
     done # end hemi
   done # end design
-  jid=`fsl_sub -l $logdir -N mris_preproc_${output%%mgh} -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
+  jid=`fsl_sub -l $logdir -N $(basename $cmdtxt) -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
     
   echo "------------------------------"
 
@@ -136,7 +140,7 @@ if [ $smooth -eq 1 ] ; then
       done # end sm
     done # end hemi
   done # end design
-  jid=`fsl_sub -l $logdir -N mri_surf2surf_${output%%mgh} -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
+  jid=`fsl_sub -l $logdir -N $(basename $cmdtxt) -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
 
   echo "------------------------------"
 fi
@@ -166,7 +170,7 @@ if [ $glmstats -eq 1 ] ; then
       done # end sm
     done # end hemi
   done # end design
-  jid=`fsl_sub -l $logdir -N mri_glmfit_${output%%glmdir} -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
+  jid=`fsl_sub -l $logdir -N $(basename $cmdtxt) -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
 
   echo "------------------------------"
 
@@ -209,6 +213,33 @@ if [ $glmstats -eq 1 ] ; then
       done # end sm
     done # end hemi
   done # end design
+fi
+
+waitIfBusy $JIDfile
+
+if [ $glm_sim -eq 1 ] ; then
+  cmdtxt=$FSstatsdir/scripts/mri_glmfit-sim.cmd ; rm -f $cmdtxt
+  for design in $designs ; do
+    for hemi in lh rh ; do
+      for sm in $krnls ; do
+        for measure in $measures ; do
+          glmdir="$FSstatsdir/${design}.${hemi}.${measure}.s${sm}.glmdir"
+          for sign in neg pos ; do
+            for thresh in 2 3 4 ; do
+              input=${design}.${hemi}.${measure}.s${sm}.mgh
+                          
+              ln -sf ../$input $glmdir/$input
+              echo "$(basename $0): permutation testing in '$glmdir' (sign: $sign , thres: $thresh, N=${Nsim})"
+              echo "    mri_glmfit-sim --glmdir $glmdir --sim mc-z $Nsim $thresh mc-z.${sign} --sim-sign $sign --cwpvalthresh 0.05 --overwrite" >> $cmdtxt
+            done # thres
+          done # sign
+        done # measure
+      done # sm
+    done # hemi
+  done # design
+  jid=`fsl_sub -l $logdir -N $(basename $cmdtxt) -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
+
+  echo "------------------------------"
 fi
 
 waitIfBusy $JIDfile
