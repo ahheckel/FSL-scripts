@@ -2417,13 +2417,18 @@ if [ $BOLD_STG1 -eq 1 ] ; then
         line=`cat $subjdir/config_func2highres.reg | awk '{print $1}' | grep -nx $(subjsess) | cut -d : -f1`
         sess_t1=`cat $subjdir/config_func2highres.reg | awk '{print $2}' | sed -n ${line}p `
         if [ $sess_t1 = '.' ] ; then sess_t1="" ; fi # single-session design   
+        if [ x"$sess_t1" = "x" ] ; then 
+          relpath="../../$subj/vbm" # single sess.
+        else
+          relpath="../../$sess_t1/vbm" # multi sess.
+        fi
         t1_brain=$fldr/${subj}${sess_t1}_t1_brain.nii.gz
         t1_struc=$fldr/${subj}${sess_t1}_t1.nii.gz
         feat_t1struc=`ls $subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_STRUC` ; feat_t1brain=`ls $subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_BRAIN`
-        echo "BOLD : subj $subj , sess $sess : creating symlink '$(basename $t1_struc)' to '../../$sess_t1/vbm/$(basename $feat_t1struc)'"
-        ln -sf ../../$sess_t1/vbm/$(basename $feat_t1struc) $t1_struc
-        echo "BOLD : subj $subj , sess $sess : creating symlink '$(basename $t1_brain)' to '../../$sess_t1/vbm/$(basename $feat_t1brain)'"
-        ln -sf ../../$sess_t1/vbm/$(basename $feat_t1brain) $t1_brain
+        echo "BOLD : subj $subj , sess $sess : creating symlink '$(basename $t1_struc)' to '$relpath/$(basename $feat_t1struc)'"
+        ln -sf $relpath/$(basename $feat_t1struc) $t1_struc
+        echo "BOLD : subj $subj , sess $sess : creating symlink '$(basename $t1_brain)' to '$relpath/$(basename $feat_t1brain)'"
+        ln -sf $relpath/$(basename $feat_t1brain) $t1_brain 
       fi
       
       # preparing alternative example func

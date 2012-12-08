@@ -27,6 +27,10 @@ function path_abs2rel()
 
   local source="$1"
   local target="$2"
+  
+  # remove /./
+  source=$(echo $source | sed "s|/\./|/|g")
+  target=$(echo $target | sed "s|/\./|/|g")
 
   local common_part="$source"
   local back=
