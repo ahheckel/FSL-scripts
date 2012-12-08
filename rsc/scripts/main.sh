@@ -2208,14 +2208,14 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
           echo "TRACULA : subj $subj , sess $sess : creating concatenated bvals and bvecs file..."
           concat_bvals $srcdir/$subj/$sess/"$pttrn_bvals" $fldr/bvals_concat.txt
           concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecs" $fldr/bvecs_concat.txt
-        else 
-          ln -sfv ../../$subj/$sess/fdt/bvals_concat.txt $fldr/bvals_concat.txt
-          ln -sfv ../../$subj/$sess/fdt/bvecs_concat.txt $fldr/bvecs_concat.txt
+        else
+          ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/fdt/)/bvals_concat.txt  $fldr/bvals_concat.txt
+          ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/fdt/)/bvecs_concat.txt  $fldr/bvecs_concat.txt
         fi        
         
         # are DWIs already concatenated ?
         if [ -f $subj/$sess/fdt/diff_merged.nii.gz ] ; then
-          ln -sfv ../../$subj/$sess/fdt/diff_merged.nii.gz $fldr/diff_merged.nii.gz
+          ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/fdt/)/diff_merged.nii.gz  $fldr/diff_merged.nii.gz
         else
           echo "TRACULA : subj $subj , sess $sess : no pre-existing 4D file found - merging diffusion files..."
           diffs=`ls $srcdir/$subj/$sess/$pttrn_diffs`          
@@ -2230,9 +2230,11 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
         if [ ! -d $subjdir/$subj/$sess/fdt ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : you must run the FDT-stream first - breaking loop..." ; break ; fi
         
         echo "TRACULA : subj $subj , sess $sess : linking to unwarped DWIs (and corrected b-vectors)..."
-        ln -sfv ../../$subj/$sess/fdt/bvals_concat.txt $fldr/bvals_concat.txt
-        ln -sfv ../../$subj/$sess/fdt/bvecs_concat.rot $fldr/bvecs_concat.txt
-        ln -sfv ../../$subj/$sess/fdt/uw_ec_diff_merged.nii.gz $fldr/diff_merged.nii.gz
+        
+        # path_abs2rel: mind trailing "/"
+        ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/fdt/)/bvals_concat.txt  $fldr/bvals_concat.txt
+        ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/fdt/)/bvecs_concat.rot  $fldr/bvecs_concat.txt
+        ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/fdt/)/uw_ec_diff_merged.nii.gz  $fldr/diff_merged.nii.gz
         
         # tracula shall not eddy-correct
         sed -i "s|set doeddy = .*|set doeddy = 0|g" $fldr/tracula.rc
@@ -2242,9 +2244,9 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
         if [ ! -d $subjdir/$subj/$sess/topup ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : you must run the TOPUP-stream first - breaking loop..." ; break ; fi
         
         echo "TRACULA : subj $subj , sess $sess : linking to TOPUP corrected DWIs (and corrected b-vectors)..."
-        ln -sfv ../../$subj/$sess/topup/avg_bvals.txt $fldr/bvals_concat.txt
-        ln -sfv ../../$subj/$sess/topup/avg_bvecs_topup.rot $fldr/bvecs_concat.txt
-        ln -sfv ../../$subj/$sess/topup/$(subjsess)_topup_corr_merged.nii.gz $fldr/diff_merged.nii.gz
+        ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/topup/)/avg_bvals.txt $fldr/bvals_concat.txt
+        ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/topup/)/avg_bvecs_topup.rot $fldr/bvecs_concat.txt
+        ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/topup/)/$(subjsess)_topup_corr_merged.nii.gz $fldr/diff_merged.nii.gz
         
         # tracula shall not eddy-correct
         sed -i "s|set doeddy = .*|set doeddy = 0|g" $fldr/tracula.rc
@@ -2254,9 +2256,9 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
         if [ ! -d $subjdir/$subj/$sess/topup ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : you must run the TOPUP-stream first - breaking loop..." ; break ; fi
         
         echo "TRACULA : subj $subj , sess $sess : linking to TOPUP corrected, eddy-corrected DWIs (and corrected b-vectors)..."
-        ln -sfv ../../$subj/$sess/topup/avg_bvals.txt $fldr/bvals_concat.txt
-        ln -sfv ../../$subj/$sess/topup/avg_bvecs_topup_ec.rot $fldr/bvecs_concat.txt
-        ln -sfv ../../$subj/$sess/topup/$(subjsess)_topup_corr_ec_merged.nii.gz $fldr/diff_merged.nii.gz
+        ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/topup/)/avg_bvals.txt $fldr/bvals_concat.txt
+        ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/topup/)/avg_bvecs_topup_ec.rot $fldr/bvecs_concat.txt
+        ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/topup/)/$(subjsess)_topup_corr_ec_merged.nii.gz $fldr/diff_merged.nii.gz
        
         # tracula shall not eddy-correct
         sed -i "s|set doeddy = .*|set doeddy = 0|g" $fldr/tracula.rc
