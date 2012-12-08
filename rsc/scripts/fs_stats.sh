@@ -54,10 +54,11 @@ glmstats=$8
 glm_sim=$9
 Nsim=${10}
 logdir="${11}"
-if [ "$logdir" = "" ] ; then logdir=/tmp ; fi ; echo "$(basename $0): logdir is '$logdir'"
+if [ "$logdir" = "" ] ; then logdir=/tmp ; fi
 jid=1 # init jobID
 
 # display info
+echo ""
 echo "`basename $0` : SUBJECTS_DIR     : $SUBJECTS_DIR"
 echo "`basename $0` : glm-dir          : $glmdir_FS"
 echo "`basename $0` : out-dir          : $FSstatsdir"
@@ -69,6 +70,7 @@ echo "`basename $0` : do-glm           : $glmstats"
 echo "`basename $0` : do-glm_sim       : $glm_sim"
 echo "`basename $0` : Nsim             : $Nsim"
 echo "`basename $0` : logdir           : $logdir"
+echo ""
 
 # source globalfuncs
 source $(dirname $0)/globalfuncs
