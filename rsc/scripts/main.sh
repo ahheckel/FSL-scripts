@@ -373,7 +373,7 @@ echo -n "--- BOLD      :    " ; [ $BOLD_STG1 = 1 ] && echo -n "STG1 " ; [ $BOLD_
 echo -n "--- ALFF      :    " ; [ $ALFF_STG1 = 1 ] && echo -n "STG1 " ; [ $ALFF_STG2 = 1 ] && echo -n "STG2 " ; [ $ALFF_STG3 = 1 ] && echo -n "STG3 " ; echo ""
 echo "2ND LEVEL processing streams selected:"
 echo -n "--- TBSS           :    " ; [ $TBSS_STG1 = 1 ] && echo -n "STG1 " ; [ $TBSS_STG2 = 1 ] && echo -n "STG2 " ; [ $TBSS_STG3 = 1 ] && echo -n "STG3 " ; [ $TBSS_STG4 = 1 ] && echo -n "STG4 " ; [ $TBSS_STG5 = 1 ] && echo -n "STG5 " ; echo ""
-echo -n "--- FS_STATS       :    " ; [ $FS_STATS_STG1 = 1 ] && echo -n "STG1 " ; [ $FS_STATS_STG2 = 1 ] && echo -n "STG2 " ; [ $FS_STATS_STG3 = 1 ] && echo -n "STG3 " ; echo ""
+echo -n "--- FS_STATS       :    " ; [ $FS_STATS_STG1 = 1 ] && echo -n "STG1 " ; [ $FS_STATS_STG2 = 1 ] && echo -n "STG2 " ; [ $FS_STATS_STG3 = 1 ] && echo -n "STG3 " ; [ $FS_STATS_STG4 = 1 ] && echo -n "STG4 " ; echo ""
 echo -n "--- VBM_2NDLEV     :    " ; [ $VBM_2NDLEV_STG1 = 1 ] && echo -n "STG1 " ; [ $VBM_2NDLEV_STG2 = 1 ] && echo -n "STG2 " ; [ $VBM_2NDLEV_STG3 = 1 ] && echo -n "STG3 " ; echo ""
 echo -n "--- MELODIC_2NDLEV :    " ; [ $MELODIC_2NDLEV_STG1 = 1 ] && echo -n "STG1 " ; [ $MELODIC_2NDLEV_STG2 = 1 ] && echo -n "STG2 " ; echo ""
 echo -n "--- MELODIC_CMD    :    " ; [ $MELODIC_CMD_STG1 = 1 ] && echo -n "STG1 " ; echo ""
@@ -3815,9 +3815,9 @@ waitIfBusy
 FS_STATS_SMOOTHING_KRNLS=\'$FS_STATS_SMOOTHING_KRNLS\'
 FS_STATS_MEASURES=\'$FS_STATS_MEASURES\'
 
-# resampling to average space
+# resampling to fsaverage space
 if [ $FS_STATS_STG1 -eq 1 ] ; then
-  echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $glmdir_fs $FSstatsdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "1 0 0 $logdir" > $FSstatsdir/fs_stats_01.cmd  
+  echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $glmdir_fs $FSstatsdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "1 0 0 0 $FS_STATS_NPERM $logdir" > $FSstatsdir/fs_stats_01.cmd  
   . $FSstatsdir/fs_stats_01.cmd
   echo ""
   echo ""
@@ -3827,7 +3827,7 @@ waitIfBusy
 
 # smoothing
 if [ $FS_STATS_STG2 -eq 1 ] ; then
-  echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $glmdir_fs $FSstatsdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "0 1 0 $logdir" > $FSstatsdir/fs_stats_02.cmd  
+  echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $glmdir_fs $FSstatsdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "0 1 0 0 $FS_STATS_NPERM $logdir" > $FSstatsdir/fs_stats_02.cmd  
   . $FSstatsdir/fs_stats_02.cmd
   echo ""
   echo ""
@@ -3837,11 +3837,22 @@ waitIfBusy
 
 # GLM
 if [ $FS_STATS_STG3 -eq 1 ] ; then
-  echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $glmdir_fs $FSstatsdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "0 0 1 $logdir" > $FSstatsdir/fs_stats_03.cmd  
+  echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $glmdir_fs $FSstatsdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "0 0 1 0 $FS_STATS_NPERM $logdir" > $FSstatsdir/fs_stats_03.cmd  
   . $FSstatsdir/fs_stats_03.cmd
   echo ""
   echo ""
 fi
+
+waitIfBusy
+
+# GLM permutation testing
+if [ $FS_STATS_STG4 -eq 1 ] ; then
+  echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $glmdir_fs $FSstatsdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "0 0 0 1 $FS_STATS_NPERM $logdir" > $FSstatsdir/fs_stats_04.cmd  
+  . $FSstatsdir/fs_stats_04.cmd
+  echo ""
+  echo ""
+fi
+
 
 ##########################
 # ----- END FS_STATS -----
@@ -3905,7 +3916,7 @@ waitIfBusy
 # MELODIC_2NDLEV create *.fsf configuration file
 if [ $MELODIC_2NDLEV_STG1 -eq 1 ]; then
   echo "----- BEGIN MELODIC_2NDLEV_STG1 -----"
-  fldr=$grpdir/melodic ; mkdir -p $fldr
+  fldr=$gicadir ; mkdir -p $fldr
   conffile=$fldr/${MELODIC_OUTDIRNAME}_$(remove_ext $MELODIC_INPUT_FILE).fsf
   templateICA=$tmpltdir/template_gICA.fsf
   
@@ -3950,7 +3961,7 @@ if [ $MELODIC_2NDLEV_STG1 -eq 1 ]; then
       line=`cat $subjdir/config_func2highres.reg | awk '{print $1}' | grep -nx $(subjsess) | cut -d : -f1`
       sess_t1=`cat $subjdir/config_func2highres.reg | awk '{print $2}' | sed -n ${line}p `
       if [ $sess_t1 = '.' ] ; then sess_t1="" ; fi # single-session design
-      t1_brain=$grpdir/melodic/${subj}${sess_t1}_t1_brain
+      t1_brain=$gicadir/${subj}${sess_t1}_t1_brain
       
       echo "MELODIC_GROUP: using t1_brain from session '$sess_t1' as reference for '$bold'"
       echo "# Subject's structural image for analysis $n" >> $conffile
@@ -4003,10 +4014,10 @@ if [ $MELODIC_2NDLEV_STG2 -eq 1 ]; then
       if [ "x$melodic_t1brain" = "x" ] ; then echo "MELODIC_GROUP: WARNING: brain-extracted high-res not found - continuing loop... " ; continue ; fi
       if [ "x$melodic_t1struc" = "x" ] ; then echo "MELODIC_GROUP: WARNING: high-res not found - continuing loop... " ; continue ; fi
       
-      #cp -v $melodic_t1struc $grpdir/melodic/$(subjsess)_t1.nii.gz
-      #cp -v $melodic_t1brain $grpdir/melodic/$(subjsess)_t1_brain.nii.gz
-      cmd="ln -sfv ../../$(basename $subjdir)/$subj/$sess_t1/vbm/$(basename $melodic_t1struc) $grpdir/melodic/$(subjsess)_t1.nii.gz" ; $cmd
-      cmd="ln -sfv ../../$(basename $subjdir)/$subj/$sess_t1/vbm/$(basename $melodic_t1brain) $grpdir/melodic/$(subjsess)_t1_brain.nii.gz " ; $cmd
+      #cp -v $melodic_t1struc $gicadir/$(subjsess)_t1.nii.gz
+      #cp -v $melodic_t1brain $gicadir/$(subjsess)_t1_brain.nii.gz
+      cmd="ln -sfv ../../$(basename $subjdir)/$subj/$sess_t1/vbm/$(basename $melodic_t1struc) $gicadir/$(subjsess)_t1.nii.gz" ; $cmd
+      cmd="ln -sfv ../../$(basename $subjdir)/$subj/$sess_t1/vbm/$(basename $melodic_t1brain) $gicadir/$(subjsess)_t1_brain.nii.gz " ; $cmd
     done
   done
 fi
@@ -4029,7 +4040,7 @@ if [ $MELODIC_CMD_STG1 -eq 1 ]; then
   
   for melodic_input in $MELODIC_CMD_INPUT_FILES ; do
     
-    fldr=$grpdir/melodic/${MELODIC_CMD_OUTDIR_PREFIX}_$(remove_ext $melodic_input).gica
+    fldr=$gicadir/${MELODIC_CMD_OUTDIR_PREFIX}_$(remove_ext $melodic_input).gica
     
     # erase prev. run
     if [ -d $fldr ] ; then
@@ -4098,14 +4109,14 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
     if [ x"$DUALREG_INPUT_BOLD_FILE" != "x" ] ; then
       _inputfile=$DUALREG_INPUT_BOLD_FILE
     # this applies when MELODIC-GUI was used
-    elif [ -f $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf ] ; then
-      echo "DUALREG : taking basic input filename from '$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf' (first entry therein)"
-      _inputfile=$(basename $(cat $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.fsf | grep "set feat_files(1)" | cut -d "\"" -f 2)) # get inputfile basename from melodic *.fsf file... (assuming same basename for all included subjects/sessions) (!)
+    elif [ -f $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.fsf ] ; then
+      echo "DUALREG : taking basic input filename from '$gicadir/${DUALREG_INPUT_ICA_DIRNAME}.fsf' (first entry therein)"
+      _inputfile=$(basename $(cat $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.fsf | grep "set feat_files(1)" | cut -d "\"" -f 2)) # get inputfile basename from melodic *.fsf file... (assuming same basename for all included subjects/sessions) (!)
       _inputfile=$(remove_ext $_inputfile)_${DUALREG_INPUT_ICA_DIRNAME}.ica/reg_standard/filtered_func_data.nii.gz
     # this applies when MELODIC command line tool was used
-    elif [ -f $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files ] ; then
+    elif [ -f $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files ] ; then
       echo "DUALREG : taking basic input filename from '${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files' (first entry therein)"
-      _inputfile=$(basename $(head -n 1 $grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files)) # get inputfile basename from melodic input-file list...(assuming same basename for all included subjects/sessions) (!)
+      _inputfile=$(basename $(head -n 1 $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files)) # get inputfile basename from melodic input-file list...(assuming same basename for all included subjects/sessions) (!)
     else
       echo "DUALREG : ERROR : no input files defined - exiting..." ; exit 1
     fi
@@ -4151,7 +4162,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
     
     # execute...
     for IC_fname in $DUALREG_IC_FILENAMES ; do
-      ICfile=$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
+      ICfile=$gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
       dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAME}_$(remove_ext $IC_fname)
       if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit 1 ; fi
       
@@ -4202,7 +4213,7 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
   for DUALREG_INPUT_ICA_DIRNAME in $DUALREG_INPUT_ICA_DIRNAMES ; do
     for IC_fname in $DUALREG_IC_FILENAMES ; do
       dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAME}_$(remove_ext $IC_fname)
-      ICfile=$grpdir/melodic/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
+      ICfile=$gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
       if [ ! -d $dr_outdir ] ; then echo "DUALREG : ERROR : output directory '$dr_outdir' not found - exiting..." ; exit 1 ; fi
       if [ ! -f $dr_outdir/inputfiles ] ; then echo "DUALREG : ERROR : inputfiles textfile not found, you must run stage1 first - exiting..." ; exit 1 ; fi
       if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit 1 ; fi

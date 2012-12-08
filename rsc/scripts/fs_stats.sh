@@ -25,7 +25,7 @@ delJIDs() {
 Usage() {
     echo ""
     echo "Usage:   `basename $0` <SUBJECTS_DIR> <glm-dir> <out-dir> <measure> <smoothing-kernels(FWHM)> <do-resamp:0|1> <do-smooth:0|1> <do-glm:0|1> <do-glm_sim: 0|1> <Nsim> [<sge-logdir>]"
-    echo "Example: `basename $0` ./subj/FS_subj ./grp/glm/FS_stats ./grp/FS_stats \"thickness\" \"5 10 15 20 25\" 1 1 1 ./logs"
+    echo "Example: `basename $0` ./subj/FS_subj ./grp/glm/FS_stats ./grp/FS_stats \"thickness\" \"5 10 15 20 25\" 1 1 1 1 5000 ./logs"
     echo ""
     exit 1 
 }
