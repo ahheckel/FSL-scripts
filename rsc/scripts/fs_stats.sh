@@ -227,7 +227,7 @@ if [ $glm_sim -eq 1 ] ; then
         for measure in $measures ; do
           glmdir="$FSstatsdir/${design}.${hemi}.${measure}.s${sm}.glmdir"
           for sign in neg pos ; do
-            for thresh in 2 3 4 ; do
+            for thresh in 2 2.3010 3 3.3010 4 ; do
               input=${design}.${hemi}.${measure}.s${sm}.mgh
                           
               ln -sf ../$input $glmdir/$input
