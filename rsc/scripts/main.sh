@@ -66,7 +66,7 @@ fi
 mkdir -p $subjdir
 
 # remove lock on exit
-trap "set +e ; save_config $studydir $subjdir \"$startdate\" ; rmdir $wd/.lockdir121978 ; echo \"Lock removed.\" ; time_elapsed $startdate_sec ; echo \"Exiting on `date`\" ; echo --------------------------- ; exit" EXIT
+trap "set +e ; delJIDs $GRID_JOB_ID_FILE ; save_config $studydir $subjdir \"$startdate\" ; rmdir $wd/.lockdir121978 ; echo \"Lock removed.\" ; time_elapsed $startdate_sec ; echo \"Exiting on `date`\" ; echo --------------------------- ; exit" EXIT
 
 # remove duplicates in string arrays (to avoid collisions on the cluster)
 FIRSTLEV_SUBJECTS=$(echo $FIRSTLEV_SUBJECTS | row2col | sort -u)
@@ -134,8 +134,8 @@ fi
 
 # ----- CHECKS -----
 
-# are all progs installed ?
-progs="$FSL_DIR/bin/tbss_x $FSL_DIR/bin/swap_voxelwise $FSL_DIR/bin/swap_subjectwise $FREESURFER_HOME/bin/trac-all $FSL_DIR/etc/flirtsch/b02b0.cnf $FSL_DIR/bin/topup $FSL_DIR/bin/applytopup"
+# are all progs / files installed ?
+progs="$FSL_DIR/bin/tbss_x $FSL_DIR/bin/swap_voxelwise $FSL_DIR/bin/swap_subjectwise $FREESURFER_HOME/bin/trac-all $FSL_DIR/etc/flirtsch/b02b0.cnf $FSL_DIR/bin/topup $FSL_DIR/bin/applytopup $FSL_DIR/data/standard/avg152T1_white_bin.nii.gz $FSL_DIR/data/standard/avg152T1_csf_bin.nii.gz"
 for prog in $progs ; do
   if [ ! -f $prog ] ; then echo "ERROR : '$prog' is not installed. Exiting." ; exit 1 ; fi
 done

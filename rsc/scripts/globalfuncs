@@ -9,15 +9,20 @@
 # function declarations
 
 function delJIDs() {
+  local jidfile="$1"
+  if [ x"$jidfile" = "x" ] ; then
+    return      
+  fi
+  
   if [ x"SGE_ROOT" != "x" ] ; then
-     local jidfile="$1" ; local i="" ; local j=0
+     local i="" ; local j=0
      for i in $(cat $jidfile) ; do
         qdel $i
         j=$[$j+1]
      done
+     if [ $j -eq 0 ] ; then echo "`basename $0`: delJIDs(): no jobs left to erase in '$jidfile' (OK)." ; fi
   fi
   rm -f $jidfile
-  if [ $j -eq 0 ] ; then echo "`basename $0`: delJIDs(): no jobs left to erase (OK)." ; fi
 }
 
 function path_abs2rel() 
@@ -291,7 +296,7 @@ function isStillRunning()
   
   local ID=$1
   local user=`whoami | cut -c 1-10`
-  local stillrunnning=`qstat | grep $user | awk '{print $1}' | grep $ID | wc -l`
+  local stillrunnning=`qstat | grep $user | awk '{print $1}' | grep $ID | wc -l` # maybe better grep -x $ID ? (!)
   echo $stillrunnning
 }
 
@@ -328,11 +333,11 @@ function waitIfBusy()
   if [ $nojidfile -eq 0 ] ; then
     for ID in $(cat $JIDfile) ; do
       if [ `isStillRunning $ID` -gt 0 ] ; then
-        echo -n "waiting for ID '$ID' (in '$JIDfile') to complete..."
+        echo -n "waiting for job ID '$ID' (in '$JIDfile') to complete..."
         while [ `isStillRunning $ID` -gt 0 ] ; do echo -n '.' ; sleep 30 ; done
-        echo "$ID is done."
+        echo " '$ID' is done."
       fi
-    done    
+    done
     rm $JIDfile ; touch $JIDfile
   fi
 }
