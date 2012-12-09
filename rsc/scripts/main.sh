@@ -54,6 +54,14 @@ set +e
   echo ""
 set -e
 
+# export JOB-ID variable, if fsl_sub is patched accordingly
+if [ $(cat `which fsl_sub` | grep GRID_JOB_ID_FILE | grep HKL | wc -l) -eq 3 ] ; then
+  GRID_JOB_ID_FILE=$wd/.jid.grid.$$
+  echo "touching job-ID file '$GRID_JOB_ID_FILE'" ; echo ""
+  touch $GRID_JOB_ID_FILE
+  export GRID_JOB_ID_FILE
+fi
+
 # create subjects-dir.
 mkdir -p $subjdir
 

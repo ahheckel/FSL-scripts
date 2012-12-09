@@ -301,13 +301,18 @@ function waitIfBusy()
   local nojidfile=1
   local ID=""
   
-  # is job-ID file present ?
-  if [ x"$JIDfile" = "x" ] ; then 
-    nojidfile=1
-  elif [ ! -f $JIDfile ] ; then
-    nojidfile=1    
+  # is job-ID file defined ?
+  if [ x"$JIDfile" = "x" ] ; then # ID file as local argument ?
+    if [ x"$GRID_JOB_ID_FILE" = "x" ] ; then # global ID file ?
+      nojidfile=1
+    else
+      nojidfile=0
+      JIDfile="$GRID_JOB_ID_FILE"
+      touch $JIDfile
+    fi
   else
     nojidfile=0
+    touch $JIDfile
   fi
   
   # w/o job-ID file
@@ -321,13 +326,13 @@ function waitIfBusy()
   
   # with job-ID file - cycle through IDs and wait until every job in the list has completed.
   if [ $nojidfile -eq 0 ] ; then
-    echo -n "waiting..."
     for ID in $(cat $JIDfile) ; do
       if [ `isStillRunning $ID` -gt 0 ] ; then
+        echo -n "waiting for ID '$ID' (in '$JIDfile') to complete..."
         while [ `isStillRunning $ID` -gt 0 ] ; do echo -n '.' ; sleep 30 ; done
+        echo "$ID is done."
       fi
-    done
-    echo "done."
+    done    
     rm $JIDfile ; touch $JIDfile
   fi
 }
