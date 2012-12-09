@@ -14,8 +14,8 @@ set -e
 Usage() {
     echo ""
     echo "Usage: eddy_correct [-t|-n] <4dinput> <4doutput> <reference_no> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}>"
-    echo "Options (mutually exclusive):  -t :  test mode, copy input and create .ecclog with identities."
-    echo "                               -n :  no write-outs, just create ecclog file."
+    echo "Options (mutually exclusive):  -t :  test mode: just copy input->output and create .ecclog file with identities."
+    echo "                               -n :  no write-outs, just create .ecclog file."
     exit 1
 }
 

@@ -226,20 +226,24 @@ if [ $glm_sim -eq 1 ] ; then
       for sm in $krnls ; do
         for measure in $measures ; do
           glmdir="$FSstatsdir/${design}.${hemi}.${measure}.s${sm}.glmdir"
+          # cleanup mri_glmfit-sim 
+          echo "$(basename $0): $glmdir: cleaning up previously unfinished mri_glmfit-sim runs..."
+          rm -rfv $glmdir/tmp.mri_glmfit-sim-[0-9]*
           for sign in neg pos ; do
-            for thresh in 2 2.3010 3 3.3010 4 ; do
+            for thresh in 2.0000 2.3010 3 3.3010 4.0000 ; do
               input=${design}.${hemi}.${measure}.s${sm}.mgh
-                          
+
               ln -sf ../$input $glmdir/$input
               echo "$(basename $0): permutation testing in '$glmdir' (sign: $sign , thres: $thresh, N=${Nsim})"
-              echo "    mri_glmfit-sim --glmdir $glmdir --sim mc-z $Nsim $thresh mc-z.${sign} --sim-sign $sign --cwpvalthresh 0.05 --overwrite" >> $cmdtxt
+              echo "    mri_glmfit-sim --glmdir $glmdir --sim mc-z $Nsim $thresh mc-z.${sign}.${thresh} --sim-sign $sign --cwpvalthresh 0.05 --overwrite" >> $cmdtxt
             done # thres
           done # sign
         done # measure
       done # sm
     done # hemi
   done # design
-  jid=`fsl_sub -l $logdir -N $(basename $cmdtxt) -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
+  #jid=`fsl_sub -l $logdir -N $(basename $cmdtxt) -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
+  . $cmdtxt # because of NFS stale error
 
   echo "------------------------------"
 fi

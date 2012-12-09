@@ -27,7 +27,7 @@ wd="`pwd`"
 
 # check version of FSL
 fslversion=$(cat $FSLDIR/etc/fslversion | cut -d . -f 1)
-if [ $fslversion -lt 5 ] ; then echo "`basename $0`: ERROR : only works with FSL >= 5 ! (FSL $(cat $FSLDIR/etc/fslversion) was detected.)  Exiting." ; exit 1 ; fi
+if [ $fslversion -lt 5 ] ; then echo "`basename $0`: ERROR : 'eddy' only works in FSL >= 5 ! (FSL $(cat $FSLDIR/etc/fslversion) was detected.)  Exiting." ; exit 1 ; fi
 
 # concatenate bvals/bvecs (minus first)
 paste -d " " $fldr/bvalsminus_concat.txt $fldr/bvalsplus_concat.txt > $fldr/eddy_bvals_concat.txt

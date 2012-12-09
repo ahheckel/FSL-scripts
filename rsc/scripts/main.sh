@@ -204,11 +204,22 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   # check acquisition-parameter files
   if [ ! -f ${subjdir}/config_acqparams_bold ] ; then
     read -p "BOLD acquisition parameter info file not present in ${subjdir}. Press Key to create a template."
+    err=0 ;
+    if [ x$TR_bold = x ] ; then echo "ERROR: TR not defined (need dummy at least)." ; err=1 ; fi
+    if [ x$TE_bold = x ] ; then echo "ERROR: TE not defined (need dummy at least)." ; err=1 ; fi
+    if [ x$EES_bold = x ] ; then echo "ERROR: ESP not defined (need dummy at least)." ; err=1 ; fi
+    if [ $err -eq 1 ] ; then exit 1 ; fi
     printf "#ID\t TR (s)\t TE (ms)\t	EES (ms)\n" > ${subjdir}/config_acqparams_bold
     for subj in `cat $subjdir/subjects`; do for sess in `cat $subjdir/$subj/sessions_func` ; do printf "$(subjsess)\t $TR_bold\t $TE_bold\t $EES_bold\n" | tee -a $subjdir/config_acqparams_bold ; done ; done
   fi    
   if [ ! -f ${subjdir}/config_acqparams_dwi ] ; then
     read -p "DWI acquisition parameter info file not present in ${subjdir}. Press Key to create a template."
+    err=0 ;
+    if [ x$TR_diff = x ] ; then echo "ERROR: TR not defined (need dummy at least)." ; err=1 ; fi
+    if [ x$TE_diff = x ] ; then echo "ERROR: TE not defined (need dummy at least)." ; err=1 ; fi
+    if [ x$EES_diff = x ] ; then echo "ERROR: ESP not defined (need dummy at least)." ; err=1 ; fi
+    if [ x$TROT_topup = x ] ; then echo "ERROR: TROT (topup) not defined (need dummy at least)." ; err=1 ; fi
+    if [ $err -eq 1 ] ; then exit 1 ; fi
     printf "#ID\t TR (s)\t TE (ms)\t	EES (ms)\t TOPUP-TROT (s)\n" > ${subjdir}/config_acqparams_dwi
     for subj in `cat $subjdir/subjects`; do for sess in `cat $subjdir/$subj/sessions_struc` ; do printf "$(subjsess)\t $TR_diff\t $TE_diff\t $EES_diff\t $TROT_topup\n" | tee -a $subjdir/config_acqparams_dwi ; done ; done
   fi
@@ -403,11 +414,12 @@ if [ ! -d $srcdir ] ; then
       mkdir -p $srcdir/$subj/$sess
     done   
   done
-  exit
+  exit 1
 fi
 
 # dos2unix bval/bvec textfiles (just in case...)
 echo "Ensuring UNIX line endings in bval-/bvec textfiles..."
+err=0
 for subj in `cat $subjdir/subjects` ; do
   for sess in `cat $subjdir/$subj/sessions_struc` ; do
     dwi_txtfiles=""
@@ -420,10 +432,13 @@ for subj in `cat $subjdir/subjects` ; do
     dwi_txtfiles=$(echo $dwi_txtfiles| row2col | sort | uniq)
     for i in $dwi_txtfiles ; do 
       #echo "    $i"
+      if [ $(ls $i | wc -l) -eq 0 ] ; then echo "ERROR: 'ls $i' is empty." ; err=1 ; continue ; fi
+      if [ $(ls $i | wc -l) -gt 1 ] ; then echo "ERROR: 'ls $i' is ambiguous (more than one result)." ; err=1 ; continue ; fi
       dos2unix -q $i
     done
   done
 done
+if [ $err -eq 1 ] ; then echo "an ERROR has occured - exiting..." ; exit 1 ; fi
 echo "...done." ; echo ""
 
 # check bvals, bvecs and diff. files for consistent number of entries

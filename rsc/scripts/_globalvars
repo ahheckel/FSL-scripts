@@ -158,13 +158,13 @@ PLOT_BOLD_MNIREG_DIRNAMES="ica_50"         # (part of) dirname, where reg_standa
 # FIRST LEVEL
 # overwrite pre-existing subject /session file (to disable set any to "")
 FIRSTLEV_SUBJECTS="01 02 03 04 flip04 05 flip05 06 flip06 07 flip07 08 09 flip09 10" 
-FIRSTLEV_SESSIONS_FUNC="a b c d e"               
-FIRSTLEV_SESSIONS_STRUC="a c e"                
+FIRSTLEV_SESSIONS_FUNC="a b c d e" # enter "." for single session designs
+FIRSTLEV_SESSIONS_STRUC="a c e"    # enter "." for single session designs          
 
 # SECOND LEVEL
 SECONDLEV_SUBJECTS="01 02 03 flip04 flip05 flip06 flip07 08 flip09 10" 
-SECONDLEV_SESSIONS_FUNC="a b c d e"                
-SECONDLEV_SESSIONS_STRUC="a c e"
+SECONDLEV_SESSIONS_FUNC="a b c d e" # enter "." for single session designs            
+SECONDLEV_SESSIONS_STRUC="a c e"    # enter "." for single session designs
 
 # ACQUISITION PARAMETERS
 TROT_topup=0.02975              # TOPUP DWI total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
