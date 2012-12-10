@@ -55,7 +55,7 @@ set +e
 set -e
 
 # export JOB-ID variable, if fsl_sub is patched accordingly
-if [ $(cat `which fsl_sub` | grep GRID_JOB_ID_FILE | grep HKL | wc -l) -eq 3 ] ; then
+if [ $(cat `which fsl_sub` | grep GRID_JOB_ID_FILE | grep HKL | wc -l) -eq 3 -a x"$SGE_ROOT" != "x" ] ; then
   GRID_JOB_ID_FILE=$wd/.jid.grid.$$
   echo "touching job-ID file '$GRID_JOB_ID_FILE'" ; echo ""
   touch $GRID_JOB_ID_FILE
@@ -2623,7 +2623,8 @@ if [ $BOLD_STG2 -eq 1 ] ; then
             
             # link...
             echo "BOLD : subj $subj , sess $sess : creating symlink to unwarped 4D BOLD."
-            lname=$(echo "$featdir" | sed "s|"uw[-+0][y0]"|"uw"|g") # remove unwarp direction from link's name
+            #lname=$(echo "$featdir" | sed "s|"uw[-+0][y0]"|"uw"|g") # remove unwarp direction from link's name
+            lname=$(echo "$featdir" | sed "s|"uw[-+]y"|"uw"|g") # remove unwarp direction from link's name
             ln -sfv ./$(basename $featdir)/filtered_func_data.nii.gz ${lname%.feat}_filtered_func_data.nii.gz
             # create a link to report_log.html in logdir.
             ln -sfv $featdir/report_log.html $logdir/bold_reportlog_$(basename $featdir)_$(subjsess).html
@@ -2897,7 +2898,8 @@ if [ $BOLD_STG4 -eq 1 ] ; then
                 
                 # link...
                 echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-registered 4D BOLD."
-                lname=$(echo "$featdir" | sed "s|"uw[-+0][y0]"|"uw"|g") # remove unwarp direction from link's name
+                #lname=$(echo "$featdir" | sed "s|"uw[-+0][y0]"|"uw"|g") # remove unwarp direction from link's name
+                lname=$(echo "$featdir" | sed "s|"uw[-+]y"|"uw"|g") # remove unwarp direction from link's name
                 ln -sfv ./$(basename $featdir)/reg_standard/$(basename $out_file).nii.gz ${lname%.feat}_$(basename $out_file).nii.gz
 
               done # end mni_res            
@@ -3002,7 +3004,8 @@ if [ $BOLD_STG5 -eq 1 ]; then
               
               # creating link...
               echo "BOLD : subj $subj , sess $sess : creating symlink to MNI-denoised 4D BOLD."
-              lname=$(echo "$featdir" | sed "s|"uw[-+0][y0]"|"uw"|g") # remove unwarp direction from link's name
+              #lname=$(echo "$featdir" | sed "s|"uw[-+0][y0]"|"uw"|g") # remove unwarp direction from link's name
+              lname=$(echo "$featdir" | sed "s|"uw[-+]y"|"uw"|g") # remove unwarp direction from link's name
               ln -sfv ./$(basename $featdir)/reg_standard/$(remove_ext $data_file)_dn${dntag_boldmni}.nii.gz ${lname%.feat}_$(remove_ext $data_file)_dn${dntag_boldmni}.nii.gz
                 
             done # end mni_res

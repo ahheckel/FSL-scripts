@@ -327,6 +327,7 @@ function waitIfBusy()
       while [ `isClusterBusy` -gt 0 ] ; do echo -n '.' ; sleep 30 ; done
       echo "done."
     fi
+    return
   fi
   
   # with job-ID file - cycle through IDs and wait until every job in the list has completed.
@@ -339,6 +340,7 @@ function waitIfBusy()
       fi
     done
     rm $JIDfile ; touch $JIDfile
+    return
   fi
 }
 
