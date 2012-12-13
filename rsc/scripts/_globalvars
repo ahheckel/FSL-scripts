@@ -13,6 +13,7 @@ tmpdir=$studydir/.tmp
 srcdir=$studydir/subj
 subjdir=$studydir/subj
 grpdir=$studydir/grp
+glmdir=$grpdir/glm
 
 tbssdir=$grpdir/tbss
 vbmdir=$grpdir/vbm
@@ -21,7 +22,6 @@ gicadir=$grpdir/melodic
 dregdir=$grpdir/dualreg
 FSstatsdir=$grpdir/FS_stats
 
-glmdir=$grpdir/glm
 glmdir_tbss=$glmdir/tbss
 glmdir_vbm=$glmdir/vbm
 glmdir_alff=$glmdir/alff

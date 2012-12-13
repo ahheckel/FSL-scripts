@@ -8,6 +8,12 @@
 
 echo "---------------------------"
 
+# check if superuser
+if [ "$(id -u)" = "0" ]; then
+   echo "$(basename $0): This script must not be run as root !" 1>&2
+   exit 1
+fi
+
 # echo date
 startdate=$(date) ; echo "Executing '$0' on ${startdate}..."
 startdate_sec=$(date +"%s")
@@ -17,6 +23,9 @@ set -e
 
 # define error trap
 trap 'finishdate_sec=$(date +"%s") ; diff=$(($finishdate_sec-$startdate_sec)) ; echo "$0 : An ERROR has occured on `date` (Job-Id : $$). Time elapsed since start: $(echo "scale=4 ; $diff / 3600" | bc -l) h ($(echo "scale=0 ; $diff / 60" | bc -l) min)"' ERR # don't exit on trap (!)
+
+# define and change to working directory
+wd=$(dirname $0); cd $wd ; wd=`pwd`
 
 # display FSL version
 if [ x$FSL_DIR = "x" ] ; then FSL_DIR="$FSLDIR" ; fi
@@ -42,8 +51,6 @@ if [ $(echo $dumps | wc -w) -gt 0 ] ; then
   exit 1
 fi
 
-# define current working directory
-wd=`pwd`
 # create and check lock
 set +e
   lock="$wd/.lockdir121978"
@@ -1005,6 +1012,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         b0minus=$(echo $lines_b0m | cut -d " " -f $i)
 
         n=`printf %03i $i`
+        imrm $fldr/${n}_topup_corr.* # delete prev. run
         echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
       done
       
@@ -1021,6 +1029,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         b0minus=$(echo $lines_b0m | cut -d " " -f $i)
         
         n=`printf %03i $i`
+        imrm $fldr/${n}_topup_corr_ec.* # delete prev. run
         echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
       done
     done
@@ -3843,6 +3852,7 @@ FS_STATS_MEASURES=\'$FS_STATS_MEASURES\'
 
 # resampling to fsaverage space
 if [ $FS_STATS_STG1 -eq 1 ] ; then
+  mkdir -p $FSstatsdir
   echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $glmdir_fs $FSstatsdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "1 0 0 0 $FS_STATS_NPERM $logdir" > $FSstatsdir/fs_stats_01.cmd  
   . $FSstatsdir/fs_stats_01.cmd
   echo ""

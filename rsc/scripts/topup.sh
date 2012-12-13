@@ -583,6 +583,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         b0minus=$(echo $lines_b0m | cut -d " " -f $i)
         
         n=`printf %03i $i`
+        imrm $fldr/${n}_topup_corr.* # delete prev. run
         echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
         #echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr" >> $fldr/applytopup.cmd
       done
@@ -600,8 +601,9 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         b0minus=$(echo $lines_b0m | cut -d " " -f $i)
         
         n=`printf %03i $i`
-        #echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
+        imrm $fldr/${n}_topup_corr_ec.* # delete prev. run
         echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
+        #echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
       done
     done
   done

@@ -10,17 +10,8 @@ set -e
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
-delJIDs() {
-  if [ x"SGE_ROOT" != "x" ] ; then
-     local jidfile="$1" ; local i="" ; local j=0
-     for i in $(cat $jidfile) ; do
-        qdel $i
-        j=$[$j+1]
-     done
-  fi
-  rm -f $jidfile
-  if [ $j -eq 0 ] ; then echo "`basename $0`: no jobs left to erase (OK)." ; fi
-}
+# source globalfuncs
+source $(dirname $0)/globalfuncs
 
 Usage() {
     echo ""
@@ -72,9 +63,6 @@ echo "`basename $0` : Nsim             : $Nsim"
 echo "`basename $0` : logdir           : $logdir"
 echo ""
 
-# source globalfuncs
-source $(dirname $0)/globalfuncs
-
 # check if designs present
 if [ $(cat $glmdir_FS/designs | wc -l) -eq 0 ] ; then echo "$(basename $0): ERROR: no designs specified in '$glmdir_FS/designs' - exiting..." ; exit 1 ; fi
 
@@ -109,6 +97,8 @@ if [ $resamp -eq 1 ] ; then
       for measure in $measures ; do
         output=${design}.${hemi}.${measure}.mgh
         
+        rm -f ${FSstatsdir}/$output # delete prev. run
+        
         echo "$(basename $0): resampling data pertaining to design file '$fsgd_file' onto average subject (output: '${FSstatsdir}/$output')..."
         echo "    mris_preproc --fsgd ${fsgd_file} --target fsaverage --hemi ${hemi} --meas ${measure} --out ${FSstatsdir}/$output" >> $cmdtxt
       done # end measure
@@ -134,6 +124,8 @@ if [ $smooth -eq 1 ] ; then
           output=${design}.${hemi}.${measure}.s${sm}.mgh
           input=${FSstatsdir}/${design}.${hemi}.${measure}.mgh
           
+          rm -f ${FSstatsdir}/$output # delete prev. run
+          
           if [ ! -f $input ] ; then echo "$(basename $0): ERROR: file not found: '$input' - exiting." ; exit 1 ; fi
           
           echo "$(basename $0): smoothing with (kernel: ${sm}mm FWHM -> output: '${FSstatsdir}/$output')..."
@@ -158,17 +150,18 @@ if [ $glmstats -eq 1 ] ; then
     type=$(echo $design | cut -d _ -f 1)
     for hemi in lh rh ; do
       for sm in $krnls ; do
-        for mtx in $mtx_files ; do
-          for measure in $measures ; do
-            output=${design}.${hemi}.${measure}.s${sm}.glmdir
-            input=${FSstatsdir}/${design}.${hemi}.${measure}.s${sm}.mgh
+        for measure in $measures ; do
+          output=${design}.${hemi}.${measure}.s${sm}.glmdir
+          input=${FSstatsdir}/${design}.${hemi}.${measure}.s${sm}.mgh
+          rm -rvf ${FSstatsdir}/$output # delete prev. run          
+          for mtx in $mtx_files ; do
             
             if [ ! -f $input ] ; then echo "$(basename $0): ERROR: file not found: '$input' - exiting." ; exit 1 ; fi
             
             echo "$(basename $0): performing GLM analysis: glmdir: '$output' --- type: '$type' --- contrast: '$(basename $mtx)'"
             echo "    mri_glmfit --y $input --fsgd ${fsgd_file} $type --C ${mtx} --surf fsaverage ${hemi} --cortex --glmdir $FSstatsdir/${output}" >> $cmdtxt
-          done # end measure
-        done # end mtx
+          done # end mtx
+        done # end measure
       done # end sm
     done # end hemi
   done # end design
@@ -179,10 +172,6 @@ if [ $glmstats -eq 1 ] ; then
   waitIfBusy $JIDfile
 
   # copy files...
-  ##make absolute paths
-  ##if [ $(echo $glmdir_FS | grep ^/ | wc -l) -eq 0 ] ; then glmdir_FS=`pwd`/$glmdir_FS ; fi
-  ##if [ $(echo $SUBJECTS_DIR | grep ^/ | wc -l) -eq 0 ] ; then SUBJECTS_DIR=`pwd`/$SUBJECTS_DIR ; fi
-  ##if [ $(echo $FSstatsdir | grep ^/ | wc -l) -eq 0 ] ; then FSstatsdir=`pwd`/$FSstatsdir ; fi
   for design in $designs ; do
     mtx_files=$(ls $glmdir_FS/$design/*.mtx)
     for hemi in lh rh ; do
@@ -200,10 +189,6 @@ if [ $glmstats -eq 1 ] ; then
               err=1
               continue 
             fi
-            #rel=`path_abs2rel $glmdir/ $SUBJECTS_DIR/fsaverage/`
-            #ln -sf $rel/surf/${hemi}.inflated $glmdir/${hemi}.inflated        
-            #ln -sf $rel/surf/${hemi}.curv $glmdir/${hemi}.curv
-            #ln -sf $rel/label/${hemi}.aparc.a2009s.annot $glmdir/${hemi}.aparc.a2009s.annot
             cp $SUBJECTS_DIR/fsaverage/surf/${hemi}.inflated $glmdir/${mtx%%.mtx}/
             cp $SUBJECTS_DIR/fsaverage/surf/${hemi}.curv $glmdir/${mtx%%.mtx}/
             cp $SUBJECTS_DIR/fsaverage/label/${hemi}.aparc.a2009s.annot $glmdir/${mtx%%.mtx}/
@@ -226,13 +211,14 @@ if [ $glm_sim -eq 1 ] ; then
       for sm in $krnls ; do
         for measure in $measures ; do
           glmdir="$FSstatsdir/${design}.${hemi}.${measure}.s${sm}.glmdir"
-          # cleanup mri_glmfit-sim 
-          echo "$(basename $0): $glmdir: cleaning up previously unfinished mri_glmfit-sim runs..."
+          # cleanup mri_glmfit-sim
+          echo "$(basename $0): $glmdir: cleaning up previously (unfinished) mri_glmfit-sim runs..."
+          rm -rfv $glmdir/csd # delete prev. run
           rm -rfv $glmdir/tmp.mri_glmfit-sim-[0-9]*
           for sign in neg pos ; do
             for thresh in 2.0000 2.3010 3 3.3010 4.0000 ; do
               input=${design}.${hemi}.${measure}.s${sm}.mgh
-
+              
               ln -sf ../$input $glmdir/$input
               echo "$(basename $0): permutation testing in '$glmdir' (sign: $sign , thres: $thresh, N=${Nsim})"
               echo "    mri_glmfit-sim --glmdir $glmdir --sim mc-z $Nsim $thresh mc-z.${sign}.${thresh} --sim-sign $sign --cwpvalthresh 0.05 --overwrite" >> $cmdtxt
