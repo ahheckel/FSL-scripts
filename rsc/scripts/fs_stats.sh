@@ -80,9 +80,9 @@ for design in $designs ; do
 done
 if [ $err -eq 1 ] ; then exit 1 ; fi
 
+
 # resampling to FS average space
-if [ $resamp -eq 1 ] ; then
-       
+if [ $resamp -eq 1 ] ; then       
   # cleanup mris_preproc
   echo "$(basename $0): cleaning up previously unfinished mris_preproc runs..."
   rm -rfv $FSstatsdir/tmp.mris_preproc.[0-9]*
@@ -106,13 +106,10 @@ if [ $resamp -eq 1 ] ; then
   done # end design
   jid=`fsl_sub -l $logdir -N $(basename $cmdtxt) -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
     
-  echo "------------------------------"
-
-  waitIfBusy $JIDfile
-  
+  waitIfBusy $JIDfile  
+  echo "------------------------------"  
 fi
 
-waitIfBusy $JIDfile
 
 # smoothing
 if [ $smooth -eq 1 ] ; then
@@ -135,11 +132,11 @@ if [ $smooth -eq 1 ] ; then
     done # end hemi
   done # end design
   jid=`fsl_sub -l $logdir -N $(basename $cmdtxt) -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
-
+  
+  waitIfBusy $JIDfile  
   echo "------------------------------"
 fi
-  
-waitIfBusy $JIDfile
+
 
 # do glm
 if [ $glmstats -eq 1 ] ; then
@@ -167,9 +164,8 @@ if [ $glmstats -eq 1 ] ; then
   done # end design
   jid=`fsl_sub -l $logdir -N $(basename $cmdtxt) -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
 
+  waitIfBusy $JIDfile  
   echo "------------------------------"
-
-  waitIfBusy $JIDfile
 
   # copy files...
   for design in $designs ; do
@@ -199,10 +195,10 @@ if [ $glmstats -eq 1 ] ; then
         done # end measure
       done # end sm
     done # end hemi
-  done # end design
+  done # end design  
+  waitIfBusy $JIDfile
 fi
 
-waitIfBusy $JIDfile
 
 if [ $glm_sim -eq 1 ] ; then
   cmdtxt=$FSstatsdir/scripts/mri_glmfit-sim.cmd ; rm -f $cmdtxt
@@ -231,9 +227,8 @@ if [ $glm_sim -eq 1 ] ; then
   #jid=`fsl_sub -l $logdir -N $(basename $cmdtxt) -j $jid -t $cmdtxt` ; echo $jid >> $JIDfile
   . $cmdtxt # because of NFS stale error
 
+  waitIfBusy $JIDfile
   echo "------------------------------"
 fi
-
-waitIfBusy $JIDfile
 
 echo "$(basename $0): done."

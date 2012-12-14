@@ -105,7 +105,8 @@ cd $wdir
   fugue -i FM_UD_fmap_mag_brain_siglossed --loadfmap=FM_UD_fmap --mask=FM_UD_fmap_mag_brain_mask --dwell=$dwell -w FM_D_fmap_mag_brain_siglossed --nokspace --unwarpdir=$unwarp_dir
   fugue -i FM_UD_fmap_sigloss             --loadfmap=FM_UD_fmap --mask=FM_UD_fmap_mag_brain_mask --dwell=$dwell -w FM_D_fmap_sigloss             --nokspace --unwarpdir=$unwarp_dir
   fslmaths FM_D_fmap_sigloss -thr $siglossthresh FM_D_fmap_sigloss
-  flirt -in EF_D_example_func -ref FM_D_fmap_mag_brain_siglossed -omat EF_2_FM.mat -o grot -dof 6 -refweight FM_D_fmap_sigloss -cost mutualinfo # 'mutualinfo' added by HKL
+  #flirt -in EF_D_example_func -ref FM_D_fmap_mag_brain_siglossed -omat EF_2_FM.mat -o grot -dof 6 -refweight FM_D_fmap_sigloss -cost mutualinfo # 'mutualinfo' added by HKL
+  flirt -in EF_D_example_func -ref FM_D_fmap_mag_brain_siglossed -omat EF_2_FM.mat -o grot -dof 6 -refweight FM_D_fmap_sigloss -cost corratio
   convert_xfm -omat FM_2_EF.mat -inverse EF_2_FM.mat
   
   echo "`basename $0`: put fmap stuff into space of EF_D_example_func"

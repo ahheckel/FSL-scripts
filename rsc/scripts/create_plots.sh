@@ -14,7 +14,7 @@ set -e
 Usage() {
     echo ""
     echo "Usage:   `basename $0` <-dwimc|-dwiuw|-boldmc|-bolduw|-bold2T1|-bold2MNI> [featdir] <outname> [subj] [sess]"
-    echo "Example: `basename $0` -dwiuw uwDWI_+y.feat ./checkdir/uwdwi"
+    echo "Example: `basename $0` -dwiuw uwDWI_+y.feat ./checkdir/uwdwi \"subj01 subj02\" \"sessa sessb\""
     echo ""
 
     exit 1
