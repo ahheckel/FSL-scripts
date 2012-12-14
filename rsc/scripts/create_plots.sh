@@ -13,8 +13,10 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <-mcdwi|-mcbold|-uwbold|-uwdwi|-bold2T1|-bold2MNI> <outname>"
+    echo "Usage:   `basename $0` <-dwimc|-dwiuw|-boldmc|-bolduw|-bold2T1|-bold2MNI> [featdir] <outname> [subj] [sess]"
+    echo "Example: `basename $0` -dwiuw uwDWI_+y.feat ./checkdir/uwdwi"
     echo ""
+
     exit 1
 }
 
@@ -68,6 +70,7 @@ while (( $# > 1 )) ; do
             ;;
         -*)
             echo "ERROR: Unknown option '$1'"
+            Usage
             exit 1
             break
             ;;
