@@ -11,19 +11,6 @@ grpdir=$studydir/grp
 glmdir=$grpdir/glm
 logdir=$studydir/logs 
 
-tbssdir=$grpdir/tbss
-vbmdir=$grpdir/vbm
-alffdir=$grpdir/alff
-gicadir=$grpdir/melodic
-dregdir=$grpdir/dualreg
-FSstatsdir=$grpdir/FS_stats
-
-glmdir_tbss=$glmdir/tbss
-glmdir_vbm=$glmdir/vbm
-glmdir_alff=$glmdir/alff
-glmdir_dr=$glmdir/dualreg
-glmdir_fs=$glmdir/FS_stats
-
 FS_subjdir=$subjdir/FS_subj
 FS_sessdir=$subjdir/FS_sess
 export SUBJECTS_DIR=$FS_subjdir

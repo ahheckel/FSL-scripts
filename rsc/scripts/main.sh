@@ -41,6 +41,20 @@ if [ ! -f ./globalvars ] ; then echo "ERROR: 'globalvars' not found - exiting." 
 source ./globalvars
 
 # define subdirs
+# 2nd level output
+tbssdir=$grpdir/tbss
+vbmdir=$grpdir/vbm
+alffdir=$grpdir/alff
+gicadir=$grpdir/melodic
+dregdir=$grpdir/dualreg
+FSstatsdir=$grpdir/FS_stats
+# GLM dirs
+glmdir_tbss=$glmdir/tbss
+glmdir_vbm=$glmdir/vbm
+glmdir_alff=$glmdir/alff
+glmdir_dr=$glmdir/dualreg
+glmdir_fs=$glmdir/FS_stats
+# misc
 scriptdir=$studydir/rsc/scripts
 tmpltdir=$studydir/rsc/templates
 tmpdir=$studydir/.tmp

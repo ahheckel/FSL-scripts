@@ -12,7 +12,7 @@ if [ x$FREESURFER_HOME = "x" ] ; then echo "FREESURFER_HOME variable is not defi
 v5=$(cat $FSLDIR/etc/fslversion | grep ^5 | wc -l)
 if [ $v5 -eq 1 ] ; then
   echo "FSL v.5 detected. Replacing fsl_sub..."
-  cp -iv fsl/fsl_sub_v5 $FSLDIR/bin/fsl_sub # contains a RAM limit
+  cp -iv fsl/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection
 fi
 
 cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
@@ -21,19 +21,19 @@ cp -iv fsl/avg152T1_white_bin.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/avg152T1_csf_bin.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/rsn10.nii.gz $FSLDIR/data/standard/
 
-if [ $v5 -eq 0 ] ; then
+if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
   cp -iv fsl/fsl_sub $FSLDIR/bin/fsl_sub # contains a RAM limit
-  cp -iv fsl/tbss_x/tbss_x $FSLDIR/bin/tbss_x # dont overwrite for fsl ver. 5
-  cp -iv fsl/topup/b02b0.cnf $FSLDIR/etc/flirtsch/b02b0.cnf # dont overwrite for fsl ver. 5
-  cp -iv fsl/featlib.tcl $FSLDIR/tcl/featlib.tcl # dont overwrite for fsl ver. 5
+  cp -iv fsl/tbss_x/tbss_x $FSLDIR/bin/tbss_x
+  cp -iv fsl/topup/b02b0.cnf $FSLDIR/etc/flirtsch/b02b0.cnf
+  cp -iv fsl/featlib.tcl $FSLDIR/tcl/featlib.tcl
 fi
 
 if [ $1 -eq 64 ] ; then
-  if [ $v5 -eq 0 ] ; then
-    cp -iv fsl/topup/topup_64 $FSLDIR/bin/topup # dont overwrite for fsl ver. 5
-    cp -iv fsl/topup/applytopup_64 $FSLDIR/bin/applytopup # dont overwrite for fsl ver. 5
-    cp -iv fsl/tbss_x/swap_voxelwise_64 $FSLDIR/bin/swap_voxelwise # dont overwrite for fsl ver. 5
-    cp -iv fsl/tbss_x/swap_subjectwise_64 $FSLDIR/bin/swap_subjectwise # dont overwrite for fsl ver. 5
+  if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
+    cp -iv fsl/topup/topup_64 $FSLDIR/bin/topup
+    cp -iv fsl/topup/applytopup_64 $FSLDIR/bin/applytopup 
+    cp -iv fsl/tbss_x/swap_voxelwise_64 $FSLDIR/bin/swap_voxelwise
+    cp -iv fsl/tbss_x/swap_subjectwise_64 $FSLDIR/bin/swap_subjectwise
   fi
   
   cp -iv afni/3dDespike_64 $FSLDIR/bin/3dDespike
@@ -44,11 +44,11 @@ if [ $1 -eq 64 ] ; then
 fi
 
 if [ $1 -eq 32 ] ; then
-  if [ $v5 -eq 0 ] ; then
-    cp -iv fsl/topup/topup_32 $FSLDIR/bin/topup # dont overwrite for fsl ver. 5
-    cp -iv fsl/topup/applytopup_32 $FSLDIR/bin/applytopup # dont overwrite for fsl ver. 5
-    cp -iv fsl/tbss_x/swap_voxelwise_32 $FSLDIR/bin/swap_voxelwise # dont overwrite for fsl ver. 5
-    cp -iv fsl/tbss_x/swap_subjectwise_32 $FSLDIR/bin/swap_subjectwise # dont overwrite for fsl ver. 5
+  if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
+    cp -iv fsl/topup/topup_32 $FSLDIR/bin/topup 
+    cp -iv fsl/topup/applytopup_32 $FSLDIR/bin/applytopup
+    cp -iv fsl/tbss_x/swap_voxelwise_32 $FSLDIR/bin/swap_voxelwise
+    cp -iv fsl/tbss_x/swap_subjectwise_32 $FSLDIR/bin/swap_subjectwise
   fi 
   
   cp -iv afni/3dDespike_32 $FSLDIR/bin/3dDespike 
