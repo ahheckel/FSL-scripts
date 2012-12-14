@@ -5,15 +5,11 @@
 ########################################################################
 
 studydir=`pwd` # absolute path
-scriptdir=$studydir/rsc/scripts
-tmpltdir=$studydir/rsc/templates
-logdir=$studydir/logs 
-tmpdir=$studydir/.tmp
-
 srcdir=$studydir/subj
 subjdir=$studydir/subj
 grpdir=$studydir/grp
 glmdir=$grpdir/glm
+logdir=$studydir/logs 
 
 tbssdir=$grpdir/tbss
 vbmdir=$grpdir/vbm
@@ -133,22 +129,6 @@ ALFF_2NDLEV_STG1=0         # ALFF prepare
 ALFF_2NDLEV_STG2=0         # ALFF randomise
 
 ########################################################################
-# plots ################################################################
-########################################################################
-
-PLOT_EC=0                                  # plot motion parameters from eddy-correct log file
-PLOT_DWI_UNWARP=0                          # plot registration dwi2mag
-PLOT_DWI_UNWARP_DIRNAMES="unwarpDWI"       # (part of) dirname, where unwarp directory is located (if multiple directories match, that one with the newest file in it is selected)
-PLOT_BOLD_MC=0                             # plot motion parameters from flirt correction of BOLDs
-PLOT_BOLD_MC_DIRNAMES="preprocBOLD"        # (part of) dirname, where mc directory is located (if multiple directories match, that one with the newest file in it is selected)
-PLOT_BOLD_UNWARP=0                         # plot registration dwi2mag
-PLOT_BOLD_UNWARP_DIRNAMES="preprocBOLD"    # (part of) dirname, where unwarp directory is located (if multiple directories match, that one with the newest file in it is selected)
-PLOT_BOLD_T1REG=0                          # plot registration func2T1
-PLOT_BOLD_T1REG_DIRNAMES="ica_50 ica_10"   # (part of) dirname, where reg directory is located (if multiple directories match, that one with the newest file in it is selected)
-PLOT_BOLD_MNIREG=0                         # plot registration func2MNI
-PLOT_BOLD_MNIREG_DIRNAMES="ica_50"         # (part of) dirname, where reg_standard directory is located (if multiple directories match, that one with the newest file in it is selected)
-
-########################################################################
 # configuration ########################################################
 ########################################################################
 
@@ -195,8 +175,8 @@ FDT_EC_DOF=6                   # degrees of freedom used by eddy-correction
 FDT_EC_COST=mutualinfo         # cost-function used by eddy-correction (default: corratio)
 FDT_FMAP="fm/fmap_rads_masked" # rel. path to fieldmap in rads/sec (default: "fm/fmap_rads_masked")
 FDT_MAGN="fm/magn_brain"       # rel. path to magnitude (default: "fm/magn_brain")
-FDT_SIGNLOSS_THRES=100         # signal loss threshold (%)
-
+FDT_SIGNLOSS_THRES=20          # signal loss threshold (%)
+  
 # BPX
 BPX_OUTDIR_PREFIX="bpx"
 BPX_OPTIONS="-n 2 -w 1 -b 1000 -model 2"  # default: "-n 2 -w 1 -b 1000" ; CAVE: -model switch not supported in FSL 4.
@@ -264,7 +244,7 @@ ALFF_SMOOTHING_KERNEL=6                                         # enter FWHM in 
 ALFF_HPF_CUTOFF=""                                              # enter "none", "" or "Inf" to use AFNI's detrending tool (default "")
 ALFF_BANDPASS="0.01,0.1"                                        # enter bandpass (default: "0.01,0.1")
 ALFF_FSLV5=0                                                    # in FSL 5 naming of unwarp shiftmap and its location is different
-ALFF_FEATDIR="bold/preprocBOLD_uw??_st0_s0_hpf100.feat"         # featdir where transforms are located: e.g. "bold/preprocBOLD_uw??_st0_s0_hpf100.feat"
+ALFF_FEATDIR="bold/preprocBOLD_uw??_st0_s0_hpf100.feat"         # featdir where transforms are located: e.g. "bold/preprocBOLD_uw??_st0_s0_hpf100.feat", where ?? is a placeholder for the unwarp direction (sed)
 ALFF_MNI_AFFINE="reg_longt/example_func2longt_brain.mat"        # e.g. "reg_longt/example_func2longt_brain.mat" or "reg/example_func2highres.mat"
 ALFF_MNI_WARP="reg_longt/longt_head2longt_standard_warp.nii.gz" # e.g. "reg_longt/longt_head2longt_standard_warp.nii.gz" or "reg/highres2standard_warp.nii.gz"
 ALFF_RESAMPLING_RESOLUTIONS="2"                                 # enter resolution (default: "2")
@@ -279,7 +259,7 @@ TBSS_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_STRUC  # sessions to be included in t
 TBSS_USE_BPX_FROM_TRACULA=0                       # use BedpostX files from TRACULA, otherwise use from BPX stream
 TBSS_BPX_INDIR_PREFIX="bpx"                       # prefix of BedpostX input directory (for TBSSX, if files from TRACULA stream are not used)
 TBSS_OUTDIR_PREFIX="tbss"                         # prefix of output directory
-TBSS_USE_B0_4_FS_LONGT=fdt/uw_nodif               # use FREESURFER'S longitudinal template to register the b0 to (default "", e.g. "topup/fm/uw_lowb_mean_brain" or "fdt/uw_nodif")
+TBSS_USE_B0_4_FS_LONGT=""                         # use FREESURFER'S longitudinal template to register the b0 to (default "", e.g. "topup/fm/uw_lowb_mean_brain" or "fdt/uw_nodif")
 TBSS_THRES="0.2 0.3 0.4"                          # cycle through some skeleton-threshold values
 TBSS_Z_TRANSFORM=1                                # z-transform FA skeletons
 TBSS_RANDOMISE_OPTS="--T2 -V -D -x -n 5000"       # randomise options (e.g.: "--T2 -V -D -x -n 5000")

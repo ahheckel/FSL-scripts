@@ -40,6 +40,11 @@ echo "Job-Id : $$" ; echo ""
 if [ ! -f ./globalvars ] ; then echo "ERROR: 'globalvars' not found - exiting." ; exit 1 ; fi
 source ./globalvars
 
+# define subdirs
+scriptdir=$studydir/rsc/scripts
+tmpltdir=$studydir/rsc/templates
+tmpdir=$studydir/.tmp
+
 # source environment functions
 source $scriptdir/globalfuncs
 
@@ -530,7 +535,7 @@ if [ $FIELDMAP_STG1 -eq 1 ]; then
   echo "----- BEGIN FIELDMAP_STG1 -----"
   for subj in `cat $subjdir/subjects` ; do
     for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do  
-      fldr=${subj}/${sess}/fm
+      fldr=$subjdir/${subj}/${sess}/fm
       
       # create fieldmap directory
       mkdir -p $fldr
@@ -560,7 +565,7 @@ if [ $FIELDMAP_STG2 -eq 1 ]; then
   echo "----- BEGIN FIELDMAP_STG2 -----"
   for subj in `cat $subjdir/subjects` ; do
     for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do
-      fldr=${subj}/${sess}/fm
+      fldr=$subjdir/${subj}/${sess}/fm
 
       # get bet threshold
       f=`getBetThres ${subjdir}/config_bet_magn $subj $sess`
@@ -1255,7 +1260,7 @@ if [ $FDT_STG1 -eq 1 ] ; then
   echo "----- BEGIN FDT_STG1 -----"
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do    
-      fldr=$subj/$sess/fdt ; mkdir -p $fldr
+      fldr=$subjdir/$subj/$sess/fdt ; mkdir -p $fldr
       
       if [ -z $pttrn_diffs ] ; then echo "FDT : ERROR : search pattern for DWI files not defined - exiting..." ; exit 1 ; fi
       
@@ -1325,7 +1330,7 @@ if [ $FDT_STG3 -eq 1 ] ; then
   echo "----- BEGIN FDT_STG3 -----"
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do    
-      fldr=$subj/$sess/fdt
+      fldr=$subjdir/$subj/$sess/fdt
       
       # check if we have acquisition parameters
       defineDWIparams $subjdir/config_acqparams_dwi $subj $sess
@@ -1374,7 +1379,7 @@ if [ $FDT_STG4 -eq 1 ] ; then
   n=0 ; _npts=0 ; npts=0 # variables for counting and comparing number of volumes in the 4Ds
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do    
-      fldr=$subj/$sess/fdt
+      fldr=$subjdir/$subj/$sess/fdt
                   
       # number of volumes in 4D
       echo -n "FDT : counting number of volumes in '$fldr/ec_diff_merged.nii.gz'..."
@@ -1432,169 +1437,6 @@ fi
 #####################
 # ----- END FDT -----
 #####################
-
-
-waitIfBusy
-
-
-###########################
-# ----- BEGIN PLOT EC -----
-###########################
-      
-# plotting eddy-correct motion parameters
-if [ $PLOT_EC -eq 1 ] ; then
-  echo "----- BEGIN PLOT_EC -----"
-  ec_disp_subj="" ; ec_disp_subjsess=""  # initialise
-  ec_rot_subj="" ; ec_rot_subjsess=""  # initialise
-  ec_trans_subj="" ; ec_trans_subjsess=""  # initialise
-  for  subj in `cat subjects` ; do     
-    fldr=$subjdir/$subj/fdt
-	
-    if [ -f $fldr/ec_diff_merged.ecclog ] ; then
-      cd $fldr
-      
-      # cleanup previous runs...
-      rm -f ec_rot.txt ; rm -f ec_disp.txt ; rm -f ec_trans.txt
-      
-      # plot...
-      echo "ECPLOT : subj $subj : plotting motion parameters from ec-log file..." 
-      eddy_correct_plot ec_diff_merged.ecclog $subj
-      
-      # accumulate
-      ec_disp_subj=$ec_disp_subj" "$fldr/ec_disp.png
-      ec_rot_subj=$ec_rot_subj" "$fldr/ec_rot.png
-      ec_trans_subj=$ec_trans_subj" "$fldr/ec_trans.png
-
-      cd $subjdir
-    fi
-    
-    for sess in `cat ${subj}/sessions_struc` ; do
-      # skip if single session design
-      if [ $sess = '.' ] ; then continue ; fi
-      
-      fldr=$subjdir/$subj/$sess/fdt
-      if [ -f $fldr/ec_diff_merged.ecclog ] ; then		
-        cd $fldr
-        
-        # cleanup previous runs...
-        rm -f ec_rot.txt ; rm -f ec_disp.txt ; rm -f ec_trans.txt
-        
-        # plot...
-        echo "ECPLOT : subj $subj , sess $sess : plotting motion parameters from ec-log file..." 
-        eddy_correct_plot ec_diff_merged.ecclog $(subjsess)
-        
-        # accumulate
-        ec_disp_subjsess=$ec_disp_subjsess" "$fldr/ec_disp.png
-        ec_rot_subjsess=$ec_rot_subjsess" "$fldr/ec_rot.png
-        ec_trans_subjsess=$ec_trans_subjsess" "$fldr/ec_trans.png
-        
-        cd $subjdir
-      fi
-    done
-  done
-  
-  # Creating overall image
-  echo "ECPLOT : creating overall plot..."
-  n1=`echo $ec_disp_subj | wc -w`
-  n2=`echo $ec_disp_subjsess | wc -w`
-  n3=`echo $ec_rot_subj | wc -w`
-  n4=`echo $ec_rot_subjsess | wc -w`
-  n5=`echo $ec_trans_subj | wc -w`
-  n6=`echo $ec_trans_subjsess | wc -w`
-  
-  if [ $n1 -gt 0 ] ; then montage -tile 1x${n1} -mode Concatenate $ec_disp_subj $subjdir/ec_disp_subj.png ; fi
-  if [ $n2 -gt 0 ] ; then montage -tile 1x${n2} -mode Concatenate $ec_disp_subjsess $subjdir/ec_disp_subjsess.png ; fi
-  if [ $n3 -gt 0 ] ; then montage -tile 1x${n3} -mode Concatenate $ec_rot_subj $subjdir/ec_rot_subj.png ; fi
-  if [ $n4 -gt 0 ] ; then montage -tile 1x${n4} -mode Concatenate $ec_rot_subjsess $subjdir/ec_rot_subjsess.png ; fi
-  if [ $n5 -gt 0 ] ; then montage -tile 1x${n5} -mode Concatenate $ec_trans_subj $subjdir/ec_trans_subj.png ; fi
-  if [ $n6 -gt 0 ] ; then montage -tile 1x${n6} -mode Concatenate $ec_trans_subjsess $subjdir/ec_trans_subjsess.png ; fi
-
-  if [ $n1 -gt 0 -o $n2 -gt 0 -o $n3 -gt 0 -o $n4 -gt 0 -o $n5 -gt 0 -o $n6 -gt 0 ] ; then
-    echo "ECPLOT : saving composite file..." 
-    montage -adjoin -geometry ^ $subjdir/ec_disp_*.png $subjdir/ec_rot_*.png $subjdir/ec_trans_*.png plot_ec_fdt.png
-  
-    # deleting intermediate files
-    rm -f $subjdir/ec_disp_*.png $subjdir/ec_rot_*.png $subjdir/ec_trans_*.png
-  else
-    echo "ECPLOT : nothing to plot." 
-  fi
-fi
-
-#########################
-# ----- END PLOT EC -----
-#########################
-
-  
-waitIfBusy
-
-
-###################################
-# ----- BEGIN PLOT_DWI_UNWARP -----
-###################################
-
-if [ $PLOT_DWI_UNWARP -eq 1 ] ; then
-  echo "----- BEGIN PLOT_DWI_UNWARP -----"
-  
-  if [ -z "$PLOT_DWI_UNWARP_DIRNAMES" ] ; then echo "PLOT_DWI_UNWARP : WARNING : no directory specified." ; fi
-  
-  for dirnm in $PLOT_DWI_UNWARP_DIRNAMES ; do
-    appends=""
-    for subj in `cat $subjdir/subjects` ; do
-      j=0
-      for sess in `cat $subjdir/$subj/sessions_struc` ; do
-        
-        n=$(find $subjdir/$subj/$sess/fdt -mindepth 3 -maxdepth 3 -name EF_UD_example_func.nii.gz -type f | grep $dirnm | grep /unwarp | wc -l)
-        if [ $n -gt 1 ] ; then
-          echo "WARNING : search pattern matches more than one directory:"
-          echo "$(find $subjdir/$subj/$sess/fdt -mindepth 3 -maxdepth 3 -name EF_UD_example_func.nii.gz -type f | grep $dirnm | grep /unwarp | xargs ls -rt | xargs -I {} dirname {} )"
-          echo "...taking the last one, because it is newer."
-        fi      
-        dwi_D=$(find $subjdir/$subj/$sess/fdt -mindepth 3 -maxdepth 3 -name EF_D_example_func.nii.gz -type f | grep $dirnm | grep /unwarp | xargs ls -rt | grep EF_D_example_func.nii.gz | tail -n 1)
-        dwi_UD=$(find $subjdir/$subj/$sess/fdt -mindepth 3 -maxdepth 3 -name EF_UD_example_func.nii.gz -type f | grep $dirnm | grep /unwarp | xargs ls -rt | grep EF_UD_example_func.nii.gz | tail -n 1)
-        if [ -z $dwi_UD ] ; then echo "PLOT_DWI_UNWARP : subj $subj , sess $sess : WARNING : no 'EF_UD_example_func.nii.gz' file found under '$subjdir/$subj/$sess/fdt/*${dirnm}*' - continuing loop..." ; continue ; fi
-        
-        echo "PLOT_DWI_UNWARP : subj $subj , sess $sess : processing '$dwi_D'..."
-        cmd="slicer -s 2 $dwi_D $(dirname $dwi_UD)/EF_UD_fmap_mag_brain.nii.gz -a $(subjsess)_dwi_D2fmap.png"
-        $cmd
-        echo "PLOT_DWI_UNWARP : subj $subj , sess $sess : processing '$dwi_UD'..."
-        cmd="slicer -s 2 $dwi_UD $(dirname $dwi_UD)/EF_UD_fmap_mag_brain.nii.gz -a $(subjsess)_dwi_UD2fmap.png"
-        $cmd
-        
-        #montage -label "D" -pointsize 9  $(subjsess)_dwi_D2fmap.png  $(subjsess)_dwi_D2fmap.png 
-        #montage -label "UD" -pointsize 9  $(subjsess)_dwi_UD2fmap.png  $(subjsess)_dwi_UD2fmap.png 
-        
-        dirnm_base0=$(basename $(dirname $(dirname $(dirname $dwi_UD)))) ; dirnm_base1=$(basename $(dirname $(dirname $dwi_UD)))
-        montage -adjoin $(subjsess)_dwi_D2fmap.png $(subjsess)_dwi_UD2fmap.png -geometry ^ $(subjsess)_dwi2mag.png
-        montage -label "D vs UD \n$(subjsess) ($dirnm_base0/\n$dirnm_base1)" -pointsize 9 -geometry ^ $(subjsess)_dwi2mag.png $(subjsess)_dwi2mag.png
-        rm -f $(subjsess)_dwi_D2fmap.png $(subjsess)_dwi_UD2fmap.png
-        
-        if [ -z "$appends" ] ; then 
-          appends=$(subjsess)_dwi2mag.png 
-        elif [ $j = "0" ] ; then
-          appends=$appends" - "$(subjsess)_dwi2mag.png
-        else
-          appends=$appends" - "$(subjsess)_dwi2mag.png
-        fi
-        j=$(echo "$j + 1" | bc -l)
-      done
-    done
-    
-    if [ ! -z "$appends" ] ; then
-      echo "PLOT_DWI_UNWARP : creating overall plot..."
-      cmd="pngappend $appends plot_diff2mag_fdt_${dirnm}.png"
-      echo $cmd ; $cmd        
-      echo "PLOT_DWI_UNWARP : cleaning up..."
-      rm -f $subjdir/*_dwi2mag.png
-    else 
-      echo "PLOT_DWI_UNWARP : nothing to plot."
-    fi
-
-  done
-fi
-
-#################################
-# ----- END PLOT_DWI_UNWARP -----
-#################################
 
 
 waitIfBusy
@@ -2062,7 +1904,7 @@ if [ $VBM_STG3 -eq 1 ] ; then
   # VBM PREPROC SSM flirting Brain to MNI
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
-      fldr="${subj}/${sess}/vbm"
+      fldr="$subjdir/${subj}/${sess}/vbm"
       t1Brain="${fldr}/$(subjsess)_t1_initbrain"      
       echo "VBM PREPROC : subj $subj , sess $sess : flirting $t1Brain to MNI..."
       fsl_sub -l $logdir -N vbm_flirt_$(subjsess) flirt -in ${t1Brain} -ref $FSLDIR/data/standard/MNI152_T1_1mm_brain -out ${fldr}/flirted_t1_brain -dof 12 -omat ${fldr}/t1_to_MNI        
@@ -2074,7 +1916,7 @@ if [ $VBM_STG3 -eq 1 ] ; then
   # VBM PREPROC SSM flirting standard mask to T1 space
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
-      fldr="${subj}/${sess}/vbm"; t1=${fldr}/$(subjsess)_t1_struc
+      fldr="$subjdir/${subj}/${sess}/vbm"; t1=${fldr}/$(subjsess)_t1_struc
       echo "VBM PREPROC : subj $subj , sess $sess : flirting standard mask to T1 space..."
       convert_xfm -omat ${fldr}/MNI_to_t1 -inverse ${fldr}/t1_to_MNI
       fsl_sub -l $logdir -N vbm_flirt_$(subjsess) flirt -in  $FSLDIR/data/standard/MNI152_T1_1mm_first_brain_mask -out ${fldr}/t1_mask -ref $t1 -applyxfm -init ${fldr}/MNI_to_t1         
@@ -2086,7 +1928,7 @@ if [ $VBM_STG3 -eq 1 ] ; then
   # VBM PREPROC SSM creating mask
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=${subj}/${sess}/vbm
+      fldr=$subjdir/${subj}/${sess}/vbm
       echo "VBM PREPROC : subj $subj , sess $sess : creating mask..."
       fslmaths ${fldr}/t1_mask -thr 0 -bin  ${fldr}/t1_mask -odt char
       fslmaths ${fldr}/t1_mask -mul -1 -add 1 -bin ${fldr}/t1_mask_inv_ero0
@@ -2100,7 +1942,7 @@ if [ $VBM_STG3 -eq 1 ] ; then
   for n_ero in `seq 1 $VBM_SSM_ERODE_STEPS` ; do
     for subj in `cat subjects`; do 
       for sess in `cat ${subj}/sessions_struc` ; do
-        fldr=${subj}/${sess}/vbm
+        fldr=$subjdir/${subj}/${sess}/vbm
         echo "VBM PREPROC : subj $subj , sess $sess : eroding mask - iteration ${n_ero} / ${VBM_SSM_ERODE_STEPS}..."
         fsl_sub -l $logdir -N vbm_fslmaths_$(subjsess) fslmaths ${fldr}/t1_mask_inv_ero$(echo $n_ero -1 | bc -l) -ero -bin ${fldr}/t1_mask_inv_ero${n_ero}
       done
@@ -2114,7 +1956,7 @@ if [ $VBM_STG3 -eq 1 ] ; then
   # VBM PREPROC SSM masking native T1
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=${subj}/${sess}/vbm;  t1=${fldr}/$(subjsess)_t1_struc
+      fldr=$subjdir/${subj}/${sess}/vbm;  t1=${fldr}/$(subjsess)_t1_struc
       echo "VBM PREPROC : subj $subj , sess $sess : applying standard space mask..."
       fslmaths ${fldr}/t1_mask_inv_ero${n_ero} -mul -1 -add 1 -bin ${fldr}/t1_mask_ero
       fslmaths $t1 -mas ${fldr}/t1_mask_ero ${fldr}/$(subjsess)_t1_masked
@@ -2132,7 +1974,7 @@ if [ $VBM_STG4 -eq 1 ] ; then
   
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$subj/$sess/vbm
+      fldr=$subjdir/$subj/$sess/vbm
       
        # get info for bet
       CoG=`getBetCoG ${subjdir}/config_bet_struc1 $subj $sess`    
@@ -2148,7 +1990,7 @@ if [ $VBM_STG4 -eq 1 ] ; then
   
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$subj/$sess/vbm
+      fldr=$subjdir/$subj/$sess/vbm
       
       echo "VBM PREPROC : subj $subj , sess $sess : creating binary mask from betted brain..."
       fslmaths $fldr/$(subjsess)_t1_betted${masked}_brain -bin $fldr/$(subjsess)_t1_betted${masked}_brain_mask
@@ -2166,7 +2008,7 @@ if [ $VBM_STG5 -eq 1 ] ; then
   
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$subj/$sess/vbm
+      fldr=$subjdir/$subj/$sess/vbm
       
       # watershed...
       echo "VBM PREPROC : subj $subj , sess $sess : watershedding..."
@@ -2179,7 +2021,7 @@ if [ $VBM_STG5 -eq 1 ] ; then
   
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
-      fldr=$subj/$sess/vbm
+      fldr=$subjdir/$subj/$sess/vbm
       
       echo "VBM PREPROC : subj $subj , sess $sess : creating binary mask from watershedded brain..."
       fslmaths $fldr/$(subjsess)_t1_watershed${masked}_brain -bin $fldr/$(subjsess)_t1_watershed${masked}_brain_mask
@@ -3030,296 +2872,6 @@ fi
 ######################
 # ----- END BOLD -----
 ######################
-
-
-waitIfBusy
-
-
-################################
-# ----- BEGIN PLOT_BOLD_MC -----
-################################
-
-if [ $PLOT_BOLD_MC -eq 1 ] ; then
-  echo "----- BEGIN PLOT_BOLD_MC -----"
-  
-  if [ -z "$PLOT_BOLD_MC_DIRNAMES" ] ; then echo "PLOT_BOLD_MC : WARNING : no directory specified." ; fi
-  
-  for dirnm in $PLOT_BOLD_MC_DIRNAMES ; do
-    appends=""
-    for subj in `cat $subjdir/subjects` ; do
-      j=0
-      for sess in `cat $subjdir/$subj/sessions_func` ; do
-        
-        n=$(find $subjdir/$subj/$sess -mindepth 3 -maxdepth 4 -name disp.png -type f | grep $dirnm | grep /mc | wc -l)
-        if [ $n -gt 1 ] ; then
-          echo "WARNING : search pattern matches more than one directory:"
-          echo "$(find $subjdir/$subj/$sess -mindepth 3 -maxdepth 4 -name disp.png -type f | grep $dirnm | grep /mc | xargs ls -rt | xargs -I {} dirname {} )"
-          echo "...taking the last one, because it is newer."
-        fi
-        disp=$(find $subjdir/$subj/$sess -mindepth 3 -maxdepth 4 -name disp.png -type f | grep $dirnm | grep /mc | xargs ls -rt | grep disp.png | tail -n 1)
-        rot=$(find $subjdir/$subj/$sess -mindepth 3 -maxdepth 4 -name rot.png -type f | grep $dirnm | grep /mc | xargs ls -rt | grep rot.png | tail -n 1)
-        trans=$(find $subjdir/$subj/$sess -mindepth 3 -maxdepth 4 -name trans.png -type f | grep $dirnm | grep /mc | xargs ls -rt | grep trans.png | tail -n 1)
-        if [ -z $disp ] ; then echo "PLOT_BOLD_MC : subj $subj , sess $sess : WARNING : no 'disp.png' file found under '$subjdir/$subj/$sess/bold/*${dirnm}*' - continuing loop..." ; continue ; fi
-        
-        echo "PLOT_BOLD_MC : subj $subj , sess $sess : processing..."
-        cmd="pngappend $disp + $rot + $trans $(subjsess)_mc.png"
-        echo $cmd ; $cmd
-
-        dirnm_base0=$(basename $(dirname $(dirname $(dirname $disp)))) ; dirnm_base1=$(basename $(dirname $(dirname $disp)))
-        montage -label "$(subjsess) ($dirnm_base1)" -pointsize 10 -geometry ^ $(subjsess)_mc.png  $(subjsess)_mc.png
-        
-        if [ -z "$appends" ] ; then 
-          appends=$(subjsess)_mc.png 
-        elif [ $j = "0" ] ; then
-          appends=$appends" - "$(subjsess)_mc.png 
-        else
-          appends=$appends" - "$(subjsess)_mc.png 
-        fi
-        j=$(echo "$j + 1" | bc -l)
-      done
-    done    
-
-    if [ ! -z "$appends" ] ; then
-      echo "PLOT_BOLD_MC : creating overall plot..."
-      cmd="pngappend $appends plot_mc_bold_${dirnm}.png"
-      echo $cmd ; $cmd
-      echo "PLOT_BOLD_MC : cleaning up..."
-      rm -f $subjdir/*_mc.png
-    else
-      echo "PLOT_BOLD_MC : nothing to plot."
-    fi    
-
-  done
-fi
-
-##############################
-# ----- END PLOT_BOLD_MC -----
-##############################
-
-
-waitIfBusy
-
-
-####################################
-# ----- BEGIN PLOT_BOLD_UNWARP -----
-####################################
-
-if [ $PLOT_BOLD_UNWARP -eq 1 ] ; then
-  echo "----- BEGIN PLOT_BOLD_UNWARP -----"
-  
-  if [ -z "$PLOT_BOLD_UNWARP_DIRNAMES" ] ; then echo "PLOT_BOLD_UNWARP : WARNING : no directory specified." ; fi
-  
-  for dirnm in $PLOT_BOLD_UNWARP_DIRNAMES ; do
-    appends=""
-    for subj in `cat $subjdir/subjects` ; do
-      j=0
-      for sess in `cat $subjdir/$subj/sessions_func` ; do
-        
-        n=$(find $subjdir/$subj/$sess/bold -mindepth 3 -maxdepth 3 -name EF_UD_example_func.nii.gz -type f | grep $dirnm | grep /unwarp | wc -l)
-        if [ $n -gt 1 ] ; then
-          echo "WARNING : search pattern matches more than one directory:"
-          echo "$(find $subjdir/$subj/$sess/bold -mindepth 3 -maxdepth 3 -name EF_UD_example_func.nii.gz -type f | grep $dirnm | grep /unwarp | xargs ls -rt | xargs -I {} dirname {} )"
-          echo "...taking the last one, because it is newer."
-        fi      
-        bold_D=$(find $subjdir/$subj/$sess/bold -mindepth 3 -maxdepth 3 -name EF_D_example_func.nii.gz -type f | grep $dirnm | grep /unwarp | xargs ls -rt | grep EF_D_example_func.nii.gz | tail -n 1)
-        bold_UD=$(find $subjdir/$subj/$sess/bold -mindepth 3 -maxdepth 3 -name EF_UD_example_func.nii.gz -type f | grep $dirnm | grep /unwarp | xargs ls -rt | grep EF_UD_example_func.nii.gz | tail -n 1)
-        if [ -z $bold_UD ] ; then echo "PLOT_BOLD_UNWARP : subj $subj , sess $sess : WARNING : no 'EF_UD_example_func.nii.gz' file found under '$subjdir/$subj/$sess/bold/*${dirnm}*' - continuing loop..." ; continue ; fi
-        
-        echo "PLOT_BOLD_UNWARP : subj $subj , sess $sess : processing '$bold_D'..."
-        cmd="slicer -s 2 $bold_D $(dirname $bold_UD)/EF_UD_fmap_mag_brain.nii.gz -a $(subjsess)_bold_D2fmap.png"
-        $cmd
-        echo "PLOT_BOLD_UNWARP : subj $subj , sess $sess : processing '$bold_UD'..."
-        cmd="slicer -s 2 $bold_UD $(dirname $bold_UD)/EF_UD_fmap_mag_brain.nii.gz -a $(subjsess)_bold_UD2fmap.png"
-        $cmd
-        
-        #montage -label "D" -pointsize 9  $(subjsess)_bold_D2fmap.png  $(subjsess)_bold_D2fmap.png 
-        #montage -label "UD" -pointsize 9  $(subjsess)_bold_UD2fmap.png  $(subjsess)_bold_UD2fmap.png 
-        
-        dirnm_base0=$(basename $(dirname $(dirname $(dirname $bold_UD)))) ; dirnm_base1=$(basename $(dirname $(dirname $bold_UD)))
-        montage -adjoin $(subjsess)_bold_D2fmap.png $(subjsess)_bold_UD2fmap.png -geometry ^ $(subjsess)_bold2mag.png
-        montage -label "D vs UD \n$(subjsess) ($dirnm_base0/\n$dirnm_base1)" -pointsize 9 -geometry ^ $(subjsess)_bold2mag.png $(subjsess)_bold2mag.png
-        rm -f $(subjsess)_bold_D2fmap.png $(subjsess)_bold_UD2fmap.png
-        
-        if [ -z "$appends" ] ; then 
-          appends=$(subjsess)_bold2mag.png 
-        elif [ $j = "0" ] ; then
-          appends=$appends" - "$(subjsess)_bold2mag.png
-        else
-          appends=$appends" - "$(subjsess)_bold2mag.png
-        fi
-        j=$(echo "$j + 1" | bc -l)
-      done
-    done
-    
-    if [ ! -z "$appends" ] ; then
-      echo "PLOT_BOLD_UNWARP : creating overall plot..."
-      cmd="pngappend $appends plot_bold2mag_${dirnm}.png"
-      echo $cmd ; $cmd        
-      echo "PLOT_BOLD_UNWARP : cleaning up..."
-      rm -f $subjdir/*_bold2mag.png
-    else 
-      echo "PLOT_BOLD_UNWARP : nothing to plot."
-    fi
-
-  done
-fi
-
-##################################
-# ----- END PLOT_BOLD_UNWARP -----
-##################################
-
-
-waitIfBusy
-
-
-###################################
-# ----- BEGIN PLOT_BOLD_T1REG -----
-###################################
-
-if [ $PLOT_BOLD_T1REG -eq 1 ] ; then
-  echo "----- BEGIN PLOT_BOLD_T1REG -----"
-  
-  if [ -z "$PLOT_BOLD_T1REG_DIRNAMES" ] ; then echo "PLOT_BOLD_T1REG : WARNING : no directory specified." ; fi
-  
-  for dirnm in $PLOT_BOLD_T1REG_DIRNAMES ; do
-    appends="" 
-    
-    for subj in `cat $subjdir/subjects` ; do
-      j=0
-      for sess in `cat $subjdir/$subj/sessions_func` ; do
-      
-        pngs=`find $subjdir/$subj/$sess -mindepth 4 -maxdepth 4 -name example_func2highres.png -type f`
-        n=$(echo $pngs | row2col | grep $dirnm | grep /reg/ | wc -l)
-        if [ $n -gt 1 ] ; then
-          echo "WARNING : search pattern matches more than one directory:"
-          echo "$(echo $pngs | row2col | grep $dirnm | grep /reg/ | xargs ls -rt | xargs -I {} dirname {} )"
-          echo "...taking the last one, because it is newer."
-        fi
-        png=$(echo $pngs | row2col | grep $dirnm | grep /reg/ | xargs ls -rt | grep example_func2highres.png | tail -n 1)
-        if [ -z $png ] ; then echo "PLOT_BOLD_T1REG : subj $subj , sess $sess : WARNING : no 'example_func2highres.png' file found under '*${dirnm}*' - continuing loop..." ; continue ; fi
-        
-        dirnm_base1=$(basename $(dirname $(dirname $png))) ; dirnm_base0=$(basename $(dirname $(dirname $(dirname $png))))
-        montage -label "$(subjsess) ($dirnm_base0/\n$dirnm_base1)" -pointsize 42 $png -geometry ^ $subjdir/$(subjsess)_func2t1.png 
-        
-        if [ -z "$appends" ] ; then 
-          appends=$(subjsess)_func2t1.png 
-        elif [ $j = "0" ] ; then
-          appends=$appends" - "$(subjsess)_func2t1.png
-        else
-          appends=$appends" + "$(subjsess)_func2t1.png
-        fi
-        j=$(echo "$j + 1" | bc -l)
-      done
-    done
-    
-    if [ ! -z "$appends" ] ; then
-      echo "PLOT_BOLD_T1REG : creating overall plot..."
-      cmd="pngappend $appends plot_func2t1_bold_${dirnm}.png"
-      echo $cmd ; $cmd    
-      echo "PLOT_BOLD_T1REG : cleaning up..."
-      rm -f $subjdir/*_func2t1.png    
-    else
-      echo "PLOT_BOLD_T1REG : nothing to plot."
-    fi
-    
-  done
-fi
-
-#################################
-# ----- END PLOT_BOLD_T1REG -----
-#################################
-
-
-waitIfBusy
-
-
-####################################
-# ----- BEGIN PLOT_BOLD_MNIREG -----
-####################################
-
-if [ $PLOT_BOLD_MNIREG -eq 1 ] ; then
-  echo "----- BEGIN PLOT_BOLD_MNIREG -----"
-  
-  if [ -z "$PLOT_BOLD_MNIREG_DIRNAMES" ] ; then echo "PLOT_BOLD_MNIREG : WARNING : no directory specified." ; fi
-  
-  for dirnm in $PLOT_BOLD_MNIREG_DIRNAMES ; do
-    appends="" 
-    #for subj in `cat $subjdir/subjects` ; do
-      #j=0
-      #for sess in `cat $subjdir/$subj/sessions_func` ; do
-      
-        #n=$(find $subjdir/$subj/$sess -mindepth 4 -maxdepth 4 -name filtered_func_data*.nii.gz -type f | grep $dirnm | grep /reg_standard | wc -l)
-        #if [ $n -gt 1 ] ; then
-          #echo "WARNING : search pattern matches more than one directory:"
-          #echo "$(find $subjdir/$subj/$sess -mindepth 4 -maxdepth 4 -name filtered_func_data*.nii.gz -type f | grep $dirnm | grep /reg_standard | xargs ls -rt | xargs -I {} dirname {} )"
-          #echo "...taking the last one, because it is newer."
-        #fi
-        #bold=$(find $subjdir/$subj/$sess -mindepth 4 -maxdepth 4 -name filtered_func_data*.nii.gz -type f | grep $dirnm | grep /reg_standard | xargs ls -rt | grep filtered_func_data | tail -n 1)
-        #if [ -z $bold ] ; then echo "PLOT_BOLD_MNIREG : subj $subj , sess $sess : WARNING : no 'filtered_func_data' file found under '*${dirnm}*' - continuing loop..." ; continue ; fi
-        
-        ##echo "find $subjdir/$subj/$sess -maxdepth 4 -name filtered_func_data*.nii.gz -type f | grep $dirnm | grep /reg_standard | xargs ls -rt | grep filtered_func_data | tail -n 1)"
-        #echo "PLOT_BOLD_MNIREG : subj $subj , sess $sess : processing '$bold'..."
-        #cmd="slicer -s 2 $(dirname $bold)/standard.nii.gz $bold -a $(subjsess)_func2std.png"
-        #$cmd
-        
-        #dirnm_base1=$(basename $(dirname $(dirname $bold))) ; dirnm_base0=$(basename $(dirname $(dirname $(dirname $bold))))
-        #montage -label "$(subjsess) ($dirnm_base0/\n$dirnm_base1)" -pointsize 9 $subjdir/$(subjsess)_func2std.png -geometry ^ $subjdir/$(subjsess)_func2std.png 
-        
-        #if [ -z "$appends" ] ; then 
-          #appends=$(subjsess)_func2std.png 
-        #elif [ $j = "0" ] ; then
-          #appends=$appends" - "$(subjsess)_func2std.png
-        #else
-          #appends=$appends" + "$(subjsess)_func2std.png
-        #fi
-        #j=$(echo "$j + 1" | bc -l)
-      #done
-    #done
-    
-    for subj in `cat $subjdir/subjects` ; do
-      j=0
-      for sess in `cat $subjdir/$subj/sessions_func` ; do
-      
-        pngs=`find $subjdir/$subj/$sess -mindepth 4 -maxdepth 4 -name example_func2standard.png -type f`
-        n=$(echo $pngs | row2col | grep $dirnm | grep /reg/ | wc -l)
-        if [ $n -gt 1 ] ; then
-          echo "WARNING : search pattern matches more than one directory:"
-          echo "$(echo $pngs | row2col | grep $dirnm | grep /reg/ | xargs ls -rt | xargs -I {} dirname {} )"
-          echo "...taking the last one, because it is newer."
-        fi
-        png=$(echo $pngs | row2col | grep $dirnm | grep /reg/ | xargs ls -rt | grep example_func2standard.png | tail -n 1)
-        if [ -z $png ] ; then echo "PLOT_BOLD_MNIREG : subj $subj , sess $sess : WARNING : no 'example_func2standard.png' file found under '*${dirnm}*' - continuing loop..." ; continue ; fi
-        
-        dirnm_base1=$(basename $(dirname $(dirname $png))) ; dirnm_base0=$(basename $(dirname $(dirname $(dirname $png))))
-        montage -label "$(subjsess) ($dirnm_base0/\n$dirnm_base1)" -pointsize 16 $png -geometry ^ $subjdir/$(subjsess)_func2std.png 
-        
-        if [ -z "$appends" ] ; then 
-          appends=$(subjsess)_func2std.png 
-        elif [ $j = "0" ] ; then
-          appends=$appends" - "$(subjsess)_func2std.png
-        else
-          appends=$appends" + "$(subjsess)_func2std.png
-        fi
-        j=$(echo "$j + 1" | bc -l)
-      done
-    done
-    
-    if [ ! -z "$appends" ] ; then
-      echo "PLOT_BOLD_MNIREG : creating overall plot..."
-      cmd="pngappend $appends plot_func2std_bold_${dirnm}.png"
-      echo $cmd ; $cmd    
-      echo "PLOT_BOLD_MNIREG : cleaning up..."
-      rm -f $subjdir/*_func2std.png    
-    else
-      echo "PLOT_BOLD_MNIREG : nothing to plot."
-    fi
-    
-  done
-fi
-
-##################################
-# ----- END PLOT_BOLD_MNIREG -----
-##################################
 
 
 waitIfBusy

@@ -346,14 +346,14 @@ case $METHOD in
 		echo sge_command: $sge_command >&2
 		echo executing: $@ >&2
 	    fi
-	    exec $sge_command $@ | awk '{print $3}'
+	    exec $sge_command $@ | awk '{print $3}' | tee -a $GRID_JOB_ID_FILE # tee -a added by HKL
 	else
 	    sge_command="qsub -V -cwd -q $queue -M $mailto -N $JobName -m $MailOpts $LogOpts $sge_arch $sge_hold $sge_tasks $sge_rsc" # added by HKL
 	    if [ $verbose -eq 1 ] ; then 
 		echo sge_command: $sge_command >&2
 		echo control file: $taskfile >&2
 	    fi
-	    exec $sge_command <<EOF | awk '{print $3}' | awk -F. '{print $1}'
+	    exec $sge_command <<EOF | awk '{print $3}' | awk -F. '{print $1}' | tee -a $GRID_JOB_ID_FILE # tee -a added by HKL
 #!/bin/sh
 
 #$ -S /bin/sh
@@ -396,7 +396,7 @@ EOF2
 		n=`expr $n + 1`
 	    done
 	fi	
-	echo $$
+	echo $$ | tee -a $GRID_JOB_ID_FILE # tee -a added by HKL
 	;;
 
 esac

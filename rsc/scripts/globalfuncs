@@ -26,7 +26,7 @@ function delJIDs() {
         qdel $i
         j=$[$j+1]
      done
-     if [ $j -eq 0 ] ; then echo "`basename $0`: delJIDs(): no jobs left to erase in '$jidfile' (OK)." ; fi
+     if [ $j -eq 0 ] ; then echo "`basename $0`: delJIDs(): no jobs left to erase in '$(basename $jidfile)' (OK)." ; fi
   fi
   rm -f $jidfile
 }

@@ -14,13 +14,13 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 Usage() {
     echo ""
     echo "Usage: `basename $0` <\"input-file(s)\"|inputfiles.txt> <TR(sec)> <output-dir> [melodic options]"
-    echo "Example: `basename $0` \"file01.nii.gz file02.nii.gz ...\" 3.30 -1"
-    echo "         `basename $0` inputfiles.txt 3.30 ./melodic_ICA \"--nobet -d 25\""
-    echo "         `basename $0` singlefile.nii.gz 3.30 -1"
+    echo "Example: `basename $0` \"file01.nii.gz file02.nii.gz ...\" 3.330 -1"
+    echo "         `basename $0` inputfiles.txt 3.330 ./melodic_ICA \"--nobet -d 25\""
+    echo "         `basename $0` singlefile.nii.gz 3.330 -1"
     echo ""
     echo "          multiple inputs:          assuming 'concat' mode."
     echo "          textfile as input:        assuming 'concat' mode on files in textfile."
-    echo "          single file as input:     assuming sinle session mode."
+    echo "          single file as input:     assuming single session mode."
     echo "                                    -1: saves result in directory of input file."
     echo ""
     exit 1
