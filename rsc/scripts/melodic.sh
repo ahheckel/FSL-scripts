@@ -75,11 +75,17 @@ else # assume group ICA
   gica=1
   subdir=groupmelodic.ica
 fi
+
+
+# display info
 if [ $gica -eq 1 ] ; then 
   echo "`basename $0`: applying 'concat' mode."
 else 
   echo "`basename $0`: applying single session mode."
 fi
+
+
+# check
 if [ "$outdir" = "-1" ] ; then echo "`basename $0`: ERROR : you must specify an output directory for group-ICA... exiting." ; exit 1 ; fi
 
 
