@@ -76,11 +76,12 @@ for i in $full_list ; do
         ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost > ${output}.ecclog.tmp
       fi        
     fi
-              
-    if [ "$interp" = "spline" -a $nowrite -eq 0 ] ; then
-      #${FSLDIR}/bin/fslmaths $i -abs $i
-      ${FSLDIR}/bin/fslmaths $i -thr 0 $i
-    fi
+    
+    # remove neg. values          
+    #if [ "$interp" = "spline" -a $nowrite -eq 0 ] ; then
+      ##${FSLDIR}/bin/fslmaths $i -abs $i
+      #${FSLDIR}/bin/fslmaths $i -thr 0 $i
+    #fi
   
   else
     echo "" >> ${output}.ecclog.tmp

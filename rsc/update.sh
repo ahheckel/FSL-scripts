@@ -20,7 +20,6 @@ cp -iv fsl/MNI152*.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/avg152T1_white_bin.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/avg152T1_csf_bin.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/rsn10.nii.gz $FSLDIR/data/standard/
-
 if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
   cp -iv fsl/fsl_sub $FSLDIR/bin/fsl_sub # contains a RAM limit
   cp -iv fsl/tbss_x/tbss_x $FSLDIR/bin/tbss_x

@@ -6,7 +6,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 11/18/2012
+# 12/15/2012
 
 set -e
 
@@ -105,7 +105,7 @@ cd $wdir
   fugue -i FM_UD_fmap_mag_brain_siglossed --loadfmap=FM_UD_fmap --mask=FM_UD_fmap_mag_brain_mask --dwell=$dwell -w FM_D_fmap_mag_brain_siglossed --nokspace --unwarpdir=$unwarp_dir
   fugue -i FM_UD_fmap_sigloss             --loadfmap=FM_UD_fmap --mask=FM_UD_fmap_mag_brain_mask --dwell=$dwell -w FM_D_fmap_sigloss             --nokspace --unwarpdir=$unwarp_dir
   fslmaths FM_D_fmap_sigloss -thr $siglossthresh FM_D_fmap_sigloss
-  #flirt -in EF_D_example_func -ref FM_D_fmap_mag_brain_siglossed -omat EF_2_FM.mat -o grot -dof 6 -refweight FM_D_fmap_sigloss -cost mutualinfo # 'mutualinfo' added by HKL
+  #flirt -in EF_D_example_func -ref FM_D_fmap_mag_brain_siglossed -omat EF_2_FM.mat -o grot -dof 6 -refweight FM_D_fmap_sigloss -cost mutualinfo # 'mutualinfo' added by HKL but seems less reliable in fsl v5.0.1
   flirt -in EF_D_example_func -ref FM_D_fmap_mag_brain_siglossed -omat EF_2_FM.mat -o grot -dof 6 -refweight FM_D_fmap_sigloss -cost corratio
   convert_xfm -omat FM_2_EF.mat -inverse EF_2_FM.mat
   
@@ -130,16 +130,10 @@ cd $wdir
   applywarp -i example_func_orig_distorted -o example_func -w EF_UD_warp -r example_func_orig_distorted --abs
   applywarp -i example_func_orig_distorted -o example_func_uw+y -w _warp_+y -r example_func_orig_distorted --abs # added by HKL
   applywarp -i example_func_orig_distorted -o example_func_uw-y -w _warp_-y -r example_func_orig_distorted --abs # added by HKL
- 
- 
+  
 cd $sdir
-    
-#echo "`basename $0`: save results"
-#fslmerge -t $wdir/check $wdir/EF_UD_fmap_mag_brain $wdir/example_func $wdir/EF_UD_fmap_mag_brain $wdir/example_func_orig_distorted $wdir/example_func
+
+# cleanup    
 imrm $wdir/grot
-#immv $wdir/example_func ${out}
-#immv $wdir/EF_UD_shift ${out}_shift
-#immv $wdir/EF_UD_warp ${out}_warp
-#immv $wdir/EF_UD_fmap_sigloss ${out}_sigloss
 
 echo "`basename $0`: done."
