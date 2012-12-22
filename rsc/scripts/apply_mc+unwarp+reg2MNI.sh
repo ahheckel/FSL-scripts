@@ -27,8 +27,8 @@ Usage() {
     echo "Example: `basename $0` bold mni_bold ./mc/prefiltered_func_data_mcf.mat/ ./unwarp/EF_UD_shift.nii.gz y ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz"
     echo "         `basename $0` diff mni_diff ./diff.ecclog ./unwarp/EF_UD_shift.nii.gz y ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz nn"
     echo "         `basename $0` diff mni_diff ./matrix.mat ./unwarp/EF_UD_shift.nii.gz y- ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz spline"
-    echo "         `basename $0` diff mni_diff ./mc/prefiltered_func_data_mcf.mat/ none 00 ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz trilinear"
-    echo "         `basename $0` diff T1_diff ./mc/prefiltered_func_data_mcf.mat/ none 00 none ./reg/func2highres_warp.nii.gz spline reg/highres.nii.gz"
+    echo "         `basename $0` bold mni_bold ./mc/prefiltered_func_data_mcf.mat/ none 00 ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz trilinear"
+    echo "         `basename $0` bold  T1_bold ./mc/prefiltered_func_data_mcf.mat/ none 00 none ./reg/func2highres_warp.nii.gz spline reg/highres.nii.gz"
     echo ""
     exit 1
 }
