@@ -9,17 +9,8 @@
 
 set -e
 
-delJIDs() {
-  if [ x"SGE_ROOT" != "x" ] ; then
-     local jidfile="$1" ; local i="" ; local j=0
-     for i in $(cat $jidfile) ; do
-        qdel $i
-        j=$[$j+1]
-     done
-  fi
-  rm -f $jidfile
-  if [ $j -eq 0 ] ; then echo "`basename $0`: no job left to erase (OK)." ; fi
-}
+# source commonly used functions
+source $(dirname $0)/globalfuncs
 
 # set error trap
 trap 'echo "$0 : An ERROR has occured."' ERR
@@ -71,9 +62,6 @@ sess=${10} # optional
 
 # display info
 echo "`basename $0`: starting TOPUP..."
-
-# source commonly used functions
-source $(dirname $0)/globalfuncs
 
 # check SGE
 if [ x"$SGE_ROOT" != "x" ] ; then
