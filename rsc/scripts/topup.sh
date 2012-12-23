@@ -9,23 +9,6 @@
 
 set -e
 
-# source commonly used functions
-source $(dirname $0)/globalfuncs
-
-# set error trap
-trap 'echo "$0 : An ERROR has occured."' ERR
-
-# create temporary dir.
-wdir=`pwd`/.topup$$ ; mkdir -p $wdir
-
-# create joblist file for SGE
-echo "`basename $0`: touching SGE job control file in '$wdir'."
-JIDfile="$wdir/$(basename $0)_$$.sge"
-touch $JIDfile
-
-# set exit trap
-trap "set +e ; echo -e \"\n`basename $0`: cleanup: erasing Job-IDs in '$JIDfile'\" ; delJIDs $JIDfile ;  rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
-
 Usage() {
     echo ""
     echo "Usage: `basename $0` <out-dir> <isBOLD: 0|1> [n_dummyB0] <dwi-blip+> <dwi-blip-> <unwarp-dir> <TotalReadoutTime(s)> <use noec: 0|1> <use ec: 0|1> [<dof> <costfunction>] [<subj>] [<sess>]"
@@ -33,8 +16,9 @@ Usage() {
     echo "         topup.sh topupdir 1 4 \"bold*+.nii.gz\" \"bold*-.nii.gz\" +x 0.02975 1 1 6 mutualinfo 01 a"
     echo ""
     echo "NOTE:    -requires same number of blipup and blipdown images."
-    echo "         -bvals/bvecs files are detected by suffix <dwi-blip+>_bvals and <dwi-blip->_bvecs."
+    echo "         -bvals/bvecs files are detected by suffix *_bvals and *_bvecs."
     echo "         -alphabetical listings of blipup/blipdown images (dwi*+, dwi*-) and bvals/bvecs must match !"
+    echo "         -TotalReadoutTime(s): ESP(ms) * (PhaseEncodingSteps - 1) ; e.g. 0.25ms * 119 / 1000"
     echo ""
     exit 1
 }
@@ -59,6 +43,23 @@ if [ $TOPUP_USE_EC -eq 1 ] ; then
 fi
 subj=$9 # optional
 sess=${10} # optional
+
+# source commonly used functions
+source $(dirname $0)/globalfuncs
+
+# set error trap
+trap 'echo "$0 : An ERROR has occured."' ERR
+
+# create temporary dir.
+wdir=`pwd`/.topup$$ ; mkdir -p $wdir
+
+# create joblist file for SGE
+echo "`basename $0`: touching SGE job control file in '$wdir'."
+JIDfile="$wdir/$(basename $0)_$$.sge"
+touch $JIDfile
+
+# set exit trap
+trap "set +e ; echo -e \"\n`basename $0`: cleanup: erasing Job-IDs in '$JIDfile'\" ; delJIDs $JIDfile ;  rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
 
 # display info
 echo "`basename $0`: starting TOPUP..."
