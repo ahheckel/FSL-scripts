@@ -13,7 +13,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input4D> <output4D> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> <interp (default:trilinear)>"
+    echo "Usage: `basename $0` <input4D> <output4D> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> [<interp (default:trilinear)>]"
     echo "Example: `basename $0` bold uw_bold ./unwarp/EF_UD_shift.nii.gz y spline"
     echo ""
     exit 1
@@ -42,11 +42,7 @@ fslroi $input ${output}_example_func $mid 1
   echo $cmd
   $cmd
 
-outdir=$(dirname $output)
-fslroi $output $outdir/example_func $mid 1
-
 imrm ${output}_example_func
 imrm ${output}_WARP1
-
 
 echo "`basename $0` : done."

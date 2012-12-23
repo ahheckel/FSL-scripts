@@ -313,16 +313,16 @@ function waitIfBusy()
   local ID=""
   
   # is job-ID file defined ?
-  if [ x"$JIDfile" = "x" ] ; then # ID file as local argument ?
-    if [ x"$GRID_JOB_ID_FILE" = "x" ] ; then # global ID file ?
+  if [ x"$JIDfile" = "x" ] ; then # ID file as local argument ? no...
+    if [ x"$GRID_JOB_ID_FILE" = "x" ] ; then # global ID file ? no...
       nojidfile=1
-    else
+    else # global ID file ? yes...
       nojidfile=0
       JIDfile="$GRID_JOB_ID_FILE"
       touch $JIDfile
     fi
-  else
-    nojidfile=0
+  else # ID file as local argument ? yes...
+    nojidfile=0 
     touch $JIDfile
   fi
   

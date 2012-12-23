@@ -23,7 +23,7 @@ function testascii()
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input4D> <output4D> <mc mat-dir|.ecclog file|matrix file> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> <interp (default:trilinear)>"
+    echo "Usage: `basename $0` <input4D> <output4D> <mc mat-dir|.ecclog file|matrix file> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> [<interp (default:trilinear)>]"
     echo "Example: `basename $0` bold uw_bold ./mc/prefiltered_func_data_mcf.mat/ ./unwarp/EF_UD_shift.nii.gz y spline"
     echo "         `basename $0` diff uw_diff ./ec_dwi.ecclog ./unwarp/EF_UD_shift.nii.gz y trilinear"
     echo "         `basename $0` diff uw_diff ./matrix.mat ./unwarp/EF_UD_shift.nii.gz y sinc"
@@ -61,7 +61,8 @@ if [ ! -d $mcdir ] ; then
     ecclog=1
   elif [ $(testascii $mcdir) -eq 1 ] ; then
     sinlgemat=1
-    echo "`basename $0`: '$mcdir' is not an .ecclog file - let's assume that it is a text file with a single transformation matrix in it..."
+    echo "`basename $0`: '$mcdir' is not an .ecclog file - let's assume that it is a text file with a single transformation matrix in it: "
+    cat $mcdir
   else
     echo "`basename $0`: cannot read '$mcdir' - exiting..." ; exit 1
   fi
@@ -104,6 +105,8 @@ for file in $full_list ; do
     line1=$(echo "$i*8 + 4" | bc -l)
     line2=$(echo "$i*8 + 7" | bc -l)
     cat ${mcdir} | sed -n "$line1,$line2"p > ${output}_tmp_ecclog.mat
+    echo "${output}_tmp_ecclog.mat :"
+    cat ${output}_tmp_ecclog.mat
     cmd="applywarp --ref=${output}_example_func --in=${file} $warpopt --premat=${output}_tmp_ecclog.mat --rel --out=${file} --interp=${interp}"  
   elif [ $sinlgemat -eq 1 ] ; then
     cmd="applywarp --ref=${output}_example_func --in=${file} $warpopt --premat=${mcdir} --rel --out=${file} --interp=${interp}"  
@@ -121,7 +124,6 @@ done
 # merge
 echo "`basename $0`: merge outputs...."
 fslmerge -t $output $full_list
-outdir=$(dirname $output)
 
 # cleanup
 imrm $full_list

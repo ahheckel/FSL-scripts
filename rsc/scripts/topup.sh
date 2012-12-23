@@ -540,23 +540,21 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       # for applywarp: get appropriate line in TOPUP index file (containing parameters pertaining to the B0 images) that refers to the first b0 volume in the respective DWI input file.
       line_b0=1 ; j=0 ; lines_b0p=""; lines_b0m=""
       for i in $(cat $fldr/bval-.files) ; do
-        min=`row2col $i | getMin`
-        nb0=$(echo `getIdx $i $min` | wc -w)
         if [ $j -gt 0 ] ; then
           line_b0=$(echo "scale=0; $line_b0 + $nb0" | bc -l)
         fi
+        min=`row2col $i | getMin`
+        nb0=$(echo `getIdx $i $min` | wc -w)
         lines_b0m=$lines_b0m" "$line_b0
         j=$[$j+1]
       done      
       for i in $(cat $fldr/bval+.files) ; do
+        line_b0=$(echo "scale=0; $line_b0 + $nb0" | bc -l)
         min=`row2col $i | getMin`
         nb0=$(echo `getIdx $i $min` | wc -w)
-        if [ $j -gt 0 ] ; then
-          line_b0=$(echo "scale=0; $line_b0 + $nb0" | bc -l)
-        fi
         lines_b0p=$lines_b0p" "$line_b0
-        j=$[$j+1]
       done
+      j=""
       
       # generate commando without eddy-correction
       nplus=`ls $pttrn_diffsplus | wc -l`      

@@ -10,9 +10,6 @@ set -e
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
-# source globalfuncs
-source $(dirname $0)/globalfuncs
-
 Usage() {
     echo ""
     echo "Usage:   `basename $0` <SUBJECTS_DIR> <glm-dir> <out-dir> <measure> <smoothing-kernels(FWHM)> <do-resamp:0|1> <do-smooth:0|1> <do-glm:0|1> <do-glm_sim: 0|1> <Nsim> [<sge-logdir>]"
@@ -20,20 +17,9 @@ Usage() {
     echo ""
     exit 1 
 }
-  
-# create temporary dir.
-wdir=`pwd`/.FS_glm$$ ; mkdir -p $wdir
-
-# create joblist file for SGE
-echo "`basename $0`: touching SGE job control file in '$wdir'."
-JIDfile="$wdir/$(basename $0)_$$.sge"
-touch $JIDfile
-
-# set exit trap
-trap "set +e ; echo -e \"\n`basename $0`: cleanup: erasing Job-IDs in '$JIDfile'\" ; delJIDs $JIDfile ;  rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
 
 # declare vars
-[ "$8" = "" ] && Usage
+[ "${10}" = "" ] && Usage
 SUBJECTS_DIR="$1"
 glmdir_FS="$2"
 FSstatsdir="$3"
@@ -45,8 +31,22 @@ glmstats=$8
 glm_sim=$9
 Nsim=${10}
 logdir="${11}"
-if [ "$logdir" = "" ] ; then logdir=/tmp ; fi
+if [ x"$logdir" = "x" ] ; then logdir=/tmp ; fi
 jid=1 # init jobID
+
+# source globalfuncs
+source $(dirname $0)/globalfuncs
+  
+# create temporary dir.
+wdir=`pwd`/.FS_glm$$ ; mkdir -p $wdir
+
+# create joblist file for SGE
+echo "`basename $0`: touching SGE job control file in '$wdir'."
+JIDfile="$wdir/$(basename $0)_$$.sge"
+touch $JIDfile
+
+# set exit trap
+trap "set +e ; echo -e \"\n`basename $0`: cleanup: erasing Job-IDs in '$JIDfile'\" ; delJIDs $JIDfile ;  rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
 
 # display info
 echo ""

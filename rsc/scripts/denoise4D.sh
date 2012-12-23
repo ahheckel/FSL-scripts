@@ -13,7 +13,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` [-m] <input4D> <"mask1 mask2 ..." |none> <movpar|none> <movpar_calcs 0:none|1:orig|2:^2|3:abs|4:diff+|5:diff-> <hpf-cutoff(s)|Inf> <TR(s)> <output> <subj_idx> <sess_idx>"
+    echo "Usage: `basename $0` [-m] <input4D> <\"mask1 mask2 ...\" |none> <movpar|none> <movpar_calcs 0:none|1:orig|2:^2|3:abs|4:diff+|5:diff-> <hpf-cutoff(s)|Inf> <TR(s)> <output> <subj_idx> <sess_idx>"
     echo "        Options:      -m     just create confound matrix, don't denoise"
     echo ""
     exit 1
