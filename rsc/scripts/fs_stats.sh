@@ -197,6 +197,7 @@ if [ $glmstats -eq 1 ] ; then
     done # end hemi
   done # end design  
   waitIfBusy $JIDfile
+  echo "------------------------------"
 fi
 
 

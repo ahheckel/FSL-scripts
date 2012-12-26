@@ -1319,19 +1319,13 @@ if [ $FDT_STG2 -eq 1 ] ; then
       fsl_sub -l $logdir -N fdt_fslroi_$(subjsess) fslroi $fldr/diff_merged $fldr/nodif $(cat $fldr/ec_ref.idx) 1  
     done
   done
-fi
-
-waitIfBusy
-
-# FDT unwarp eddy-corrected DWIs
-if [ $FDT_STG3 -eq 1 ] ; then
-  echo "----- BEGIN FDT_STG3 -----"
+  
+  waitIfBusy
+  
+  # bet b0 reference image
   for subj in `cat subjects` ; do
-    for sess in `cat ${subj}/sessions_struc` ; do    
+    for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$subjdir/$subj/$sess/fdt
-      
-      # check if we have acquisition parameters
-      defineDWIparams $subjdir/config_acqparams_dwi $subj $sess
       
       # get info for current subject
       f=`getBetThres ${subjdir}/config_bet_lowb $subj $sess`
@@ -1347,6 +1341,21 @@ if [ $FDT_STG3 -eq 1 ] ; then
       fi
       ln -sf nodif_brain_${f}.nii.gz $fldr/nodif_brain.nii.gz
       ln -sf nodif_brain_${f}_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
+    done
+  done  
+fi
+
+waitIfBusy
+
+# FDT unwarp eddy-corrected DWIs
+if [ $FDT_STG3 -eq 1 ] ; then
+  echo "----- BEGIN FDT_STG3 -----"
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_struc` ; do    
+      fldr=$subjdir/$subj/$sess/fdt
+      
+      # check if we have acquisition parameters
+      defineDWIparams $subjdir/config_acqparams_dwi $subj $sess
       
       # define magnitude and fieldmap
       fmap=$subjdir/$subj/$sess/$(remove_ext $FDT_FMAP).nii.gz
@@ -1367,6 +1376,19 @@ if [ $FDT_STG3 -eq 1 ] ; then
       fsl_sub -l $logdir -N fdt_feat_unwarp_$(subjsess) -t $fldr/feat_unwarp.cmd
     done
   done
+  
+  waitIfBusy
+  
+  for subj in `cat subjects` ; do
+    for sess in `cat ${subj}/sessions_struc` ; do
+      fldr=$subjdir/$subj/$sess/fdt
+      
+      # link to unwarped brainmask
+      uwdir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
+      ln -sf ./uwDWI_${uwdir}.feat/unwarp/EF_UD_example_func.nii.gz $fldr/uw_nodif.nii.gz
+      ln -sf ./uwDWI_${uwdir}.feat/unwarp/EF_UD_fmap_mag_brain_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz  
+    done
+  done  
 fi
     
 waitIfBusy
@@ -1390,11 +1412,6 @@ if [ $FDT_STG4 -eq 1 ] ; then
       fi
       _npts=$npts
       n=$[$n+1] 
-            
-      # link to unwarped brainmask
-      uwdir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
-      ln -sf ./uwDWI_${uwdir}.feat/unwarp/EF_UD_example_func.nii.gz $fldr/uw_nodif.nii.gz
-      ln -sf ./uwDWI_${uwdir}.feat/unwarp/EF_UD_fmap_mag_brain_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
 
       # display info
       echo "FDT : subj $subj , sess $sess : dtifit is estimating tensor model using nodif_brain_${f}_mask..."
@@ -1416,18 +1433,22 @@ if [ $FDT_STG4 -eq 1 ] ; then
       # estimate tensor model (native bvecs)
       echo "FDT : subj $subj , sess $sess : dtifit is estimating tensor model - eddy-corr. & native b-vectors..."
       fsl_sub -l $logdir -N fdt_dtifit_ec_norot_$(subjsess) dtifit -k $fldr/ec_diff_merged -m $fldr/nodif_brain_mask -r $fldr/bvecs_concat.txt -b $fldr/bvals_concat.txt  -o $fldr/$(subjsess)_dti_ec_norot
-      
-      # estimate tensor model - unwarped and eddy-corrected DWIs (rotated bvecs)
-      echo "FDT : subj $subj , sess $sess : dtifit is estimating tensor model - eddy-corr. unwarped DWIs & corrected b-vectors..."
-      fsl_sub -l $logdir -N fdt_dtifit_uw_bvecot_$(subjsess) dtifit -k $fldr/uw_ec_diff_merged -m $fldr/uw_nodif_brain_mask -r $fldr/bvecs_concat.rot -b $fldr/bvals_concat.txt  -o $fldr/$(subjsess)_dti_uw_bvecrot
-      
-      # estimate tensor model - unwarped and eddy-corrected DWIs (native bvecs)
-      echo "FDT : subj $subj , sess $sess : dtifit is estimating tensor model - eddy-corr. unwarped DWIs & native b-vectors..."
-      fsl_sub -l $logdir -N fdt_dtifit_uw_norot_$(subjsess) dtifit -k $fldr/uw_ec_diff_merged -m $fldr/uw_nodif_brain_mask -r $fldr/bvecs_concat.txt -b $fldr/bvals_concat.txt  -o $fldr/$(subjsess)_dti_uw_norot
-        
+                    
       # estimate tensor model - no eddy-correction
       echo "FDT : subj $subj , sess $sess : dtifit is estimating tensor model - no eddy-correction..."
-      fsl_sub -l $logdir -N fdt_dtifit_noec_$(subjsess) dtifit -k $fldr/diff_merged -m $fldr/nodif_brain_mask -r $fldr/bvecs_concat.txt -b $fldr/bvals_concat.txt  -o $fldr/$(subjsess)_dti_noec        
+      fsl_sub -l $logdir -N fdt_dtifit_noec_$(subjsess) dtifit -k $fldr/diff_merged -m $fldr/nodif_brain_mask -r $fldr/bvecs_concat.txt -b $fldr/bvals_concat.txt  -o $fldr/$(subjsess)_dti_noec   
+      
+      # did we also unwarp ? If so, then...
+      if [ -f $fldr/uw_ec_diff_merged.nii.gz ] ; then
+        # estimate tensor model - unwarped and eddy-corrected DWIs (rotated bvecs)
+        echo "FDT : subj $subj , sess $sess : dtifit is estimating tensor model - eddy-corr. unwarped DWIs & corrected b-vectors..."
+        fsl_sub -l $logdir -N fdt_dtifit_uw_bvecot_$(subjsess) dtifit -k $fldr/uw_ec_diff_merged -m $fldr/uw_nodif_brain_mask -r $fldr/bvecs_concat.rot -b $fldr/bvals_concat.txt  -o $fldr/$(subjsess)_dti_uw_bvecrot
+        
+        # estimate tensor model - unwarped and eddy-corrected DWIs (native bvecs)
+        echo "FDT : subj $subj , sess $sess : dtifit is estimating tensor model - eddy-corr. unwarped DWIs & native b-vectors..."
+        fsl_sub -l $logdir -N fdt_dtifit_uw_norot_$(subjsess) dtifit -k $fldr/uw_ec_diff_merged -m $fldr/uw_nodif_brain_mask -r $fldr/bvecs_concat.txt -b $fldr/bvals_concat.txt  -o $fldr/$(subjsess)_dti_uw_norot
+      fi
+      
     done    
   done
 fi
@@ -2411,11 +2432,14 @@ if [ $BOLD_STG1 -eq 1 ] ; then
               else 
                 sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 1|g" $conffile
               fi
+              
+              echo "---------------------------"
+              
             done # end stc_val
           done # end uw_dir          
         done # end sm_krnl
       done # end hpf_cut
-            
+      echo ""
     done
   done
 fi

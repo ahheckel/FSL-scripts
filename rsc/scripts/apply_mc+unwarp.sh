@@ -27,6 +27,7 @@ Usage() {
     echo "Example: `basename $0` bold uw_bold ./mc/prefiltered_func_data_mcf.mat/ ./unwarp/EF_UD_shift.nii.gz y spline"
     echo "         `basename $0` diff uw_diff ./ec_dwi.ecclog ./unwarp/EF_UD_shift.nii.gz y trilinear"
     echo "         `basename $0` diff uw_diff ./matrix.mat ./unwarp/EF_UD_shift.nii.gz y sinc"
+    echo "         `basename $0` diff uw_diff none ./unwarp/EF_UD_shift.nii.gz y sinc"
     echo "         `basename $0` diff uw_diff ./mc/prefiltered_func_data_mcf.mat/ none 00 nn"
     echo ""
     exit 1
@@ -37,8 +38,8 @@ Usage() {
 input=`remove_ext "$1"`
 output=`remove_ext "$2"`
 mcdir="$3"
-shiftmap="$4" ; douw=1 ; if [ "$uwdir" = "00" -o "$uwdir" = "0" ] ; then douw=0 ; fi
-uwdir="$5" ; if [ "$uwdir" = "00" ] ; then douw=0 ; fi
+shiftmap="$4" ; douw=1 ; if [ "$shiftmap" = "none" ] ; then douw=0 ; fi
+uwdir="$5" ; if [ "$uwdir" = "00" -o "$uwdir" = "0" ] ; then douw=0 ; fi
 interp="$6"
 if [ x"$interp" = "x" ] ; then interp="trilinear" ; fi
 
@@ -54,25 +55,29 @@ echo ""
 
 # motion correction or eddy-correction ?
 ecclog=0 ; sinlgemat=0
-if [ ! -d $mcdir ] ; then
-  echo "`basename $0`: '$mcdir' is not a directory..."
+if [ "$mcdir" = "none" ] ; then
+  echo "`basename $0` : no motion correction."
+elif [ ! -d $mcdir ] ; then
+  echo "`basename $0` : '$mcdir' is not a directory..."
   if [ -f $mcdir -a ${mcdir##*.} = "ecclog" ] ; then
-    echo "`basename $0`: '$mcdir' is an .ecclog file."
+    echo "`basename $0` : '$mcdir' is an .ecclog file."
     ecclog=1
   elif [ $(testascii $mcdir) -eq 1 ] ; then
     sinlgemat=1
-    echo "`basename $0`: '$mcdir' is not an .ecclog file - let's assume that it is a text file with a single transformation matrix in it: "
+    echo "`basename $0` : '$mcdir' is not an .ecclog file - let's assume that it is a text file with a single transformation matrix in it: "
     cat $mcdir
   else
-    echo "`basename $0`: cannot read '$mcdir' - exiting..." ; exit 1
+    echo "`basename $0` : cannot read '$mcdir' - exiting..." ; exit 1
   fi
 fi  
 
 # display info
+if [ $douw -eq 0 -a "$mcdir" = "none" ] ; then  echo "`basename $0` : neither motion correction nor unwarping is to be applied - exiting..." ; exit 1 ; fi
+if [ "$mcdir" != "none" ] ; then
+  echo "`basename $0` : applying motion-correction."
+fi
 if [ $douw -eq 1 ] ; then
-  echo "`basename $0` : applying motion-correction and shiftmap..."
-else
-  echo "`basename $0` : applying motion-correction only..."
+  echo "`basename $0` : applying shiftmap."
 fi
 
 # extract example_func
@@ -100,8 +105,9 @@ full_list=`imglob ${output}_tmp_????.*`
 i=0
 for file in $full_list ; do
   echo "processing $file"
-
-  if [ $ecclog -eq 1 ] ; then
+  if [ "$mcdir" = "none" ] ; then
+    cmd="applywarp --ref=${output}_example_func --in=${file} $warpopt --rel --out=${file} --interp=${interp}"
+  elif [ $ecclog -eq 1 ] ; then
     line1=$(echo "$i*8 + 4" | bc -l)
     line2=$(echo "$i*8 + 7" | bc -l)
     cat ${mcdir} | sed -n "$line1,$line2"p > ${output}_tmp_ecclog.mat
@@ -122,7 +128,7 @@ for file in $full_list ; do
 done
 
 # merge
-echo "`basename $0`: merge outputs...."
+echo "`basename $0`: merge outputs..."
 fslmerge -t $output $full_list
 
 # cleanup

@@ -27,6 +27,7 @@ Usage() {
     echo "Example: `basename $0` bold mni_bold ./mc/prefiltered_func_data_mcf.mat/ ./unwarp/EF_UD_shift.nii.gz y ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz"
     echo "         `basename $0` diff mni_diff ./diff.ecclog ./unwarp/EF_UD_shift.nii.gz y ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz nn"
     echo "         `basename $0` diff mni_diff ./matrix.mat ./unwarp/EF_UD_shift.nii.gz y- ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz spline"
+    echo "         `basename $0` diff mni_diff none ./unwarp/EF_UD_shift.nii.gz y- ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz spline"
     echo "         `basename $0` bold mni_bold ./mc/prefiltered_func_data_mcf.mat/ none 00 ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz trilinear"
     echo "         `basename $0` bold  T1_bold ./mc/prefiltered_func_data_mcf.mat/ none 00 none ./reg/func2highres_warp.nii.gz spline reg/highres.nii.gz"
     echo ""
@@ -49,7 +50,7 @@ if [ x"$ref" = "x" ] ; then ref="${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii
 
 # MNI affine-only registration ?
 if [ "$f2t1_mat" != "none" -a "$f2mni_warp" = "none" ] ; then MNIaff=1 ; else MNIaff=0 ; fi
-if [ "$f2t1_mat" = "none" -a "$f2mni_warp" = "none" ] ; then  echo "`basename $0`: must enter an MNI transform (warpfield or affine or both) - exiting..." ; exit 1 ; fi
+if [ "$f2t1_mat" = "none" -a "$f2mni_warp" = "none" ] ; then  echo "`basename $0` : must enter an MNI transform (warpfield or affine or both) - exiting..." ; exit 1 ; fi
 
 # display info
 echo ""
@@ -67,17 +68,19 @@ echo ""
 
 # motion correction or eddy-correction ?
 ecclog=0 ; sinlgemat=0
-if [ ! -d $mcdir ] ; then
+if [ "$mcdir" = "none" ] ; then
+  echo "`basename $0` : no motion correction."
+elif [ ! -d $mcdir ] ; then
   echo "`basename $0`: '$mcdir' is not a directory..."
   if [ -f $mcdir -a ${mcdir##*.} = "ecclog" ] ; then
-    echo "`basename $0`: '$mcdir' is an .ecclog file."
+    echo "`basename $0` : '$mcdir' is an .ecclog file."
     ecclog=1
   elif [ $(testascii $mcdir) -eq 1 ] ; then
     sinlgemat=1
-    echo "`basename $0`: '$mcdir' is not an .ecclog file - let's assume that it is a text file with a single transformation matrix in it: "
+    echo "`basename $0` : '$mcdir' is not an .ecclog file - let's assume that it is a text file with a single transformation matrix in it: "
     cat $mcdir
   else
-    echo "`basename $0`: cannot read '$mcdir' - exiting..." ; exit 1
+    echo "`basename $0` : cannot read '$mcdir' - exiting..." ; exit 1
   fi
 fi  
 
@@ -133,8 +136,10 @@ fslsplit $input ${output}_tmp_
 full_list=`imglob ${output}_tmp_????.*`
 i=0
 for file in $full_list ; do
-  echo "processing $file"   
-  if [ $ecclog -eq 1 ] ; then
+  echo "processing $file"
+  if [ "$mcdir" = "none" ] ; then
+    cmd="applywarp --ref=${ref} --in=${file} $warpopt $postmatopt --rel --out=${file} --interp=${interp}"
+  elif [ $ecclog -eq 1 ] ; then
     line1=$(echo "$i*8 + 4" | bc -l)
     line2=$(echo "$i*8 + 7" | bc -l)
     cat ${mcdir} | sed -n "$line1,$line2"p > ${output}_tmp_ecclog.mat
@@ -154,7 +159,7 @@ for file in $full_list ; do
 done
 
 # merge
-echo "`basename $0`: merge outputs...."
+echo "`basename $0`: merge outputs..."
 fslmerge -t $output $full_list
 
 # cleanup
