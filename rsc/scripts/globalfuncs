@@ -14,6 +14,13 @@ if [ "$(id -u)" = "0" ]; then
    exit 1
 fi
 
+#function replace_val() {
+  #local src="$1"
+  #local val0="$2"
+  #local val1="$3"
+  #cat $src | sed -e "s|\s\{1,\}| |g ; s|^ ||g ; s| $||g ; s| ${val0} | $val1 |g ; s|^${val0} |$val1 |g ; s| ${val0}$| $val1|g"
+#}
+
 function delJIDs() {
   local jidfile="$1"
   if [ x"$jidfile" = "x" ] ; then

@@ -2160,9 +2160,15 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
       
       # transpose bvals and bvecs files to please TRACULA
       echo "TRACULA : subj $subj , sess $sess : transpose fsl-style bvals / bvecs files to please TRACULA..."
-      transpose $fldr/bvals_concat.txt > $fldr/bvals_transp.txt; cat $fldr/bvals_transp.txt | wc
-      transpose $fldr/bvecs_concat.txt > $fldr/bvecs_transp.txt; cat $fldr/bvecs_transp.txt | wc   
-                
+      transpose $fldr/bvals_concat.txt > $fldr/_bvals_transp.txt; cat $fldr/_bvals_transp.txt | wc
+      transpose $fldr/bvecs_concat.txt > $fldr/bvecs_transp.txt; cat $fldr/bvecs_transp.txt | wc
+      
+      # replace b0-value with 0 (to please TRACULA)
+      min=$(cat $fldr/_bvals_transp.txt | getMin)
+      echo "TRACULA : subj $subj , sess $sess : if b0 value in bvals > 0: replace with zero to please TRACULA (min. is ${min})..."
+      cat $fldr/_bvals_transp.txt | sed -e "s|^${min}$|0|g ; s|^${min}.|0.|g" > $fldr/bvals_transp.txt
+      rm $fldr/_bvals_transp.txt
+      
       # count number of low B images
       nb0=0;
       lowB=`cat $fldr/bvals_transp.txt | getMin`
@@ -2177,7 +2183,9 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
       #if [ ! -f $fldr/diff_merged.nii.gz ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : $fldr/diff_merged.nii.gz not found - skipping consistency check..." ; continue ; fi
             
       # check consistency
-      checkConsistency $fldr/diff_merged.nii.gz $fldr/bvals_transp.txt $fldr/bvecs_transp.txt    
+      checkConsistency $fldr/diff_merged.nii.gz $fldr/bvals_transp.txt $fldr/bvecs_transp.txt
+      
+      echo ""
     done
   done
 fi
