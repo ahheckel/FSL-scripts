@@ -2941,10 +2941,13 @@ if [ $ALFF_STG1 -eq 1 ] ; then
         alff_uw_shiftmap=$featdir/unwarp/EF_UD_shift.nii.gz
       fi
       
+      # apply shiftmap ?
+      if [ $ALFF_APPLY_UNWARP -eq 0 ] ; then uwdir=00 ; alff_uw_shiftmap="none" ; fi
+      
       # check
       if [ ! -d $featdir ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: directory '$featdir' not found - exiting..." ; exit 1 ; fi
       if [ ! -d $featdir/mc ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$featdir/mc' not found - exiting..." ; exit 1 ; fi
-      if [ ! -f $alff_uw_shiftmap ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$alff_uw_shiftmap' not found - exiting..." ; exit 1 ; fi
+      if [ ! -f $alff_uw_shiftmap -a "$uwdir" != "00" ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$alff_uw_shiftmap' not found - exiting..." ; exit 1 ; fi
       
       # mkdir
       fldr=$subjdir/$subj/$sess/alff
@@ -2965,6 +2968,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       # apply motion correction and unwarping
       if [ $uwdir = -y ] ; then  _uwdir=y- ; fi
       if [ $uwdir = +y ] ; then  _uwdir=y ; fi
+      if [ $uwdir = 00 ] ; then  _uwdir=00 ; fi
       
       if [ "$ALFF_DENOISE_MASKS_NAT" != "'none'" ] ; then
         echo "ALFF : subj $subj , sess $sess : copying denoise_masks from './bold/$(basename $featdir)/noise'..."
@@ -2989,7 +2993,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
         echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $alff_uw_shiftmap $_uwdir trilinear ;\
         3dDespike -prefix $fldr/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
         3dTcat -rlt+ -prefix $fldr/__tmp.nii.gz $fldr/_tmp.nii.gz ; \
-        rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ;\
+        rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ; \
         mv $fldr/__tmp.nii.gz $fldr/filtered_func_data.nii.gz" > $cmd
       
       else
