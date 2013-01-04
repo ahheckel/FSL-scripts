@@ -5,7 +5,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 11/28/2012
+# 12/28/2012
 
 set -e
 
@@ -60,24 +60,32 @@ function exec_melodic()
   local opts="$4"
   local sge="$5" ; if [ x"$sge" = "x" ] ; then sge=0 ; fi
   
+  # convert to absolute paths
+  if [ $(echo $input2melodic | grep ^/ | wc -l) -eq 0 ] ; then input2melodic=$(pwd)/$input2melodic ; fi
+  if [ $(echo $outdir | grep ^/ | wc -l) -eq 0 ] ; then outdir=$(pwd)/$outdir ; fi
+  
+  # check
   if [ ! -f $input2melodic ] ; then 
     if [ $(imtest $input2melodic) -eq 0 ] ; then echo "`basename $0`: ERROR: '$input2melodic' does not exist !" ; exit 1 ; fi
   fi
 
+  # add guireport to opts
+  opts="$opts --guireport=$outdir/$subdir/report.html"
+
   # delete outdir if present
-  if [ -f $outdir/$subdir/report/00index.html ] ; then echo "" ; echo "`basename $0`: WARNING : output directory '$outdir/$subdir' already exists - deleting it..." ; echo "" ; rm -r $outdir/$subdir ; fi
+  if [ -f $outdir/$subdir/report/00index.html ] ; then echo "" ; echo "`basename $0`: WARNING : output directory '$outdir/$subdir' already exists - deleting it in 5 seconds..." ; echo "" ; sleep 5 ; rm -r $outdir/$subdir ; fi
   
   # create output directory
   mkdir -p $outdir/$subdir
-  
+
   # execute melodic
   echo ""
   cmd="melodic -i $input2melodic -o $outdir/$subdir $opts"
-  echo $cmd | tee $outdir/melodic.cmd
+  echo $cmd | tee $outdir/$subdir/melodic.cmd
   if [ $sge -eq 1 ] ; then
-    fsl_sub -l $outdir -t $outdir/melodic.cmd
+    fsl_sub -l $outdir/$subdir/ -t $outdir/$subdir/melodic.cmd
   else
-    . $outdir/melodic.cmd
+    . $outdir/$subdir/melodic.cmd
   fi
 
   # link to report webpage
@@ -136,7 +144,6 @@ if [ $gica -eq 1 -a "$outdir" != "-1" ] ; then
   input2melodic="$outdir/melodic.inputfiles"
   outdir="$outdir"
   subdir=${prefix}groupmelodic.ica
-  opts="$opts --guireport=$outdir/$subdir/report.html"
   # execute
   exec_melodic $input2melodic $outdir $subdir "$opts"
 fi
@@ -156,7 +163,6 @@ if  [ $gica -eq 1 -a "$outdir" = "-1" ] ; then
     input2melodic="$file" # single file for single session ICA
     outdir="$(dirname $file)"
     subdir=${prefix}$(remove_ext $(basename $file)).ica
-    opts="$opts --guireport=$outdir/$subdir/report.html"
     # execute
     exec_melodic $input2melodic $outdir $subdir "$opts" 1
   done
@@ -167,7 +173,6 @@ if [ $gica -eq 0 -a "$outdir" != "-1" ] ; then
   input2melodic="$inputs" # sinlge file for single session ICA
   outdir="$outdir"
   subdir=${prefix}$(remove_ext $(basename $inputs)).ica  
-  opts="$opts --guireport=$outdir/$subdir/report.html"
   # execute
   exec_melodic $input2melodic $outdir $subdir "$opts" 
 fi
@@ -177,7 +182,6 @@ if [ $gica -eq 0 -a "$outdir" = "-1" ] ; then
   input2melodic="$inputs" # sinlge file for single session ICA
   outdir="$(dirname $inputs)"
   subdir=${prefix}$(remove_ext $(basename $inputs)).ica
-  opts="$opts --guireport=$outdir/$subdir/report.html"
   # execute
   exec_melodic $input2melodic $outdir $subdir "$opts"  
 fi
