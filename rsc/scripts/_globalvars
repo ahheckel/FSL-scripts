@@ -239,9 +239,9 @@ BOLD_DENOISE_MASKS_MNI="MNI_CSF MNI_WM"                       # masks used for d
 BOLD_DENOISE_USE_MOVPARS_MNI="1"                              # see above
 
 # ALFF
-ALFF_DENOISE_MASKS_NAT="none"                                   # enter "none" to switch off (default none), o.w. e.g. "EF_CSF EF_WB EF_WM"
-ALFF_DENOISE_USE_MOVPARS_NAT="0"                                # enter "0" to switch off (default 0)
-ALFF_SMOOTHING_KERNEL=6                                         # enter FWHM in mm (default 6)
+ALFF_DENOISE_MASKS_NAT="none"                                   # enter "none" to switch off (default: none), o.w. e.g. "EF_CSF EF_WB EF_WM"
+ALFF_DENOISE_USE_MOVPARS_NAT="0"                                # enter "0" to switch off (default: 0)
+ALFF_SMOOTHING_KERNEL=6                                         # enter FWHM in mm (default: 6)
 ALFF_HPF_CUTOFF=""                                              # enter "none", "" or "Inf" to use AFNI's detrending tool (default "")
 ALFF_BANDPASS="0.01,0.1"                                        # enter bandpass (default: "0.01,0.1")
 ALFF_FSLV5=0                                                    # in FSL 5 naming of unwarp shiftmap and its location is different

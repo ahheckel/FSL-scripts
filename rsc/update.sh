@@ -10,18 +10,19 @@ if [ x$FSLDIR = "x" ] ; then echo "FSLDIR variable is not defined ! Exiting." ; 
 if [ x$FREESURFER_HOME = "x" ] ; then echo "FREESURFER_HOME variable is not defined ! Exiting." ; exit 1 ; fi
 
 v5=$(cat $FSLDIR/etc/fslversion | grep ^5 | wc -l)
-if [ $v5 -eq 1 ] ; then
-  echo "FSL v.5 detected. Replacing fsl_sub..."
-  cp -iv fsl/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection
-fi
+#if [ $v5 -eq 1 ] ; then
+  #echo "FSL v.5 detected. Replacing fsl_sub..."
+  #cp -iv fsl/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection
+#fi
 
+cp -iv fsl/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection, should also work for FSL < v.5
 cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
 cp -iv fsl/MNI152*.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/avg152T1_white_bin.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/avg152T1_csf_bin.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/rsn10.nii.gz $FSLDIR/data/standard/
 if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
-  cp -iv fsl/fsl_sub $FSLDIR/bin/fsl_sub # contains a RAM limit
+  #cp -iv fsl/fsl_sub $FSLDIR/bin/fsl_sub # contains a RAM limit
   cp -iv fsl/tbss_x/tbss_x $FSLDIR/bin/tbss_x
   cp -iv fsl/topup/b02b0.cnf $FSLDIR/etc/flirtsch/b02b0.cnf
   cp -iv fsl/featlib.tcl $FSLDIR/tcl/featlib.tcl
