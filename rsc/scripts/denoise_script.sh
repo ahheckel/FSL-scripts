@@ -8,7 +8,7 @@ set -e
 Usage() {
     echo ""
     echo "Usage:  `basename $0` <textfile> <commondir> <bold/featdir>"
-    echo "Examle: `basename $0` artfefacts.txt /mnt/nas/data/fmrtkiralutz/subj bold/preprocBOLD_uw+y_st0_s4_hpf100"
+    echo "Examle: `basename $0` artfefacts.txt /mnt/nas/data/fmrtkiralutz/subj bold/preprocBOLD_uw+y_st0_s4_hpf100.feat"
     echo "Note:   'artefacts.txt' must be formatted this way:"
     echo "  multisession designs:"
     echo "  01 a 1,5,9"

@@ -3817,10 +3817,17 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
       # executing dualreg...
       echo "DUALREG : executing dualreg script on group-level ICs in '$ICfile' - writing to folder '$dr_outdir'..."
       
-      if [ x"$DUALREG_USE_MOVPARS_HPF" = "x" ] ; then usemov=0 ; DUALREG_USE_MOVPARS_HPF="dummy" ; else usemov=1 ; echo "DUALREG : Motion parameters will be used in dual-regressions (hpf-cutoff (s): ${DUALREG_USE_MOVPARS_HPF})." ; fi      
+      if [ "$DUALREG_USE_MOVPARS_HPF" = "dummy" ] ; then 
+        usemov=0
+      else 
+        usemov=1
+        echo "DUALREG : Motion parameters will be used in dual-regressions (hpf-cutoff (s): ${DUALREG_USE_MOVPARS_HPF})."        
+      fi
+      echo ""
       cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 0 dummy dummy 1 0 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
       $cmd ; waitIfBusy
       
+      echo ""
       cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $usemov $TR_bold $DUALREG_USE_MOVPARS_HPF 0 1 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
       $cmd ; waitIfBusy
     done
@@ -3866,14 +3873,6 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
                 echo "DUALREG : WARNING : deleting stats-folder '$dr_outdir/stats/$dr_glm_name' in 5 seconds as requested - you may want to abort with CTRL-C..." ; sleep 5
                 rm -r $dr_outdir/stats/$dr_glm_name
               fi
-              #rm -rf $dr_outdir/stats/$dr_glm_name/dr_stage3_*_logs
-              #rm -f $dr_outdir/stats/$dr_glm_name/dr_stage3_*SEED*.nii.gz 
-              #rm -f $dr_outdir/stats/$dr_glm_name/dr_stage3_*.generate
-              #rm -f $dr_outdir/stats/$dr_glm_name/dr_stage3_*.defragment
-              #rm -rf $dr_outdir/stats/$dr_glm_name/dr_stage3_${dr_glm_name}_*_logs
-              #rm -f $dr_outdir/stats/$dr_glm_name/dr_stage3_${dr_glm_name}_*.nii.gz 
-              #rm -f $dr_outdir/stats/$dr_glm_name/dr_stage3_${dr_glm_name}_*.generate
-              #rm -f $dr_outdir/stats/$dr_glm_name/dr_stage3_${dr_glm_name}_*.defragment
           else
             read -p "DUALREG : stats-folder '$dr_outdir/stats/$dr_glm_name'  already exists. Press any key to continue or CTRL-C to abort..."
           fi
