@@ -313,6 +313,16 @@ function isStillRunning()
   echo $stillrunnning
 }
 
+function waitIfBusy0() 
+{
+  # w/o job-ID file
+  if [ `isClusterBusy` -gt 0 ] ; then
+    echo -n "waiting..."
+    while [ `isClusterBusy` -gt 0 ] ; do echo -n '.' ; sleep 30 ; done
+    echo "done."
+  fi
+}
+
 function waitIfBusy() 
 {
   local JIDfile="$1"
