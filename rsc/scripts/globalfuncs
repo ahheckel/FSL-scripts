@@ -355,12 +355,16 @@ function waitIfBusy()
   
   # with job-ID file - cycle through IDs and wait until every job in the list has completed.
   if [ $nojidfile -eq 0 ] ; then
-    for ID in $(cat $JIDfile) ; do
-      if [ `isStillRunning $ID` -gt 0 ] ; then
-        echo -n "waiting for job ID '$ID' (in '$JIDfile') to complete..."
-        while [ `isStillRunning $ID` -gt 0 ] ; do echo -n '.' ; sleep 30 ; done
-        echo " '$ID' is done."
-      fi
+    lastID="$(tail -n 1 $JIDfile)"
+    while [ 1 -eq 1 ] ; do
+      for ID in $(cat $JIDfile) ; do
+        if [ `isStillRunning $ID` -gt 0 ] ; then
+          echo -n "waiting for job ID '$ID' (in '$JIDfile') to complete..."
+          while [ `isStillRunning $ID` -gt 0 ] ; do echo -n '.' ; sleep 30 ; done
+          echo " '$ID' is done."          
+        fi
+      done
+      if [ "$lastID" = "$(tail -n 1 $JIDfile)" ] ; then break ; else lastID=$(tail -n 1 $JIDfile) ; fi # don't exit forever loop when a JOB-ID has been added in the meantime... (!)
     done
     rm $JIDfile ; touch $JIDfile
     return
