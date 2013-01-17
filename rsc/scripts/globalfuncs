@@ -328,6 +328,7 @@ function waitIfBusy()
   local JIDfile="$1"
   local nojidfile=1
   local ID=""
+  local lastID=""
   
   # is job-ID file defined ?
   if [ x"$JIDfile" = "x" ] ; then # ID file as local argument ? no...
@@ -364,7 +365,7 @@ function waitIfBusy()
           echo " '$ID' is done."          
         fi
       done
-      if [ "$lastID" = "$(tail -n 1 $JIDfile)" ] ; then break ; else lastID=$(tail -n 1 $JIDfile) ; fi # don't exit forever loop when a JOB-ID has been added in the meantime... (!)
+      if [ "$lastID" = "$(tail -n 1 $JIDfile)" ] ; then break ; else lastID="$(tail -n 1 $JIDfile)" ; fi # don't exit forever loop when a JOB-ID has been added in the meantime... (!)
     done
     rm $JIDfile ; touch $JIDfile
     return
