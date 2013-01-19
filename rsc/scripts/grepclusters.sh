@@ -12,7 +12,7 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <atlas:-tbss|-vbm> <dir> <search-pttrn> <thres> <fslview 1|0>"
+    echo "Usage: `basename $0` <atlas:-tbss|-vbm|-ica> <dir> <search-pttrn> <thres> <fslview 1|0>"
     echo "Example: `basename $0` -vbm ./stats \"*_corrp_*\" 0.95 1"
     echo "         `basename $0` -vbm ./stats \"*_tfce_corrp_*\" -1"
     echo "         NOTE: thres=-1     reports only the most significant result."
@@ -22,6 +22,8 @@ Usage() {
 }
 
 if [ $# -lt 4 ] ; then Usage ; fi
+
+# define input arguments
 if [ $(echo $1 | grep ^- | wc -l) -eq 0 ] ; then Usage ; fi
 anal=$1
 dir=$2
@@ -31,15 +33,19 @@ if [ -z $5 ] ; then fslview=0 ; else fslview=$5 ; fi
 if [ "$thres" = "-1" ] ; then reportfirst=1 ; thres=0.01 ; else reportfirst=0 ; fi
 if [ "$(echo $thres | cut -c 1)" = "-" ] ; then reportfirst=1 ; thres=$(echo $thres | cut -d - -f2) ; else reportfirst=0 ; fi
 
+# define additional vars
 collect=""
 logfile="./findClusters.log"
 tmpfile="./findClusters.tmp"
 
+# delete temporary files from prev. run
 rm -f $logfile
 rm -f $tmpfile
 
+# gather input files
 files=`find $dir -name "$pttrn" | grep -v SEED | $(dirname $0)/bin/sort8 -V`
 
+# display cluster-information
 echo "*** thres > $thres ***" | tee -a $logfile
 
 for f in $files ; do 
@@ -69,7 +75,7 @@ for f in $files ; do
         printf '\t JHU1: %s\n' "$JHU1" | tee -a $logfile
         printf '\t JHU2: %s\n' "$JHU2" | tee -a $logfile
       fi
-      if [ $anal = "-vbm" ] ; then
+      if [ $anal = "-vbm" -o $anal = "-ica" ] ; then
         HAV1=$(atlasquery  -a "Harvard-Oxford Cortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         HAV2=$(atlasquery  -a "Harvard-Oxford Subcortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         TAL=$(atlasquery  -a "Talairach Daemon Labels" -c ${x},${y},${z} | cut -d ">" -f 4)
@@ -89,8 +95,10 @@ for f in $files ; do
   fi
 done
 
+# rm temporary files
 rm -f $tmpfile
 
+# display section 1
 if [ $anal = "-tbss" ] ; then
   if [ $fslview -eq 1 ] ; then
     for f in $collect ; do
@@ -103,14 +111,37 @@ if [ $anal = "-tbss" ] ; then
   fi
 fi
 
+# display section 2
 if [ $anal = "-vbm" ] ; then
   if [ $fslview -eq 1 ] ; then
     for f in $collect ; do
       statsdir=$(dirname $f);
       if [ "$statsdir" = "." ] ; then statsdir=".." ; else statsdir=$(dirname $(dirname $f)) ; fi
       res=$(fslinfo $f | grep pixdim1 | awk {'print $2'}) ; res=$(printf '%.0f' $res)
-      fslview $statsdir/mean_GM_mod_merg_smoothed.nii.gz $f -l "Red" -b 0.75,0.9
+      fslview $statsdir/mean_GM_mod_merg_smoothed.nii.gz $f -l "Red" -b 0.75,0.9     
     done
+  fi
+fi
+
+# display section 3
+if [ $anal = "-ica" ] ; then
+  if [ $fslview -eq 1 ] ; then
+    for f in $collect ; do
+      # check if size / resolution matches
+      MNItemplates="${FSLDIR}/data/standard/MNI152_T1_4mm_brain ${FSLDIR}/data/standard/MNI152_T1_2mm_brain"
+      for MNI in $MNItemplates ; do        
+        fslmeants -i $f -m $MNI &>/dev/null
+        if [ $? -gt 0 ] ; then 
+          echo "$(basename $0) : WARNING : size / resolution does not match btw. '$f' and '$MNI' (ignore error above) - continuing loop..."
+          continue
+        else
+          if [ $(echo $MNI | grep _4mm_ | wc -l) -eq 1 ] ; then rsn=${FSLDIR}/data/standard/rsn10_CSFWM_4mm.nii.gz ; fi
+          if [ $(echo $MNI | grep _2mm_ | wc -l) -eq 1 ] ; then rsn=${FSLDIR}/data/standard/rsn10_CSFWM_2mm.nii.gz ; fi
+          fslview $MNI $rsn -t 0 -l "Blue-Lightblue" -b 1,2.1372 $f -l "Red" -b 0.75,0.9 -t 1
+          break
+        fi        
+      done # end MNI    
+    done # end f
   fi
 fi
 

@@ -36,6 +36,8 @@ else
 fi
 
 [ "$7" = "" ] && Usage
+
+# define arguments
 input=$(remove_ext "$1")
 masks="$2"
 movpar="$3" ; 
@@ -46,6 +48,7 @@ output=$(remove_ext "$7")
 subj="$8"  # optional
 sess="$9"  # optional
 
+# define additional vars
 outdir=`dirname $output`
 indir=`dirname $input`
 formula1="output_precision(8); c" # formula1="c-mean(c)" # for WM / CSF / WB signal

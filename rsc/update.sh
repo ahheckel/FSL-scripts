@@ -20,7 +20,9 @@ cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
 cp -iv fsl/MNI152*.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/avg152T1_white_bin.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/avg152T1_csf_bin.nii.gz $FSLDIR/data/standard/
-cp -iv fsl/rsn10.nii.gz $FSLDIR/data/standard/
+cp -iv fsl/rsn10*.nii.gz $FSLDIR/data/standard/
+cp -iv fsl/rsn8*.nii.gz $FSLDIR/data/standard/
+
 if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
   #cp -iv fsl/fsl_sub $FSLDIR/bin/fsl_sub # contains a RAM limit
   cp -iv fsl/tbss_x/tbss_x $FSLDIR/bin/tbss_x
@@ -34,8 +36,7 @@ if [ $1 -eq 64 ] ; then
     cp -iv fsl/topup/applytopup_64 $FSLDIR/bin/applytopup 
     cp -iv fsl/tbss_x/swap_voxelwise_64 $FSLDIR/bin/swap_voxelwise
     cp -iv fsl/tbss_x/swap_subjectwise_64 $FSLDIR/bin/swap_subjectwise
-  fi
-  
+  fi  
   cp -iv afni/3dDespike_64 $FSLDIR/bin/3dDespike
   cp -iv afni/3dTcat_64 $FSLDIR/bin/3dTcat
   cp -iv afni/3dTstat_64 $FSLDIR/bin/3dTstat
@@ -49,8 +50,7 @@ if [ $1 -eq 32 ] ; then
     cp -iv fsl/topup/applytopup_32 $FSLDIR/bin/applytopup
     cp -iv fsl/tbss_x/swap_voxelwise_32 $FSLDIR/bin/swap_voxelwise
     cp -iv fsl/tbss_x/swap_subjectwise_32 $FSLDIR/bin/swap_subjectwise
-  fi 
-  
+  fi  
   cp -iv afni/3dDespike_32 $FSLDIR/bin/3dDespike 
   cp -iv afni/3dTcat_32 $FSLDIR/bin/3dTcat
   cp -iv afni/3dTstat_32 $FSLDIR/bin/3dTstat
