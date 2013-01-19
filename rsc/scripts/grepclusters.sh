@@ -137,7 +137,7 @@ if [ $anal = "-ica" ] ; then
         else
           if [ $(echo $MNI | grep _4mm_ | wc -l) -eq 1 ] ; then rsn=${FSLDIR}/data/standard/rsn10_CSFWM_4mm.nii.gz ; fi
           if [ $(echo $MNI | grep _2mm_ | wc -l) -eq 1 ] ; then rsn=${FSLDIR}/data/standard/rsn10_CSFWM_2mm.nii.gz ; fi
-          fslview $MNI $rsn -t 0 -l "Blue-Lightblue" -b 1,2.1372 $f -l "Red" -b 0.75,0.9 -t 1
+          fslview $MNI $rsn -t 0 -l "Blue-Lightblue" -b 1,2.1372 $f -l "Red" -b 0.95,1 -t 1
           break
         fi        
       done # end MNI    
