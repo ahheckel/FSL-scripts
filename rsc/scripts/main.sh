@@ -3950,7 +3950,7 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
           #$cmd ; waitIfBusy0 # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
           $cmd ; waitIfBusy # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
         done
-        
+        echo ""
       done # end IC_fname
     done # end _inputfile
   done # DUALREG_INPUT_ICA_DIRNAME

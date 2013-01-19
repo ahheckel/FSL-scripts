@@ -15,7 +15,8 @@ Usage() {
     echo "Usage: `basename $0` <atlas:-tbss|-vbm> <dir> <search-pttrn> <thres> <fslview 1|0>"
     echo "Example: `basename $0` -vbm ./stats \"*_corrp_*\" 0.95 1"
     echo "         `basename $0` -vbm ./stats \"*_tfce_corrp_*\" -1"
-    echo "         NOTE: thres=-1 reports only the most significant result."
+    echo "         NOTE: thres=-1     reports only the most significant result."
+    echo "               thres=-0.95  reports only the most significant result > 0.95."
     echo ""
     exit 1
 }
@@ -28,6 +29,7 @@ pttrn=$3
 thres=$4
 if [ -z $5 ] ; then fslview=0 ; else fslview=$5 ; fi
 if [ "$thres" = "-1" ] ; then reportfirst=1 ; thres=0.01 ; else reportfirst=0 ; fi
+if [ "$(echo $thres | cut -c 1)" = "-" ] ; then reportfirst=1 ; thres=$(echo $thres | cut -d - -f2) ; else reportfirst=0 ; fi
 
 collect=""
 logfile="./findClusters.log"
