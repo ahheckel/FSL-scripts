@@ -31,11 +31,11 @@ input=`remove_ext "$1"`
 output=`remove_ext "$2"`
 mcdir="$3"
 f2t1_mat="$4"
-f2mni_warp="$5"
+f2mni_warp=`remove_ext "$5"`
 interp="$6"
 if [ x"$interp" = "x" ] ; then interp="trilinear" ; fi
-ref="$7"
-if [ x"$ref" = "x" ] ; then ref="${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii.gz" ; fi
+ref=`remove_ext "$7"`
+if [ x"$ref" = "x" ] ; then ref="${FSLDIR}/data/standard/MNI152_T1_2mm_brain" ; fi
 
 # calling function
 cmd="$(dirname $0)/apply_mc+unwarp+reg2MNI.sh $input $output $mcdir none 00 $f2t1_mat $f2mni_warp $interp $ref"

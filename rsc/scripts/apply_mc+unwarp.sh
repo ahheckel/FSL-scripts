@@ -1,5 +1,5 @@
 #!/bin/bash
-# Applies motion-correction transforms and unwarp-shiftmap to 4D.
+# Applies motion-correction and unwarp-shiftmap to 4D.
 
 # Written by Andreas Heckel
 # University of Heidelberg
@@ -24,7 +24,7 @@ function testascii()
 Usage() {
     echo ""
     echo "Usage: `basename $0` <input4D> <output4D> <mc mat-dir|.ecclog file|matrix file> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> [<interp (default:trilinear)>]"
-    echo "Example: `basename $0` bold uw_bold ./mc/prefiltered_func_data_mcf.mat/ ./unwarp/EF_UD_shift.nii.gz y spline"
+    echo "Example: `basename $0` bold uw_bold ./mc/prefiltered_func_data_mcf.mat/ ./unwarp/EF_UD_shift.nii.gz y- spline"
     echo "         `basename $0` diff uw_diff ./ec_dwi.ecclog ./unwarp/EF_UD_shift.nii.gz y trilinear"
     echo "         `basename $0` diff uw_diff ./matrix.mat ./unwarp/EF_UD_shift.nii.gz y sinc"
     echo "         `basename $0` diff uw_diff none ./unwarp/EF_UD_shift.nii.gz y sinc"
@@ -38,7 +38,7 @@ Usage() {
 input=`remove_ext "$1"`
 output=`remove_ext "$2"`
 mcdir="$3"
-shiftmap="$4" ; douw=1 ; if [ "$shiftmap" = "none" ] ; then douw=0 ; fi
+shiftmap=`remove_ext "$4"` ; douw=1 ; if [ "$shiftmap" = "none" ] ; then douw=0 ; fi
 uwdir="$5" ; if [ "$uwdir" = "00" -o "$uwdir" = "0" ] ; then douw=0 ; fi
 interp="$6"
 if [ x"$interp" = "x" ] ; then interp="trilinear" ; fi

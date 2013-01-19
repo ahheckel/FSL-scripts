@@ -23,7 +23,7 @@ Usage() {
 
 input=`remove_ext "$1"`
 output=`remove_ext "$2"`
-shiftmap="$3"
+shiftmap=`remove_ext "$3"`
 uwdir="$4"
 interp="$5"
 if [ x"$interp" = "x" ] ; then interp="trilinear" ; fi

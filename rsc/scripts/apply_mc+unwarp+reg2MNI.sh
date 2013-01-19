@@ -23,7 +23,7 @@ function testascii()
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input4D> <output4D> <mc mat-dir|.ecclog file|matrix file> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> <func_to_T1 mat> <T1_to_MNI warp> [<interp>] [<MNI_ref>]"
+    echo "Usage: `basename $0` <input4D> <output4D> <mc mat-dir|.ecclog file|matrix file> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> <func_to_T1 mat> <T1_to_MNI warp> [<interp (default:trilinear)>] [<MNI_ref>]"
     echo "Example: `basename $0` bold mni_bold ./mc/prefiltered_func_data_mcf.mat/ ./unwarp/EF_UD_shift.nii.gz y ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz"
     echo "         `basename $0` diff mni_diff ./diff.ecclog ./unwarp/EF_UD_shift.nii.gz y ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz nn"
     echo "         `basename $0` diff mni_diff ./matrix.mat ./unwarp/EF_UD_shift.nii.gz y- ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz spline"
@@ -39,14 +39,14 @@ Usage() {
 input=`remove_ext "$1"`
 output=`remove_ext "$2"`
 mcdir="$3"
-shiftmap="$4" ; douw=1 ; if [ "$shiftmap" = "none" ] ; then douw=0 ; fi
+shiftmap=`remove_ext "$4"` ; douw=1 ; if [ "$shiftmap" = "none" ] ; then douw=0 ; fi
 uwdir="$5" ; if [ "$uwdir" = "00" -o "$uwdir" = "0" ] ; then douw=0 ; fi
 f2t1_mat="$6"
-f2mni_warp="$7"
+f2mni_warp=`remove_ext "$7"`
 interp="$8"
 if [ x"$interp" = "x" ] ; then interp="trilinear" ; fi
-ref="$9"
-if [ x"$ref" = "x" ] ; then ref="${FSLDIR}/data/standard/MNI152_T1_2mm_brain.nii.gz" ; fi
+ref=`remove_ext "$9"`
+if [ x"$ref" = "x" ] ; then ref="${FSLDIR}/data/standard/MNI152_T1_2mm_brain" ; fi
 
 # MNI affine-only registration ?
 if [ "$f2t1_mat" != "none" -a "$f2mni_warp" = "none" ] ; then MNIaff=1 ; else MNIaff=0 ; fi

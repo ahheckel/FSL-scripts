@@ -28,6 +28,11 @@ subj="$5"  # optional
 sess="$6"  # optional
 
 if [ ! -f $data ] ; then echo "`basename $0`: subj $subj , sess $sess : ERROR: '$data' not found - exiting." exit 1 ; fi
+if [ "$hpf" = "Inf" -o "$hpf" = "inf" ] ; then
+  echo "`basename $0`: subj $subj , sess $sess : no filtering -> just copying '$data' to '$out' (hpf=${hpf})."
+  cp ${data} ${out}
+  exit
+fi
 
 echo "`basename $0`: subj $subj , sess $sess : high-pass filtering '$data'."
 

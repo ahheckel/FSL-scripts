@@ -15,7 +15,7 @@ if [ "$(id -u)" = "0" ]; then
 fi
 
 # echo date
-startdate=$(date) ; echo "Executing '$0' on ${startdate}..."
+startdate=$(date) ; echo "Executing '$0' on ${startdate}."
 startdate_sec=$(date +"%s")
 
 # exit on error
@@ -117,6 +117,8 @@ DUALREG_INCLUDED_SUBJECTS=$(echo $DUALREG_INCLUDED_SUBJECTS | row2col | sort -u)
 DUALREG_INCLUDED_SESSIONS=$(echo $DUALREG_INCLUDED_SESSIONS | row2col | sort -u)
 DUALREG_INPUT_ICA_DIRNAMES=$(echo $DUALREG_INPUT_ICA_DIRNAMES | row2col | sort -u)
 DUALREG_IC_FILENAMES=$(echo $DUALREG_IC_FILENAMES | row2col | sort -u)
+DUALREG_INPUT_BOLD_FILES=$(echo $DUALREG_INPUT_BOLD_FILES | row2col | sort -u)
+
 # define denoise tags
 _m=$(for i in $BOLD_DENOISE_MASKS_NAT ; do remove_ext $i | cut -d _ -f 2 ; done) ; dntag_boldnat=$(rem_blanks "$BOLD_DENOISE_USE_MOVPARS_NAT")$(rem_blanks "$_m")
 _m=$(for i in $BOLD_DENOISE_MASKS_MNI ; do remove_ext $i | cut -d _ -f 2 ; done) ; dntag_boldmni=$(rem_blanks "$BOLD_DENOISE_USE_MOVPARS_MNI")$(rem_blanks "$_m")
@@ -3727,134 +3729,65 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
   
   # where to look for input files...
   for DUALREG_INPUT_ICA_DIRNAME in $DUALREG_INPUT_ICA_DIRNAMES ; do
+  
     # this applies when inputfile variable is set
-    if [ x"$DUALREG_INPUT_BOLD_FILE" != "x" ] ; then
-      _inputfile=$DUALREG_INPUT_BOLD_FILE
+    if [ x"$DUALREG_INPUT_BOLD_FILES" != "x" ] ; then
+      _inputfiles="$DUALREG_INPUT_BOLD_FILES"
     # this applies when MELODIC-GUI was used
     elif [ -f $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.fsf ] ; then
       echo "DUALREG : taking basic input filename from '$gicadir/${DUALREG_INPUT_ICA_DIRNAME}.fsf' (first entry therein)"
-      _inputfile=$(basename $(cat $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.fsf | grep "set feat_files(1)" | cut -d "\"" -f 2)) # get inputfile basename from melodic *.fsf file... (assuming same basename for all included subjects/sessions) (!)
-      _inputfile=$(remove_ext $_inputfile)_${DUALREG_INPUT_ICA_DIRNAME}.ica/reg_standard/filtered_func_data.nii.gz
+      _inputfiles=$(basename $(cat $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.fsf | grep "set feat_files(1)" | cut -d "\"" -f 2)) # get inputfile basename from melodic *.fsf file... (assuming same basename for all included subjects/sessions) (!)
+      _inputfiles=$(remove_ext $_inputfiles)_${DUALREG_INPUT_ICA_DIRNAME}.ica/reg_standard/filtered_func_data.nii.gz
     # this applies when MELODIC command line tool was used
     elif [ -f $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files ] ; then
       echo "DUALREG : taking basic input filename from '${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files' (first entry therein)"
-      _inputfile=$(basename $(head -n 1 $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files)) # get inputfile basename from melodic input-file list...(assuming same basename for all included subjects/sessions) (!)
+      _inputfiles=$(basename $(head -n 1 $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files)) # get inputfile basename from melodic input-file list...(assuming same basename for all included subjects/sessions) (!)
     else
       echo "DUALREG : ERROR : no input files defined - exiting..." ; exit 1
     fi
     
-    # gather input-files
-    inputfiles="" ; inputfile="" ; err=0
-    for subj in $DUALREG_INCLUDED_SUBJECTS ; do
-      for sess in $DUALREG_INCLUDED_SESSIONS ; do        
+    # check inputfiles
+    for _inputfile in $_inputfiles ; do
+      inputfiles="" ; inputfile="" ; err=0
+      for subj in $DUALREG_INCLUDED_SUBJECTS ; do
+        for sess in $DUALREG_INCLUDED_SESSIONS ; do        
 
-        inputfile=$subjdir/$subj/$sess/bold/${_inputfile}
-                
-        if [ $(_imtest $inputfile) -eq 0 ] ; then echo "DUALREG : subj $subj , sess $sess : ERROR : standard-space registered input file '$inputfile' not found - continuing..." ; err=1 ; continue ; fi
-        
-        #if [ `echo "$inputfile"|wc -w` -gt 1 ] ; then 
-          #echo "DUALREG : subj $subj , sess $sess : WARNING : more than one standard-space registered input file detected:"
-          #echo "DUALREG : subj $subj , sess $sess :           '$inputfile'"
-          #inputfile=`echo $inputfile | row2col | tail -n 1`
-          #echo "DUALREG : subj $subj , sess $sess :           taking the latest one:"
-          #echo "DUALREG : subj $subj , sess $sess :           '$inputfile'"
-        #fi 
-    
-        echo "DUALREG : subj $subj , sess $sess : adding standard-space registered input file '$inputfile'"
-        inputfiles=$inputfiles" "$inputfile
+          inputfile=$subjdir/$subj/$sess/bold/${_inputfile}
+                  
+          if [ $(_imtest $inputfile) -eq 0 ] ; then echo "DUALREG : subj $subj , sess $sess : ERROR : standard-space registered input file '$inputfile' not found - continuing..." ; err=1 ; continue ; fi
+          
+          #if [ `echo "$inputfile"|wc -w` -gt 1 ] ; then 
+            #echo "DUALREG : subj $subj , sess $sess : WARNING : more than one standard-space registered input file detected:"
+            #echo "DUALREG : subj $subj , sess $sess :           '$inputfile'"
+            #inputfile=`echo $inputfile | row2col | tail -n 1`
+            #echo "DUALREG : subj $subj , sess $sess :           taking the latest one:"
+            #echo "DUALREG : subj $subj , sess $sess :           '$inputfile'"
+          #fi 
+      
+          inputfiles=$inputfiles" "$inputfile
+        done # end sess
+      done # end subj
+      if [ $err -eq 1 ] ; then echo "DUALREG : An ERROR has occured. Exiting..." ; exit 1 ; fi
+    done # end _inputfile
+    # end check
+
+    # gather input-files    
+    for _inputfile in $_inputfiles ; do
+      inputfiles="" ; inputfile="" 
+      for subj in $DUALREG_INCLUDED_SUBJECTS ; do
+        for sess in $DUALREG_INCLUDED_SESSIONS ; do
+          inputfile=$subjdir/$subj/$sess/bold/${_inputfile}
+          echo "DUALREG : subj $subj , sess $sess : adding standard-space registered input file '$inputfile'"
+          inputfiles=$inputfiles" "$inputfile        
+        done
       done
-    done    
-    if [ $err -eq 1 ] ; then echo "DUALREG : An ERROR has occured. Exiting..." ; exit 1 ; fi
     
-    # check if number of rows in design file and number of input-files 
-    if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : ERROR : file '$glmdir_dr/designs' not found - exiting..." ; exit 1 ; fi
-    if [ -z "$(cat $glmdir_dr/designs)" ] ; then echo "DUALREG : ERROR : no designs specified in file '$glmdir_dr/designs' - exiting..." ; exit 1 ; fi
-    dr_glm_names=$(cat $glmdir_dr/designs)
-    for dr_glm_name in $dr_glm_names ; do
-      n_files=$(echo $inputfiles | wc -w)
-      n_rows=$(cat $glmdir_dr/$dr_glm_name/design.mat | grep NumPoints | cut -f 2)
-      if [ $n_files -eq $n_rows ] ; then
-        echo "DUALREG : number of input-files matches number of rows in design matrix '$glmdir_dr/$dr_glm_name/design.mat' ($n_rows entries)."
-      else
-        echo "DUALREG : ERROR : number of input-files ($n_files) does NOT match number of rows in design matrix $glmdir_dr/$dr_glm_name/design.mat ($n_rows entries) !"
-        echo "Exiting."
-        exit
-      fi
-    done
-    
-    # execute...
-    for IC_fname in $DUALREG_IC_FILENAMES ; do
-      ICfile=$gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
-      dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAME}_$(remove_ext $IC_fname)
-      if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit 1 ; fi
-      
-      # cleanup previous run
-      if [ -d $dr_outdir ] ; then
-        if [ $DUALREG_DELETE_PREV_RUNS -eq 1 ] ; then
-          echo "DUALREG : WARNING : deleting previous run in '$dr_outdir' in 5 seconds as requested - you may want to abort with CTRL-C..." ; sleep 5        
-          rm -rf $dr_outdir/scripts+logs
-          rm -rf $dr_outdir/stats
-          rm -f $dr_outdir/*
-        else
-          read -p "DUALREG : '$dr_outdir' already exists. Press any key to continue or CTRL-C to abort..."
-        fi
-      fi
-      
-      # create output dir  
-      mkdir -p $dr_outdir
-      
-      # save info-files
-      echo $DUALREG_INCLUDED_SUBJECTS | row2col > $dr_outdir/subjects
-      echo $DUALREG_INCLUDED_SESSIONS | row2col > $dr_outdir/sessions
-      echo $inputfiles | row2col > $dr_outdir/inputfiles
-      
-      ## creating link to logdir
-      #ln -sfn ../$(basename $grpdir)/$(basename $dregdir)/$DUALREG_INPUT_ICA_DIRNAME/scripts+logs $logdir/dualreg_${DUALREG_INPUT_ICA_DIRNAME}_scripts+logs # create link to dualreg-logfiles in log-directory
-      
-      # check if we have acquisition parameters
-      defineBOLDparams $subjdir/config_acqparams_bold # assuming that TR is the same for all datasets
-      
-      # executing dualreg...
-      echo "DUALREG : executing dualreg script on group-level ICs in '$ICfile' - writing to folder '$dr_outdir'..."
-      
-      if [ "$DUALREG_USE_MOVPARS_HPF" = "dummy" ] ; then 
-        usemov=0
-      else 
-        usemov=1
-        echo "DUALREG : Motion parameters will be used in dual-regressions (hpf-cutoff (s): ${DUALREG_USE_MOVPARS_HPF})."        
-      fi
-      echo ""
-      cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 0 dummy dummy 1 0 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
-      $cmd ; waitIfBusy
-      
-      echo ""
-      cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $usemov $TR_bold $DUALREG_USE_MOVPARS_HPF 0 1 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
-      $cmd ; waitIfBusy
-    done
-  done
-fi
-
-waitIfBusy
-
-# DUALREG execute randomise call
-if [ $DUALREG_STG2 -eq 1 ] ; then
-  echo "----- BEGIN DUALREG_STG2 -----"
-  for DUALREG_INPUT_ICA_DIRNAME in $DUALREG_INPUT_ICA_DIRNAMES ; do
-    for IC_fname in $DUALREG_IC_FILENAMES ; do
-      dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAME}_$(remove_ext $IC_fname)
-      ICfile=$gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
-      if [ ! -d $dr_outdir ] ; then echo "DUALREG : ERROR : output directory '$dr_outdir' not found - exiting..." ; exit 1 ; fi
-      if [ ! -f $dr_outdir/inputfiles ] ; then echo "DUALREG : ERROR : inputfiles textfile not found, you must run stage1 first - exiting..." ; exit 1 ; fi
-      if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit 1 ; fi
-
-      echo "DUALREG : using output-directory '$dr_outdir'..."
-      
-      # check if number of rows in design file and number of input-files 
+      # check if number of rows in design file and number of input-files match
       if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : ERROR : file '$glmdir_dr/designs' not found - exiting..." ; exit 1 ; fi
       if [ -z "$(cat $glmdir_dr/designs)" ] ; then echo "DUALREG : ERROR : no designs specified in file '$glmdir_dr/designs' - exiting..." ; exit 1 ; fi
       dr_glm_names=$(cat $glmdir_dr/designs)
       for dr_glm_name in $dr_glm_names ; do
-        n_files=$(echo $(cat $dr_outdir/inputfiles) | wc -w)
+        n_files=$(echo $inputfiles | wc -w)
         n_rows=$(cat $glmdir_dr/$dr_glm_name/design.mat | grep NumPoints | cut -f 2)
         if [ $n_files -eq $n_rows ] ; then
           echo "DUALREG : number of input-files matches number of rows in design matrix '$glmdir_dr/$dr_glm_name/design.mat' ($n_rows entries)."
@@ -3865,39 +3798,162 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
         fi
       done
       
-      # delete previous randomise[_parallel] runs
-      for dr_glm_name in $dr_glm_names ; do
-        if [ -d $dr_outdir/stats/$dr_glm_name ] ; then
-          if [ $DUALREG_DELETE_PREV_RUNS -eq 1 ] ; then            
-              if [ ! -z $dr_glm_name ] ; then
-                echo "DUALREG : WARNING : deleting stats-folder '$dr_outdir/stats/$dr_glm_name' in 5 seconds as requested - you may want to abort with CTRL-C..." ; sleep 5
-                rm -r $dr_outdir/stats/$dr_glm_name
-              fi
+      # execute...
+      for IC_fname in $DUALREG_IC_FILENAMES ; do
+        ICfile=$gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
+        dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}__${DUALREG_INPUT_ICA_DIRNAME}__$(remove_ext $IC_fname)__$(basename $(remove_ext $inputfile))
+        
+        # check if IC file exitst
+        if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : WARNING : group-level IC volume '$ICfile' not found - continuing loop..." ; continue ; fi
+        #if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit 1 ; fi
+        
+        # check if size / resolution matches
+        set +e
+        fslmeants -i $ICfile -m $(echo $inputfiles | row2col | head -n 1) &>/dev/null
+        if [ $? -gt 0 ] ; then 
+          echo "DUALREG : WARNING : size / resolution does not match btw. '$ICfile' and '$(echo $inputfiles | row2col | head -n 1)' (ignore error above) - continuing loop..."
+          set -e
+          continue
+        fi
+        set -e
+        
+        # cleanup previous run
+        if [ -d $dr_outdir ] ; then
+          if [ $DUALREG_DELETE_PREV_RUNS -eq 1 ] ; then
+            echo "DUALREG : WARNING : deleting previous run in '$dr_outdir' in 5 seconds as requested - you may want to abort with CTRL-C..." ; sleep 5        
+            rm -rf $dr_outdir/scripts+logs
+            rm -rf $dr_outdir/stats
+            rm -f $dr_outdir/*
           else
-            read -p "DUALREG : stats-folder '$dr_outdir/stats/$dr_glm_name'  already exists. Press any key to continue or CTRL-C to abort..."
+            read -p "DUALREG : '$dr_outdir' already exists. Press any key to continue or CTRL-C to abort..."
           fi
         fi
-      done
-      
-      # executing dualreg...
-      if [ $RANDOMISE_PARALLEL -eq 1 ] ; then
-        RANDCMD="randomise_parallel"
-        echo "DUALREG : using the '$RANDCMD' command."
-        echo "          - note that '$RANDCMD' will fail if i) /bin/sh does not point to /bin/bash and ii) you specify more permutations than uniquely possible."
-      else
-        RANDCMD="randomise"
-        echo "DUALREG : using the '$RANDCMD' command."
-      fi
-      for dr_glm_name in $dr_glm_names ; do
-        echo "DUALREG : copying GLM design '$dr_glm_name' to '$dr_outdir/stats'"
-        mkdir -p $dr_outdir/stats ; cp -r $glmdir_dr/$dr_glm_name $dr_outdir/stats/ ; imcp $ICfile $dr_outdir/stats/
-        echo "DUALREG : calling '$RANDCMD' for folder '$dr_outdir/stats/$dr_glm_name' ($DUALREG_NPERM permutations)."
-        cmd="${scriptdir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp $RANDCMD $DUALREG_NPERM $dr_outdir 0 dummy dummy 0 0 1 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
-        #$cmd ; waitIfBusy0 # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
-        $cmd ; waitIfBusy # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
-      done
-    done
-  done
+        
+        # create output dir  
+        mkdir -p $dr_outdir
+        
+        # save info-files
+        echo $DUALREG_INCLUDED_SUBJECTS | row2col > $dr_outdir/subjects
+        echo $DUALREG_INCLUDED_SESSIONS | row2col > $dr_outdir/sessions
+        echo $inputfiles | row2col > $dr_outdir/inputfiles
+        
+        ## creating link to logdir
+        #ln -sfn ../$(basename $grpdir)/$(basename $dregdir)/$DUALREG_INPUT_ICA_DIRNAME/scripts+logs $logdir/dualreg_${DUALREG_INPUT_ICA_DIRNAME}_scripts+logs # create link to dualreg-logfiles in log-directory
+        
+        # check if we have acquisition parameters
+        defineBOLDparams $subjdir/config_acqparams_bold # assuming that TR is the same for all datasets
+        
+        # executing dualreg...
+        echo "DUALREG : executing dualreg script on group-level ICs in '$ICfile' - writing to folder '$dr_outdir'..."
+        
+        if [ "$DUALREG_USE_MOVPARS_HPF" = "dummy" ] ; then 
+          usemov=0
+        else 
+          usemov=1
+          echo "DUALREG : Motion parameters will be used in dual-regressions (hpf-cutoff (s): ${DUALREG_USE_MOVPARS_HPF})."        
+        fi
+        echo ""
+        cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 0 dummy dummy 1 0 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
+        $cmd ; waitIfBusy
+        
+        echo ""
+        cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $usemov $TR_bold $DUALREG_USE_MOVPARS_HPF 0 1 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
+        $cmd ; waitIfBusy
+        echo ""
+      done  # end IC_fname
+      echo ""
+    done # end _inputfile
+    echo ""
+  done # end DUALREG_INPUT_ICA_DIRNAME
+fi
+
+waitIfBusy
+
+# DUALREG execute randomise call
+if [ $DUALREG_STG2 -eq 1 ] ; then
+  echo "----- BEGIN DUALREG_STG2 -----"
+  for DUALREG_INPUT_ICA_DIRNAME in $DUALREG_INPUT_ICA_DIRNAMES ; do
+  
+    # this applies when inputfile variable is set
+    if [ x"$DUALREG_INPUT_BOLD_FILES" != "x" ] ; then
+      _inputfiles="$DUALREG_INPUT_BOLD_FILES"
+    # this applies when MELODIC-GUI was used
+    elif [ -f $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.fsf ] ; then
+      echo "DUALREG : taking basic input filename from '$gicadir/${DUALREG_INPUT_ICA_DIRNAME}.fsf' (first entry therein)"
+      _inputfiles=$(basename $(cat $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.fsf | grep "set feat_files(1)" | cut -d "\"" -f 2)) # get inputfile basename from melodic *.fsf file... (assuming same basename for all included subjects/sessions) (!)
+      _inputfiles=$(remove_ext $_inputfiles)_${DUALREG_INPUT_ICA_DIRNAME}.ica/reg_standard/filtered_func_data.nii.gz
+    # this applies when MELODIC command line tool was used
+    elif [ -f $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files ] ; then
+      echo "DUALREG : taking basic input filename from '${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files' (first entry therein)"
+      _inputfiles=$(basename $(head -n 1 $gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/input.files)) # get inputfile basename from melodic input-file list...(assuming same basename for all included subjects/sessions) (!)
+    else
+      echo "DUALREG : ERROR : no input files defined - exiting..." ; exit 1
+    fi
+  
+    for _inputfile in $_inputfiles ; do
+      for IC_fname in $DUALREG_IC_FILENAMES ; do
+  #      dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAME}_$(remove_ext $IC_fname)
+        dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}__${DUALREG_INPUT_ICA_DIRNAME}__$(remove_ext $IC_fname)__$(basename $(remove_ext $_inputfile))
+        ICfile=$gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
+        
+        #if [ ! -d $dr_outdir ] ; then echo "DUALREG : ERROR : output directory '$dr_outdir' not found - exiting..." ; exit 1 ; fi
+        if [ ! -d $dr_outdir ] ; then echo "DUALREG : WARNING : output directory '$dr_outdir' not found - continuing loop..." ; continue ; fi
+        if [ ! -f $dr_outdir/inputfiles ] ; then echo "DUALREG : ERROR : inputfiles textfile not found, you must run stage1 first - exiting..." ; exit 1 ; fi
+        if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit 1 ; fi
+
+        echo "DUALREG : using output-directory '$dr_outdir'..."
+        
+        # check if number of rows in design file and number of input-files 
+        if [ ! -f $glmdir_dr/designs ] ; then echo "DUALREG : ERROR : file '$glmdir_dr/designs' not found - exiting..." ; exit 1 ; fi
+        if [ -z "$(cat $glmdir_dr/designs)" ] ; then echo "DUALREG : ERROR : no designs specified in file '$glmdir_dr/designs' - exiting..." ; exit 1 ; fi
+        dr_glm_names=$(cat $glmdir_dr/designs)
+        for dr_glm_name in $dr_glm_names ; do
+          n_files=$(echo $(cat $dr_outdir/inputfiles) | wc -w)
+          n_rows=$(cat $glmdir_dr/$dr_glm_name/design.mat | grep NumPoints | cut -f 2)
+          if [ $n_files -eq $n_rows ] ; then
+            echo "DUALREG : number of input-files matches number of rows in design matrix '$glmdir_dr/$dr_glm_name/design.mat' ($n_rows entries)."
+          else
+            echo "DUALREG : ERROR : number of input-files ($n_files) does NOT match number of rows in design matrix $glmdir_dr/$dr_glm_name/design.mat ($n_rows entries) !"
+            echo "Exiting."
+            exit
+          fi
+        done
+        
+        # delete previous randomise[_parallel] runs
+        for dr_glm_name in $dr_glm_names ; do
+          if [ -d $dr_outdir/stats/$dr_glm_name ] ; then
+            if [ $DUALREG_DELETE_PREV_RUNS -eq 1 ] ; then            
+                if [ ! -z $dr_glm_name ] ; then
+                  echo "DUALREG : WARNING : deleting stats-folder '$dr_outdir/stats/$dr_glm_name' in 5 seconds as requested - you may want to abort with CTRL-C..." ; sleep 5
+                  rm -r $dr_outdir/stats/$dr_glm_name
+                fi
+            else
+              read -p "DUALREG : stats-folder '$dr_outdir/stats/$dr_glm_name'  already exists. Press any key to continue or CTRL-C to abort..."
+            fi
+          fi
+        done
+        
+        # executing dualreg...
+        if [ $RANDOMISE_PARALLEL -eq 1 ] ; then
+          RANDCMD="randomise_parallel"
+          echo "DUALREG : using the '$RANDCMD' command."
+          echo "          - note that '$RANDCMD' will fail if i) /bin/sh does not point to /bin/bash and ii) you specify more permutations than uniquely possible."
+        else
+          RANDCMD="randomise"
+          echo "DUALREG : using the '$RANDCMD' command."
+        fi
+        for dr_glm_name in $dr_glm_names ; do
+          echo "DUALREG : copying GLM design '$dr_glm_name' to '$dr_outdir/stats'"
+          mkdir -p $dr_outdir/stats ; cp -r $glmdir_dr/$dr_glm_name $dr_outdir/stats/ ; imcp $ICfile $dr_outdir/stats/
+          echo "DUALREG : calling '$RANDCMD' for folder '$dr_outdir/stats/$dr_glm_name' ($DUALREG_NPERM permutations)."
+          cmd="${scriptdir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp $RANDCMD $DUALREG_NPERM $dr_outdir 0 dummy dummy 0 0 1 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
+          #$cmd ; waitIfBusy0 # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
+          $cmd ; waitIfBusy # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
+        done
+        
+      done # end IC_fname
+    done # end _inputfile
+  done # DUALREG_INPUT_ICA_DIRNAME
 fi
 
 #########################
