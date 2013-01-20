@@ -27,20 +27,20 @@ Usage() {
     exit 1
 }
 
-#function _imtest()
-#{
-  #local vol="$1"
+function _imtest()
+{
+  local vol="$1"
  
-  #if [ -f ${vol} -o -f ${vol}.nii -o -f ${vol}.nii.gz -o -f ${vol}.hdr -o -f ${vol}.img ] ; then
-    #if [ $(fslinfo $vol 2>/dev/null | wc -l) -gt 0 ] ; then
-      #echo "1"
-    #else
-      #echo "0"
-    #fi
-  #else
-    #echo "0" 
-  #fi  
-#}
+  if [ -f ${vol} -o -f ${vol}.nii -o -f ${vol}.nii.gz -o -f ${vol}.hdr -o -f ${vol}.img ] ; then
+    if [ $(fslinfo $vol 2>/dev/null | wc -l) -gt 0 ] ; then
+      echo "1"
+    else
+      echo "0"
+    fi
+  else
+    echo "0" 
+  fi  
+}
 
 function testascii()
 {
@@ -66,7 +66,7 @@ function exec_melodic()
   
   # check
   if [ ! -f $input2melodic ] ; then 
-    if [ $(imtest $input2melodic) -eq 0 ] ; then echo "`basename $0`: ERROR: '$input2melodic' does not exist !" ; exit 1 ; fi
+    if [ $(_imtest $input2melodic) -eq 0 ] ; then echo "`basename $0`: ERROR: '$input2melodic' does not exist !" ; exit 1 ; fi
   fi
 
   # add guireport to opts
@@ -101,7 +101,7 @@ _opts="$4"
 
 # single session ICA ?
 if [ $(echo "$inputs" | wc -w) -eq 1 ] ; then
-  if [ $(imtest $inputs) -eq 1 ] ; then # single session ICA
+  if [ $(_imtest $inputs) -eq 1 ] ; then # single session ICA
     gica=0
   elif [ $(testascii $inputs) -eq 1 ] ; then # assume group ICA
     gica=1
@@ -116,7 +116,7 @@ fi
 # check inputs
 err=0
 for file in $inputs ; do
-  if [ $(imtest $file) -eq 0 ] ; then echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
+  if [ $(_imtest $file) -eq 0 ] ; then echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
 done
 if [ $err -eq 1 ] ; then "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
 
@@ -138,7 +138,7 @@ if [ $gica -eq 1 -a "$outdir" != "-1" ] ; then
   # gather inputs (four group melodic)
   err=0 ; rm -f $outdir/melodic.inputfiles ; i=1
   for file in $inputs ; do
-    if [ $(imtest $file) -eq 1 ] ; then echo "`basename $0`: $i adding '$file' to input filelist..." ; echo $file >> $outdir/melodic.inputfiles ; i=$[$i+1] ; else echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
+    if [ $(_imtest $file) -eq 1 ] ; then echo "`basename $0`: $i adding '$file' to input filelist..." ; echo $file >> $outdir/melodic.inputfiles ; i=$[$i+1] ; else echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
   done
   if [ $err -eq 1 ] ; then "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
   input2melodic="$outdir/melodic.inputfiles"
@@ -155,7 +155,7 @@ if  [ $gica -eq 1 -a "$outdir" = "-1" ] ; then
     outdir="$(dirname $file)"
     subdir=${prefix}$(remove_ext $(basename $file)).ica
     echo "`basename $0`: $i. single session ICA will be carried out for file '$file' in '$outdir/$subdir'..."
-    if [ $(imtest $file) -eq 0 ] ; then echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
+    if [ $(_imtest $file) -eq 0 ] ; then echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
     i=$[$i+1]
   done
   if [ $err -eq 1 ] ; then "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi  
