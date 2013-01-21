@@ -30,8 +30,9 @@ dir=$2
 pttrn=$3
 thres=$4
 if [ -z $5 ] ; then fslview=0 ; else fslview=$5 ; fi
-if [ "$thres" = "-1" ] ; then reportfirst=1 ; thres=0.01 ; else reportfirst=0 ; fi
-if [ "$(echo $thres | cut -c 1)" = "-" ] ; then reportfirst=1 ; thres=$(echo $thres | cut -d - -f2) ; else reportfirst=0 ; fi
+reportfirst=0
+if [ "$thres" = "-1" ] ; then reportfirst=1 ; thres=0.01 ; fi
+if [ "$(echo $thres | cut -c 1)" = "-" ] ; then reportfirst=1 ; thres=$(echo $thres | cut -d - -f2) ; fi
 
 # define additional vars
 collect=""
@@ -88,10 +89,10 @@ for f in $files ; do
       if [ $reportfirst -eq 1 ] ; then break ; fi
       
     done
-  else
-    echo "------------------------------" | tee -a $logfile
-    echo "${f}" | tee -a $logfile  
-    echo "------------------------------" | tee -a $logfile
+  #else
+    #echo "------------------------------" | tee -a $logfile
+    #echo "${f}" | tee -a $logfile  
+    #echo "------------------------------" | tee -a $logfile
   fi
 done
 
