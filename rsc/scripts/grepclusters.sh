@@ -12,7 +12,7 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <atlas:-tbss|-vbm|-ica> <dir> <search-pttrn> <thres> <fslview 1|0>"
+    echo "Usage: `basename $0` <atlas:-tbss|-vbm|-ica> <dir> <search-pttrn> <thres> [<showall 1|0>] [<fslview 1|0>]"
     echo "Example: `basename $0` -vbm ./stats \"*_corrp_*\" 0.95 1"
     echo "         `basename $0` -vbm ./stats \"*_tfce_corrp_*\" -1"
     echo "         NOTE: thres=-1     reports only the most significant result."
@@ -29,7 +29,8 @@ anal=$1
 dir=$2
 pttrn=$3
 thres=$4
-if [ -z $5 ] ; then fslview=0 ; else fslview=$5 ; fi
+if [ -z $5 ] ; then showall=0 ; else showall=$5 ; fi
+if [ -z $6 ] ; then fslview=0 ; else fslview=$6 ; fi
 reportfirst=0
 if [ "$thres" = "-1" ] ; then reportfirst=1 ; thres=0.01 ; fi
 if [ "$(echo $thres | cut -c 1)" = "-" ] ; then reportfirst=1 ; thres=$(echo $thres | cut -d - -f2) ; fi
@@ -89,10 +90,12 @@ for f in $files ; do
       if [ $reportfirst -eq 1 ] ; then break ; fi
       
     done
-  #else
-    #echo "------------------------------" | tee -a $logfile
-    #echo "${f}" | tee -a $logfile  
-    #echo "------------------------------" | tee -a $logfile
+  else
+    if [ $showall -eq 1 ] ; then
+      echo "------------------------------" | tee -a $logfile
+      echo "${f}" | tee -a $logfile  
+      echo "------------------------------" | tee -a $logfile
+    fi
   fi
 done
 
