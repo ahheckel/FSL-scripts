@@ -364,12 +364,12 @@ if [ $errpause -eq 1 ] ; then echo "***CHECK*** (sleeping 2 seconds)..." ; sleep
 
 # list input files for each subject and session
 checklist=""
-if [ ! "x$pttrn_diffs" = "x" ] ; then checklist=$checklist" "$pttrn_diffs; fi
-if [ ! "x$pttrn_bvals" = "x" ] ; then checklist=$checklist" "$pttrn_bvals; fi
-if [ ! "x$pttrn_bvecs" = "x" ] ; then checklist=$checklist" "$pttrn_bvecs; fi
-if [ ! "x$pttrn_strucs" = "x" ] ; then checklist=$checklist" "$pttrn_strucs; fi
-if [ ! "x$pttrn_fmaps" = "x" ] ; then checklist=$checklist" "$pttrn_fmaps; fi
-if [ ! "x$pttrn_bolds" = "x" ] ; then checklist=$checklist" "$pttrn_bolds; fi
+if [ ! "x$pttrn_diffs" = "x" ] ;  then checklist=$checklist" "$pttrn_diffs  ; else checklist=$checklist" "0 ; fi
+if [ ! "x$pttrn_bvals" = "x" ] ;  then checklist=$checklist" "$pttrn_bvals  ; else checklist=$checklist" "0 ; fi
+if [ ! "x$pttrn_bvecs" = "x" ] ;  then checklist=$checklist" "$pttrn_bvecs  ; else checklist=$checklist" "0 ; fi
+if [ ! "x$pttrn_strucs" = "x" ] ; then checklist=$checklist" "$pttrn_strucs ; else checklist=$checklist" "0 ; fi
+if [ ! "x$pttrn_fmaps" = "x" ] ;  then checklist=$checklist" "$pttrn_fmaps  ; else checklist=$checklist" "0 ; fi
+if [ ! "x$pttrn_bolds" = "x" ] ;  then checklist=$checklist" "$pttrn_bolds  ; else checklist=$checklist" "0 ; fi
 # header line
 for subj in `cat $subjdir/subjects` ; do
   for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do
@@ -384,8 +384,12 @@ n=1
 for subj in `cat $subjdir/subjects` ; do
   for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do
     out=""
-    for i in $checklist ; do 
-      out=$out"    "$(ls $srcdir/$subj/$sess/$i 2>/dev/null | wc -l)
+    for i in $checklist ; do
+      if [ $i = "0" ] ; then
+        out=$out"    "0
+      else
+        out=$out"    "$(ls $srcdir/$subj/$sess/$i 2>/dev/null | wc -l)
+      fi
     done
     printf "%3i subj %s , sess %s :%s \n" $n $subj $sess "$out"
     n=$[$n+1]
@@ -465,15 +469,17 @@ echo "...done." ; echo ""
 
 # check bvals, bvecs and diff. files for consistent number of entries
 if [ $CHECK_CONSISTENCY_DIFFS = 1 ] ; then
-  echo "Checking bvals/bvecs- and DWI files for consistent number of entries..."
-  for subj in `cat $subjdir/subjects` ; do
-    for sess in `cat $subjdir/$subj/sessions_struc` ; do
-      fldr=$srcdir/$subj/$sess/
-      echo "subj $subj , sess $sess : "
-      checkConsistency "$fldr/$pttrn_diffs" "$fldr/$pttrn_bvals" "$fldr/$pttrn_bvecs"
+  if [ x${pttrn_bvals} != "x" -a x${pttrn_bvecs} != "x" -a x${pttrn_diffs} != "x" ] ; then
+    echo "Checking bvals/bvecs- and DWI files for consistent number of entries..."
+    for subj in `cat $subjdir/subjects` ; do
+      for sess in `cat $subjdir/$subj/sessions_struc` ; do
+        fldr=$srcdir/$subj/$sess/
+        echo -n "subj $subj , sess $sess : "
+        checkConsistency "$fldr/$pttrn_diffs" "$fldr/$pttrn_bvals" "$fldr/$pttrn_bvecs"
+      done
     done
-  done
-  echo ""
+    echo ""
+  fi
 fi
 
 # make log directory for fsl_sub
