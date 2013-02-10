@@ -5,7 +5,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 11/27/2012
+# 02/210/2012
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
@@ -54,7 +54,7 @@ Usage() {
 [ "$2" = "" ] && Usage
 
 fldr="$1"
-out="$2"
+out=$(remove_ext $2)
 wd="`pwd`"
 
 # check version of FSL
@@ -62,8 +62,8 @@ fslversion=$(cat $FSLDIR/etc/fslversion | cut -d . -f 1)
 if [ $fslversion -lt 5 ] ; then echo "`basename $0`: ERROR : 'eddy' only works in FSL >= 5 ! (FSL $(cat $FSLDIR/etc/fslversion) was detected.)  Exiting." ; exit 1 ; fi
 
 # concatenate bvals/bvecs (minus first)
-paste -d " " $fldr/bvalsminus_concat.txt $fldr/bvalsplus_concat.txt > $fldr/eddy_bvals_concat.txt
-paste -d " " $fldr/bvecsminus_concat.txt $fldr/bvecsplus_concat.txt > $fldr/eddy_bvecs_concat.txt
+paste -d " " $fldr/bvals-_concat.txt $fldr/bvals+_concat.txt > $fldr/eddy_bvals_concat.txt
+paste -d " " $fldr/bvecs-_concat.txt $fldr/bvecs+_concat.txt > $fldr/eddy_bvecs_concat.txt
 
 ## get appropriate line in TOPUP low-b index file (containing parameters pertaining to the B0 images)
 ## referring to the b0 image adjacent to each dwi block.
@@ -114,12 +114,18 @@ cat $fldr/eddy_index.txt
 
 # change to TOPUP directory
 cd $fldr
-
+  
+  # bet unwarped b0 and create mask
+  echo "`basename $0`: betting unwarped lowb image:"
+  cmd="bet fm/uw_lowb_merged_chk fm/uw_lowb_merged_chk_brain -f 0.3 -m"
+  echo "    $cmd" ; $cmd
+  
   # define variables
   bvecs=eddy_bvecs_concat.txt
   bvals=eddy_bvals_concat.txt
   dwi=diffs_merged.nii.gz
-  mask=uw_nodif_brain_mask.nii.gz
+  #mask=uw_nodif_brain_mask.nii.gz
+  mask=fm/uw_lowb_merged_chk_brain_mask.nii.gz
   acqp=$(ls *_acqparam_lowb.txt)
   topup_basename=$(ls *_movpar.txt)
   topup_basename=$(echo ${topup_basename%_mov*})
@@ -140,6 +146,20 @@ cd $fldr
   echo "`basename $0`: executing eddy:"
   cmd="eddy --imain=${dwi} --mask=${mask} --bvecs=${bvecs} --bvals=${bvals} --out=${out} --acqp=${acqp} --topup=${topup_basename} --index=${eddy_index} -v"
   echo "    $cmd" ; $cmd
+  
+  # splitting eddy-corrected 4D
+  echo "`basename $0`: splitting eddy-corrected 4D ('${out}'):"
+  tmin=0
+  for i in `seq -f %03g 001 $(cat diff.files | wc -l)` ; do # for each run do... 
+    nscans=`sed -n ${i}p diff.files | cut -d : -f 2` # number of scans in run
+    cmd="fslroi ${out} ${out}_${i} $tmin $nscans"
+    echo "    $cmd" ; $cmd
+    tmin=$(echo "scale=0 ; $tmin + $nscans" | bc)    
+  done
+  
+  # cleanup
+  echo "`basename $0`:  cleaning up..."
+  imrm ${out}
 
 # change to prev. working directory
 cd $wd
