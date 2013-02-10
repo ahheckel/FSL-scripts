@@ -158,7 +158,7 @@ cd $fldr
   done
   
   # cleanup
-  echo "`basename $0`:  cleaning up..."
+  echo "`basename $0`: cleaning up..."
   imrm ${out}
 
 # change to prev. working directory
