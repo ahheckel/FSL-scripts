@@ -33,20 +33,15 @@ export SUBJECTS_DIR=$FS_subjdir
 ########################################################################
 
 # set file patterns
-pttrn_diffs="*_ep2ddiff_pat3_esp0_75ms_*-.nii"
-pttrn_bvals=`remove_ext $pttrn_diffs`_bvals
-pttrn_bvecs=`remove_ext $pttrn_diffs`_bvecs
+pttrn_diffs="*_ep2ddiff_pat3_esp0_75ms_*-.nii" ; pttrn_bvals=`remove_ext $pttrn_diffs`_bvals ; pttrn_bvecs=`remove_ext $pttrn_diffs`_bvecs
 pttrn_fmaps="*_gre_field_mapping.nii "
 pttrn_strucs="*T1_MPRAGE_tra_256_1_0mm_nopat.nii"
 pttrn_bolds="*resting_TE30_pat3_esp0_7_Filter.nii"
 
 # set file patterns for TOPUP
-pttrn_diffsplus="*_ep2ddiff_pat3_esp0_75ms_*+.nii"
-pttrn_diffsminus="*_ep2ddiff_pat3_esp0_75ms_*-.nii"
-pttrn_bvalsplus=`remove_ext $pttrn_diffsplus`_bvals
-pttrn_bvalsminus=`remove_ext $pttrn_diffsminus`_bvals
-pttrn_bvecsplus=`remove_ext $pttrn_diffsplus`_bvecs
-pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
+pttrn_diffsplus="*_ep2ddiff_pat3_esp0_75ms_*+.nii" ;  pttrn_diffsminus="*_ep2ddiff_pat3_esp0_75ms_*-.nii"
+pttrn_bvalsplus=`remove_ext $pttrn_diffsplus`_bvals ; pttrn_bvalsminus=`remove_ext $pttrn_diffsminus`_bvals
+pttrn_bvecsplus=`remove_ext $pttrn_diffsplus`_bvecs ; pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
 
 ########################################################################
 # enable 1st level processing streams ##################################
@@ -326,7 +321,7 @@ DUALREG_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions that shou
 DUALREG_INPUT_ICA_DIRNAMES="MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni2    MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni4" # where the ICs reside ; ommit suffix '.gica'
 DUALREG_IC_FILENAMES="melodic_IC.nii.gz"                    # 4D file with the IC of interest; it is to be found in the DUALREG_INPUT_ICA_DIRNAMES directories
 DUALREG_INPUT_BOLD_FILES=""                                 # optional (if left empty, input files are derived elsewhere)
-DUALREG_USE_MOVPARS_HPF="dummy"                             # cutoff period (s) for high-pass filtering motion parameters ; enter "dummy" if motion parameters should not be included (dr_stage2)
+DUALREG_USE_MOVPARS_HPF="dummy"                             # cutoff period (s) for high-pass filtering motion parameters ; enter "none" or "" if motion parameters should not be included (dr_stage2)
 DUALREG_OUTDIR_PREFIX="dr"                                  # output directory pre-fix (dir-name is composed as: ${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAMES}_${DUALREG_IC_FILENAMES})
 DUALREG_NPERM=5000                                          # number of permutations
 DUALREG_DELETE_PREV_RUNS=1                                  # delete previous runs?

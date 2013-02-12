@@ -3733,6 +3733,11 @@ waitIfBusy
 if [ $DUALREG_STG1 -eq 1 ] ; then
   echo "----- BEGIN DUALREG_STG1 -----"
   
+  # do substitutions
+  if [ x"$DUALREG_USE_MOVPARS_HPF" = "x" -o x"$DUALREG_USE_MOVPARS_HPF" = "xnone" ] ; then 
+    DUALREG_USE_MOVPARS_HPF=dummy
+  fi
+  
   # where to look for input files...
   for DUALREG_INPUT_ICA_DIRNAME in $DUALREG_INPUT_ICA_DIRNAMES ; do
   
