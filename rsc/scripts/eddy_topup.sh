@@ -145,21 +145,51 @@ cd $fldr
   # execute eddy...
   echo "`basename $0`: executing eddy:"
   cmd="eddy --imain=${dwi} --mask=${mask} --bvecs=${bvecs} --bvals=${bvals} --out=${out} --acqp=${acqp} --topup=${topup_basename} --index=${eddy_index} -v"
-  echo "    $cmd" ; $cmd
+  #echo "    $cmd" ; $cmd
   
-  # splitting eddy-corrected 4D
-  echo "`basename $0`: splitting eddy-corrected 4D ('${out}'):"
-  tmin=0
-  for i in `seq -f %03g 001 $(cat diff.files | wc -l)` ; do # for each run do... 
-    nscans=`sed -n ${i}p diff.files | cut -d : -f 2` # number of scans in run
-    cmd="fslroi ${out} ${out}_${i} $tmin $nscans"
-    echo "    $cmd" ; $cmd
-    tmin=$(echo "scale=0 ; $tmin + $nscans" | bc)    
+  # pairwise averaging
+  nvols=$(fslinfo  ${out}  | grep ^dim4 | awk '{print $2}')
+  incr=$(echo "scale=0 ; $nvols/2" | bc -l)
+  echo "`basename $0`: pairwise averaging within 4D ('${out}', $nvols volumes, increment $incr)..."  
+  
+  tmin=0; avgs=""    
+  for idx1 in `seq 0 $(echo "scale=0 ; $incr - 1" | bc -l)` ; do # for each run do... 
+    cmd1="fslroi ${out} _${out}_tmp_${idx1} $idx1 1"
+    echo "    $cmd1" ; $cmd1
+    
+    idx2=$(echo "scale=0 ; $idx1 + $incr" | bc -l)  
+    cmd2="fslroi ${out} _${out}_tmp_${idx2} $idx2 1"
+    echo "    $cmd2" ; $cmd2  
+    
+    cmd3="fslmerge -t _${out}_tmp _${out}_tmp_${idx1} _${out}_tmp_${idx2}"
+    echo "    $cmd3" ; $cmd3
+    
+    cmd4="fslmaths _${out}_tmp -Tmean ${out}_tmp_${idx1}"
+    echo "    $cmd4" ; $cmd4
+    
+    avgs=$avgs" "${out}_tmp_${idx1}
+    
+    cmd5="imrm _${out}_tmp _${out}_tmp_${idx1} _${out}_tmp_${idx2}"
+    echo "    $cmd5" ; $cmd5
   done
+  cmd6="fslmerge -t ${out} $avgs"
+  echo "    $cmd6" ; $cmd6
+  
+  ## splitting eddy-corrected 4D
+  #echo "`basename $0`: splitting eddy-corrected 4D ('${out}'):"
+  #nruns=$(cat diff.files | wc -l)
+  #tmin=0
+  #for i in $(echo "scale=0 ; $nruns/2" | bc -l) ; do # for each run do... 
+    #nscans=`sed -n ${i}p diff.files | cut -d : -f 2` # number of scans in run
+    #cmd="fslroi ${out} ${out}_${i} $tmin $nscans"
+    #echo "    $cmd" ; $cmd
+    #tmin=$(echo "scale=0 ; $tmin + $nscans" | bc)    
+  #done
   
   # cleanup
   echo "`basename $0`: cleaning up..."
-  imrm ${out}
+  #imrm ${out}
+  imrm $avgs
 
 # change to prev. working directory
 cd $wd
