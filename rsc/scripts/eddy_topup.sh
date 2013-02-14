@@ -159,8 +159,12 @@ cd $fldr
   cmd="fslroi ${out} tmp_${out}_1 $incr $incr"
   echo "    $cmd" ; $cmd
   imrm ${out}
-  cmd="fslmaths tmp_${out}_0 -add tmp_${out}_1 -div 2 ${out}"
+  cmd="fslmaths tmp_${out}_0 -add tmp_${out}_1 -div 2 tmp_${out}"
   echo "    $cmd" ; $cmd
+  
+  # zeroing negative values
+  echo "`basename $0`: zeroing negative values..." # see mailing list
+  fslmaths ${out} -thr 0 ${out}
  
   # cleanup
   echo "`basename $0`: cleaning up..."
