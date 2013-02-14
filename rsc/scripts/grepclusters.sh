@@ -51,7 +51,7 @@ files=`find $dir -name "$pttrn" | grep -v SEED | $(dirname $0)/bin/sort8 -V`
 # display cluster-information
 echo "*** thres > $thres ***" | tee -a $logfile
 
-for f in $files ; do
+for f in $files ; do # for each collected file execute 'cluster'
   if [ $(imtest $f) -eq 0 ] ; then continue ; fi
   cluster --in=$f -t $thres --mm > $tmpfile
   nl=$(cat $tmpfile | wc -l)
@@ -60,7 +60,7 @@ for f in $files ; do
     echo "${f}" | tee -a $logfile
     echo "------------------------------" | tee -a $logfile
     collect=$collect" "$f
-    for i in `seq 2 $nl` ; do
+    for i in `seq 2 $nl` ; do # for each line in 'cluster' output execute atlasquery
       line=$(cat $tmpfile | sed -n ${i}p)
       size="$(echo $line | cut -d " " -f 2)"
       max="$(echo $line | cut -d " " -f 3)"
@@ -96,7 +96,7 @@ for f in $files ; do
       
       if [ $reportfirst -eq 1 ] ; then break ; fi
       
-    done
+    done # end atlasquery loop
   else
     if [ $showall -eq 1 ] ; then
       echo "------------------------------" | tee -a $logfile
@@ -104,7 +104,7 @@ for f in $files ; do
       echo "------------------------------" | tee -a $logfile
     fi
   fi
-done
+done # end file loop
 
 # rm temporary files
 rm -f $tmpfile

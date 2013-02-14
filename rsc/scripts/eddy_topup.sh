@@ -5,7 +5,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 02/210/2012
+# 02/14/2012
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
@@ -61,6 +61,12 @@ wd="`pwd`"
 fslversion=$(cat $FSLDIR/etc/fslversion | cut -d . -f 1)
 if [ $fslversion -lt 5 ] ; then echo "`basename $0`: ERROR : 'eddy' only works in FSL >= 5 ! (FSL $(cat $FSLDIR/etc/fslversion) was detected.)  Exiting." ; exit 1 ; fi
 
+# even number of volumes in merged DWI ?
+nvols=$(fslinfo  ${out}  | grep ^dim4 | awk '{print $2}')
+incr=$(echo "scale=0 ; $nvols/2" | bc -l)
+check=$(echo "scale=0 ; $incr + $incr" | bc -l)
+if [ $check -ne $nvols ] ; then echo "`basename $0`:  ERROR : unequal number of volumes in '${out}' ! Exiting." ; exit 1 ; fi
+
 # concatenate bvals/bvecs (minus first)
 paste -d " " $fldr/bvals-_concat.txt $fldr/bvals+_concat.txt > $fldr/eddy_bvals_concat.txt
 paste -d " " $fldr/bvecs-_concat.txt $fldr/bvecs+_concat.txt > $fldr/eddy_bvecs_concat.txt
@@ -105,7 +111,6 @@ lines_b0="$lines_b0m $lines_b0p"
 # create eddy_index text file
 N=$(for i in `seq 1 $(cat $fldr/diff.files | wc -l)` ; do cat $fldr/diff.files | sed -n ${i}p | cut -d : -f 2 ; done) # in diff.files: minus files must be listed before plus files ! (!)
 indexlist=$(k=1 ; for i in $N ; do for j in `seq 1 $i` ; do echo $lines_b0 | cut -d " " -f $k ; done ; k=$[$k+1] ;  done)
-#indexlist=$(k=1 ; for i in $N ; do for j in `seq 1 $i` ; do echo $k ; done ; k=$[$k+1] ;  done)
 echo $indexlist > $fldr/eddy_index.txt
 
 # display eddy_index file
@@ -144,52 +149,22 @@ cd $fldr
 
   # execute eddy...
   echo "`basename $0`: executing eddy:"
-  cmd="eddy --imain=${dwi} --mask=${mask} --bvecs=${bvecs} --bvals=${bvals} --out=${out} --acqp=${acqp} --topup=${topup_basename} --index=${eddy_index} -v"
-  #echo "    $cmd" ; $cmd
+  cmd="eddy --imain=${dwi} --mask=${mask} --bvecs=${bvecs} --bvals=${bvals} --out=${out} --acqp=${acqp} --topup=${topup_basename} --index=${eddy_index} --fwhm=0 -v"
+  echo "    $cmd" ; $cmd
   
   # pairwise averaging
-  nvols=$(fslinfo  ${out}  | grep ^dim4 | awk '{print $2}')
-  incr=$(echo "scale=0 ; $nvols/2" | bc -l)
-  echo "`basename $0`: pairwise averaging within 4D ('${out}', $nvols volumes, increment $incr)..."  
-  
-  tmin=0; avgs=""    
-  for idx1 in `seq 0 $(echo "scale=0 ; $incr - 1" | bc -l)` ; do # for each run do... 
-    cmd1="fslroi ${out} _${out}_tmp_${idx1} $idx1 1"
-    echo "    $cmd1" ; $cmd1
-    
-    idx2=$(echo "scale=0 ; $idx1 + $incr" | bc -l)  
-    cmd2="fslroi ${out} _${out}_tmp_${idx2} $idx2 1"
-    echo "    $cmd2" ; $cmd2  
-    
-    cmd3="fslmerge -t _${out}_tmp _${out}_tmp_${idx1} _${out}_tmp_${idx2}"
-    echo "    $cmd3" ; $cmd3
-    
-    cmd4="fslmaths _${out}_tmp -Tmean ${out}_tmp_${idx1}"
-    echo "    $cmd4" ; $cmd4
-    
-    avgs=$avgs" "${out}_tmp_${idx1}
-    
-    cmd5="imrm _${out}_tmp _${out}_tmp_${idx1} _${out}_tmp_${idx2}"
-    echo "    $cmd5" ; $cmd5
-  done
-  cmd6="fslmerge -t ${out} $avgs"
-  echo "    $cmd6" ; $cmd6
-  
-  ## splitting eddy-corrected 4D
-  #echo "`basename $0`: splitting eddy-corrected 4D ('${out}'):"
-  #nruns=$(cat diff.files | wc -l)
-  #tmin=0
-  #for i in $(echo "scale=0 ; $nruns/2" | bc -l) ; do # for each run do... 
-    #nscans=`sed -n ${i}p diff.files | cut -d : -f 2` # number of scans in run
-    #cmd="fslroi ${out} ${out}_${i} $tmin $nscans"
-    #echo "    $cmd" ; $cmd
-    #tmin=$(echo "scale=0 ; $tmin + $nscans" | bc)    
-  #done
-  
+  echo "`basename $0`: pairwise averaging within 4D ('${out}', $nvols volumes, increment: $incr)..."  
+  cmd="fslroi ${out} tmp_${out}_0 0 $incr"
+  echo "    $cmd" ; $cmd
+  cmd="fslroi ${out} tmp_${out}_1 $incr $incr"
+  echo "    $cmd" ; $cmd
+  imrm ${out}
+  cmd="fslmaths tmp_${out}_0 -add tmp_${out}_1 -div 2 ${out}"
+  echo "    $cmd" ; $cmd
+ 
   # cleanup
   echo "`basename $0`: cleaning up..."
-  #imrm ${out}
-  imrm $avgs
+  imrm tmp_${out}_0 tmp_${out}_1
 
 # change to prev. working directory
 cd $wd

@@ -1,5 +1,5 @@
 #!/bin/bash
-# Applies func -> standard space transforms w/o intermediary write-outs.
+# Applies native space -> standard space transforms w/o intermediary write-outs.
 
 # Written by Andreas Heckel
 # University of Heidelberg
@@ -50,7 +50,7 @@ if [ x"$ref" = "x" ] ; then ref="${FSLDIR}/data/standard/MNI152_T1_2mm_brain" ; 
 
 # MNI affine-only registration ?
 if [ "$f2t1_mat" != "none" -a "$f2mni_warp" = "none" ] ; then MNIaff=1 ; else MNIaff=0 ; fi
-if [ "$f2t1_mat" = "none" -a "$f2mni_warp" = "none" ] ; then  echo "`basename $0` : must enter an MNI transform (warpfield or affine or both) - exiting..." ; exit 1 ; fi
+if [ "$f2t1_mat" = "none" -a "$f2mni_warp" = "none" ] ; then  echo "`basename $0` : You must enter an MNI transform (warpfield or affine or both) - exiting..." ; exit 1 ; fi
 
 # display info
 echo ""
@@ -92,7 +92,7 @@ nvol=`fslinfo  $input | grep ^dim4 | awk '{print $2}'`
 mid=$(echo "scale=0 ; $nvol / 2" | bc)
 fslroi $input ${output}_example_func $mid 1
 
-# convert warps
+# convert (relative) warps
 # create shiftmap warp
 if [ $douw -eq 1 ] ; then
   cmd="convertwarp --ref=${output}_example_func --shiftmap=${shiftmap} --shiftdir=${uwdir} --out=${output}_WARP1 --relout"

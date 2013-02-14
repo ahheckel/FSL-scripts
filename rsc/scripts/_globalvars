@@ -164,6 +164,7 @@ TOPUP_USE_NATIVE=1         # apply TOPUP-warps to native DWI runs
 TOPUP_USE_EC=1             # apply TOPUP-warps to eddy-corrected DWI runs (i.e. runs that have been eddy-corrected to the first B0 volume per run)
 TOPUP_EC_DOF=12            # degrees of freedom used by eddy-correction
 TOPUP_EC_COST=mutualinfo   # cost-function used by eddy-correction (default: corratio)
+TOPUP_USE_EDDY=0           # use EDDY (FSL 5)
 
 # FDT - unwarp
 FDT_EC_TEST=0                  # don't apply eddy-correction
