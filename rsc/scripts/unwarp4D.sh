@@ -38,12 +38,29 @@ sess="${12}"
 
 if [ x"$interp" = "x" ] ; then interp="trilinear" ; fi
 indir=$(dirname $input)
-outdir=$(dirname $output) ; mkdir -p $outdir ; mkdir -p $outdir/mc
+outdir=$(dirname $output)
 
+# create output dir.
+mkdir -p $outdir ; mkdir -p $outdir/mc
+
+# display info
+echo ""
+echo "`basename $0` : input:        $input"
+echo "`basename $0` : output:       $output"
+echo "`basename $0` : motion-corr:  $moco"
+echo "`basename $0` : uw-dir:       $uwdir"
+echo "`basename $0` : uw-magn:      $magn"
+echo "`basename $0` : uw-dphase:    $dphase"
+echo "`basename $0` : uw-TE:        $dTE"
+echo "`basename $0` : uw-ESP:       $ESP"
+echo "`basename $0` : siglossthres: $siglossthres"
+echo "`basename $0` : interp:       $interp"
+echo ""
+
+# extract example_func
 echo "`basename $0` :  unwarping input 4D '$(basename $input)'..."
 nvol=`fslinfo  $input | grep ^dim4 | awk '{print $2}'`
 mid=$(echo "scale=0 ; $nvol / 2" | bc)
-
 cmd="fslroi $input ${output}_example_func $mid 1"
 echo $cmd ; $cmd
 

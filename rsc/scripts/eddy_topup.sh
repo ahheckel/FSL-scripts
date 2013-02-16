@@ -55,17 +55,18 @@ Usage() {
 
 fldr="$1"
 out=$(remove_ext $2)
-wd="`pwd`"
+wd="`pwd`" # define current working directory
+dwi=diffs_merged.nii.gz # define input filename in topup directory
 
 # check version of FSL
 fslversion=$(cat $FSLDIR/etc/fslversion | cut -d . -f 1)
 if [ $fslversion -lt 5 ] ; then echo "`basename $0`: ERROR : 'eddy' only works in FSL >= 5 ! (FSL $(cat $FSLDIR/etc/fslversion) was detected.)  Exiting." ; exit 1 ; fi
 
 # even number of volumes in merged DWI ?
-nvols=$(fslinfo  ${out}  | grep ^dim4 | awk '{print $2}')
+nvols=$(fslinfo  ${dwi}  | grep ^dim4 | awk '{print $2}')
 incr=$(echo "scale=0 ; $nvols/2" | bc -l)
 check=$(echo "scale=0 ; $incr + $incr" | bc -l)
-if [ $check -ne $nvols ] ; then echo "`basename $0`:  ERROR : unequal number of volumes in '${out}' ! Exiting." ; exit 1 ; fi
+if [ $check -ne $nvols ] ; then echo "`basename $0`:  ERROR : unequal number of volumes in '${dwi}' ! Exiting." ; exit 1 ; fi
 
 # concatenate bvals/bvecs (minus first)
 paste -d " " $fldr/bvals-_concat.txt $fldr/bvals+_concat.txt > $fldr/eddy_bvals_concat.txt
@@ -128,7 +129,6 @@ cd $fldr
   # define variables
   bvecs=eddy_bvecs_concat.txt
   bvals=eddy_bvals_concat.txt
-  dwi=diffs_merged.nii.gz
   #mask=uw_nodif_brain_mask.nii.gz
   mask=fm/uw_lowb_merged_chk_brain_mask.nii.gz
   acqp=$(ls *_acqparam_lowb.txt)

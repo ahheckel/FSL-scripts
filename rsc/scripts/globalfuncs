@@ -1049,7 +1049,7 @@ function prepareALFF()
   local alffZ_list=""
   local falffZ_list=""
   
-  # tbss subdir already present ?
+  # alff subdir already present ?
   if [ -d ${destdir} -a $DEL -eq 0 ] ; then read -p "prepareALFF(): Directory <${destdir}> already exists. Press any key to continue or Control-C to abort..." ; fi
   if [ -d ${destdir} -a $DEL -eq 1 ] ; then 
     if [ `echo ${destdir} | grep $alffdir | wc -l` -eq 0 ] ; then # test, whether destination paths is plausible to avoid accidental deletions
