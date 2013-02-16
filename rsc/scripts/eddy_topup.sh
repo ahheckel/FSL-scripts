@@ -11,6 +11,13 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 set -e
 
+Usage() {
+    echo ""
+    echo "Usage: `basename $0` <topup-directory> <output-name>"
+    echo ""
+    exit 1
+}
+
 function row2col()
 {
   local dat=`cat $1`
@@ -44,13 +51,6 @@ function getIdx()
   done
 }
 
-Usage() {
-    echo ""
-    echo "Usage: `basename $0` <topup-directory> <output-name>"
-    echo ""
-    exit 1
-}
-
 [ "$2" = "" ] && Usage
 
 fldr="$1"
@@ -63,10 +63,10 @@ fslversion=$(cat $FSLDIR/etc/fslversion | cut -d . -f 1)
 if [ $fslversion -lt 5 ] ; then echo "`basename $0`: ERROR : 'eddy' only works in FSL >= 5 ! (FSL $(cat $FSLDIR/etc/fslversion) was detected.)  Exiting." ; exit 1 ; fi
 
 # even number of volumes in merged DWI ?
-nvols=$(fslinfo  ${dwi}  | grep ^dim4 | awk '{print $2}')
+nvols=$(fslinfo  $fldr/$dwi  | grep ^dim4 | awk '{print $2}')
 incr=$(echo "scale=0 ; $nvols/2" | bc -l)
 check=$(echo "scale=0 ; $incr + $incr" | bc -l)
-if [ $check -ne $nvols ] ; then echo "`basename $0`:  ERROR : unequal number of volumes in '${dwi}' ! Exiting." ; exit 1 ; fi
+if [ $check -ne $nvols ] ; then echo "`basename $0`: ERROR : unequal number of volumes in '$fldr/$dwi' ! Exiting." ; exit 1 ; fi
 
 # concatenate bvals/bvecs (minus first)
 paste -d " " $fldr/bvals-_concat.txt $fldr/bvals+_concat.txt > $fldr/eddy_bvals_concat.txt

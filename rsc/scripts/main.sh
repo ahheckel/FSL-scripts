@@ -1067,6 +1067,7 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       fi
       if [ $TOPUP_USE_EDDY -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : executing EDDY..."
+        cat $fldr/eddy.cmd
         fsl_sub -l $logdir -N topup_eddy_$(subjsess) -t $fldr/eddy.cmd
       fi
       
