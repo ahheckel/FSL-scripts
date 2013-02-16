@@ -1804,18 +1804,6 @@ if [ $RECON_STG5 -eq 1 ] ; then
     $scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/T1.mgz $FS_fldr/longt_head.nii.gz 0
     $scriptdir/fs_convert.sh $template $FS_fldr/longt_brain.nii.gz 0 
           
-    #MNI_head_LIA=$FS_fldr/standard_head_LIA
-    #MNI_brain_LIA=$FS_fldr/standard_brain_LIA
-    #MNI_mask_LIA=$FS_fldr/standard_mask_LIA      
-    #echo "BOLD : subj $subj : reorienting FSL's MNI152 template LAS -> LIA..."
-    #fslswapdim $FSL_DIR/data/standard/MNI152_T1_2mm RL SI PA ${MNI_head_LIA}
-    #fslswapdim $FSL_DIR/data/standard/MNI152_T1_2mm_brain RL SI PA ${MNI_brain_LIA}
-    #fslswapdim $FSL_DIR/data/standard/MNI152_T1_2mm_brain_mask_dil RL SI PA ${MNI_mask_LIA}      
-    #echo "BOLD : subj $subj : registering Freesurfer longitudinal template to FSL's MNI152 space..."
-    #$scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/T1.mgz $FS_fldr/longthead.nii.gz 0
-    #$scriptdir/fs_convert.sh $FS_subjdir/$subj/mri/norm_template.mgz $FS_fldr/longtbrain.nii.gz 0
-    #$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longthead $FS_fldr/longtbrain $FS_fldr/longthead2standard "none" "corratio" ${MNI_head_LIA} ${MNI_brain_LIA} ${MNI_mask_LIA} $subj "/"
-    
     # generate command line
     cmd="$scriptdir/feat_T1_2_MNI.sh $FS_fldr/longt_head $FS_fldr/longt_brain $FS_fldr/longt_head2longt_standard none corratio $scriptdir/LIA_to_LAS_conformed.mat $MNI_head $MNI_brain $MNI_mask $subj --"
     
