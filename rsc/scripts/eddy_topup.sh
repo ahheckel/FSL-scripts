@@ -122,7 +122,7 @@ cd $fldr
   
   # bet unwarped b0 and create mask
   echo "`basename $0`: betting unwarped lowb image:"
-  cmd="bet fm/uw_lowb_merged_chk fm/uw_lowb_merged_chk_brain -f 0.3 -m"
+  cmd="bet fm/uw_lowb_merged_chk fm/uw_lowb_merged_chk_brain -f 0.2 -m" # or "-f 0.3"
   echo "    $cmd" ; $cmd
   
   # define variables
