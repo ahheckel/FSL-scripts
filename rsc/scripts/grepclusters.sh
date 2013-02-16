@@ -53,14 +53,15 @@ echo "*** thres > $thres ***" | tee -a $logfile
 
 for f in $files ; do # for each collected file execute 'cluster'
   if [ $(imtest $f) -eq 0 ] ; then continue ; fi
-  cluster --in=$f -t $thres --mm > $tmpfile
+  #cluster --in=$f -t $thres --mm  | tail -n+2 | sort -k +3 -r > $tmpfile # sort according to p-value
+  cluster --in=$f -t $thres --mm  | tail -n+2 > $tmpfile
   nl=$(cat $tmpfile | wc -l)
-  if [ $nl -gt 1 ] ; then
+  if [ $nl -gt 0 ] ; then
     echo "------------------------------" | tee -a $logfile
     echo "${f}" | tee -a $logfile
     echo "------------------------------" | tee -a $logfile
     collect=$collect" "$f
-    for i in `seq 2 $nl` ; do # for each line in 'cluster' output execute atlasquery
+    for i in `seq 1 $nl` ; do # for each line in 'cluster' output execute atlasquery
       line=$(cat $tmpfile | sed -n ${i}p)
       size="$(echo $line | cut -d " " -f 2)"
       max="$(echo $line | cut -d " " -f 3)"
@@ -116,7 +117,7 @@ if [ $anal = "-tbss" ] ; then
       statsdir=$(dirname $f);
       if [ "$statsdir" = "." ] ; then statsdir=".." ; else statsdir=$(dirname $(dirname $f)) ; fi
       res=$(fslinfo $f | grep pixdim1 | awk {'print $2'}) ; res=$(printf '%.0f' $res)
-      fslview $statsdir/mean_FA.nii.gz $statsdir/mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $f -l "Red" -b 0.75,0.9
+      fslview $statsdir/mean_FA.nii.gz $statsdir/mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $f -l "Red" -b ${thres},1 
       #fslview ${FSLDIR}/data/standard/MNI152_T1_${res}mm_brain $statsdir/mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $f -l "Red" -b 0.75,0.9
     done
   fi
@@ -129,7 +130,7 @@ if [ $anal = "-vbm" ] ; then
       statsdir=$(dirname $f);
       if [ "$statsdir" = "." ] ; then statsdir=".." ; else statsdir=$(dirname $(dirname $f)) ; fi
       res=$(fslinfo $f | grep pixdim1 | awk {'print $2'}) ; res=$(printf '%.0f' $res)
-      fslview $statsdir/mean_GM_mod_merg_smoothed.nii.gz $f -l "Red" -b ${thres},0.9     
+      fslview $statsdir/mean_GM_mod_merg_smoothed.nii.gz $f -l "Red" -b ${thres},1     
     done
   fi
 fi
