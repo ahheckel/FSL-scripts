@@ -1281,7 +1281,7 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
       fi
       if [ $TOPUP_USE_EDDY -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : dtifit is estimating tensor model w/o rotated b-vectors (incl. EDDY-correction)..."
-        fsl_sub -l $logdir -N topup_dtifit_eddy_bvecrot_$(subjsess) dtifit -k $fldr/$(subjsess)_topup_corr_eddy_merged -m $fldr/uw_nodif_brain_mask -r $fldr/avg_bvecs.txt  -b $fldr/avg_bvals.txt  -o $fldr/$(subjsess)_dti_topup_eddy_bvecrot
+        fsl_sub -l $logdir -N topup_dtifit_eddy_norot_$(subjsess) dtifit -k $fldr/$(subjsess)_topup_corr_eddy_merged -m $fldr/uw_nodif_brain_mask -r $fldr/avg_bvecs.txt  -b $fldr/avg_bvals.txt  -o $fldr/$(subjsess)_dti_topup_eddy_norot
       fi
     done
   done

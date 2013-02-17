@@ -154,12 +154,12 @@ cd $fldr
   
   # pairwise averaging
   echo "`basename $0`: pairwise averaging within 4D ('${out}', $nvols volumes, increment: $incr)..."  
-  cmd="fslroi ${out} tmp_${out}_0 0 $incr"
+  cmd="fslroi ${out} ${out}_tmp_0 0 $incr"
   echo "    $cmd" ; $cmd
-  cmd="fslroi ${out} tmp_${out}_1 $incr $incr"
+  cmd="fslroi ${out} ${out}_tmp_1 $incr $incr"
   echo "    $cmd" ; $cmd
   imrm ${out}
-  cmd="fslmaths tmp_${out}_0 -add tmp_${out}_1 -div 2 tmp_${out}"
+  cmd="fslmaths ${out}_tmp_0 -add ${out}_tmp_1 -div 2 ${out}"
   echo "    $cmd" ; $cmd
   
   # zeroing negative values
@@ -168,7 +168,7 @@ cd $fldr
  
   # cleanup
   echo "`basename $0`: cleaning up..."
-  imrm tmp_${out}_0 tmp_${out}_1
+  imrm ${out}_tmp_0 ${out}_tmp_1
 
 # change to prev. working directory
 cd $wd
