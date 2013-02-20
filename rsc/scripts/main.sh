@@ -1394,7 +1394,7 @@ fi
 waitIfBusy
 
 # FDT unwarp eddy-corrected DWIs
-if [ $FDT_STG3 -eq 1 ] ; then
+if [ $FDT_STG3 -eq 1 -a $FDT_UNWARP -eq 1 ] ; then
   echo "----- BEGIN FDT_STG3 -----"
   for subj in `cat subjects` ; do
     for sess in `cat ${subj}/sessions_struc` ; do    

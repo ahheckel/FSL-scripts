@@ -79,7 +79,7 @@ done # end for loop
 opts=$(echo "${vollist_lh} ${vollist_rh} ${surflist_lh}${annotlist_lh}${overlist_lh} ${surflist_rh}${annotlist_rh}${overlist_rh}" | sed "s| :|:|g") 
 
 # check
-#zenity --info --text="$opts"
+zenity --info --text="$opts"
 
 # execute
 freeview ${opts}

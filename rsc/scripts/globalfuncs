@@ -1175,6 +1175,7 @@ function _randomise()
   local randparallel=$7
   local design=""
   local opts=""
+  local z=""
   
   if [ $# -lt 7 ] ; then echo "_randomise(): Usage: _randomise <stats-folder> <prefix> <input4D> <cmd-options> <use z-transform> <mask-file> <use randomise_parallel>" ; exit 1 ; fi
   
@@ -1199,7 +1200,7 @@ function _randomise()
           rm -rf ${prefix}_${design}_logs ; rm -f ${prefix}_${design}_SEED*.nii.gz ${prefix}_${design}.generate ${prefix}_${design}.defragment
           
           # shall we use the z-transformed FA maps ?
-          if [ $ztransform -eq 1 -a $(echo "$design" | grep ^zVI_ | wc -l) -eq 1 ] ; then z=ztransf_ ; fi 
+          if [ $ztransform -eq 1 -a $(echo "$design" | grep ^zVI_ | wc -l) -eq 1 ] ; then z=ztransf_ ; else z="" ; fi 
           
           # define randomise options
           opts="-i ../${z}${input4D} -o ${prefix}_${design} $_opts"  #-m ../GM_mask -d design.mat -t design.con -T -V -D -x -n $n_perm"

@@ -797,7 +797,9 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
     done
   done
 fi
-      
+
+waitIfBusy $JIDfile
+
 #######################
 # ----- END TOPUP -----
 #######################

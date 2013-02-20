@@ -170,6 +170,7 @@ TOPUP_USE_EDDY=0           # use EDDY (FSL 5)
 FDT_EC_TEST=0                  # don't apply eddy-correction
 FDT_EC_DOF=12                  # degrees of freedom used by eddy-correction
 FDT_EC_COST=mutualinfo         # cost-function used by eddy-correction (default: corratio)
+FDT_UNWARP=1                   # do unwarp ?
 FDT_FMAP="fm/fmap_rads_masked" # rel. path to fieldmap in rads/sec (default: "fm/fmap_rads_masked")
 FDT_MAGN="fm/magn_brain"       # rel. path to magnitude (default: "fm/magn_brain")
 FDT_SIGNLOSS_THRES=100         # signal loss threshold (%)
