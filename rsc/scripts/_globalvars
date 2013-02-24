@@ -262,7 +262,7 @@ TBSS_OUTDIR_PREFIX="tbss"                         # prefix of output directory
 TBSS_USE_B0_4_FS_LONGT=""                         # use FREESURFER'S longitudinal template to register the b0 to (default "", e.g. "topup/fm/uw_lowb_mean_brain" or "fdt/uw_nodif")
 TBSS_THRES="0.2 0.3 0.4"                          # cycle through some skeleton-threshold values
 TBSS_Z_TRANSFORM=1                                # z-transform FA skeletons
-TBSS_RANDOMISE_OPTS="--T2 -V -D -x -n 5000"       # randomise options (e.g.: "--T2 -V -D -x -n 5000")
+TBSS_RANDOMISE_OPTS="--T2 -V -x -n 5000"       # randomise options (e.g.: "--T2 -V -x -n 5000")
 TBSS_DELETE_PREV_RUNS=1                           # delete previously created TBSS directories and files; if set, no questions will be asked
 # NOTE: if you use BedpostX files from TRACULA for TBSSX, then you should chose the (*single*) appropriate switch from below to ensure proper naming
 TBSS_USE_NOEC=0                                   # use FA maps from non eddy-corrected DWIs
@@ -287,7 +287,7 @@ VBM_PTTRN_BRAIN="*_FS_brain.nii.gz"               # search pattern for brain-ext
 VBM_PTTRN_STRUC="*_FS_struc.nii.gz"               # search pattern for original structurals (w/o skull-strip)
 VBM_SMOOTHING_KRNL="2 3 4"                        # cycle through some smoothing kernels
 VBM_Z_TRANSFORM=1                                 # z-transform grey matter 4D
-VBM_RANDOMISE_OPTS="-T -V -D -x -n 5000"          # randomise options (e.g.: "-T -V -D -x -n 5000")
+VBM_RANDOMISE_OPTS="-T -V -x -n 5000"      	  # randomise options (e.g.: "-T -V -x -n 5000")
 VBM_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked
 
 #ALFF
@@ -295,7 +295,7 @@ ALFF_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included in 
 ALFF_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC    # subjects to be included in the VBM analysis
 ALFF_OUTDIRNAME="alff_01"                          # name of output directory
 ALFF_RESOLUTIONS="2"                               # cycle through var. resolutions
-ALFF_RANDOMISE_OPTS="-T -V -D -x -n 5000"          # randomise options (e.g.: "-T -V -D -x -n 5000")
+ALFF_RANDOMISE_OPTS="-T -V -x -n 5000"      	   # randomise options (e.g.: "-T -V -x -n 5000")
 ALFF_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked
 
 # MELODIC GUI

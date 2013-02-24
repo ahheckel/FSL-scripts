@@ -5,15 +5,15 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 12/01/2013
+# 10/02/2013
 
 set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <out-dir> <isBOLD: 0|1> [n_dummyB0] <dwi-blip+> <dwi-blip-> <unwarp-dir> <TotalReadoutTime(s)> <use noec: 0|1> <use ec: 0|1> [<dof> <costfunction>] [<subj>] [<sess>]"
-    echo "Example: topup.sh topupdir 0 \"dwi*+.nii.gz\" \"dwi*-.nii.gz\" -y 0.02975 1 1 12 corratio 01 a"
-    echo "         topup.sh topupdir 1 4 \"bold*+.nii.gz\" \"bold*-.nii.gz\" +x 0.02975 1 1 6 mutualinfo 01 a"
+    echo "Usage: `basename $0` <out-dir> <isBOLD: 0|1> [n_dummyB0] <dwi-blip+> <dwi-blip-> <unwarp-dir> <TotalReadoutTime(s)> <use noec: 0|1> <use EDDY: 0|1> <use ec: 0|1> [<dof> <costfunction>] [<subj>] [<sess>]"
+    echo "Example: topup.sh topupdir 0 \"dwi*+.nii.gz\" \"dwi*-.nii.gz\" -y 0.02975 1 0 1 12 corratio 01 a"
+    echo "         topup.sh topupdir 1 4 \"bold*+.nii.gz\" \"bold*-.nii.gz\" +x 0.02975 1 0 1 6 mutualinfo 01 a"
     echo ""
     echo "NOTE:    -requires same number of blipup and blipdown images."
     echo "         -bvals/bvecs files are detected by suffix *_bvals and *_bvecs."
@@ -35,14 +35,15 @@ pttrn_diffsminus="$4"
 uw_dir="$5"
 TROT_topup=$6 # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
 TOPUP_USE_NATIVE=$7
-TOPUP_USE_EC=$8
+TOPUP_USE_EDDY=$8
+TOPUP_USE_EC=$9
 if [ $TOPUP_USE_EC -eq 1 ] ; then
-  TOPUP_EC_DOF=$9 # degrees of freedom used by eddy-correction
-  TOPUP_EC_COST=${10} # cost-function used by eddy-correction
+  TOPUP_EC_DOF=${10} # degrees of freedom used by eddy-correction
+  TOPUP_EC_COST=${11} # cost-function used by eddy-correction
   shift 2
 fi
-subj=$9 # optional
-sess=${10} # optional
+subj=${10} # optional
+sess=${11} # optional
 
 # source commonly used functions
 source $(dirname $0)/globalfuncs
@@ -133,11 +134,12 @@ TOPUP_STG2=1
 TOPUP_STG3=1               
 TOPUP_STG4=1               
 TOPUP_STG5=1               
-TOPUP_STG6=0  
+TOPUP_STG6=1  
 
 # display some info
 echo "`basename $0`: TROT=$TROT_topup"
 echo "`basename $0`: TOPUP_USE_NATIVE=$TOPUP_USE_NATIVE"
+echo "`basename $0`: TOPUP_USE_EDDY=$TOPUP_USE_EDDY"
 echo "`basename $0`: TOPUP_USE_EC=$TOPUP_USE_EC"
 if [ $TOPUP_USE_EC -eq 1 ] ; then
   echo "`basename $0`: TOPUP_EC_DOF=$TOPUP_EC_DOF"
@@ -592,9 +594,13 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb.txt --inindex=${b0minus},${b0plus} --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
         #echo "applytopup --imain=$blipdown,$blipup --datain=$fldr/$(subjsess)_acqparam_lowb_1st.txt --inindex=$i,$j --topup=$fldr/$(subjsess)_field_lowb --method=lsr --out=$fldr/${n}_topup_corr_ec" >> $fldr/applytopup_ec.cmd
       done
+      
+      # generate commando with EDDY
+      echo "$scriptdir/eddy_topup.sh $fldr $fldr/$(subjsess)_topup_corr_eddy_merged.nii.gz" > $fldr/eddy.cmd
+
     done
-  done
-  
+  done  
+
   # execute...
   for subj in `cat $outdir/.subjects` ; do
     for sess in `cat $outdir/.sessions_struc` ; do
@@ -609,7 +615,12 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : applying warps to eddy-corrected DWIs..."
         cat $fldr/applytopup_ec.cmd
         fsl_sub -l $logdir -N topup_applytopup_ec_$(subjsess) -t $fldr/applytopup_ec.cmd >> $JIDfile
-      fi
+      fi    
+      if [ $TOPUP_USE_EDDY -eq 1 ] ; then
+        echo "TOPUP : subj $subj , sess $sess : executing EDDY..."
+        fsl_sub -l $logdir -N topup_eddy_$(subjsess) -t $fldr/eddy.cmd >> $JIDfile
+      fi  
+       
     done
   done
        
@@ -630,7 +641,8 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : merging topup-corrected & eddy-corrected DWIs..."
         #fsl_sub -l $logdir -N topup_merge_corr_ec_$(subjsess) fslmerge -t $fldr/$(subjsess)_topup_corr_ec_merged $(imglob $fldr/*_topup_corr_ec.nii.gz)
         fslmerge -t $fldr/$(subjsess)_topup_corr_ec_merged $(imglob $fldr/*_topup_corr_ec.nii.gz)
-      fi
+      fi      
+ 
     done
   done
   
@@ -642,8 +654,10 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       fldr=$outdir
       
       echo "TOPUP : subj $subj , sess $sess : zeroing negative values in topup-corrected DWIs..."
-      if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_merged -thr 0 $fldr/$(subjsess)_topup_corr_merged >> $JIDfile ; fi
-      if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_ec_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_ec_merged -thr 0 $fldr/$(subjsess)_topup_corr_ec_merged >> $JIDfile ; fi
+      if [ $TOPUP_USE_NATIVE -eq 1 -a -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_merged -thr 0 $fldr/$(subjsess)_topup_corr_merged >> $JIDfile ; fi
+      if [ $TOPUP_USE_EC -eq 1 -a -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_ec_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_ec_merged -thr 0 $fldr/$(subjsess)_topup_corr_ec_merged >> $JIDfile ; fi
+      # eddy script already removed neg. values
+      #if [ -f $fldr/$(subjsess)_topup_corr_eddy_merged.nii.gz ] ; then fsl_sub -l $logdir -N topup_noneg_eddy_$(subjsess) fslmaths $fldr/$(subjsess)_topup_corr_eddy_merged -thr 0 $fldr/$(subjsess)_topup_corr_eddy_merged >> $JIDfile ; fi
     done
   done
   
@@ -655,9 +669,10 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       fldr=$outdir
       
       echo "TOPUP : subj $subj , sess $sess : masking topup-derived fieldmap..."
+      if [ ! -f $fldr/fm/fmap_rads.nii.gz ] ; then  echo "TOPUP : subj $subj , sess $sess : ERROR : fieldmap not found in '$fldr/fm/' - exiting..." ; exit 1 ; fi
       if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_merged.nii.gz ; fi
       if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ; fi ;
-      if [ ! -f $fldr/fm/fmap_rads.nii.gz ] ; then  echo "TOPUP : subj $subj , sess $sess : ERROR : fieldmap not found in '$fldr/fm/' - exiting..." ; exit 1 ; fi
+      if [ -f $fldr/$(subjsess)_topup_corr_eddy_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_eddy_merged.nii.gz ; fi ;
       min=`row2col $fldr/bvals_concat.txt | getMin`
       b0idces=`getIdx $fldr/bvals-_concat.txt $min` 
       lowbs=""
@@ -699,6 +714,7 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
       # averaging +/- bvecs & bvals...
       # NOTE: bvecs are averaged further below (following rotation)
       average $fldr/bvals-_concat.txt $fldr/bvals+_concat.txt > $fldr/avg_bvals.txt
+      average $fldr/bvecs-_concat.txt $fldr/bvecs+_concat.txt > $fldr/avg_bvecs.txt # for EDDY no rotations are applied
       
       # rotate bvecs to compensate for eddy-correction, if applicable
       if [ $TOPUP_USE_EC -eq 1 ] ; then
@@ -714,13 +730,33 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
         fi
       fi
       
+      # rotate bvecs: get appropriate line in TOPUP index file (containing parameters pertaining to the B0 images) that refers to the first b0 volume in the respective DWI input file.
+      line_b0=1 ; j=0 ; lines_b0p=""; lines_b0m=""
+      for i in $(cat $fldr/bval-.files) ; do
+        if [ $j -gt 0 ] ; then
+          line_b0=$(echo "scale=0; $line_b0 + $nb0" | bc -l)
+        fi
+        min=`row2col $i | getMin`
+        nb0=$(echo `getIdx $i $min` | wc -w)
+        lines_b0m=$lines_b0m" "$line_b0
+        j=$[$j+1]
+      done      
+      for i in $(cat $fldr/bval+.files) ; do
+        line_b0=$(echo "scale=0; $line_b0 + $nb0" | bc -l)
+        min=`row2col $i | getMin`
+        nb0=$(echo `getIdx $i $min` | wc -w)
+        lines_b0p=$lines_b0p" "$line_b0
+      done
+      j="" ; lines_b0=$lines_b0m" "$lines_b0p
+            
       # rotate bvecs to compensate for TOPUP 6 parameter rigid-body correction using OCTAVE (for each run)
       for i in `seq -f %03g 001 $(cat $fldr/diff.files | wc -l)` ; do # for each run do...        
         # copy OCTAVE template
         cp $tmpltdir/template_makeXfmMatrix.m $fldr/makeXfmMatrix_${i}.m
         
-        # define vars
-        rots=`sed -n ${i}p $fldr/$(subjsess)_field_lowb_movpar.txt | awk '{print $4"  "$5"  "$6}'` # cut -d " " -f 7-11` # last three entries are rotations in radians 
+        # define vars           
+        line_b0=$(echo $lines_b0 | cut -d " " -f $i)
+        rots=`sed -n ${line_b0}p $fldr/$(subjsess)_field_lowb_movpar.txt | awk '{print $4"  "$5"  "$6}'` # cut -d " " -f 7-11` # last three entries are rotations in radians
         nscans=`sed -n ${i}p $fldr/diff.files | cut -d : -f 2` # number of scans in run
         fname_mat=topup_diffs_merged_${i}.mat # filename with n 4x4 affine matrices
         
@@ -780,8 +816,8 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
       if [ $TOPUP_USE_EC -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : concatenate averaged and rotated b-vectors (incl. eddy-correction)..."
         concat_bvecs "$fldr/avg_bvecs_topup_ec_???.rot" $fldr/avg_bvecs_topup_ec.rot
-      fi
-      
+      fi          
+        
       # display info
       echo "TOPUP : subj $subj , sess $sess : dtifit is estimating tensor model..."
       
@@ -793,6 +829,10 @@ if [ $TOPUP_STG6 -eq 1 ] ; then
       if [ $TOPUP_USE_EC -eq 1 ] ; then
         echo "TOPUP : subj $subj , sess $sess : dtifit is estimating tensor model with rotated b-vectors (incl. eddy-correction)..."
         fsl_sub -l $logdir -N topup_dtifit_ec_bvecrot_$(subjsess) dtifit -k $fldr/$(subjsess)_topup_corr_ec_merged -m $fldr/uw_nodif_brain_mask -r $fldr/avg_bvecs_topup_ec.rot  -b $fldr/avg_bvals.txt  -o $fldr/$(subjsess)_dti_topup_ec_bvecrot >> $JIDfile
+      fi
+      if [ $TOPUP_USE_EDDY -eq 1 ] ; then
+        echo "TOPUP : subj $subj , sess $sess : dtifit is estimating tensor model w/o rotated b-vectors (incl. EDDY-correction)..."
+        fsl_sub -l $logdir -N topup_dtifit_eddy_norot_$(subjsess) dtifit -k $fldr/$(subjsess)_topup_corr_eddy_merged -m $fldr/uw_nodif_brain_mask -r $fldr/avg_bvecs.txt  -b $fldr/avg_bvals.txt  -o $fldr/$(subjsess)_dti_topup_eddy_norot >> $JIDfile
       fi
     done
   done
