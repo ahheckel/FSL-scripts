@@ -1,0 +1,60 @@
+#!/bin/bash
+# freeview wrapper for Nautilus.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 26/02/2012
+
+FREESURFER_HOME=/usr/local/freesurfer
+source $FREESURFER_HOME/SetUpFreeSurfer.sh
+
+vollist_lh=""   ; vollist_rh=""
+surflist_lh=""  ; surflist_rh=""
+overlist_lh=""  ; overlist_rh=""
+annotlist_lh="" ; annotlist_rh=""
+for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
+  niigz=$(echo $i | grep .nii.gz$ | wc -l)
+  nii=$(echo $i | grep .nii$ | wc -l)
+  mgh=$(echo $i | grep .mgh$ | wc -l)
+  mgz=$(echo $i | grep .mgz$ | wc -l)
+  
+  annot=$(echo $i | grep .annot$ | wc -l)
+  
+  sig=$(echo $(basename $i) | grep ^sig.mgh$ | wc -l)
+  F=$(echo $(basename $i) | grep ^F.mgh$ | wc -l)
+  gamma=$(echo $(basename $i) | grep ^gamma.mgh$ | wc -l)
+  gammavar=$(echo $(basename $i) | grep ^gammavar.mgh$ | wc -l)
+  cnr=$(echo $(basename $i) | grep ^cnr.mgh$ | wc -l)
+  
+  # left or right hemisphere ?
+  lh=0 ; rh=0
+  if [ "$(echo $(basename $i) | cut -d . -f 1)" = "lh" ] ; then
+    lh=1
+  else
+    rh=1
+  fi
+  
+  # check
+  #zenity --info --text="$rh $lh"
+  
+  if [ $sig -eq 1 -o $F -eq 1 -o $gamma -eq 1 -o $gammavar -eq 1 -o $cnr -eq 1 ] ; then # file is a statistical map...  
+    if [ $lh -eq 1 ] ; then # ...of the left hemi.
+      overlist_lh=$overlist_lh" -overlay $i -fminmax 2 3"
+    elif [ $rh -eq 1 ] ; then # ...of the right hemi.
+      overlist_rh=$overlist_rh" -overlay $i -fminmax 2 3"
+    fi
+  fi
+done # end for loop
+
+#zenity --info --text="$opts"
+
+# execute
+if [ $lh -eq 1 ] ; then 
+  xterm -e tksurfer fsaverage lh inflated -gray -annotation $SUBJECTS_DIR/fsaverage/label/lh.aparc.a2009s.annot -labels-under $overlist_lh -colscalebarflag 1 -colscaletext 1
+elif [ $rh -eq 1 ] ; then 
+  xterm -e tksurfer fsaverage rh inflated -gray -annotation $SUBJECTS_DIR/fsaverage/label/rh.aparc.a2009s.annot -labels-under $overlist_rh -colscalebarflag 1 -colscaletext 1
+fi
+
+
