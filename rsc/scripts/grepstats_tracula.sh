@@ -20,9 +20,10 @@ Usage() {
 
 [ "$2" = "" ] && Usage
 
+# define vars.
 depvar="$1"
 outdir="$2"
-
+regs="bbr flt"
 tracts="\
 fmajor_PP_avg33_mni \
 fminor_PP_avg33_mni \
@@ -43,10 +44,12 @@ rh.slfp_PP_avg33_mni \
 rh.slft_PP_avg33_mni \
 rh.unc_AS_avg33_mni"
 
+# create output directory
 mkdir -p $outdir
 
 echo ""
 
+# display info
 echo "`basename $0` : tracts available:"
 i=1
 for j in $tracts ; do 
@@ -56,8 +59,8 @@ done
 
 echo ""
 
+# gather variables of interest
 echo "`basename $0` : gathering '$depvar' values..."
-regs="bbr flt"
 for reg in $regs ; do
 	for tract in $tracts ; do
 
@@ -75,6 +78,7 @@ for reg in $regs ; do
   echo ""
 done
 
+# create summary textfile via concatenation (1 col. for each tract) and clean up
 for reg in $regs ; do
   summary=$outdir/${depvar}_${reg}.txt
   echo "`basename $0` : creating $summary."
@@ -88,5 +92,6 @@ for reg in $regs ; do
   rm -f $pds
 done
 
+# done.
 echo "`basename $0` : done."
 

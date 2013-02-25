@@ -71,13 +71,14 @@ for roi in `seq 1 $rois` ; do
       for j in `seq 1 $reps` ; do
         
         line=$(echo "scale=0 ; $i + $ncond * ($j-1)" | bc -l)
-        cat $txtin | sed -n ${line}p >> ${txtout}_tmp_${i}
+        cat $txtin | awk -v c=${roi} '{print $c}' | sed -n ${line}p >> ${txtout}_tmp_${i}
         
       done
       txtfiles=$txtfiles" "${txtout}_tmp_${i}
       if [ $mean -eq 1 ] ; then
         cat ${txtout}_tmp_${i} | getAvg  > ${txtout}_tmp_mean_${i}
         cat ${txtout}_tmp_mean_${i} > ${txtout}_tmp_${i}
+        rm ${txtout}_tmp_mean_${i}
       fi
     done
   fi
@@ -89,20 +90,20 @@ for roi in `seq 1 $rois` ; do
       for j in `seq 1 $ncond` ; do
         
         line=$(echo "scale=0 ; $j + $ncond * ($i-1)" | bc -l)
-        cat $txtin | sed -n ${line}p >> ${txtout}_tmp_${i}
+        cat $txtin | awk -v c=${roi} '{print $c}' | sed -n ${line}p >> ${txtout}_tmp_${i}
         
       done
       txtfiles=$txtfiles" "${txtout}_tmp_${i}
       if [ $mean -eq 1 ] ; then
         cat ${txtout}_tmp_${i} | getAvg  > ${txtout}_tmp_mean_${i}
         cat ${txtout}_tmp_mean_${i} > ${txtout}_tmp_${i}
+        rm ${txtout}_tmp_mean_${i}
       fi
     done  
   fi
 
   # paste
-  paste $txtfiles > ${txtout}_$(zeropad $roi 3)
-  
+  paste $txtfiles > ${txtout}_$(zeropad $roi 3)  
 
   # cleanup
   rm $txtfiles
