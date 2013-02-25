@@ -30,11 +30,23 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   
   # left or right hemisphere ?
   lh=0 ; rh=0
-  if [ "$(echo $(basename $i) | cut -d . -f 1)" = "lh" ] ; then
+  hemi="$(echo $(basename $i) | cut -d . -f 1)"
+  if [ "$hemi" = "lh" ] ; then
     lh=1
-  else
+  elif [ "$hemi" = "rh" ] ; then
     rh=1
   fi
+  _dir="$i"
+  while [ $lh -eq 0 -a $rh -eq 0 ] ; do
+    _dir=$(dirname $_dir) ; if [ "$_dir" = "$(dirname $_dir)" ] ; then break ; fi
+    _dirname=$(basename $_dir)
+    _hemi="$(basename $_dirname)"
+    lh=$(echo $_hemi | grep "^lh\."  | wc -l)
+    rh=$(echo $_hemi | grep "^rh\."  | wc -l)
+    lh=$(echo $_hemi | grep "\.lh\." | wc -l)
+    rh=$(echo $_hemi | grep "\.rh\." | wc -l)
+    #zenity --info --text="$_dir"
+  done
   
   # check
   #zenity --info --text="$rh $lh"

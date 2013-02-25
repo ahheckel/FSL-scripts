@@ -120,10 +120,10 @@ if [ $smooth -eq 1 ] ; then
         for measure in $measures ; do
           output=${design}.${hemi}.${measure}.s${sm}.mgh
           input=${FSstatsdir}/${design}.${hemi}.${measure}.mgh
+         
+          if [ ! -f $input ] ; then echo "$(basename $0): ERROR: file not found: '$input' - exiting." ; exit 1 ; fi 
           
           rm -f ${FSstatsdir}/$output # delete prev. run
-          
-          if [ ! -f $input ] ; then echo "$(basename $0): ERROR: file not found: '$input' - exiting." ; exit 1 ; fi
           
           echo "$(basename $0): smoothing with (kernel: ${sm}mm FWHM -> output: '${FSstatsdir}/$output')..."
           echo "    mri_surf2surf --hemi ${hemi} --s fsaverage --sval $input --fwhm ${sm} --cortex --tval ${FSstatsdir}/$output" >> $cmdtxt
@@ -170,6 +170,7 @@ if [ $glmstats -eq 1 ] ; then
   # copy files...
   for design in $designs ; do
     mtx_files=$(ls $glmdir_FS/$design/*.mtx)
+    fsgd_file=$(ls $glmdir_FS/$design/*.fsgd)
     for hemi in lh rh ; do
       for sm in $krnls ; do
         for measure in $measures ; do
