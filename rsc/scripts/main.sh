@@ -1861,24 +1861,9 @@ if [ $VBM_STG1 -eq 1 ] ; then
       fi      
     done
   done
-  
-  #if [ $VBM_NU_CORRECT_T1 -eq 1 ] ; then
-    ## wait until nu_correct has finished...
-    #waitIfBusy       
-    ## re-convert to .nii.gz format and delete temporary files
-    #for subj in `cat subjects`; do 
-      #for sess in `cat ${subj}/sessions_struc` ; do
-        #fldr=$subjdir/$subj/$sess/vbm
-        #mri_convert $fldr/t1_nu_struc.mnc $fldr/$(subjsess)_t1_nu_struc.nii.gz &>$logdir/vbm01_mri_convert02_$(subjsess) -odt float
-        #rm -f $fldr/tmp.mnc
-        #rm -f $fldr/t1_nu_struc.mnc
-        #ln -sf $(subjsess)_t1_nu_struc.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz
-      #done
-    #done    
-  #fi
-  
+
   waitIfBusy
-  
+
   # also obtain skull-stripped volumes from FREESURFER, if available
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
@@ -2732,9 +2717,9 @@ if [ $BOLD_STG4 -eq 1 ] ; then
           done # end sm_krnl
         done # end hpf_cut
 
-      done
-    done
-  fi
+      done # end sess
+    done # end subj
+  fi # end BOLD_USE_FS_LONGT_TEMPLATE
   
   waitIfBusy
   
@@ -2838,8 +2823,8 @@ if [ $BOLD_STG4 -eq 1 ] ; then
         done # end sm_krnl
       done # end hpf_cut
     
-    done
-  done    
+    done # end sess
+  done # end subj
 fi
 
 

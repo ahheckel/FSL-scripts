@@ -10,4 +10,4 @@
 logP1=1.6021
 logP2=3
 flatpatch=1
-source $(dirname $0)/FREESURFER_tksurferP0.05_fsaverage
+source $(dirname $0)/FREESURFER_tksurferP0.050_fsaverage

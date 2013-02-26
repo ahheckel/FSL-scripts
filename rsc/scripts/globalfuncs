@@ -649,7 +649,7 @@ function average()
 
 function getB0Index()
 { 
-  if [ "x$1" = "x" -o "x$2" = "x" ] ; then echo "Usage:  getB0Index <bval file> <dest dir>" ; fi
+  if [ "x$1" = "x" -o "x$2" = "x" ] ; then echo "Usage:  getB0Index <bval file> <out-txt>" ; fi
   
   local bval_pttrn=$1
   local dest=$2
