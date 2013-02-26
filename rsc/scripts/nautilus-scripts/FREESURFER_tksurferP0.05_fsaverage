@@ -7,6 +7,10 @@
 # https://github.com/ahheckel
 # 26/02/2012
 
+if [ x"$logP1" = "x" ] ; then logP1=1.3010 ; fi
+if [ x"$logP2" = "x" ] ; then logP2=2 ; fi
+if [ x"$flatpatch" = "x" ] ; then flatpatch=0 ; fi
+
 FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
@@ -56,9 +60,9 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   
   if [ $sig -eq 1 -o $F -eq 1 -o $gamma -eq 1 -o $gammavar -eq 1 -o $cnr -eq 1 ] ; then # file is a statistical map...  
     if [ $lh -eq 1 ] ; then # ...of the left hemi.
-      overlist_lh=$overlist_lh" -overlay $i -fminmax 1.3010 2"
+      overlist_lh=$overlist_lh" -overlay $i -fminmax $logP1 $logP2"
     elif [ $rh -eq 1 ] ; then # ...of the right hemi.
-      overlist_rh=$overlist_rh" -overlay $i -fminmax 1.3010 2"
+      overlist_rh=$overlist_rh" -overlay $i -fminmax $logP1 $logP2"
     fi
   elif [ $label -eq 1 ] ; then
     if [ $lh -eq 1 ] ; then # ...of the left hemi.
@@ -71,8 +75,11 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
 done # end for loop
 
 # enable auto-redraw in tksurfer's GUI
-echo "set gaLinkedVars(redrawlockflag) 1" > /tmp/tmp.tcl
-echo "SendLinkedVarGroup redrawlock" >> /tmp/tmp.tcl
+echo "set gaLinkedVars(redrawlockflag) 1" > /tmp/$$tmp.tcl
+echo "SendLinkedVarGroup redrawlock" >> /tmp/$$tmp.tcl
+if [ $flatpatch -eq 1 ] ; then
+  echo "scale_brain 0.75" >> /tmp/$$tmp.tcl
+fi
 
 # define annotation only if no labels selected
 if [ x"$labels_lh" = "x" ] ; then
@@ -83,8 +90,10 @@ if [ x"$labels_rh" = "x" ] ; then
 fi
 
 # execute
-if [ $lh -eq 1 ] ; then 
-  xterm -e tksurfer fsaverage lh inflated -gray $annot_lh $overlist_lh $labels_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/tmp.tcl
-elif [ $rh -eq 1 ] ; then 
-  xterm -e tksurfer fsaverage rh inflated -gray $annot_rh $overlist_rh $labels_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/tmp.tcl
+if [ $lh -eq 1 ] ; then
+  if [ $flatpatch -eq 1 ] ; then patch="-patch $SUBJECTS_DIR/fsaverage/surf/lh.cortex.patch.flat" ; else patch="" ; fi
+  xterm -e tksurfer fsaverage lh inflated $patch -gray $annot_lh $overlist_lh $labels_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl
+elif [ $rh -eq 1 ] ; then
+  if [ $flatpatch -eq 1 ] ; then patch="-patch $SUBJECTS_DIR/fsaverage/surf/rh.cortex.patch.flat" ; else patch="" ; fi
+  xterm -e tksurfer fsaverage rh inflated $patch -gray $annot_rh $overlist_rh $labels_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl
 fi
