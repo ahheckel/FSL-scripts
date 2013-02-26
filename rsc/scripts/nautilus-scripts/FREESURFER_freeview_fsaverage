@@ -84,17 +84,16 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
         surflist_rh=$surflist_rh" -f $i"
       fi
     fi    
-  fi
+  fi  
+  # add fsaverage surface and annotation
+  if [ $lh -eq 1 ] ; then 
+    surflist_lh=$surflist_lh" -f $SUBJECTS_DIR/fsaverage/surf/lh.inflated"
+    annotlist_lh=$annotlist_lh":annot=$SUBJECTS_DIR/fsaverage/label/lh.aparc.a2009s.annot"
+  elif [ $rh -eq 1 ] ; then
+    annotlist_rh=$annotlist_rh":annot=$SUBJECTS_DIR/fsaverage/label/rh.aparc.a2009s.annot"
+    surflist_rh=$surflist_rh" -f $SUBJECTS_DIR/fsaverage/surf/rh.inflated"
+  fi  
 done # end for loop
-
-# add fsaverage surface and annotation
-if [ $lh -eq 1 ] ; then 
-  surflist_lh=$surflist_lh" -f $SUBJECTS_DIR/fsaverage/surf/lh.inflated"
-  annotlist_lh=$annotlist_lh":annot=$SUBJECTS_DIR/fsaverage/label/lh.aparc.a2009s.annot"
-elif [ $rh -eq 1 ] ; then
-  annotlist_rh=$annotlist_rh":annot=$SUBJECTS_DIR/fsaverage/label/rh.aparc.a2009s.annot"
-  surflist_rh=$surflist_rh" -f $SUBJECTS_DIR/fsaverage/surf/rh.inflated"
-fi
 
 # remove spaces before ':' in freeview arguments
 opts=$(echo "${vollist_lh} ${vollist_rh} ${surflist_lh}${annotlist_lh}${overlist_lh} ${surflist_rh}${annotlist_rh}${overlist_rh}" | sed "s| :|:|g") 

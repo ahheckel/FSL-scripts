@@ -178,6 +178,7 @@ if [ $glmstats -eq 1 ] ; then
           echo "$(basename $0): copying files to '$(basename $glmdir)'..."
           cp $fsgd_file $glmdir/
           cp $mtx_files $glmdir/
+          sed -i "s|PlotFile .*|PlotFile ../${design}.${hemi}.${measure}.s${sm}.mgh|g" $glmdir/y.fsgd # replace abs. path with rel. path
           
           for mtx in $mtx_files ; do      
             mtx=$(basename $mtx)

@@ -1,5 +1,5 @@
 #!/bin/bash
-# freeview wrapper for Nautilus.
+# tksurfer wrapper for Nautilus.
 
 # Written by Andreas Heckel
 # University of Heidelberg
@@ -14,6 +14,7 @@ vollist_lh=""   ; vollist_rh=""
 surflist_lh=""  ; surflist_rh=""
 overlist_lh=""  ; overlist_rh=""
 annotlist_lh="" ; annotlist_rh=""
+labels_lh=""    ; labels_rh=""
 lastfile=""
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   niigz=$(echo $i | grep .nii.gz$ | wc -l)
@@ -21,7 +22,8 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   mgh=$(echo $i | grep .mgh$ | wc -l)
   mgz=$(echo $i | grep .mgz$ | wc -l)
   
-  annot=$(echo $i | grep .annot$ | wc -l)
+  label=$(echo $i | grep "\.label$" | wc -l)  
+  annot=$(echo $i | grep "\.annot$" | wc -l)
   
   sig=$(echo $(basename $i) | grep ^sig.mgh$ | wc -l)
   F=$(echo $(basename $i) | grep ^F.mgh$ | wc -l)
@@ -58,17 +60,31 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     elif [ $rh -eq 1 ] ; then # ...of the right hemi.
       overlist_rh=$overlist_rh" -overlay $i -fminmax 2 3"
     fi
+  elif [ $label -eq 1 ] ; then
+    if [ $lh -eq 1 ] ; then # ...of the left hemi.
+      labels_lh=$labels_lh" -label $i"
+    elif [ $rh -eq 1 ] ; then # ...of the right hemi.
+      labels_rh=$labels_rh" -label $i"
+    fi
   fi
   lastfile=$i
 done # end for loop
 
-#zenity --info --text="$opts"
+# enable auto-redraw in tksurfer's GUI
+echo "set gaLinkedVars(redrawlockflag) 1" > /tmp/tmp.tcl
+echo "SendLinkedVarGroup redrawlock" >> /tmp/tmp.tcl
+
+# define annotation only if no labels selected
+if [ x"$labels_lh" = "x" ] ; then
+  annot_lh="-annotation $SUBJECTS_DIR/fsaverage/label/lh.aparc.a2009s.annot -labels-under"
+fi
+if [ x"$labels_rh" = "x" ] ; then
+  annot_rh="-annotation $SUBJECTS_DIR/fsaverage/label/rh.aparc.a2009s.annot -labels-under"
+fi
 
 # execute
 if [ $lh -eq 1 ] ; then 
-  xterm -e tksurfer fsaverage lh inflated -gray -annotation $SUBJECTS_DIR/fsaverage/label/lh.aparc.a2009s.annot -labels-under $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile
+  xterm -e tksurfer fsaverage lh inflated -gray $annot_lh $overlist_lh $labels_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/tmp.tcl
 elif [ $rh -eq 1 ] ; then 
-  xterm -e tksurfer fsaverage rh inflated -gray -annotation $SUBJECTS_DIR/fsaverage/label/rh.aparc.a2009s.annot -labels-under $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile
+  xterm -e tksurfer fsaverage rh inflated -gray $annot_rh $overlist_rh $labels_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/tmp.tcl
 fi
-
-

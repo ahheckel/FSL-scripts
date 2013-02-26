@@ -262,7 +262,7 @@ TBSS_OUTDIR_PREFIX="tbss"                         # prefix of output directory
 TBSS_USE_B0_4_FS_LONGT=""                         # use FREESURFER'S longitudinal template to register the b0 to (default "", e.g. "topup/fm/uw_lowb_mean_brain" or "fdt/uw_nodif")
 TBSS_THRES="0.2 0.3 0.4"                          # cycle through some skeleton-threshold values
 TBSS_Z_TRANSFORM=1                                # z-transform FA skeletons
-TBSS_RANDOMISE_OPTS="--T2 -V -x -n 5000"       # randomise options (e.g.: "--T2 -V -x -n 5000")
+TBSS_RANDOMISE_OPTS="--T2 -V -x -n 5000"          # randomise options (e.g.: "--T2 -V -x -n 5000")
 TBSS_DELETE_PREV_RUNS=1                           # delete previously created TBSS directories and files; if set, no questions will be asked
 # NOTE: if you use BedpostX files from TRACULA for TBSSX, then you should chose the (*single*) appropriate switch from below to ensure proper naming
 TBSS_USE_NOEC=0                                   # use FA maps from non eddy-corrected DWIs
@@ -287,7 +287,7 @@ VBM_PTTRN_BRAIN="*_FS_brain.nii.gz"               # search pattern for brain-ext
 VBM_PTTRN_STRUC="*_FS_struc.nii.gz"               # search pattern for original structurals (w/o skull-strip)
 VBM_SMOOTHING_KRNL="2 3 4"                        # cycle through some smoothing kernels
 VBM_Z_TRANSFORM=1                                 # z-transform grey matter 4D
-VBM_RANDOMISE_OPTS="-T -V -x -n 5000"      	  # randomise options (e.g.: "-T -V -x -n 5000")
+VBM_RANDOMISE_OPTS="-T -V -x -n 5000"      	      # randomise options (e.g.: "-T -V -x -n 5000")
 VBM_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked
 
 #ALFF
@@ -295,7 +295,7 @@ ALFF_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included in 
 ALFF_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC    # subjects to be included in the VBM analysis
 ALFF_OUTDIRNAME="alff_01"                          # name of output directory
 ALFF_RESOLUTIONS="2"                               # cycle through var. resolutions
-ALFF_RANDOMISE_OPTS="-T -V -x -n 5000"      	   # randomise options (e.g.: "-T -V -x -n 5000")
+ALFF_RANDOMISE_OPTS="-T -V -x -n 5000"      	     # randomise options (e.g.: "-T -V -x -n 5000")
 ALFF_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked
 
 # MELODIC GUI
@@ -324,7 +324,7 @@ DUALREG_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions that shou
 DUALREG_INPUT_ICA_DIRNAMES="MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni2    MELODIC-CMD01_preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni4" # where the ICs reside ; ommit suffix '.gica'
 DUALREG_IC_FILENAMES="melodic_IC.nii.gz"                    # 4D file with the IC of interest; it is to be found in the DUALREG_INPUT_ICA_DIRNAMES directories
 DUALREG_INPUT_BOLD_FILES=""                                 # optional (if left empty, input files are derived elsewhere)
-DUALREG_USE_MOVPARS_HPF="dummy"                             # cutoff period (s) for high-pass filtering motion parameters ; enter "none" or "" if motion parameters should not be included (dr_stage2)
+DUALREG_USE_MOVPARS_HPF="dummy"                             # cutoff period (s) for high-pass filtering motion parameters ; enter "none", "" or "dummy" if motion parameters should not be used, enter "Inf" if they should be used w/o hp-filtering (dr_stage2)
 DUALREG_OUTDIR_PREFIX="dr"                                  # output directory pre-fix (dir-name is composed as: ${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAMES}_${DUALREG_IC_FILENAMES})
 DUALREG_NPERM=5000                                          # number of permutations
 DUALREG_DELETE_PREV_RUNS=1                                  # delete previous runs?
@@ -332,13 +332,13 @@ DUALREG_DELETE_PREV_RUNS=1                                  # delete previous ru
 # ----------------------------------------------------------------------
 
 # misc.
-CHECK_INFOFILES=1               # check presence of info-files at startup and create default files if necessary
 BETLOWB_INFO="0.30"             # default bet values for b0 images
 BETMAGN_INFO="0.50"             # default bet values for fieldmap magnitude images
 BETSTRUC0_INFO="0.30 na na na"  # default bet values for t1 structurals (CoG na) - inital skullstrip (SSM)
 BETSTRUC1_INFO="0.10 na na na"  # default bet values for t1 structurals (CoG na) - final skullstrip (SSM)
 DWIUNWARP_INFO="+y"             # default direction values for unwarping DWIs (default: -y)
 BOLDUNWARP_INFO="+y"            # default direction values for unwarping BOLDs (default: -y)
+CHECK_INFOFILES=1               # check presence of info-files at startup and create default files if necessary
 CHECK_CONSISTENCY_DIFFS=1       # checks number of bvals/bvecs entries at startup
 RANDOMISE_PARALLEL=1            # use randomise_parallel for clusters
 DELAYINSECS=150
