@@ -291,12 +291,12 @@ VBM_RANDOMISE_OPTS="-T -V -x -n 5000"      	      # randomise options (e.g.: "-T
 VBM_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked
 
 #ALFF
-ALFF_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS         # subjects to be included in the VBM analysis
-ALFF_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC    # subjects to be included in the VBM analysis
-ALFF_OUTDIRNAME="alff_01"                          # name of output directory
-ALFF_RESOLUTIONS="2"                               # cycle through var. resolutions
-ALFF_RANDOMISE_OPTS="-T -V -x -n 5000"      	     # randomise options (e.g.: "-T -V -x -n 5000")
-ALFF_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked
+ALFF_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS        # subjects to be included in the VBM analysis
+ALFF_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC   # subjects to be included in the VBM analysis
+ALFF_OUTDIRNAME="alff_01"                         # name of output directory
+ALFF_RESOLUTIONS="2"                              # cycle through var. resolutions
+ALFF_RANDOMISE_OPTS="-T -V -x -n 5000"      	    # randomise options (e.g.: "-T -V -x -n 5000")
+ALFF_DELETE_PREV_RUNS=1                           # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked
 
 # MELODIC GUI
 MELODIC_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS                  # subjects to be included in the ICA analysis

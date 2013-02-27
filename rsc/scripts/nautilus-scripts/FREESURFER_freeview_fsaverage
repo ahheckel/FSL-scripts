@@ -14,19 +14,22 @@ vollist_lh=""   ; vollist_rh=""
 surflist_lh=""  ; surflist_rh=""
 overlist_lh=""  ; overlist_rh=""
 annotlist_lh="" ; annotlist_rh=""
+labels_lh=""    ; labels_rh=""
+lastfile=""
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
-  niigz=$(echo $i | grep .nii.gz$ | wc -l)
-  nii=$(echo $i | grep .nii$ | wc -l)
-  mgh=$(echo $i | grep .mgh$ | wc -l)
-  mgz=$(echo $i | grep .mgz$ | wc -l)
+  niigz=$(echo $i | grep "\.nii.gz$" | wc -l)
+  nii=$(echo $i | grep "\.nii$" | wc -l)
+  mgh=$(echo $i | grep "\.mgh$" | wc -l)
+  mgz=$(echo $i | grep "\.mgz$" | wc -l)
   
-  annot=$(echo $i | grep .annot$ | wc -l)
+  label=$(echo $i | grep "\.label$" | wc -l)  
+  annot=$(echo $i | grep "\.annot$" | wc -l)
   
-  sig=$(echo $(basename $i) | grep ^sig.mgh$ | wc -l)
-  F=$(echo $(basename $i) | grep ^F.mgh$ | wc -l)
-  gamma=$(echo $(basename $i) | grep ^gamma.mgh$ | wc -l)
-  gammavar=$(echo $(basename $i) | grep ^gammavar.mgh$ | wc -l)
-  cnr=$(echo $(basename $i) | grep ^cnr.mgh$ | wc -l)
+  sig=$(echo $(basename $i) | grep "^sig\.mgh$" | wc -l)
+  F=$(echo $(basename $i) | grep "^F\.mgh$" | wc -l)
+  gamma=$(echo $(basename $i) | grep "^gamma\.mgh$" | wc -l)
+  gammavar=$(echo $(basename $i) | grep "^gammavar\.mgh$" | wc -l)
+  cnr=$(echo $(basename $i) | grep "^cnr\.mgh$" | wc -l)
   
   # left or right hemisphere ?
   lh=0 ; rh=0

@@ -14,19 +14,22 @@ vollist_lh=""   ; vollist_rh=""
 surflist_lh=""  ; surflist_rh=""
 overlist_lh=""  ; overlist_rh=""
 annotlist_lh="" ; annotlist_rh=""
+labels_lh=""    ; labels_rh=""
+lastfile=""
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
-  niigz=$(echo $i | grep .nii.gz$ | wc -l)
-  nii=$(echo $i | grep .nii$ | wc -l)
-  mgh=$(echo $i | grep .mgh$ | wc -l)
-  mgz=$(echo $i | grep .mgz$ | wc -l)
+  niigz=$(echo $i | grep "\.nii.gz$" | wc -l)
+  nii=$(echo $i | grep "\.nii$" | wc -l)
+  mgh=$(echo $i | grep "\.mgh$" | wc -l)
+  mgz=$(echo $i | grep "\.mgz$" | wc -l)
   
-  annot=$(echo $i | grep .annot$ | wc -l)
+  label=$(echo $i | grep "\.label$" | wc -l)  
+  annot=$(echo $i | grep "\.annot$" | wc -l)
   
-  sig=$(echo $(basename $i) | grep ^sig.mgh$ | wc -l)
-  F=$(echo $(basename $i) | grep ^F.mgh$ | wc -l)
-  gamma=$(echo $(basename $i) | grep ^gamma.mgh$ | wc -l)
-  gammavar=$(echo $(basename $i) | grep ^gammavar.mgh$ | wc -l)
-  cnr=$(echo $(basename $i) | grep ^cnr.mgh$ | wc -l)
+  sig=$(echo $(basename $i) | grep "^sig\.mgh$" | wc -l)
+  F=$(echo $(basename $i) | grep "^F\.mgh$" | wc -l)
+  gamma=$(echo $(basename $i) | grep "^gamma\.mgh$" | wc -l)
+  gammavar=$(echo $(basename $i) | grep "^gammavar\.mgh$" | wc -l)
+  cnr=$(echo $(basename $i) | grep "^cnr\.mgh$" | wc -l)
   
   # left or right hemisphere ?
   lh=0 ; rh=0
@@ -58,11 +61,12 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
       overlist_rh=$overlist_rh":overlay=$i"
     fi
   elif [ $niigz -eq 1 -o $nii -eq 1 -o $mgh -eq 1 -o $mgz -eq 1 ] ; then # file is a volume...    
-    if [ $lh -eq 1 ] ; then # ...of the left hemi.
-      vollist_lh=$vollist_lh" -v $i"
-    elif [ $rh -eq 1 ] ; then # ...of the right hemi.
-      vollist_rh=$vollist_rh" -v $i"
-    fi
+    #if [ $lh -eq 1 ] ; then # ...of the left hemi.
+      #vollist_lh=$vollist_lh" -v $i"
+    #elif [ $rh -eq 1 ] ; then # ...of the right hemi.
+      #vollist_rh=$vollist_rh" -v $i"
+    #fi # side (left/right) probably not sensible here...
+    vollist_rh=$vollist_rh" -v $i"
   elif [ $annot -eq 1 ] ; then # file is an annotation...
     if [ $lh -eq 1 ] ; then # ...of the left hemi.
       annotlist_lh=$annotlist_lh":annot=$i"

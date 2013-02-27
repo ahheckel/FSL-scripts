@@ -13,19 +13,33 @@ set -e
 
 Usage() {
     echo "Recursively removes broken symlinks."
-    echo "Usage: `basename $0` <directory>"
+    echo "Usage:     `basename $0` <directory> <depth>"
+    echo "Examples:  `basename $0` ./ 0"
+    echo "              ...will remove all broken symlinks recursively in whole dir-tree."
+    echo "           `basename $0` ./ 2"
+    echo "              ...will remove all broken symlinks up to dir-level 2."
     echo ""
     exit 1
 }
 
 
-[ "$1" = "" ] && Usage
+[ "$2" = "" ] && Usage
 
-echo "`basename $0`: removing all broken symlinks under '$1'..."
+dir="$1"
+depth="$2"
 
-if [ ! -d $1 ] ; then echo "`basename $0`: '$1' does not exist." ; exit 1 ; fi
+echo -n "`basename $0`: removing all broken symlinks under '$dir' ... "
 
-find $1 -type l ! -exec test -e {} \; -exec echo deleting {} \; -exec rm {} \;
+if [ ! -d $dir ] ; then echo "`basename $0`: '$dir' does not exist." ; exit 1 ; fi
+if [ $depth -gt 0 ] ; then 
+  maxdepth="-maxdepth $depth"
+  echo "up to level $depth."
+elif [ $depth -eq 0 ] ; then
+  maxdepth=""
+  echo ""
+fi
+
+find $dir -mindepth 1 $maxdepth -type l ! -exec test -e {} \; -exec echo deleting {} \; -exec rm {} \;
 
 echo "`basename $0`: done."
 

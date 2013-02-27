@@ -139,7 +139,7 @@ if [ $hpf != "Inf" -a x${movpar_proc} != "x" ] ; then
   movpar_proc=${movpar_proc}.hpf
 fi
 
-# create matrix - confounds
+# create matrix - paste
 confounds="${output}_nuisance.mat"
 echo "`basename $0` : subj $subj , sess $sess : creating nuisance matrix '$confounds' and '${confounds%.mat}_proc.mat'..."
 paste -d " " $ts_list $movpar $ones > $confounds

@@ -21,19 +21,19 @@ annotlist_lh="" ; annotlist_rh=""
 labels_lh=""    ; labels_rh=""
 lastfile=""
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
-  niigz=$(echo $i | grep .nii.gz$ | wc -l)
-  nii=$(echo $i | grep .nii$ | wc -l)
-  mgh=$(echo $i | grep .mgh$ | wc -l)
-  mgz=$(echo $i | grep .mgz$ | wc -l)
+  niigz=$(echo $i | grep "\.nii.gz$" | wc -l)
+  nii=$(echo $i | grep "\.nii$" | wc -l)
+  mgh=$(echo $i | grep "\.mgh$" | wc -l)
+  mgz=$(echo $i | grep "\.mgz$" | wc -l)
   
   label=$(echo $i | grep "\.label$" | wc -l)  
   annot=$(echo $i | grep "\.annot$" | wc -l)
   
-  sig=$(echo $(basename $i) | grep ^sig.mgh$ | wc -l)
-  F=$(echo $(basename $i) | grep ^F.mgh$ | wc -l)
-  gamma=$(echo $(basename $i) | grep ^gamma.mgh$ | wc -l)
-  gammavar=$(echo $(basename $i) | grep ^gammavar.mgh$ | wc -l)
-  cnr=$(echo $(basename $i) | grep ^cnr.mgh$ | wc -l)
+  sig=$(echo $(basename $i) | grep "^sig\.mgh$" | wc -l)
+  F=$(echo $(basename $i) | grep "^F\.mgh$" | wc -l)
+  gamma=$(echo $(basename $i) | grep "^gamma\.mgh$" | wc -l)
+  gammavar=$(echo $(basename $i) | grep "^gammavar\.mgh$" | wc -l)
+  cnr=$(echo $(basename $i) | grep "^cnr\.mgh$" | wc -l)
   
   # left or right hemisphere ?
   lh=0 ; rh=0
@@ -92,8 +92,8 @@ fi
 # execute
 if [ $lh -eq 1 ] ; then
   if [ $flatpatch -eq 1 ] ; then patch="-patch $SUBJECTS_DIR/fsaverage/surf/lh.cortex.patch.flat" ; else patch="" ; fi
-  xterm -e tksurfer fsaverage lh inflated $patch -gray $annot_lh $overlist_lh $labels_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl
+  xterm -e "tksurfer fsaverage lh inflated $patch -gray $annot_lh $overlist_lh $labels_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl ; rm /tmp/$$tmp.tcl"
 elif [ $rh -eq 1 ] ; then
   if [ $flatpatch -eq 1 ] ; then patch="-patch $SUBJECTS_DIR/fsaverage/surf/rh.cortex.patch.flat" ; else patch="" ; fi
-  xterm -e tksurfer fsaverage rh inflated $patch -gray $annot_rh $overlist_rh $labels_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl
+  xterm -e "tksurfer fsaverage rh inflated $patch -gray $annot_rh $overlist_rh $labels_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl ; rm /tmp/$$tmp.tcl"
 fi

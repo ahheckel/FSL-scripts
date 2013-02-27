@@ -484,7 +484,7 @@ fi
 
 # make log directory for fsl_sub
 mkdir -p $logdir
-#$scriptdir/delbrokenlinks.sh $logdir
+$scriptdir/delbrokenlinks.sh $logdir 1 # delete broken symlinks
 
 # make temp directory
 mkdir -p $tmpdir
