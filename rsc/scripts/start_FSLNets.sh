@@ -42,6 +42,22 @@ design_mat="$design_path/design.mat"
 design_con="$design_path/design.con"
 design_grp="$design_path/design.grp"
 
+echo ""
+echo "`basename $0` : FSLNets  loc.:        $install_path"
+echo "`basename $0` : L1PREC   loc.:        $l1prec_path"
+echo "`basename $0` : PWLING   loc.:        $causal_path"
+echo "`basename $0` : template loc.:        $template"
+echo "---------------------------------"
+echo "`basename $0` : dr_stage1:            $dreg_path"
+echo "`basename $0` : ICMaps:               $group_maps"
+echo "`basename $0` : good components:      $good_comp"
+echo "`basename $0` : design_mat:           $design_mat"
+echo "`basename $0` : design_con:           $design_con"
+echo "`basename $0` : design_grp:           $design_grp"
+echo "`basename $0` : NPERM:                $nperm"
+echo "`basename $0` : output-dir:           $outdir"
+echo ""
+
 cp $template /tmp/nets_examples.m$$ 
 
 sed -i "s|design_nperm=.*|design_nperm=${nperm}|g"   /tmp/nets_examples.m$$
@@ -60,7 +76,11 @@ sed -i "s|ts_dir='.*|ts_dir='${dreg_path}'|g"         /tmp/nets_examples.m$$
 sed -i "s|outputdir=.*|outputdir='${outdir}'|g"       /tmp/nets_examples.m$$
 
 # check
+echo "---------------------------------"
+echo "---------------------------------"
 cat /tmp/nets_examples.m$$ | head -n 40
+echo "---------------------------------"
+echo "---------------------------------"
 read -p "Press Key to continue..."
 
 # start MATLAB

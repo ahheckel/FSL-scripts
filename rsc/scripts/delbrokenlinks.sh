@@ -15,9 +15,9 @@ Usage() {
     echo "Recursively removes broken symlinks."
     echo "Usage:     `basename $0` <directory> <depth>"
     echo "Examples:  `basename $0` ./ 0"
-    echo "              ...will remove all broken symlinks recursively in whole dir-tree."
+    echo "              ...removes all broken symlinks in whole dir-tree."
     echo "           `basename $0` ./ 2"
-    echo "              ...will remove all broken symlinks up to dir-level 2."
+    echo "              ...removes all broken symlinks up to dir-level 2."
     echo ""
     exit 1
 }

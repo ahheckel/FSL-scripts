@@ -1,5 +1,3 @@
-
-
 %%% FSLNets - simple network matrix estimation and applications
 %%% Stephen Smith, FMRIB Analysis Group
 %%% Copyright (C) 2012 University of Oxford
