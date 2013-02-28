@@ -2,7 +2,7 @@
 
 # Adapts and runs FSLNets' nets_examples.m
 
-# Written by Andreas Bartsch & Andreas Heckel
+# Written by Andreas Heckel
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
@@ -78,7 +78,9 @@ sed -i "s|outputdir=.*|outputdir='${outdir}'|g"       /tmp/nets_examples.m$$
 # check
 echo "---------------------------------"
 echo "---------------------------------"
+echo ""
 cat /tmp/nets_examples.m$$ | head -n 40
+echo ""
 echo "---------------------------------"
 echo "---------------------------------"
 read -p "Press Key to continue..."
