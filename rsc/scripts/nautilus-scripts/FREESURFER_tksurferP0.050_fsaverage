@@ -5,7 +5,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 26/02/2012
+# 02/26/2013
 
 if [ x"$logP1" = "x" ] ; then logP1=1.3010 ; fi
 if [ x"$logP2" = "x" ] ; then logP2=2 ; fi
@@ -14,6 +14,14 @@ if [ x"$flatpatch" = "x" ] ; then flatpatch=0 ; fi
 FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
+# add tcl-scripting commands
+echo "set gaLinkedVars(redrawlockflag) 1" > /tmp/$$tmp.tcl
+echo "SendLinkedVarGroup redrawlock" >> /tmp/$$tmp.tcl
+if [ $flatpatch -eq 1 ] ; then
+  echo "scale_brain 0.75" >> /tmp/$$tmp.tcl
+fi
+
+# parse arguments
 vollist_lh=""   ; vollist_rh=""
 surflist_lh=""  ; surflist_rh=""
 overlist_lh=""  ; overlist_rh=""
@@ -64,36 +72,26 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     elif [ $rh -eq 1 ] ; then # ...of the right hemi.
       overlist_rh=$overlist_rh" -overlay $i -fminmax $logP1 $logP2"
     fi
-  elif [ $label -eq 1 ] ; then
-    if [ $lh -eq 1 ] ; then # ...of the left hemi.
-      labels_lh=$labels_lh" -label $i"
-    elif [ $rh -eq 1 ] ; then # ...of the right hemi.
-      labels_rh=$labels_rh" -label $i"
-    fi
+  elif [ $label -eq 1 ] ; then # file is a label
+    echo "labl_load $i" >> /tmp/$$tmp.tcl # tcl-script: load label
   fi
   lastfile=$i
 done # end for loop
 
-# enable auto-redraw in tksurfer's GUI
-echo "set gaLinkedVars(redrawlockflag) 1" > /tmp/$$tmp.tcl
-echo "SendLinkedVarGroup redrawlock" >> /tmp/$$tmp.tcl
-if [ $flatpatch -eq 1 ] ; then
-  echo "scale_brain 0.75" >> /tmp/$$tmp.tcl
-fi
-
 # define annotation only if no labels selected
-if [ x"$labels_lh" = "x" ] ; then
-  annot_lh="-annotation $SUBJECTS_DIR/fsaverage/label/lh.aparc.a2009s.annot -labels-under"
-fi
-if [ x"$labels_rh" = "x" ] ; then
-  annot_rh="-annotation $SUBJECTS_DIR/fsaverage/label/rh.aparc.a2009s.annot -labels-under"
+if [ $(cat /tmp/$$tmp.tcl | grep labl_load | wc -l) -gt 0 ] ; then
+  labelsunder=""
+else
+  labelsunder="-labels-under"
+  annot_lh="-annotation $SUBJECTS_DIR/fsaverage/label/lh.aparc.a2009s.annot $labelsunder"
+  annot_rh="-annotation $SUBJECTS_DIR/fsaverage/label/rh.aparc.a2009s.annot $labelsunder"
 fi
 
 # execute
 if [ $lh -eq 1 ] ; then
   if [ $flatpatch -eq 1 ] ; then patch="-patch $SUBJECTS_DIR/fsaverage/surf/lh.cortex.patch.flat" ; else patch="" ; fi
-  xterm -e "tksurfer fsaverage lh inflated $patch -gray $annot_lh $overlist_lh $labels_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl ; rm /tmp/$$tmp.tcl"
+  xterm -e "tksurfer fsaverage lh inflated $patch -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl ; rm /tmp/$$tmp.tcl"
 elif [ $rh -eq 1 ] ; then
   if [ $flatpatch -eq 1 ] ; then patch="-patch $SUBJECTS_DIR/fsaverage/surf/rh.cortex.patch.flat" ; else patch="" ; fi
-  xterm -e "tksurfer fsaverage rh inflated $patch -gray $annot_rh $overlist_rh $labels_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl ; rm /tmp/$$tmp.tcl"
+  xterm -e "tksurfer fsaverage rh inflated $patch -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl ; rm /tmp/$$tmp.tcl"
 fi

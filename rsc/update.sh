@@ -70,3 +70,5 @@ chmod +x $FSLDIR/bin/3dTstat
 chmod +x $FSLDIR/bin/3dcalc
 chmod +x $FSLDIR/bin/3dDetrend
 chmod +x $FSLDIR/bin/fsl_sub
+chmod 777 $FREESURFER_HOME/subjects/fsaverage/tmp # need write access so that cursor postion in tksurfer/tkmedit can be saved ! (!)
+

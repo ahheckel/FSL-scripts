@@ -5,7 +5,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 25/02/2012
+# 02/25/2013
 
 FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh

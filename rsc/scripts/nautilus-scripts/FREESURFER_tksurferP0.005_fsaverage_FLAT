@@ -5,9 +5,9 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 02/26/2013
+# 03/01/2013
 
-logP1=1.6021
+logP1=2.3010
 logP2=3
-flatpatch=0
+flatpatch=1
 source $(dirname $0)/FREESURFER_tksurferP0.050_fsaverage

@@ -5,7 +5,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 12/01/2012
+# 01/12/2013
 
 FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
@@ -14,7 +14,7 @@ vollist_lh=""   ; vollist_rh=""
 surflist_lh=""  ; surflist_rh=""
 overlist_lh=""  ; overlist_rh=""
 annotlist_lh="" ; annotlist_rh=""
-labels_lh=""    ; labels_rh=""
+labels_lh=""    ; labels_rh="" ; labels=""
 lastfile=""
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   niigz=$(echo $i | grep "\.nii.gz$" | wc -l)
@@ -73,6 +73,8 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     elif [ $rh -eq 1 ] ; then # ...of the right hemi.
       annotlist_rh=$annotlist_rh":annot=$i"
     fi
+  elif [ $label -eq 1 ] ; then
+    labels=$labels" ""--label $i"
   else
     type=$(mri_info $i | grep type: | head -n1 | cut -d : -f 2)
     if [ $type = "curv" ] ; then # file is an overlay...
