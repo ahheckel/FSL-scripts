@@ -31,7 +31,7 @@ wd=$(dirname $0); cd $wd ; wd=`pwd`
 if [ x$FSL_DIR = "x" ] ; then FSL_DIR="$FSLDIR" ; fi
 if [ x$FSL_DIR = "x" ] ; then echo "ERROR : \$FSL_DIR and \$FSLDIR variable not defined - exiting."  ; exit 1 ; fi
 fslversion=$(cat $(dirname $(dirname `which imglob`))/etc/fslversion)
-echo ""; echo "FSL version is ${fslversion}." ; echo "" ; sleep 1
+echo ""; echo "FSL version is ${fslversion}." ; echo "" ; # sleep 1
 
 # display Job-Id
 echo "Job-Id : $$" ; echo ""
@@ -118,6 +118,7 @@ DUALREG_INCLUDED_SESSIONS=$(echo $DUALREG_INCLUDED_SESSIONS | row2col | sort -u)
 DUALREG_INPUT_ICA_DIRNAMES=$(echo $DUALREG_INPUT_ICA_DIRNAMES | row2col | sort -u)
 DUALREG_IC_FILENAMES=$(echo $DUALREG_IC_FILENAMES | row2col | sort -u)
 DUALREG_INPUT_BOLD_FILES=$(echo $DUALREG_INPUT_BOLD_FILES | row2col | sort -u)
+FSLNETS_DREGDIRS=$(echo $FSLNETS_DREGDIRS | row2col | sort -u)
 
 # define denoise tags
 _m=$(for i in $BOLD_DENOISE_MASKS_NAT ; do remove_ext $i | cut -d _ -f 2 ; done) ; dntag_boldnat=$(rem_blanks "$BOLD_DENOISE_USE_MOVPARS_NAT")$(rem_blanks "$_m")
@@ -415,6 +416,7 @@ echo -n "--- VBM_2NDLEV     :    " ; [ $VBM_2NDLEV_STG1 = 1 ] && echo -n "STG1 "
 echo -n "--- MELODIC_2NDLEV :    " ; [ $MELODIC_2NDLEV_STG1 = 1 ] && echo -n "STG1 " ; [ $MELODIC_2NDLEV_STG2 = 1 ] && echo -n "STG2 " ; echo ""
 echo -n "--- MELODIC_CMD    :    " ; [ $MELODIC_CMD_STG1 = 1 ] && echo -n "STG1 " ; echo ""
 echo -n "--- DUALREG        :    " ; [ $DUALREG_STG1 = 1 ] && echo -n "STG1 " ; [ $DUALREG_STG2 = 1 ] && echo -n "STG2 " ; echo ""
+echo -n "--- FSLNETS        :    " ; [ $FSLNETS_STG1 = 1 ] && echo -n "STG1 " ; echo ""
 echo -n "--- ALFF_2NDLEV    :    " ; [ $ALFF_2NDLEV_STG1 = 1 ] && echo -n "STG1 " ; [ $ALFF_2NDLEV_STG2 = 1 ] && echo -n "STG2 " ; echo ""
 echo ""
 echo "***CHECK*** (sleeping 2 seconds)..."
@@ -3995,6 +3997,42 @@ fi
 
 #########################
 # ----- END DUALREG -----
+#########################
+
+waitIfBusy
+
+###########################
+# ----- BEGIN FSLNETS -----
+###########################
+
+# resampling to fsaverage space
+if [ $FSLNETS_STG1 -eq 1 ] ; then
+
+  FSLNETS_GOODCOMPONENTS=\'$FSLNETS_GOODCOMPONENTS\'
+
+  for dr in $FSLNETS_DREGDIRS ; do
+    
+    fldr=$fslnetsdir/${FSLNETS_OUTIDR_PREFIX}_${dr}
+    groupIC=$(ls $dregdir/$dr/stats/*.nii.gz) # define group IC map
+    
+    mkdir -p $fldr
+
+    echo "FSLNETS: copying GLM designs to '$fldr'"
+    cat $glmdir_fslnets/designs | xargs -I{} cp -r $glmdir_fslnets/{} $fldr ; cp $glmdir_fslnets/designs $fldr
+    
+    for design in $(cat $glmdir_fslnets/designs) ; do
+      echo "FSLNETS: executing FSLNETS..."
+      echo "$scriptdir/start_FSLNets.sh $tmpltdir/template_nets_examples.m $dregdir/$dr $groupIC $FSLNETS_GOODCOMPONENTS $glmdir_fslnets/$design $FSLNETS_NPERM $fldr/$design" > $fldr/$design/fslnets.cmd  
+      cat $fldr/$design/fslnets.cmd ; source $fldr/$design/fslnets.cmd 
+      echo ""
+      echo ""
+    done
+    
+  done  
+fi
+
+#########################
+# ----- END FSLNETS -----
 #########################
 
 

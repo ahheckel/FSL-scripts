@@ -11,18 +11,13 @@ grpdir=$studydir/grp
 glmdir=$grpdir/glm
 logdir=$studydir/logs 
 
-tbssdir=$grpdir/tbss
-vbmdir=$grpdir/vbm
-alffdir=$grpdir/alff
+tbssdir=$grpdir/tbss        ; glmdir_tbss=$glmdir/tbss
+vbmdir=$grpdir/vbm          ; glmdir_vbm=$glmdir/vbm
+alffdir=$grpdir/alff        ; glmdir_alff=$glmdir/alff
 gicadir=$grpdir/melodic
-dregdir=$grpdir/dualreg
-FSstatsdir=$grpdir/FS_stats
-
-glmdir_tbss=$glmdir/tbss
-glmdir_vbm=$glmdir/vbm
-glmdir_alff=$glmdir/alff
-glmdir_dr=$glmdir/dualreg
-glmdir_fs=$glmdir/FS_stats
+dregdir=$grpdir/dualreg     ; glmdir_dr=$glmdir/dualreg
+FSstatsdir=$grpdir/FS_stats ; glmdir_fs=$glmdir/FS_stats
+fslnetsdir=$grpdir/fslnets  ; glmdir_fslnets=$glmdir/fslnets
 
 FS_subjdir=$subjdir/FS_subj
 FS_sessdir=$subjdir/FS_sess
@@ -39,9 +34,8 @@ pttrn_strucs="*T1_MPRAGE_tra_256_1_0mm_nopat.nii"
 pttrn_bolds="*resting_TE30_pat3_esp0_7_Filter.nii"
 
 # set file patterns for TOPUP
-pttrn_diffsplus="*_ep2ddiff_pat3_esp0_75ms_*+.nii" ;  pttrn_diffsminus="*_ep2ddiff_pat3_esp0_75ms_*-.nii"
-pttrn_bvalsplus=`remove_ext $pttrn_diffsplus`_bvals ; pttrn_bvalsminus=`remove_ext $pttrn_diffsminus`_bvals
-pttrn_bvecsplus=`remove_ext $pttrn_diffsplus`_bvecs ; pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
+pttrn_diffsplus="*_ep2ddiff_pat3_esp0_75ms_*+.nii"  ; pttrn_bvalsplus=`remove_ext $pttrn_diffsplus`_bvals   ; pttrn_bvecsplus=`remove_ext $pttrn_diffsplus`_bvecs 
+pttrn_diffsminus="*_ep2ddiff_pat3_esp0_75ms_*-.nii" ; pttrn_bvalsminus=`remove_ext $pttrn_diffsminus`_bvals ; pttrn_bvecsminus=`remove_ext $pttrn_diffsminus`_bvecs
 
 ########################################################################
 # enable 1st level processing streams ##################################
@@ -122,6 +116,8 @@ DUALREG_STG2=0             # DUALREG randomise
 
 ALFF_2NDLEV_STG1=0         # ALFF prepare
 ALFF_2NDLEV_STG2=0         # ALFF randomise
+
+FSLNETS_STG1=0             # prepare and execute FSLNETS in MATLAB (requires dualreg-input)
 
 ########################################################################
 # configuration ########################################################
@@ -328,6 +324,12 @@ DUALREG_USE_MOVPARS_HPF="dummy"                             # cutoff period (s) 
 DUALREG_OUTDIR_PREFIX="dr"                                  # output directory pre-fix (dir-name is composed as: ${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAMES}_${DUALREG_IC_FILENAMES})
 DUALREG_NPERM=5000                                          # number of permutations
 DUALREG_DELETE_PREV_RUNS=1                                  # delete previous runs?
+
+# FSLNETS
+FSLNETS_DREGDIRS="dreg_templates_melodicIC dreg_templates_melodicIC2"
+FSLNETS_NPERM=5000
+FSLNETS_OUTIDR_PREFIX="fslnets"
+FSLNETS_GOODCOMPONENTS="[1 2 3 4 5 6 7 8 9 10]"
 
 # ----------------------------------------------------------------------
 

@@ -14,7 +14,7 @@ design_mat='design.mat'
 design_con='design.con'
 design_grp='design.grp'
 design_nperm=1000
-outputdir='output'
+outputdir='output' % added (HKL)
 
 %%% setup the names of the directories containing your group-ICA and dualreg outputs
 group_maps='melodicIC'
@@ -33,7 +33,7 @@ ts_spectra=nets_spectra(ts);   % have a look at mean timeseries spectra
 %%% cleanup and remove bad nodes' timeseries (whichever is not listed in ts.DD is *BAD*).
 ts.DD=[1 2 3 4 5 6 7 8 9 10]
 ts=nets_tsclean(ts);                     % regress the bad nodes out of the good, and then remove the bad nodes' timeseries
-nets_pics(ts,group_maps);                % quick views of the good and bad components
+%nets_pics(ts,group_maps);                % quick views of the good and bad components
 ts_spectra=nets_spectra(ts);             % have a look at mean spectra after this cleanup
 
 

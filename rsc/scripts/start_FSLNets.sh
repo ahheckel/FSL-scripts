@@ -15,7 +15,7 @@ set -e
 trap 'echo "$0 : An ERROR has occured."' ERR
 
 # define exit trap
-trap "set +e ; echo -e \"\n\n`basename $0`: cleanup...\" ; rm -fv /tmp/nets_examples.m$$ ; exit" EXIT
+trap "set +e ; rm -fv /tmp/nets_examples.m$$ ; exit" EXIT
 
 Usage() {
     echo ""
@@ -35,12 +35,16 @@ design_path="$5"
 nperm=$6
 outdir="$7"
 
-install_path="/home/andi/FSL-scripts/rsc/scripts/FSLNets"
+install_path="/FSL-scripts/rsc/scripts/FSLNets"
 l1prec_path="$install_path/L1precision"
 causal_path="$install_path/pwling"
 design_mat="$design_path/design.mat"
 design_con="$design_path/design.con"
 design_grp="$design_path/design.grp"
+
+for file in $template $dreg_path $group_maps $install_path $l1prec_path $causal_path $design_path $design_mat $design_con $design_grp ; do
+  if [ ! -e $file ] ; then echo "`basename $0`: '$file' not found - exiting..." ; exit 1 ; fi
+done
 
 echo ""
 echo "`basename $0` : FSLNets  loc.:        $install_path"
@@ -89,4 +93,4 @@ read -p "Press Key to continue..."
 mkdir -p $outdir
 cd $outdir
 mv /tmp/nets_examples.m$$ ./nets_examples.m
-matlab -nodesktop -r nets_examples
+xterm -e "matlab -nodesktop -r nets_examples"

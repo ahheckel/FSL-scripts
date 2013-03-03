@@ -14,6 +14,13 @@ if [ "$(id -u)" = "0" ]; then
    exit 1
 fi
 
+function row2col()
+{
+  local dat=`cat $1`
+  local i=""
+  for i in $dat ; do echo $i ; done
+}
+
 #function replace_val() {
   #local src="$1"
   #local val0="$2"
@@ -46,9 +53,13 @@ function path_abs2rel()
   local source="$1"
   local target="$2"
   
-  # remove /./
-  source=$(echo $source | sed "s|/\./|/|g" | sed "s|//|/|g" | sed "s|//|/|g")
-  target=$(echo $target | sed "s|/\./|/|g" | sed "s|//|/|g" | sed "s|//|/|g")
+  ## remove /./
+  #source=$(echo $source | sed "s|/\./|/|g" | sed "s|//|/|g" | sed "s|//|/|g")
+  #target=$(echo $target | sed "s|/\./|/|g" | sed "s|//|/|g" | sed "s|//|/|g")
+  
+  # remove '/./'and duplicate '/'
+  source=$(echo $source | sed "s|/\./|/|g" | sed "s|/\+|/|g")
+  target=$(echo $target | sed "s|/\./|/|g" | sed "s|/\+|/|g")
 
   local common_part="$source"
   local back=
@@ -75,29 +86,60 @@ function save_config()
   local _subjdir="$2"
   local _stamp="$3"
   local _config=""
-  local savdir="$_studydir/.cfg"
+  local savdir="$_studydir/.savlog"
   local log=""
   local wdir=`pwd`
   local _date=$(date | sed "s|[: ]|-|g")
+  local logo=""
+  local loge=""
+  local relpath=""
+  local dumps=""
  
-  echo "" ; echo "saving configuration..."
+  echo "" ; echo "saving configuration in '$savdir/':"
   if [ x"$_subjdir" = "x" ] ; then echo "ERROR: 'subjdir' var. not defined - cannot save..." ; return ; fi
   if [ x"$_studydir" = "x" ] ; then echo "ERROR: 'studydir' var. not defined - cannot save..." ; return ; fi
   if [ ! -d $_subjdir ] ; then echo "ERROR: '$_subjdir' not found - cannot save..." ; return ; fi
   if [ ! -d $_studydir ] ; then echo "ERROR: '$_studydir' not found - cannot save..." ; return ; fi
+
+  mkdir -p $savdir
   
-  cd $_subjdir  
-    mkdir -p $savdir
-    if [ -f ../log ] ; then
-      if [ $(cat ../log | grep "$(echo $_stamp)" | wc -l) -gt 0 ] ; then
-        echo "...including logfile."
-        log="../logfile"
-        cp ../log $log
+  cd $_studydir
+    # collect SGE logfiles
+    echo -n "  searching for SGE logfiles..."
+    logo="$(find ./ -maxdepth 4 -newer ./.lockdir121978 -name "*.o[0-9]*")"
+    loge="$(find ./ -maxdepth 4 -newer ./.lockdir121978 -name "*.e[0-9]*")"
+    echo " done."
+    
+    # collect config files
+    echo "  collecting config files."
+    relpath=$(path_abs2rel $_studydir $_subjdir)
+    if [ $(ls $relpath/config_* | wc -l) -gt 0 ] ; then _config=$(ls $relpath/config_*) ; fi
+    
+    # include log files if present
+    if [ -f ./log ] ; then
+      if [ $(cat ./log | grep "$_stamp" | wc -l) -gt 0 ] ; then
+        echo "  including logfile."
+        log="logfile"
+        cp ./log $log
       fi      
     fi
-    if [ $(ls config_* | wc -l) -gt 0 ] ; then _config=$(ls config_*) ; fi
-    tar -czf $savdir/conf_${_date}.tar.gz -C $_subjdir ../globalvars $_config $log
-    rm -f $log    
+    
+    # create archive
+    echo "  creating archive."
+    tar -czf $savdir/conf_${_date}.tar.gz -C $_studydir globalvars $_config $log $logo $loge
+    
+    # check for RAM dumps
+    echo -n  "  searching for kernel dumps..."
+    dumps=$(find ./ -maxdepth 4 -newer ./.lockdir121978  -name "core*")
+    if [ $(echo $dumps | wc -w) -gt 0 ] ; then
+      echo "ERROR: memory dumps (core-files) detected - you should look into this... "
+      echo $dumps | row2col
+    else
+      echo " done."
+    fi
+        
+    # cleanup
+    rm -f $log
   cd $wdir
   
   echo ""
@@ -546,13 +588,6 @@ function countVols()
   #done
   #echo $total
 #}
-
-function row2col()
-{
-  local dat=`cat $1`
-  local i=""
-  for i in $dat ; do echo $i ; done
-}
 
 function minmaxavg() # NB: min / max values are clamped to whole numbers
 {
