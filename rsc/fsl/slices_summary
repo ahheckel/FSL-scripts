@@ -1,0 +1,201 @@
+#!/bin/sh
+
+#   slices_summary - create summary picture from a 4D image and list of timepoints to use
+#
+#   Stephen Smith, FMRIB Image Analysis Group
+#
+#   Copyright (C) 2010-2012 University of Oxford
+#
+#   Part of FSL - FMRIB's Software Library
+#   http://www.fmrib.ox.ac.uk/fsl
+#   fsl@fmrib.ox.ac.uk
+#   
+#   Developed at FMRIB (Oxford Centre for Functional Magnetic Resonance
+#   Imaging of the Brain), Department of Clinical Neurology, Oxford
+#   University, Oxford, UK
+#   
+#   
+#   LICENCE
+#   
+#   FMRIB Software Library, Release 5.0 (c) 2012, The University of
+#   Oxford (the "Software")
+#   
+#   The Software remains the property of the University of Oxford ("the
+#   University").
+#   
+#   The Software is distributed "AS IS" under this Licence solely for
+#   non-commercial use in the hope that it will be useful, but in order
+#   that the University as a charitable foundation protects its assets for
+#   the benefit of its educational and research purposes, the University
+#   makes clear that no condition is made or to be implied, nor is any
+#   warranty given or to be implied, as to the accuracy of the Software,
+#   or that it will be suitable for any particular purpose or for use
+#   under any specific conditions. Furthermore, the University disclaims
+#   all responsibility for the use which is made of the Software. It
+#   further disclaims any liability for the outcomes arising from using
+#   the Software.
+#   
+#   The Licensee agrees to indemnify the University and hold the
+#   University harmless from and against any and all claims, damages and
+#   liabilities asserted by third parties (including claims for
+#   negligence) which arise directly or indirectly from the use of the
+#   Software or the sale of any products based on the Software.
+#   
+#   No part of the Software may be reproduced, modified, transmitted or
+#   transferred in any form or by any means, electronic or mechanical,
+#   without the express permission of the University. The permission of
+#   the University is not required if the said reproduction, modification,
+#   transmission or transference is done without financial return, the
+#   conditions of this Licence are imposed upon the receiver of the
+#   product, and all original and amended source code is included in any
+#   transmitted product. You may be held legally responsible for any
+#   copyright infringement that is caused or encouraged by your failure to
+#   abide by these terms and conditions.
+#   
+#   You are not permitted under this Licence to use this Software
+#   commercially. Use for which any financial return is received shall be
+#   defined as commercial use, and includes (1) integration of all or part
+#   of the source code or the Software into a product for sale or license
+#   by or on behalf of Licensee to third parties or (2) use of the
+#   Software or any derivative of it for research with the final aim of
+#   developing software products for sale or license to a third party or
+#   (3) use of the Software or any derivative of it for research with the
+#   final aim of developing non-software products for sale or license to a
+#   third party, or (4) use of the Software to provide any service to an
+#   external organisation for which payment is received. If you are
+#   interested in using the Software commercially, please contact Isis
+#   Innovation Limited ("Isis"), the technology transfer company of the
+#   University, to negotiate a licence. Contact details are:
+#   innovation@isis.ox.ac.uk quoting reference DE/9564.
+
+
+Usage() {
+    echo ""
+    echo "Usage:"
+    echo "slices_summary <4D_input> <threshold> <background_image> <pictures.sum> [-1]"
+    echo "slices_summary <pictures.sum> <output.png> <space-separated list of timepoints to use; first timepoint is 0>"
+    echo ""
+    echo "The first usage creates the full set of summary PNG images, into a new directory <pictures.sum>"
+    echo "  [-1] option: generate single-slice summary images instead of 3-slice"
+    echo ""
+    echo "The second usage processes the timepoint list, combining summary slices across all timepoints into a single PNG image."
+    echo ""
+    echo "E.g."
+    echo "slices_summary groupica.ica/melodic_IC 4 $FSLDIR/data/standard/MNI152_T1_2mm groupica.ica/melodic_IC.sum"
+    echo "slices_summary groupica.ica/melodic_IC.sum grot.png 5 10 0 200"
+    echo ""
+    exit 1
+}
+
+[ "$3" = "" ] && Usage
+
+if [ _$FSLDIR = _ ] ; then
+    FSLDIR=/usr/local/fsl
+    export FSLDIR
+fi
+
+if [ `${FSLDIR}/bin/imtest $1` = 1 ] ; then
+
+########################################################
+# first usage
+########################################################
+
+  in=`${FSLDIR}/bin/remove_ext $1`
+  if [ `${FSLDIR}/bin/imtest $in` = 0 ] ; then
+    echo "Input image $in not found"
+    Usage
+  fi
+  lthresh=$2
+  bg=$3
+  if [ `${FSLDIR}/bin/imtest $bg` = 0 ] ; then
+    echo "Background image $bg not found"
+    Usage
+  fi
+  out=$4
+
+  allthree=1
+  if [ _$5 = _-1 ] ; then
+    echo "Generating single-slice summary images instead of 3-slice"
+    allthree=0
+  fi
+
+  mkdir -p $out
+  ${FSLDIR}/bin/imcp $bg ${out}/BG
+
+  bgdimx=`${FSLDIR}/bin/fslval $bg dim1`
+  bgdimy=`${FSLDIR}/bin/fslval $bg dim2`
+  bgrange=`${FSLDIR}/bin/fslstats $bg -l 0.01 -r`
+
+  uthresh=`${FSLDIR}/bin/fslstats $in -l 0.01 -P 50`
+  uthresh=`${FSLDIR}/bin/fslstats $in -l $uthresh -P 99.9`
+  echo "Upper threshold is $uthresh"
+
+  ${FSLDIR}/bin/fslsplit $in ${out}/vol
+  cd $out
+  for grot in `${FSLDIR}/bin/imglob vol*` ; do
+    DD=`echo $grot | awk -F vol '{print $2}'`
+    fslecho  "[$DD \c"
+    ${FSLDIR}/bin/fslsplit $grot grot_ -z
+    /bin/rm -f grot.txt
+    for g in `${FSLDIR}/bin/imglob grot_*` ; do
+      ${FSLDIR}/bin/cluster -i $g -t $lthresh --osize=grot --no_table
+      ${FSLDIR}/bin/fslmaths grot -sqrt -recip -mul $g -Xmean -Ymean grot -odt float
+      echo "$g `${FSLDIR}/bin/fslstats grot -m`" >> grot.txt
+    done
+
+    best=`cat grot.txt | sort -k 2 -n | tail -n 1 | awk '{print $1}'`
+    nbest=`${FSLDIR}/bin/remove_ext $best | awk -F _ '{print $2}'`
+    ${FSLDIR}/bin/fslroi BG grot 0 $bgdimx 0 $bgdimy $nbest 1
+    ${FSLDIR}/bin/overlay 0 0 grot $bgrange $best $lthresh $uthresh grotB
+    fslecho "$nbest\c"
+
+    if [ $allthree = 1 ] ; then
+      lbest=`echo "$nbest 4 - p" | dc -`
+      if [ $lbest -lt 1 ] ; then lbest=1; fi;
+      lbest=`cat grot.txt | head -n $lbest | sort -k 2 -n | tail -n 1 | awk '{print $1}'`
+      nlbest=`${FSLDIR}/bin/remove_ext $lbest | awk -F _ '{print $2}'`
+      ${FSLDIR}/bin/fslroi BG grot 0 $bgdimx 0 $bgdimy $nlbest 1
+      ${FSLDIR}/bin/overlay 0 0 grot $bgrange $lbest $lthresh $uthresh grotC
+  
+      ubest=`echo "$nbest 6 + p" | dc -`
+      if [ $ubest -gt `cat grot.txt | wc -l` ] ; then ubest=`cat grot.txt | wc -l`; fi;
+      ubest=`cat grot.txt | tail -n +$ubest | sort -k 2 -n | tail -n 1 | awk '{print $1}'`
+      nubest=`${FSLDIR}/bin/remove_ext $ubest | awk -F _ '{print $2}'`
+      ${FSLDIR}/bin/fslroi BG grot 0 $bgdimx 0 $bgdimy $nubest 1
+      ${FSLDIR}/bin/overlay 0 0 grot $bgrange $ubest $lthresh $uthresh grotA
+
+      fslecho  ",$nlbest,$nubest\c"
+      fslmerge -y grotB grotA grotB grotC
+    fi
+    fslecho  "] \c"
+
+    ${FSLDIR}/bin/slicer grotB -u -z 0 `zeropad $DD 4`.png
+  done
+  /bin/rm -f grot* vol* BG*
+  echo ""
+
+########################################################
+
+else
+
+########################################################
+# second usage
+########################################################
+
+  in=$1
+  out=$2
+  shift 2
+  thestring="pngappend"
+  while [ _$2 != _ ] ; do
+    s=$1
+    shift
+    thestring="$thestring ${in}/`${FSLDIR}/bin/zeropad $s 4`.png +"
+  done
+  s=$1
+  thestring="$thestring ${in}/`${FSLDIR}/bin/zeropad $s 4`.png $out"
+  $thestring
+
+########################################################
+
+fi
+

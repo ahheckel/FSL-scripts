@@ -28,6 +28,7 @@ if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
   cp -iv fsl/tbss_x/tbss_x $FSLDIR/bin/tbss_x
   cp -iv fsl/topup/b02b0.cnf $FSLDIR/etc/flirtsch/b02b0.cnf
   cp -iv fsl/featlib_v4.tcl $FSLDIR/tcl/featlib.tcl
+  cp -iv fsl/slices_summary $FSLDIR/bin/ # this one is needed for FSLNets
 fi
 
 if [ $1 -eq 64 ] ; then

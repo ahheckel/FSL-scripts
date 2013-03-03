@@ -29,7 +29,7 @@ Usage() {
 
 template="$1"
 dreg_path="$2"
-group_maps="$3"
+group_maps="$(remove_ext "$3")"
 good_comp="$4"
 design_path="$5"
 nperm=$6
@@ -89,8 +89,32 @@ echo "---------------------------------"
 echo "---------------------------------"
 read -p "Press Key to continue..."
 
+
+# check if size / resolution matches to have a background image for slices_summary
+set +e
+MNItemplates="${FSLDIR}/data/standard/MNI152_T1_4mm_brain ${FSLDIR}/data/standard/MNI152_T1_2mm_brain"
+bg=""
+for MNI in $MNItemplates ; do
+  fslmeants -i $group_maps -m $MNI &>/dev/null
+  if [ $? -gt 0 ] ; then 
+    echo "$(basename $0) : WARNING : size / resolution does not match btw. '$group_maps' and '$MNI' - continuing loop..."
+    continue
+  else
+    if [ $(echo $MNI | grep _4mm_ | wc -l) -eq 1 ] ; then bg=$FSLDIR/data/standard/MNI152_T1_4mm ; fi
+    if [ $(echo $MNI | grep _2mm_ | wc -l) -eq 1 ] ; then bg=$FSLDIR/data/standard/MNI152_T1_2mm ; fi
+    break
+  fi
+done # end MNI
+set -e  
+
+# execute slices_summary (needed for nets_examples.m to work)
+echo "$(basename $0) : executing slices_summary..."
+cmd="    slices_summary $group_maps 4 $bg ${group_maps}.sum"
+echo $cmd ; $cmd
+
 # start MATLAB
 mkdir -p $outdir
 cd $outdir
 mv /tmp/nets_examples.m$$ ./nets_examples.m
-xterm -e "matlab -nodesktop -r nets_examples"
+#xterm -e "matlab -nodesktop -r nets_examples"
+matlab -nodesktop -r nets_examples
