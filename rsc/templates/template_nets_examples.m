@@ -94,8 +94,8 @@ for i=0:5
     end
     warning on % (HKL)
 end
-
-return
+exit % (HKL)
+return % (HKL)
 
 %%% simple cross-subject multivariate discriminant analyses, for just two-group cases.
 %%% arg1 is whichever netmat you want to test.
@@ -110,7 +110,4 @@ return
 %%% arg5 = size of the first group (set to -1 for paired groups)
 %nets_boxplots(ts,netmat3,1,7,36);
 %print('-depsc',sprintf('boxplot-%d-%d.eps',IC1,IC2));  % example syntax for printing to file
-
-exit % (HKL)
-
 
