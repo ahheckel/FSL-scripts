@@ -330,6 +330,7 @@ FSLNETS_DREGDIRS="dreg_templates_melodicIC dreg_templates_melodicIC2"
 FSLNETS_NPERM=5000
 FSLNETS_OUTIDR_PREFIX="fslnets"
 FSLNETS_GOODCOMPONENTS="[1 2 3 4 5 6 7 8 9 10]"
+FSLNETS_T_THRESHOLDS="0:2:8"
 
 # ----------------------------------------------------------------------
 

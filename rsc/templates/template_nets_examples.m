@@ -71,26 +71,28 @@ nets_hierarchy(meanCORR,meanPCORR,ts.DD,sprintf('%s.sum',group_maps));
 %%% change the "8" to a different tstat threshold to make this sparser or less sparse.
 for i=0:5
     if i==0
-        netmat=netmat0
+        netmat=netmat0;
     elseif i==1
-        netmat=netmat1
+        netmat=netmat1;
     elseif i==2
-        netmat=netmat2
+        netmat=netmat2;
     elseif i==3
-        netmat=netmat3
+        netmat=netmat3;
     elseif i==4
-        netmat=netmat4
+        netmat=netmat4;
     elseif i==5
-        netmat=netmat5
+        netmat=netmat5;
     elseif i==6
-        netmat=netmat6  
+        netmat=netmat6; 
     end
     [grotH,grotP,grotCI,grotSTATS]=ttest(netmat);
-   for t=0:2:8 
+    warning off % fileparts issues annoying warnings (HKL)
+    for t=0:2:8 
        netmat(:,abs(grotSTATS.tstat)<t)=0;
        path=strcat(outputdir,'/netmat',num2str(i),'_t',num2str(t))
        [p_uncorrected,p_corrected]=nets_glm(netmat,design_mat,design_con,design_grp,design_nperm,0,path); % path argument added (HKL)
-   end
+    end
+    warning on % (HKL)
 end
 
 return
@@ -108,5 +110,7 @@ return
 %%% arg5 = size of the first group (set to -1 for paired groups)
 %nets_boxplots(ts,netmat3,1,7,36);
 %print('-depsc',sprintf('boxplot-%d-%d.eps',IC1,IC2));  % example syntax for printing to file
+
+exit % (HKL)
 
 
