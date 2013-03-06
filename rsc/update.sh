@@ -15,8 +15,8 @@ v5=$(cat $FSLDIR/etc/fslversion | grep ^5 | wc -l)
   #cp -iv fsl/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection
 #fi
 
-cp -iv fsl/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection, should also work for FSL < v.5
 cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
+cp -iv fsl/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection, should also work for FSL < v.5
 cp -iv fsl/templates/MNI152*.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/templates/avg152T1_white_bin.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/templates/avg152T1_csf_bin.nii.gz $FSLDIR/data/standard/
@@ -71,5 +71,6 @@ chmod +x $FSLDIR/bin/3dTstat
 chmod +x $FSLDIR/bin/3dcalc
 chmod +x $FSLDIR/bin/3dDetrend
 chmod +x $FSLDIR/bin/fsl_sub
+chmod +x $FSLDIR/bin/slices_summary
 chmod 777 $FREESURFER_HOME/subjects/fsaverage/tmp # need write access so that cursor postion in tksurfer/tkmedit can be saved ! (!)
 

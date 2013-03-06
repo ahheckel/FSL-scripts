@@ -35,6 +35,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   mgz=$(echo $i | grep "\.mgz$" | wc -l)
   
   label=$(echo $i | grep "\.label$" | wc -l)  
+  patch=$(echo $i | grep "\.patch\." | wc -l)  
   annot=$(echo $i | grep "\.annot$" | wc -l)
   
   sig=$(echo $(basename $i) | grep "^sig\.mgh$" | wc -l)
@@ -72,13 +73,20 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     elif [ $rh -eq 1 ] ; then # ...of the right hemi.
       overlist_rh=$overlist_rh" -overlay $i -fminmax $logP1 $logP2"
     fi
-  elif [ $label -eq 1 ] ; then # file is a label
+  fi
+  
+  if [ $label -eq 1 ] ; then # file is a label...
     echo "labl_load $i" >> /tmp/$$tmp.tcl # tcl-script: load label
   fi
+  
+  if [ $patch -eq 1 ] ; then # file is a patch...
+    patchSel="-patch $i"
+  fi
+  
   lastfile=$i
 done # end for loop
 
-# define annotation only if no labels selected
+# define annotations (only if no labels selected)
 if [ $(cat /tmp/$$tmp.tcl | grep labl_load | wc -l) -gt 0 ] ; then
   labelsunder=""
 else
@@ -89,9 +97,11 @@ fi
 
 # execute
 if [ $lh -eq 1 ] ; then
-  if [ $flatpatch -eq 1 ] ; then patch="-patch $SUBJECTS_DIR/fsaverage/surf/lh.cortex.patch.flat" ; else patch="" ; fi
-  xterm -e "tksurfer fsaverage lh inflated $patch -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl ; rm /tmp/$$tmp.tcl"
+  if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/fsaverage/surf/lh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
+  #opts="$patchBrain $patchSel  -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl"
+  #zenity --info --text="$opts"  
+  xterm -e "tksurfer fsaverage lh inflated $flatpatchBrain $patchSel -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl ; rm /tmp/$$tmp.tcl"
 elif [ $rh -eq 1 ] ; then
-  if [ $flatpatch -eq 1 ] ; then patch="-patch $SUBJECTS_DIR/fsaverage/surf/rh.cortex.patch.flat" ; else patch="" ; fi
-  xterm -e "tksurfer fsaverage rh inflated $patch -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl ; rm /tmp/$$tmp.tcl"
+  if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/fsaverage/surf/rh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
+  xterm -e "tksurfer fsaverage rh inflated $flatpatchBrain $patchSel -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl ; rm /tmp/$$tmp.tcl"
 fi

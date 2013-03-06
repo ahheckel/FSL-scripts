@@ -19,8 +19,8 @@ trap "set +e ; rm -fv /tmp/nets_examples.m$$ ; exit" EXIT
 
 Usage() {
     echo ""
-    echo "Usage:   `basename $0` <template_nets_examples.m> <dreg_stage1_path> <groupIC> <good_comp> <design_path> <t-thresh> <nperm> <out-dir>"
-    echo "Example: `basename $0` ./template_nets_examples.m ./dreg ./melodic/melodicIC.nii.gz \"[1 2 3 4 5 6 7 8 9 10]\" \"0:2:8\" ./glm/design 5000 ./grp/FSLNETS/dreg"
+    echo "Usage:   `basename $0` <template_nets_examples.m> <dreg_stage1_path> <groupIC> <good_comp> <design_path> <t-thresh> <nperm> <out-dir> <[install-path]>"
+    echo "Example: `basename $0` ./template_nets_examples.m ./dreg ./melodic/melodicIC.nii.gz \"[1 2 3 4 5 6 7 8 9 10]\" \"0:2:8\" ./glm/design 5000 ./grp/FSLNETS/dreg /FSL-scripts/rsc/scripts/FSLNets"
     echo ""
     exit 1
 }
@@ -35,8 +35,9 @@ t_thresh="$5"
 design_path="$6"
 nperm=$7
 outdir="$8"
+install_path="$9"
 
-install_path="/FSL-scripts/rsc/scripts/FSLNets"
+if [ x"$install_path" = x ] ; then install_path="/FSL-scripts/rsc/scripts/FSLNets" ; fi
 l1prec_path="$install_path/L1precision"
 causal_path="$install_path/pwling"
 design_mat="$design_path/design.mat"

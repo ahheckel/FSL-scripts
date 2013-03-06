@@ -25,12 +25,11 @@ v5=$(cat $FSLDIR/etc/fslversion | grep ^5 | wc -l)
 # check for differences...
 if [ $v5 -eq 1 ] ; then
   cmd="diff $fwdir/fsl/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
-else
-  cmd="diff $fwdir/fsl/fsl_sub_v4 $FSLDIR/bin/fsl_sub" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
 fi
 
 if [ $v5 -eq 0 ] ; then
   cmd="diff $fwdir/fsl/featlib_v4.tcl $FSLDIR/tcl/featlib.tcl" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
+  cmd="diff $fwdir/fsl/fsl_sub_v4 $FSLDIR/bin/fsl_sub" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
 fi
 
 cmd="diff $fwdir/fsl/orig/dual_regression $FSLDIR/bin/dual_regression" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
