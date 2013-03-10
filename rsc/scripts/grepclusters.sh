@@ -1,5 +1,5 @@
 #!/bin/bash
-# Finds significant activation clusters in directory tree.
+# Lists significant activation clusters in directory tree.
 
 # Written by Andreas Heckel
 # University of Heidelberg
@@ -16,8 +16,8 @@ Usage() {
     echo "Example: `basename $0` -vbm ./stats \"*_corrp_*\" 0.95"
     echo "         `basename $0` -ica ./stats \"*_tfce_corrp_*\" -0.95"
     echo "         `basename $0` -na ./stats \"*_corrp_*\" -1"
-    echo "         NOTE: thres=-1     reports only the largest cluster."
-    echo "               thres=-0.95  reports only the largest cluster > 0.95."
+    echo "         NOTE: thres=-1     reports only the most significant cluster."
+    echo "               thres=-0.95  reports only clusters with p > 0.95."
     echo ""
     exit 1
 }
@@ -53,8 +53,8 @@ echo "*** thres > $thres ***" | tee -a $logfile
 
 for f in $files ; do # for each collected file execute 'cluster'
   if [ $(imtest $f) -eq 0 ] ; then continue ; fi
-  #cluster --in=$f -t $thres --mm  | tail -n+2 | sort -k +3 -r > $tmpfile # sort according to p-value
-  cluster --in=$f -t $thres --mm  | tail -n+2 > $tmpfile
+  cluster --in=$f -t $thres --mm  | tail -n+2 | sort -k +3 -r > $tmpfile # sort according to p-value
+  #cluster --in=$f -t $thres --mm  | tail -n+2 > $tmpfile # sort according to cluster size
   nl=$(cat $tmpfile | wc -l)
   if [ $nl -gt 0 ] ; then
     echo "------------------------------" | tee -a $logfile

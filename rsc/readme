@@ -17,6 +17,7 @@ scripts/fsl_sub_NOPOSIXLY.sh
 scripts/fsl_sub_v5_NOPOSIXLY.sh
 -------------------------------
 POSIXLY_CORRECT variable was commented out to ensure compatibility with recon-all.
+JOB-IDs are written to file for better job control.
   
 
 fsl/featlib_v4.tcl
