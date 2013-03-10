@@ -1,0 +1,297 @@
+#!/bin/bash
+#   Copyright (C) 2012 University of Oxford
+#
+#   Part of FSL - FMRIB's Software Library
+#   http://www.fmrib.ox.ac.uk/fsl
+#   fsl@fmrib.ox.ac.uk
+#   
+#   Developed at FMRIB (Oxford Centre for Functional Magnetic Resonance
+#   Imaging of the Brain), Department of Clinical Neurology, Oxford
+#   University, Oxford, UK
+#   
+#   
+#   LICENCE
+#   
+#   FMRIB Software Library, Release 5.0 (c) 2012, The University of
+#   Oxford (the "Software")
+#   
+#   The Software remains the property of the University of Oxford ("the
+#   University").
+#   
+#   The Software is distributed "AS IS" under this Licence solely for
+#   non-commercial use in the hope that it will be useful, but in order
+#   that the University as a charitable foundation protects its assets for
+#   the benefit of its educational and research purposes, the University
+#   makes clear that no condition is made or to be implied, nor is any
+#   warranty given or to be implied, as to the accuracy of the Software,
+#   or that it will be suitable for any particular purpose or for use
+#   under any specific conditions. Furthermore, the University disclaims
+#   all responsibility for the use which is made of the Software. It
+#   further disclaims any liability for the outcomes arising from using
+#   the Software.
+#   
+#   The Licensee agrees to indemnify the University and hold the
+#   University harmless from and against any and all claims, damages and
+#   liabilities asserted by third parties (including claims for
+#   negligence) which arise directly or indirectly from the use of the
+#   Software or the sale of any products based on the Software.
+#   
+#   No part of the Software may be reproduced, modified, transmitted or
+#   transferred in any form or by any means, electronic or mechanical,
+#   without the express permission of the University. The permission of
+#   the University is not required if the said reproduction, modification,
+#   transmission or transference is done without financial return, the
+#   conditions of this Licence are imposed upon the receiver of the
+#   product, and all original and amended source code is included in any
+#   transmitted product. You may be held legally responsible for any
+#   copyright infringement that is caused or encouraged by your failure to
+#   abide by these terms and conditions.
+#   
+#   You are not permitted under this Licence to use this Software
+#   commercially. Use for which any financial return is received shall be
+#   defined as commercial use, and includes (1) integration of all or part
+#   of the source code or the Software into a product for sale or license
+#   by or on behalf of Licensee to third parties or (2) use of the
+#   Software or any derivative of it for research with the final aim of
+#   developing software products for sale or license to a third party or
+#   (3) use of the Software or any derivative of it for research with the
+#   final aim of developing non-software products for sale or license to a
+#   third party, or (4) use of the Software to provide any service to an
+#   external organisation for which payment is received. If you are
+#   interested in using the Software commercially, please contact Isis
+#   Innovation Limited ("Isis"), the technology transfer company of the
+#   University, to negotiate a licence. Contact details are:
+#   innovation@isis.ox.ac.uk quoting reference DE/9564.
+Usage () {
+    echo ""
+    echo "Usage: tbss_x <listOfScalarDirectories> <listOfVectorDirectories>"
+    echo "e.g. tbss_x F1 F2 D1 D2"
+    echo ""
+    exit 1
+}
+
+
+[ "$1" = "" ] && Usage
+
+echo [`date`] [`hostname`] [`uname -a`] [`pwd`] [$0 $@] >> .tbsslog
+
+# session-specific random number
+suf=$$
+
+# here we count how many inputs we have
+cnt=0
+for d in $@ ; do    
+    cnt=`echo "$cnt+1" | bc -l`
+done
+
+# only accept an even number of inputs
+if [ $((cnt % 2)) -eq 1 ];then
+    echo "Number of inputs must be even"
+    echo "Exit without doing anything"
+    exit 1
+fi
+let "cnt/=2"
+
+# distinguish cases where tbss_reg -T and -n
+postaffine=""
+if [ -f FA/target_to_MNI152.mat ] ; then
+    postaffine="--postmat=../FA/target_to_MNI152.mat"
+    best=`cat FA/best.msf`
+else
+    best="target"
+fi
+
+# #######################################################
+#            RESAMPLE SCALARS AND VECTORS
+# #######################################################
+
+echo "upsampling scalar images into standard space"
+for ((i=1;i<=$cnt;i++)) ; do
+     m=$1
+     scalist="$scalist $m"
+     cd $m
+     echo $m
+     for f in `$FSLDIR/bin/imglob *` ; do
+ 	ff=`$FSLDIR/bin/remove_ext $f`
+ 	echo $ff 
+	if [ "$postaffine" != "" ];then
+	    $FSLDIR/bin/applywarp -i $f -o ../FA/${ff}_to_target_${m} -r ../FA/target_to_MNI152 -w ../FA/${ff}_FA_to_${best}_warp $postaffine --interp=nn
+	else
+	    $FSLDIR/bin/applywarp -i $f -o ../FA/${ff}_to_target_${m} -r ../FA/target -w ../FA/${ff}_FA_to_${best}_warp $postaffine --interp=nn
+	fi
+     done
+     cd ..
+     shift
+done 
+echo "upsampling vector images into standard space"
+for ((i=1;i<=$cnt;i++)) ; do
+     m=$1
+     veclist="$veclist $m"
+     cd $m
+     echo $m
+     for f in `$FSLDIR/bin/imglob *` ; do
+ 	ff=`$FSLDIR/bin/remove_ext $f`
+ 	echo $ff 
+  	if [ "$postaffine" != "" ];then
+   	    convertwarp -o grot${suf}_${ff}_FA_to_target_warp_postmat -r ../FA/target_to_MNI152 -w ../FA/${ff}_FA_to_${best}_warp $postaffine
+   	    $FSLDIR/bin/vecreg -i $f -o ../FA/${ff}_to_target_${m} -r ../FA/target_to_MNI152 -w grot${suf}_${ff}_FA_to_target_warp_postmat --interp=trilinear
+ 	    $FSLDIR/bin/imrm grot${suf}_${ff}_FA_to_target_warp_postmat 
+   	else
+   	    $FSLDIR/bin/vecreg -i $f -o ../FA/${ff}_to_target_${m} -r ../FA/target -w ../FA/${ff}_FA_to_target_warp --interp=trilinear
+   	fi
+     done
+     cd ..
+     shift
+done 
+
+# #####################################################
+#         DONE RESAMPLING - NOW COMBINE SUBJECTS
+# #####################################################
+
+echo "merging scalar and vector images into single 4D images"
+cd FA
+for m in $scalist ; do
+    echo $m
+    $FSLDIR/bin/fslmerge -t ../stats/all_${m} `$FSLDIR/bin/imglob *_to_target_${m}.*`
+    $FSLDIR/bin/fslmaths ../stats/all_${m} -mas ../stats/mean_FA_mask ../stats/all_${m}
+done
+for m in $veclist ; do
+    echo $m
+    i=0
+    for xyz in x y z;do
+	for f in `$FSLDIR/bin/imglob *_to_target_${m}.*` ; do
+	    echo $f
+	    fslroi ${f} `$FSLDIR/bin/remove_ext ${f}`_${xyz} ${i} 1
+	done
+	$FSLDIR/bin/fslmerge -t ../stats/all_${m}_${xyz} `$FSLDIR/bin/imglob *_to_target_${m}_${xyz}.*`
+	$FSLDIR/bin/fslmaths ../stats/all_${m}_${xyz} -mas ../stats/mean_FA_mask ../stats/all_${m}_${xyz}
+	$FSLDIR/bin/imrm `$FSLDIR/bin/imglob *_to_target_${m}_${xyz}.*`
+	let "i+=1"
+    done
+done
+
+# ####################################
+#     SKELETON PROJECTION
+# ####################################
+
+echo "projecting onto mean FA skeleton"
+cd ../stats
+thresh=`cat thresh.txt`
+for m in $scalist ; do
+    echo $m
+    $FSLDIR/bin/tbss_skeleton -i mean_FA -p $thresh mean_FA_skeleton_mask_dst ${FSLDIR}/data/standard/LowerCingulum_1mm all_FA all_${m}_skeletonised -a all_$m    
+     # save some disk space
+    $FSLDIR/bin/imrm all_$m
+done
+for m in $veclist ; do
+    for xyz in x y z ; do
+  	echo $xyz
+ 	$FSLDIR/bin/tbss_skeleton -i mean_FA -p $thresh mean_FA_skeleton_mask_dst ${FSLDIR}/data/standard/LowerCingulum_1mm all_FA all_${m}_${xyz}_skeletonised -a all_${m}_$xyz
+	# save some disk space
+	$FSLDIR/bin/imrm all_${m}_$xyz
+    done
+done
+
+# #########################################################
+#    CREATE VARIOUS TEMPORARY TEXT FILES
+# #########################################################
+
+echo "creating files and textfiles for voxewise reassignments"
+/bin/rm -f .scalist*.txt
+for m in $scalist ; do
+    $FSLDIR/bin/fslsplit all_${m}_skeletonised all_${m}_skeletonised_
+    for im in `$FSLDIR/bin/imglob all_${m}_skeletonised_????.*` ; do
+	n=`echo $im | sed s/all_"${m}"_skeletonised_//g`
+	echo $im >> .scalist${n}.txt
+    done
+done
+/bin/rm -f .veclist*.txt
+for m in $veclist ; do
+    for xyz in x y z ; do
+	echo $xyz
+	$FSLDIR/bin/fslsplit all_${m}_${xyz}_skeletonised  all_${m}_${xyz}_skeletonised_ 
+    done
+    for im in `$FSLDIR/bin/imglob all_${m}_x_skeletonised_????.*` ; do
+	n=`echo $im | sed s/all_"${m}"_x_skeletonised_//g`
+	$FSLDIR/bin/fslmerge -t all_${m}_skeletonised_$n all_${m}_x_skeletonised_$n all_${m}_y_skeletonised_$n all_${m}_z_skeletonised_$n
+	
+	echo all_${m}_skeletonised_$n >> .veclist${n}.txt
+    done
+done
+
+# #############################################################
+#   VOXELWISE REASSIGNMENTS (A.K.A. SPATIAL REGULARISATION)
+# #############################################################
+
+echo "Voxelwise reassignments"
+for list in .scalist????.txt ; do
+    n=`echo $list | sed s/.scalist//g | sed s/.txt//g`
+    subjscalist=.scalist${n}.txt
+    subjveclist=.veclist${n}.txt    
+    # calculate initmask (places where there are no crossing fibres stay the same)
+    fslmaths mean_FA_skeleton_mask mfibresmask
+    for f in `cat $subjscalist` ; do
+	fslmaths $f -thr .1 -bin -mas mfibresmask mfibresmask
+    done
+    fslmaths mfibresmask -sub 1 -abs -mas mean_FA_skeleton_mask -bin initmask$n
+    $FSLDIR/bin/swap_voxelwise --mode=voxels -s $subjscalist -v $subjveclist --initmask=initmask$n -m mean_FA_skeleton_mask -b voxelwise_realigned_$n 
+    $FSLDIR/bin/imrm all_*_skeletonised_${n}.*
+done
+# save some disk space
+$FSLDIR/bin/imrm all_*_{x,y,z}_skeletonised.*
+
+# ########################################################
+#    CREATE MORE TEMPORARY TEXT FILES
+# ########################################################
+
+echo "creating textfiles for subjectwise reassignments"
+rm -f .scalist.txt
+for m in $scalist ; do
+    echo .scalist${m}_subjects.txt >> .scalist.txt
+done
+rm -f .veclist.txt
+for m in $veclist ; do
+    echo .veclist${m}_subjects.txt >> .veclist.txt
+done
+for i in .scalist????.txt ; do
+    n=`echo $i | sed s/.scalist//g | sed s/.txt//g`
+    mm=1
+    for m in $scalist ; do
+	echo voxelwise_realigned_${n}_scalars${mm} >> .scalist${m}_subjects.txt
+	let "mm+=1"
+    done
+    mm=1
+    for m in $veclist ; do
+	echo voxelwise_realigned_${n}_vectors${mm} >> .veclist${m}_subjects.txt
+	let "mm+=1"
+    done
+done
+
+# ##############################################################
+#     SUBJECTWISE REASSIGNMENTS 
+# ##############################################################
+
+echo "Subjectwise reassignments"
+$FSLDIR/bin/swap_subjectwise -m mean_FA_skeleton_mask -r .veclist.txt -f .scalist.txt -b subjectwise_realigned -v
+
+# ########################################################
+#     FINAL STEP + CLEANUP
+# ########################################################
+
+echo "merging final results"
+i=1
+for m in $scalist ; do
+    echo $m
+    $FSLDIR/bin/fslmerge -t all_${m}_x_skeletonised subjectwise_realigned_voxelwise_realigned_????_scalars${i}.*
+    let "i+=1"
+done
+# save some disk space
+for m in $scalist;do 
+    $FSLDIR/bin/imrm all_${m}_skeletonised
+done
+$FSLDIR/bin/imrm *voxelwise_realigned*
+rm .scalist*.txt .veclist*.txt
+rm initmask????.*
+
+cd ..
+echo "Now run randomise on the newly created files: all_F1_x_skeletonised etc."
