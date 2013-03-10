@@ -38,7 +38,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   patch=$(echo $i | grep "\.patch\." | wc -l)  
   annot=$(echo $i | grep "\.annot$" | wc -l)
   
-  sig=$(echo $(basename $i) | grep "^sig\.mgh$" | wc -l)
+  sig=$(echo $(basename $i) | grep "sig\.mgh$" | wc -l)
   F=$(echo $(basename $i) | grep "^F\.mgh$" | wc -l)
   gamma=$(echo $(basename $i) | grep "^gamma\.mgh$" | wc -l)
   gammavar=$(echo $(basename $i) | grep "^gammavar\.mgh$" | wc -l)
@@ -46,12 +46,8 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   
   # left or right hemisphere ?
   lh=0 ; rh=0
-  hemi="$(echo $(basename $i) | cut -d . -f 1)"
-  if [ "$hemi" = "lh" ] ; then
-    lh=1
-  elif [ "$hemi" = "rh" ] ; then
-    rh=1
-  fi
+  lh="$(echo $(basename $i) | grep "\.lh\." | wc -l )"
+  rh="$(echo $(basename $i) | grep "\.rh\." | wc -l )"
   _dir="$i"
   while [ $lh -eq 0 -a $rh -eq 0 ] ; do
     _dir=$(dirname $_dir) ; if [ "$_dir" = "$(dirname $_dir)" ] ; then break ; fi
@@ -59,8 +55,10 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     _hemi="$(basename $_dirname)"
     lh=$(echo $_hemi | grep "^lh\."  | wc -l)
     rh=$(echo $_hemi | grep "^rh\."  | wc -l)
-    lh=$(echo $_hemi | grep "\.lh\." | wc -l)
-    rh=$(echo $_hemi | grep "\.rh\." | wc -l)
+    if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "\.lh\." | wc -l) ; fi
+    if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "\.rh\." | wc -l) ; fi
+    if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "\-lh\-" | wc -l) ; fi
+    if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "\-rh\-" | wc -l) ; fi
     #zenity --info --text="$_dir"
   done
   

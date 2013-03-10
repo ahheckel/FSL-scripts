@@ -38,7 +38,7 @@ jid=1 # init jobID
 source $(dirname $0)/globalfuncs
   
 # create temporary dir.
-wdir=`pwd`/.FS_glm$$ ; mkdir -p $wdir
+wdir=/tmp/FS_glm$$ ; mkdir -p $wdir
 
 # create joblist file for SGE
 echo "`basename $0`: touching SGE job control file in '$wdir'."

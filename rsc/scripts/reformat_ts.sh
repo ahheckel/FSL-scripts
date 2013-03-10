@@ -5,7 +5,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 02/25/2013
+# 03/09/2013
 
 trap 'echo "$0 : An ERROR has occured." ; exit 1' ERR
 
@@ -54,14 +54,44 @@ ncond="$2"
 txtout="$3"
 order="$4" ; if [ x${order} = "x" ] ; then order=1 ; fi
 
+# additional vars
+txtin_tmp=/tmp/$(basename $0)_$$
+header_tmp=/tmp/$(basename $0)_header_$$
+
+# remove blanks and text header
+istext=1 ; iscomment=1
+cat $txtin | sed '/^$/d' | grep -v ^[[:blank:]] > $txtin_tmp
+for i in `seq 1 $(cat $txtin_tmp | wc -l)` ; do
+  istext=$(sed -n ${i}p $txtin_tmp | grep "[[:alpha:]]" | wc -l)
+  iscomment=$(sed -n ${i}p $txtin_tmp | grep ^# | wc -l)
+  if [ $istext -eq 0 -a $iscomment -eq 0 ] ; then break ; fi
+done
+j=$[$i-1]
+if [ $j -gt 0 ] ; then head -n${j} $txtin_tmp > $header_tmp ; else touch $header_tmp ; fi
+tail -n+${i} $txtin_tmp > /tmp/data_$$ ; mv /tmp/data_$$ $txtin_tmp
+echo "`basename $0`: discarding ${j} header lines"
+i="" ; j=""
+
 # consistency check
-rois=$(awk '{print NF}' $txtin | sort -nu | head -n 1) # count number of columns
-nvols=$(cat $txtin  | wc -l) # number of values (volumes)
+rois=$(awk '{print NF}' $txtin_tmp | sort -nu | head -n 1) # count number of columns
+nvols=$(cat $txtin_tmp  | wc -l) # number of values (volumes)
 reps=$(echo "scale=0 ; $nvols / $ncond" | bc -l) # number of repeats (=subjects)
 check=$(echo "scale=0 ; $ncond * $reps" | bc -l) # gehts auf ?
 if [ $check -ne $nvols ] ; then echo "`basename $0`: ERROR : number of volumes $nvols != ${reps}*${ncond}. Exiting." ; exit 1 ; fi
+echo "`basename $0`: '$txtin' has $nvols lines and $rois columns."
+
+# shall we use headings ?
+useheading=0
+heading=$(tail -n 1 $header_tmp)
+heading_col=$(echo $heading | wc -w)
+if [ $rois -eq $heading_col ] ; then
+  echo "`basename $0` : using heading:"
+  echo "$heading"
+  useheading=1
+fi
 
 # re-format...
+roifiles=""
 for roi in `seq 1 $rois` ; do
   txtfiles=""
   # re-format textfile: subjects first
@@ -71,15 +101,19 @@ for roi in `seq 1 $rois` ; do
       for j in `seq 1 $reps` ; do
         
         line=$(echo "scale=0 ; $i + $ncond * ($j-1)" | bc -l)
-        cat $txtin | awk -v c=${roi} '{print $c}' | sed -n ${line}p >> ${txtout}_tmp_${i}
+        cat $txtin_tmp | awk -v c=${roi} '{print $c}' | sed -n ${line}p >> ${txtout}_tmp_${i}
         
       done
-      txtfiles=$txtfiles" "${txtout}_tmp_${i}
       if [ $mean -eq 1 ] ; then
         cat ${txtout}_tmp_${i} | getAvg  > ${txtout}_tmp_mean_${i}
         cat ${txtout}_tmp_mean_${i} > ${txtout}_tmp_${i}
         rm ${txtout}_tmp_mean_${i}
       fi
+      if [ $useheading -eq 1 ] ; then
+        _heading=$(echo $heading | awk -v c=${roi} '{print $c}')
+        sed -i "1i $_heading" ${txtout}_tmp_${i}
+      fi
+      txtfiles=$txtfiles" "${txtout}_tmp_${i}
     done
   fi
   
@@ -90,27 +124,39 @@ for roi in `seq 1 $rois` ; do
       for j in `seq 1 $ncond` ; do
         
         line=$(echo "scale=0 ; $j + $ncond * ($i-1)" | bc -l)
-        cat $txtin | awk -v c=${roi} '{print $c}' | sed -n ${line}p >> ${txtout}_tmp_${i}
+        cat $txtin_tmp | awk -v c=${roi} '{print $c}' | sed -n ${line}p >> ${txtout}_tmp_${i}
         
       done
-      txtfiles=$txtfiles" "${txtout}_tmp_${i}
       if [ $mean -eq 1 ] ; then
         cat ${txtout}_tmp_${i} | getAvg  > ${txtout}_tmp_mean_${i}
         cat ${txtout}_tmp_mean_${i} > ${txtout}_tmp_${i}
         rm ${txtout}_tmp_mean_${i}
       fi
+      if [ $useheading -eq 1 ] ; then
+        _heading=$(echo $heading | awk -v c=${roi} '{print $c}')
+        sed -i "1i $_heading" ${txtout}_tmp_${i}
+      fi
+      txtfiles=$txtfiles" "${txtout}_tmp_${i}
     done  
   fi
 
   # paste
-  paste $txtfiles > ${txtout}_$(zeropad $roi 3)  
+  paste $txtfiles > ${txtout}_$(zeropad $roi 3)
+  roifiles=$roifiles" "${txtout}_$(zeropad $roi 3)
 
   # cleanup
   rm $txtfiles
 done
+
+paste $roifiles > ${txtout}
 
 # display result
 for roi in `seq 1 $rois` ; do
   echo "${txtout}_$(zeropad $roi 3): "
   cat ${txtout}_$(zeropad $roi 3)
 done
+
+# cleanup
+rm $roifiles
+rm $txtin_tmp
+rm $header_tmp
