@@ -30,6 +30,9 @@ rois="" ; while [ _$1 != _ ] ; do
   shift
 done
 
+# checks
+if [ "$hemi" != "lh" -a "$hemi" != "rh" ] ; then echo "$(basename $0): ERROR: no hemisphere ('lh' or 'rh') specified - exiting..." ; exit 1 ; fi
+
 # execute mri_segstats in a loop
 i=1 ; outlist=""
 for roi in $rois ; do

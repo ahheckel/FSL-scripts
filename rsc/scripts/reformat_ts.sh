@@ -85,7 +85,7 @@ useheading=0
 heading=$(tail -n 1 $header_tmp)
 heading_col=$(echo $heading | wc -w)
 if [ $rois -eq $heading_col ] ; then
-  echo "`basename $0` : using heading:"
+  echo "`basename $0`: using heading:"
   echo "$heading"
   useheading=1
 fi
