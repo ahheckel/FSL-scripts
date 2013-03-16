@@ -12,9 +12,24 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 set -e
 
 Usage() {
-    echo "Searches recursively in current working directory for tracula's pathstats.overall.txt and extracts values belonging to <var>."
+    echo ""
+    echo "Searches recursively in current working directory for TRACULA's 'pathstats.overall.txt' and extracts values belonging to <var>."
     echo "Usage:   `basename $0` <var> <out-dir>"
     echo "Example: `basename $0` FA_Avg_Weight ./trac-results"
+    echo "NOTE:    <var> can be:"    
+    echo "          AD_Avg"
+    echo "          AD_Avg_Weight"
+    echo "          AD_Avg_Center"
+    echo "          RD_Avg"
+    echo "          RD_Avg_Weight"
+    echo "          RD_Avg_Center"
+    echo "          MD_Avg"
+    echo "          MD_Avg_Weight"
+    echo "          MD_Avg_Center"
+    echo "          FA_Avg"
+    echo "          FA_Avg_Weight"
+    echo "          FA_Avg_Center"
+    
     exit 1
 }
 
@@ -89,7 +104,7 @@ for reg in $regs ; do
   done
   paste $pds > $summary
   echo "`basename $0` : cleaning up."
-  rm -f $pds
+  rm -f $pds # cleanup
 done
 
 # done.
