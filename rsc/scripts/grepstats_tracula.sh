@@ -103,7 +103,7 @@ for reg in $regs ; do
     pds=$pds" "$pd
   done
   paste $pds > $summary
-  echo "`basename $0` : cleaning up."
+  #echo "`basename $0` : cleaning up."
   rm -f $pds # cleanup
 done
 

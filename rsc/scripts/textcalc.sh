@@ -19,7 +19,7 @@ Usage() {
     echo "Example: `basename $0` movpar.txt \"c\" movpar_nothingdone.txt"
     echo "         `basename $0` movpar.txt \"abs(c)\" movpar_abs.txt"
     echo "         `basename $0` movpar.txt \"c.*c\" movpar_squared.txt"
-    echo "         `basename $0` movpar.txt \"c=diff(c); c=[0 ; c]\" movpar_1deriv.txt"
+    echo "         `basename $0` movpar.txt \"c=diff(c); c=[0 ; c]\" movpar_1stderiv.txt"
     echo ""
     exit 1
 }
