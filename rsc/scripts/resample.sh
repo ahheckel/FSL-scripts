@@ -5,7 +5,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 01/16/2012
+# 01/16/2013
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 

@@ -17,6 +17,8 @@ source $FREESURFER_HOME/SetUpFreeSurfer.sh
 # add tcl-scripting commands
 echo "set gaLinkedVars(redrawlockflag) 1" > /tmp/$$tmp.tcl
 echo "SendLinkedVarGroup redrawlock" >> /tmp/$$tmp.tcl
+echo "set gaLinkedVars(ignorezeroesinhistogramflag) 1" >> /tmp/$$tmp.tcl
+echo "SendLinkedVarGroup overlay" >> /tmp/$$tmp.tcl
 if [ $flatpatch -eq 1 ] ; then
   echo "scale_brain 0.75" >> /tmp/$$tmp.tcl
 fi
