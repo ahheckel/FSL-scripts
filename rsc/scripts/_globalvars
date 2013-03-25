@@ -270,6 +270,8 @@ TBSS_USE_TOPUP_NOEC_BVECROT=0                     # use FA maps from TOPUP-corre
 TBSS_USE_TOPUP_EC_BVECROT=1                       # use FA maps from TOPUP-corrected & eddy-corrected DWIs with b-vector compensation applied
 
 # FS_STATS
+FS_STATS_OUTDIR_PREFIX="fsstats"                  # outdir prefix; output directory is ${FS_STATS_OUTDIR_PREFIX}_${FS_STATS_GROUPSPACE}
+FS_STATS_GROUPSPACE="fsaverage"                   # target subject for resampling data
 FS_STATS_MEASURES="thickness"                     # list of dependent variables of FREESURFER analysis (e.g., "thickness")
 FS_STATS_SMOOTHING_KRNLS="5 10 15 20"             # smoothing kernels (e.g., "5 10 15")
 FS_STATS_NPERM=5000                               # number of permutations (null distribution)
@@ -327,8 +329,8 @@ DUALREG_DELETE_PREV_RUNS=1                                  # delete previous ru
 
 # FSLNETS
 FSLNETS_DREGDIRS="dreg_templates_melodicIC dreg_templates_melodicIC2"
+FSLNETS_OUTIDR_PREFIX="fslnets"                             # output directory: ${FSLNETS_OUTIDR_PREFIX}_${FSLNETS_DREGDIRS}
 FSLNETS_NPERM=5000
-FSLNETS_OUTIDR_PREFIX="fslnets"
 FSLNETS_GOODCOMPONENTS="[1 2 3 4 5 6 7 8 9 10]"
 FSLNETS_T_THRESHOLDS="0:2:8"
 

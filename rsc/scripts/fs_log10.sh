@@ -33,7 +33,7 @@ cmd="fslmaths $input -mas $mask -mul -1 -add 1 -log -div -2.3025851 $output"
 echo "`basename $0` : $cmd"  ; $cmd
 
 # cleanup
-echo "`basename $0` : cleaning up."
+#echo "`basename $0` : cleaning up."
 imrm $mask
 
 echo "`basename $0` : done."

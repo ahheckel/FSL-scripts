@@ -12,25 +12,26 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
-    echo "Usage:   `basename $0` <SUBJECTS_DIR> <glm-dir> <out-dir> <measure> <smoothing-kernels(FWHM)> <do-resamp:0|1> <do-smooth:0|1> <do-glm:0|1> <do-glm_sim: 0|1> <Nsim> [<sge-logdir>]"
-    echo "Example: `basename $0` ./subj/FS_subj ./grp/glm/FS_stats ./grp/FS_stats \"thickness\" \"5 10 15 20 25\" 1 1 1 1 5000 ./logs"
+    echo "Usage:   `basename $0` <SUBJECTS_DIR> <subject> <glm-dir> <out-dir> <measure> <smoothing-kernels(FWHM)> <do-resamp:0|1> <do-smooth:0|1> <do-glm:0|1> <do-glm_sim: 0|1> <Nsim> [<sge-logdir>]"
+    echo "Example: `basename $0` ./subj/FS_subj fsaverage ./grp/glm/FS_stats ./grp/FS_stats \"thickness\" \"5 10 15 20 25\" 1 1 1 1 5000 ./logs"
     echo ""
     exit 1 
 }
 
 # declare vars
-[ "${10}" = "" ] && Usage
+[ "${11}" = "" ] && Usage
 SUBJECTS_DIR="$1"
-glmdir_FS="$2"
-FSstatsdir="$3"
-measures="$4"
-krnls="$5"
-resamp=$6
-smooth=$7
-glmstats=$8
-glm_sim=$9
-Nsim=${10}
-logdir="${11}"
+targetsubj="$2"
+glmdir_FS="$3"
+FSstatsdir="$4"
+measures="$5"
+krnls="$6"
+resamp=$7
+smooth=$8
+glmstats=$9
+glm_sim=${10}
+Nsim=${11}
+logdir="${12}"
 if [ x"$logdir" = "x" ] ; then logdir=/tmp ; fi
 jid=1 # init jobID
 
@@ -51,6 +52,7 @@ trap "set +e ; echo -e \"\n`basename $0`: cleanup: erasing Job-IDs in '$JIDfile'
 # display info
 echo ""
 echo "`basename $0` : SUBJECTS_DIR     : $SUBJECTS_DIR"
+echo "`basename $0` : target-subject   : $targetsubj"
 echo "`basename $0` : glm-dir          : $glmdir_FS"
 echo "`basename $0` : out-dir          : $FSstatsdir"
 echo "`basename $0` : smoothing-krnls  : $krnls"
@@ -65,6 +67,9 @@ echo ""
 
 # check if designs present
 if [ $(cat $glmdir_FS/designs | wc -l) -eq 0 ] ; then echo "$(basename $0): ERROR: no designs specified in '$glmdir_FS/designs' - exiting..." ; exit 1 ; fi
+
+# check if target subject is present
+if [ ! -d $SUBJECTS_DIR/$targetsubj ] ; then echo "$(basename $0): ERROR: subject '$targetsubj' does not exist in '$SUBJECTS_DIR' - exiting..." ; exit 1 ; fi
 
 # make dest. directory
 mkdir -p $FSstatsdir
@@ -100,7 +105,7 @@ if [ $resamp -eq 1 ] ; then
         rm -f ${FSstatsdir}/$output # delete prev. run
         
         echo "$(basename $0): resampling data pertaining to design file '$fsgd_file' onto average subject (output: '${FSstatsdir}/$output')..."
-        echo "    mris_preproc --fsgd ${fsgd_file} --target fsaverage --hemi ${hemi} --meas ${measure} --out ${FSstatsdir}/$output" >> $cmdtxt
+        echo "    mris_preproc --fsgd ${fsgd_file} --target ${targetsubj} --hemi ${hemi} --meas ${measure} --out ${FSstatsdir}/$output" >> $cmdtxt
       done # end measure
     done # end hemi
   done # end design
@@ -126,7 +131,7 @@ if [ $smooth -eq 1 ] ; then
           rm -f ${FSstatsdir}/$output # delete prev. run
           
           echo "$(basename $0): smoothing with (kernel: ${sm}mm FWHM -> output: '${FSstatsdir}/$output')..."
-          echo "    mri_surf2surf --hemi ${hemi} --s fsaverage --sval $input --fwhm ${sm} --cortex --tval ${FSstatsdir}/$output" >> $cmdtxt
+          echo "    mri_surf2surf --hemi ${hemi} --s ${targetsubj} --sval $input --fwhm ${sm} --cortex --tval ${FSstatsdir}/$output" >> $cmdtxt
         done # end measure
       done # end sm
     done # end hemi
@@ -156,7 +161,7 @@ if [ $glmstats -eq 1 ] ; then
             if [ ! -f $input ] ; then echo "$(basename $0): ERROR: file not found: '$input' - exiting." ; exit 1 ; fi
             
             echo "$(basename $0): performing GLM analysis: glmdir: '$output' --- type: '$type' --- contrast: '$(basename $mtx)'"
-            echo "    mri_glmfit --y $input --fsgd ${fsgd_file} $type --C ${mtx} --surf fsaverage ${hemi} --cortex --glmdir $FSstatsdir/${output}" >> $cmdtxt
+            echo "    mri_glmfit --y $input --fsgd ${fsgd_file} $type --C ${mtx} --surf ${targetsubj} ${hemi} --cortex --glmdir $FSstatsdir/${output}" >> $cmdtxt
           done # end mtx
         done # end measure
       done # end sm
@@ -187,11 +192,11 @@ if [ $glmstats -eq 1 ] ; then
               err=1
               continue 
             fi
-            cp $SUBJECTS_DIR/fsaverage/surf/${hemi}.inflated $glmdir/${mtx%%.mtx}/
-            cp $SUBJECTS_DIR/fsaverage/surf/${hemi}.curv $glmdir/${mtx%%.mtx}/
-            cp $SUBJECTS_DIR/fsaverage/label/${hemi}.aparc.a2009s.annot $glmdir/${mtx%%.mtx}/
+            cp $SUBJECTS_DIR/${targetsubj}/surf/${hemi}.inflated $glmdir/${mtx%%.mtx}/
+            cp $SUBJECTS_DIR/${targetsubj}/surf/${hemi}.curv $glmdir/${mtx%%.mtx}/
+            cp $SUBJECTS_DIR/${targetsubj}/label/${hemi}.aparc.a2009s.annot $glmdir/${mtx%%.mtx}/
        
-            cp -P $SUBJECTS_DIR/fsaverage $glmdir/${mtx%%.mtx}/ # copy the symbolic links
+            #cp -P $SUBJECTS_DIR/fsaverage $glmdir/${mtx%%.mtx}/ # copy the symbolic links
           done
           echo "------------------------------"
         done # end measure
