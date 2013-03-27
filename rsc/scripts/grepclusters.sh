@@ -1,5 +1,5 @@
 #!/bin/bash
-# Lists significant activation clusters in directory tree.
+# Searches directory tree for significant activation clusters.
 
 # Written by Andreas Heckel
 # University of Heidelberg

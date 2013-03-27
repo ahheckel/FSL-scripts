@@ -13,7 +13,7 @@ set -e
 Usage() {
     echo ""
     echo "Usage:    `basename $0` <input4D> <output4D> <SUBJECTS_DIR> [<target-subject(default:fsaverage>] [<input2target.dat>]"
-    echo "Example:  `basename $0` log_tfce_corrp_tstat1.nii.gz sig.mgh /usr/local/freesurfer/subjects fsaverage mni152-vol2fsaverage-surf.register.dat"
+    echo "Example:  `basename $0` log_tfce_corrp_tstat1.nii.gz sig.mgh /usr/local/freesurfer/subjects fsaverage mni152-vol_2_fsaverage-surf.register.dat"
     echo ""
     exit 1
 }
@@ -27,7 +27,7 @@ trgsubject="$4"
 srcreg="$5"
 
 if [ x"$trgsubject" = "x" ] ; then trgsubject=fsaverage ; fi
-if [ x"$srcreg" = "x" ] ; then srcreg=$(dirname $0)/mni152-vol2fsaverage-surf.register.dat ; fi
+if [ x"$srcreg" = "x" ] ; then srcreg=$(dirname $0)/mni152-vol_2_fsaverage-surf.register.dat ; fi
 
 if [ ! -f $srcreg ] ; then echo "`basename $0` : '$srcreg' not found - exiting..." ; exit 1 ; fi
 
