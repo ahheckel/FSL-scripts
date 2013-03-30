@@ -9,23 +9,34 @@
 
 set -e
 
+trap 'echo "$0 : An ERROR has occured."' ERR
+
+Usage() {
+    echo ""
+    echo "Usage: `basename $0` <input> <output>"
+    echo ""
+    exit 1
+}
+
+[ "$2" = "" ] && Usage
 input=$(remove_ext "$1")
 output=$(remove_ext "$2")
 
-cmd="fslreorient2std $input ${output}_$$"
+cmd="fslreorient2std $input /tmp/${output}_$$"
 echo $cmd
 $cmd
 
 # reslice was applied or input is nii.gz
-if [ -f ${output}_$$.nii.gz ] ; then
-  cmd="mv ${output}_$$.nii.gz ${output}.nii.gz"
+if [ -f /tmp/${output}_$$.nii.gz ] ; then
+  cmd="mv /tmp/${output}_$$.nii.gz ${output}.nii.gz"
   echo $cmd;
   $cmd
 fi
+
 # no reslice was applied -> convert to .nii.gz via fslmaths, if input was .nii
-if [ -f ${output}_$$.nii ] ; then
-  cmd="fslmaths ${output}_$$ ${output}"
+if [ -f /tmp/${output}_$$.nii ] ; then
+  cmd="fslmaths /tmp/${output}_$$ ${output}"
   echo $cmd ; $cmd
-  cmd="rm ${output}_$$.nii"
+  cmd="rm /tmp/${output}_$$.nii"
   echo $cmd ; $cmd
 fi 
