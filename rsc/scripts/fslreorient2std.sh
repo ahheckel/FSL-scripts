@@ -39,4 +39,5 @@ if [ -f /tmp/${output}_$$.nii ] ; then
   echo $cmd ; $cmd
   cmd="rm /tmp/${output}_$$.nii"
   echo $cmd ; $cmd
-fi 
+fi
+
