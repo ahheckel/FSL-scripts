@@ -37,25 +37,6 @@ if [ "$hemi" != "lh" -a "$hemi" != "rh" ] ; then echo "$(basename $0): ERROR: no
 i=1 ; outlist=""
 for roi in $rois ; do
   
-  ## left or right hemisphere ?
-  #lh=0 ; rh=0
-  #lh="$(echo $(basename $roi) | grep "\.lh\." | wc -l )"
-  #rh="$(echo $(basename $roi) | grep "\.rh\." | wc -l )"
-  #_dir="$roi"
-  #while [ $lh -eq 0 -a $rh -eq 0 ] ; do
-    #_dir=$(dirname $_dir) ; if [ "$_dir" = "$(dirname $_dir)" ] ; then break ; fi
-    #_dirname=$(basename $_dir)
-    #_hemi="$(basename $_dirname)"
-    #lh=$(echo $_hemi | grep "^lh\."  | wc -l)
-    #rh=$(echo $_hemi | grep "^rh\."  | wc -l)
-    #if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "\.lh\." | wc -l) ; fi
-    #if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "\.rh\." | wc -l) ; fi
-    #if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "\-lh\-" | wc -l) ; fi
-    #if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "\-rh\-" | wc -l) ; fi
-  #done
-  
-  #if [ $lh -eq 1 ] ; then hemi=lh ; elif [ $rh -eq 1 ] ; then hemi=rh ; fi
-  
   echo "$(basename $0): '$roi' in $hemi (hemisphere)."
   
   heading=$(basename $roi)

@@ -31,12 +31,14 @@ in_ext=${inmat##*.}
 
 if [ "$in_ext" = "$out_ext" ] ; then echo "`basename $0` : ERROR : file extension of input and output matrices are the same (*.$out_ext)" ; exit 1 ; fi
 
-if [ "$in_ext" = "dat" ] ; then regin="--reg $inmat" ; fi
-if [ "$in_ext" = "xfm" ] ; then regin="--xfm $inmat" ; fi
-if [ "$in_ext" = "mat" ] ; then regin="--fsl $inmat" ; fi
-if [ "$in_ext" = "lta" ] ; then regin="--lta $inmat" ; fi
-if [ "$in_ext" = "txt" ] ; then regin="--vox2vox $inmat" ; fi
+cp $inmat /tmp/$(basename $0)_$$.${in_ext}
+_inmat=/tmp/$(basename $0)_$$.${in_ext}
 
+if [ "$in_ext" = "dat" ] ; then regin="--reg $_inmat" ; fi
+if [ "$in_ext" = "xfm" ] ; then regin="--xfm $_inmat" ; fi
+if [ "$in_ext" = "mat" ] ; then regin="--fsl $_inmat" ; fi
+if [ "$in_ext" = "lta" ] ; then regin="--lta $_inmat" ; fi
+if [ "$in_ext" = "txt" ] ; then regin="--vox2vox $_inmat" ; fi
 
 if [ "$out_ext" = "dat" ] ; then regout="--reg $outmat" ; fi
 if [ "$out_ext" = "xfm" ] ; then regout="--xfmout $outmat" ; fi
@@ -48,9 +50,8 @@ if [ "$in_ext" != "dat" -a  "$out_ext" != "dat" ] ; then delme="--reg $$deleteme
 cmd="tkregister2 --noedit --mov $mov --targ $targ $regin $regout $delme"
 echo $cmd ; $cmd
 
-
 rm -f $$deleteme.reg.dat
-
+rm -f $_inmat
 
 echo "`basename $0` : done."
 
