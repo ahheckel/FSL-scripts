@@ -137,6 +137,7 @@ if [ "x$FIRSTLEV_SUBJECTS" != "x" -a "x$FIRSTLEV_SESSIONS_FUNC" != "x" -a "x$FIR
   
   echo $FIRSTLEV_SUBJECTS | row2col > ${subjdir}/subjects
   cat -n ${subjdir}/subjects
+  echo ""
   for subj in `cat ${subjdir}/subjects` ; do
     if [ ! -d ${subjdir}/$subj ] ; then mkdir -p ${subjdir}/$subj ; fi
     echo "creating functional session file for subject '$subj': "[ $FIRSTLEV_SESSIONS_FUNC ]""
@@ -270,7 +271,7 @@ if [ $CHECK_INFOFILES = 1 ] ; then
       defineDWIparams $subjdir/config_acqparams_dwi $subj $sess 
     done
   done
-  echo "done." ; echo ""
+  echo "...done." ; echo ""
   
   # is registration mapping file present ? 
   if [ ! -f ${subjdir}/config_func2highres.reg ] ; then
@@ -451,12 +452,16 @@ err=0
 for subj in `cat $subjdir/subjects` ; do
   for sess in `cat $subjdir/$subj/sessions_struc` ; do
     dwi_txtfiles=""
-    if [ x${pttrn_bvalsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvalsplus ; fi
-    if [ x${pttrn_bvalsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvalsminus ; fi
-    if [ x${pttrn_bvecsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvecsplus ; fi
-    if [ x${pttrn_bvecsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvecsminus ; fi
-    if [ x${pttrn_bvals} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvals ; fi
-    if [ x${pttrn_bvecs} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvecs ; fi
+    if [ x${pttrn_diffspuls} != "x" ] ; then
+      if [ x${pttrn_bvalsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvalsplus ; fi
+      if [ x${pttrn_bvalsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvalsminus ; fi
+      if [ x${pttrn_bvecsplus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvecsplus ; fi
+      if [ x${pttrn_bvecsminus} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvecsminus ; fi
+    fi
+    if [ x${pttrn_diffs} != "x" ] ; then
+      if [ x${pttrn_bvals} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvals ; fi
+      if [ x${pttrn_bvecs} != "x" ] ; then dwi_txtfiles=$dwi_txtfiles" "$srcdir/$subj/$sess/$pttrn_bvecs ; fi
+    fi
     dwi_txtfiles=$(echo $dwi_txtfiles| row2col | sort | uniq)
     for i in $dwi_txtfiles ; do 
       #echo "    $i"
@@ -466,7 +471,7 @@ for subj in `cat $subjdir/subjects` ; do
     done
   done
 done
-if [ $err -eq 1 ] ; then echo "an ERROR has occured - exiting..." ; exit 1 ; fi
+if [ $err -eq 1 ] ; then echo "An ERROR has occured - exiting..." ; exit 1 ; fi
 echo "...done." ; echo ""
 
 # check bvals, bvecs and diff. files for consistent number of entries
@@ -544,14 +549,16 @@ waitIfBusy
 if [ $FIELDMAP_STG1 -eq 1 ]; then
   echo "----- BEGIN FIELDMAP_STG1 -----"
   for subj in `cat $subjdir/subjects` ; do
-    for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do  
+    for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do    
+      if [ $(ls ${srcdir}/${subj}/${sess}/${pttrn_fmaps} | wc -l) -eq 0 ] ; then echo "FIELDMAP : subj $subj , sess $sess : no fieldmap found - continuing..." ; continue ; fi
+            
       fldr=$subjdir/${subj}/${sess}/fm
       
       # create fieldmap directory
       mkdir -p $fldr
    
       # find magnitude
-      fm_m=`ls ${srcdir}/${subj}/${sess}/${pttrn_fmaps} | sed -n 1p` # first in listing is magnitude (second is phase-difference volume) (!)
+      fm_m=`ls ${srcdir}/${subj}/${sess}/${pttrn_fmaps} | sed -n 1p` # first in listing is magnitude (last is phase-difference volume) (!)
       imcp $fm_m $fldr
       
       # split magnitude
@@ -575,6 +582,8 @@ if [ $FIELDMAP_STG2 -eq 1 ]; then
   echo "----- BEGIN FIELDMAP_STG2 -----"
   for subj in `cat $subjdir/subjects` ; do
     for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do
+      if [ $(ls ${srcdir}/${subj}/${sess}/${pttrn_fmaps} | wc -l) -eq 0 ] ; then echo "FIELDMAP : subj $subj , sess $sess : no fieldmap found - continuing..." ; continue ; fi
+
       fldr=$subjdir/${subj}/${sess}/fm
 
       # get bet threshold
