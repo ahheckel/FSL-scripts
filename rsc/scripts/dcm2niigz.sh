@@ -29,6 +29,9 @@ indir=${indir%/}
 outdir=$(echo $outdir | sed "s|/\./|/|g" | sed "s|/\+|/|g")
 outdir=${outdir%/}
 
+# dcm2nii idiosyncrasy
+if [ $indir = "." ] ; then indir=$(pwd) ; fi
+
 # make outdir
 mkdir -p $outdir
 
