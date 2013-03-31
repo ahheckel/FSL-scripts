@@ -158,18 +158,18 @@ PI=3.1415926532            # =$(echo "scale=10; 4*a(1)" | bc -l) # define pi
 # TOPUP
 TOPUP_USE_NATIVE=1         # apply TOPUP-warps to native DWI runs
 TOPUP_USE_EC=1             # apply TOPUP-warps to eddy-corrected DWI runs (i.e. runs that have been eddy-corrected to the first B0 volume per run)
-TOPUP_EC_DOF=12            # degrees of freedom used by eddy-correction
+TOPUP_EC_DOF=12            # degrees of freedom used by eddy-correction (default: 12)
 TOPUP_EC_COST=mutualinfo   # cost-function used by eddy-correction (default: corratio)
 TOPUP_USE_EDDY=0           # use EDDY (FSL 5)
 
 # FDT - unwarp
 FDT_EC_TEST=0                  # don't apply eddy-correction
-FDT_EC_DOF=12                  # degrees of freedom used by eddy-correction
+FDT_EC_DOF=12                  # degrees of freedom used by eddy-correction (default: 12)
 FDT_EC_COST=mutualinfo         # cost-function used by eddy-correction (default: corratio)
 FDT_UNWARP=1                   # do unwarp ?
 FDT_FMAP="fm/fmap_rads_masked" # rel. path to fieldmap in rads/sec (default: "fm/fmap_rads_masked")
 FDT_MAGN="fm/magn_brain"       # rel. path to magnitude (default: "fm/magn_brain")
-FDT_SIGNLOSS_THRES=100         # signal loss threshold (%)
+FDT_SIGNLOSS_THRES=100         # signal loss threshold (%) (default: 100)
   
 # BPX
 BPX_OUTDIR_PREFIX="bpx"
