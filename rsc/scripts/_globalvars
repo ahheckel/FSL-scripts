@@ -207,6 +207,7 @@ BOLD_FEATDIR_PREFIX="preprocBOLD"                             # prefix for .feat
 BOLD_BET_EXFUNC=0                                             # bet example func (middle of the 4D) (default 0)
 BOLD_FEAT_NO_BROWSER=1                                        # don't open browser window
 #---------------------
+BOLD_MC=1                                                     # enable motion correction
 BOLD_UNWARP=1                                                 # enable unwarping (default 1)
 BOLD_FMAP="fm/fmap_rads_masked"                               # rel. path to fieldmap in rads/sec (e.g. topup/fm/fmap_rads ; default: fm/fmap_rads_masked) - CAVE: topup fieldmaps: unwarp direction may differ from fieldmap-based unwarping !
 BOLD_MAGN="fm/magn_brain"                                     # rel. path to magnitude (e.g. topup/fm/uw_lowb_mean_brain ; default: fm/magn_brain)

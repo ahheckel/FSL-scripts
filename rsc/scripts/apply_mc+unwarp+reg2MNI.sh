@@ -36,6 +36,7 @@ Usage() {
 
 [ "$7" = "" ] && Usage
 
+# assign input arguments
 input=`remove_ext "$1"`
 output=`remove_ext "$2"`
 mcdir="$3"
@@ -67,7 +68,7 @@ echo "`basename $0` : MNI-ref:       $ref"
 echo "`basename $0` : MNI-aff-only:  $MNIaff"
 echo ""
 
-# motion correction or eddy-correction ?
+# motion correction / eddy-correction ?
 ecclog=0 ; sinlgemat=0
 if [ "$mcdir" = "none" ] ; then
   echo "`basename $0` : no motion correction."
@@ -114,8 +115,7 @@ if [ $MNIaff -eq 0 ] ; then
   # concatenate warps
   if [ $douw -eq 1 ] ; then
     cmd="convertwarp --ref=${ref} --warp1=${output}_WARP1 --warp2=${output}_WARP2 --out=${output}_WARP --relout"
-    warpopt="--warp=${output}_WARP"
-    
+    warpopt="--warp=${output}_WARP"    
     echo $cmd
     $cmd
   else
@@ -123,7 +123,6 @@ if [ $MNIaff -eq 0 ] ; then
   fi
 else
   postmatopt="--postmat=$f2t1_mat"
-  # concatenate warps
   if [ $douw -eq 1 ] ; then
     warpopt="--warp=${output}_WARP1"
   else
@@ -171,4 +170,5 @@ imrm ${output}_WARP2
 imrm ${output}_WARP
 rm -f ${output}_tmp_ecclog.mat
 
+# done
 echo "`basename $0`: done."

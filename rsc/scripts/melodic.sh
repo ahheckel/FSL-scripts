@@ -82,7 +82,7 @@ function exec_melodic()
   echo ""
   cmd="melodic -i $input2melodic -o $outdir/$subdir $opts"
   echo $cmd | tee $outdir/$subdir/melodic.cmd
-  if [ $sge -eq 1 ] ; then
+  if [ $sge -eq 1 -a x"$SGE_ROOT" != "x" ] ; then
     fsl_sub -l $outdir/$subdir/ -t $outdir/$subdir/melodic.cmd
   else
     . $outdir/$subdir/melodic.cmd

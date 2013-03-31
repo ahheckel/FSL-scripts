@@ -13,7 +13,7 @@ trap 'echo "$0 : An ERROR has occured."' ERR
     
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input4D> <n_head,n_tail> <output4D>"
+    echo "Usage:   `basename $0` <input4D> <n_head,n_tail> <output4D>"
     echo "Example: `basename $0` in 1,3 out"
     echo ""
     exit 1

@@ -54,7 +54,7 @@ echo "`basename $0` : uw-shiftmap:   $shiftmap"
 echo "`basename $0` : interp:        $interp"
 echo ""
 
-# motion correction or eddy-correction ?
+# motion correction / eddy-correction ?
 ecclog=0 ; sinlgemat=0
 if [ "$mcdir" = "none" ] ; then
   echo "`basename $0` : no motion correction."

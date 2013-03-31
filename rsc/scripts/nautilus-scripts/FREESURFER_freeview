@@ -23,9 +23,10 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   mgz=$(echo $i | grep "\.mgz$" | wc -l)
   
   label=$(echo $i | grep "\.label$" | wc -l)  
+  patch=$(echo $i | grep "\.patch\." | wc -l)  
   annot=$(echo $i | grep "\.annot$" | wc -l)
   
-  sig=$(echo $(basename $i) | grep "^sig\.mgh$" | wc -l)
+  sig=$(echo $(basename $i) | grep "sig\.mgh$" | wc -l)
   F=$(echo $(basename $i) | grep "^F\.mgh$" | wc -l)
   gamma=$(echo $(basename $i) | grep "^gamma\.mgh$" | wc -l)
   gammavar=$(echo $(basename $i) | grep "^gammavar\.mgh$" | wc -l)
@@ -33,12 +34,10 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   
   # left or right hemisphere ?
   lh=0 ; rh=0
-  hemi="$(echo $(basename $i) | cut -d . -f 1)"
-  if [ "$hemi" = "lh" ] ; then
-    lh=1
-  elif [ "$hemi" = "rh" ] ; then
-    rh=1
-  fi
+  lh="$(echo $(basename $i) | grep "\.lh\." | wc -l )"
+  rh="$(echo $(basename $i) | grep "\.rh\." | wc -l )"
+  if [ $lh -eq 0 ] ; then lh="$(echo $(basename $i) | grep "^lh\." | wc -l )" ; fi
+  if [ $rh -eq 0 ] ; then rh="$(echo $(basename $i) | grep "^rh\." | wc -l )" ; fi
   _dir="$i"
   while [ $lh -eq 0 -a $rh -eq 0 ] ; do
     _dir=$(dirname $_dir) ; if [ "$_dir" = "$(dirname $_dir)" ] ; then break ; fi
@@ -46,8 +45,10 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     _hemi="$(basename $_dirname)"
     lh=$(echo $_hemi | grep "^lh\."  | wc -l)
     rh=$(echo $_hemi | grep "^rh\."  | wc -l)
-    lh=$(echo $_hemi | grep "\.lh\." | wc -l)
-    rh=$(echo $_hemi | grep "\.rh\." | wc -l)
+    if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "\.lh\." | wc -l) ; fi
+    if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "\.rh\." | wc -l) ; fi
+    if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "\-lh\-" | wc -l) ; fi
+    if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "\-rh\-" | wc -l) ; fi
     #zenity --info --text="$_dir"
   done
   
@@ -73,8 +74,12 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     elif [ $rh -eq 1 ] ; then # ...of the right hemi.
       annotlist_rh=$annotlist_rh":annot=$i"
     fi
-  elif [ $label -eq 1 ] ; then
-    labels=$labels" ""--label $i"
+  elif [ $label -eq 1 ] ; then # file is a surface label
+    if [ $lh -eq 1 ] ; then # ...of the left hemi.
+      labels_lh=$labels_lh":label=$i"
+    elif [ $rh -eq 1 ] ; then # ...of the right hemi.
+      labels_rh=$labels_rh":label=$i"
+    fi
   else
     type=$(mri_info $i | grep type: | head -n1 | cut -d : -f 2)
     if [ $type = "curv" ] ; then # file is an overlay...
@@ -94,7 +99,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
 done # end for loop
 
 # remove spaces before ':' in freeview arguments
-opts=$(echo "${vollist_lh} ${vollist_rh} ${surflist_lh}${annotlist_lh}${overlist_lh} ${surflist_rh}${annotlist_rh}${overlist_rh}" | sed "s| :|:|g") 
+opts=$(echo "${vollist_lh} ${vollist_rh} ${surflist_lh}${annotlist_lh}${overlist_lh}${labels_lh} ${surflist_rh}${annotlist_rh}${overlist_rh}${labels_rh}" | sed "s| :|:|g") 
 
 # check
 #zenity --info --text="$opts"
