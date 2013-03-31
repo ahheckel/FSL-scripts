@@ -550,7 +550,7 @@ if [ $FIELDMAP_STG1 -eq 1 ]; then
   echo "----- BEGIN FIELDMAP_STG1 -----"
   for subj in `cat $subjdir/subjects` ; do
     for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do    
-      if [ $(ls ${srcdir}/${subj}/${sess}/${pttrn_fmaps} | wc -l) -eq 0 ] ; then echo "FIELDMAP : subj $subj , sess $sess : no fieldmap found - continuing..." ; continue ; fi
+      if [ $(ls ${srcdir}/${subj}/${sess}/${pttrn_fmaps} 2>/dev/null | wc -l) -eq 0 ] ; then echo "FIELDMAP : subj $subj , sess $sess : no fieldmap found - continuing..." ; continue ; fi
             
       fldr=$subjdir/${subj}/${sess}/fm
       
@@ -582,7 +582,7 @@ if [ $FIELDMAP_STG2 -eq 1 ]; then
   echo "----- BEGIN FIELDMAP_STG2 -----"
   for subj in `cat $subjdir/subjects` ; do
     for sess in `cat $subjdir/$subj/sessions_* | sort | uniq` ; do
-      if [ $(ls ${srcdir}/${subj}/${sess}/${pttrn_fmaps} | wc -l) -eq 0 ] ; then echo "FIELDMAP : subj $subj , sess $sess : no fieldmap found - continuing..." ; continue ; fi
+      if [ $(ls ${srcdir}/${subj}/${sess}/${pttrn_fmaps} 2>/dev/null | wc -l) -eq 0 ] ; then echo "FIELDMAP : subj $subj , sess $sess : no fieldmap found - continuing..." ; continue ; fi
 
       fldr=$subjdir/${subj}/${sess}/fm
 
@@ -1730,7 +1730,7 @@ waitIfBusy
 if [ $RECON_STG3 -eq 1 ] ; then
   echo "----- BEGIN RECON_STG3 -----"
   for subj in `cat subjects`; do
-    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj : ERROR : single-session design ! Skipping longitudinal freesurfer stream..." ; continue ; fi
+    if [ $(cat ${subj}/sessions_struc | wc -l) -le 1 ] ; then echo "RECON : subj $subj : ERROR : structural single-session design ! Skipping longitudinal freesurfer stream..." ; continue ; fi
     
     # create template dir.
     fldr=$FS_subjdir/$subj
@@ -1760,7 +1760,7 @@ waitIfBusy
 if [ $RECON_STG4 -eq 1 ] ; then
   echo "----- BEGIN RECON_STG4 -----"
   for subj in `cat subjects`; do
-    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then echo "RECON : subj $subj : ERROR : single-session design ! Skipping longitudinal freesurfer stream..." ; continue ; fi
+    if [ $(cat ${subj}/sessions_struc | wc -l) -le 1 ] ; then echo "RECON : subj $subj : ERROR : structural single-session design ! Skipping longitudinal freesurfer stream..." ; continue ; fi
     
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$FS_subjdir/$(subjsess)
@@ -1785,8 +1785,8 @@ if [ $RECON_STG5 -eq 1 ] ; then
   for subj in `cat subjects` ; do
             
     # check
-    if [ "$(cat ${subj}/sessions_struc)" = "." ] ; then 
-      echo "RECON : subj $subj : single-session design !"
+    if [ $(cat ${subj}/sessions_struc | wc -l) -le 1 ] ; then 
+      echo "RECON : subj $subj : structural single-session design !"
       template=$FS_subjdir/$subj/mri/brain.mgz
       if [ -f $template ] ; then
         echo "RECON : subj $subj : registering Freesurfer's brain.mgz to FSL's MNI152 template..."
@@ -2365,14 +2365,10 @@ if [ $BOLD_STG1 -eq 1 ] ; then
         line=`cat $subjdir/config_func2highres.reg | awk '{print $1}' | grep -nx $(subjsess) | cut -d : -f1`
         sess_t1=`cat $subjdir/config_func2highres.reg | awk '{print $2}' | sed -n ${line}p `
         if [ $sess_t1 = '.' ] ; then sess_t1="" ; fi # single-session design   
-        if [ x"$sess_t1" = "x" ] ; then 
-          relpath="../../$subj/vbm" # single sess.
-        else
-          relpath="../../$sess_t1/vbm" # multi sess.
-        fi
         t1_brain=$fldr/${subj}${sess_t1}_t1_brain.nii.gz
         t1_struc=$fldr/${subj}${sess_t1}_t1.nii.gz
-        feat_t1struc=`ls $subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_STRUC` ; feat_t1brain=`ls $subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_BRAIN`
+        feat_t1struc=`ls $subjdir/$subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_STRUC` ; feat_t1brain=`ls $subjdir/$subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_BRAIN`
+        relpath=$(path_abs2rel $fldr/ $subjdir/$subj/$sess_t1/vbm/)
         echo "BOLD : subj $subj , sess $sess : creating symlink '$(basename $t1_struc)' to '$relpath/$(basename $feat_t1struc)'"
         ln -sf $relpath/$(basename $feat_t1struc) $t1_struc
         echo "BOLD : subj $subj , sess $sess : creating symlink '$(basename $t1_brain)' to '$relpath/$(basename $feat_t1brain)'"
@@ -2493,7 +2489,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
           done # end uw_dir          
         done # end sm_krnl
       done # end hpf_cut
-      echo ""
+      echo "---------------------------"
     done
   done
 fi
