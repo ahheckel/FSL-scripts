@@ -2977,6 +2977,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       out=$fldr/$(subjsess)
       uwdir=`getUnwarpDir ${subjdir}/config_unwarp_bold $subj $sess`
       featdir=$subjdir/$subj/$sess/$(echo "$ALFF_FEATDIR" | sed "s|??|$uwdir|g")
+      mcdir="$featdir/mc/prefiltered_func_data_mcf.mat"
       if [ $ALFF_FSLV5 -eq 1 ] ; then
         if [ -f $featdir/reg/unwarp/EF_UD_shift.nii.gz ] ; then
           alff_uw_shiftmap=$featdir/reg/unwarp/EF_UD_shift.nii.gz # patched version of fsl5
@@ -2990,9 +2991,12 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       # apply shiftmap ?
       if [ $ALFF_APPLY_UNWARP -eq 0 ] ; then uwdir=00 ; alff_uw_shiftmap="none" ; fi
       
+      # apply motion correction ?
+      if [ $ALFF_APPLY_MC -eq 0 ] ; then mcdir="none" ; fi
+
       # check
       if [ ! -d $featdir ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: directory '$featdir' not found - exiting..." ; exit 1 ; fi
-      if [ ! -d $featdir/mc ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$featdir/mc' not found - exiting..." ; exit 1 ; fi
+      if [ ! -d $mcdir -a $ALFF_APPLY_MC -eq 1 ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$mcdir' not found - exiting..." ; exit 1 ; fi
       if [ ! -f $alff_uw_shiftmap -a "$uwdir" != "00" ] ; then echo "ALFF : subj $subj , sess $sess : ERROR: '$alff_uw_shiftmap' not found - exiting..." ; exit 1 ; fi
       
       # mkdir
@@ -3036,7 +3040,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
 
         echo "ALFF : subj $subj , sess $sess : detrending (using AFNI tools)..."
 
-        echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $alff_uw_shiftmap $_uwdir trilinear ;\
+        echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $mcdir $alff_uw_shiftmap $_uwdir trilinear ;\
         3dDespike -prefix $fldr/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
         3dTcat -rlt+ -prefix $fldr/__tmp.nii.gz $fldr/_tmp.nii.gz ; \
         rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ; \
@@ -3046,7 +3050,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       
         echo "ALFF : subj $subj , sess $sess : detrending (using FSL's fslmaths -bptf, cutoff: $ALFF_HPF_CUTOFF Hz)..."
       
-        echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $alff_uw_shiftmap $_uwdir trilinear ;\
+        echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $mcdir $alff_uw_shiftmap $_uwdir trilinear ;\
         3dDespike -prefix $fldr/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
         $scriptdir/feat_hpf.sh $fldr/_tmp.nii.gz $fldr/__tmp.nii.gz $ALFF_HPF_CUTOFF $TR_bold $subj $sess ; \
         rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ; \
@@ -3058,7 +3062,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       #3dTstat -mean -prefix $fldr/_m.nii.gz $fldr/_tmp.nii.gz ; 3dDetrend -polort 2 -prefix $fldr/_dm.nii.gz $fldr/_tmp.nii.gz ; 3dcalc -a $fldr/_m.nii.gz  -b $fldr/_dm.nii.gz  -expr 'a+b' -prefix $fldr/__tmp.nii.gz ; rm -f $fldr/_m.nii.gz $fldr/_dm.nii.gz ;
           
       ## with slicetiming correction      
-      #echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $featdir/mc/prefiltered_func_data_mcf.mat $alff_uw_shiftmap $_uwdir trilinear ;\
+      #echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $mcdir $alff_uw_shiftmap $_uwdir trilinear ;\
       #$scriptdir/getsliceorderSIEMENS_interleaved.sh $fldr/filtered_func_data.nii.gz $fldr/sliceorder.txt ; slicetimer -i $fldr/filtered_func_data.nii.gz --out=$fldr/_tmp.nii.gz -r $TR_bold --ocustom=$fldr/sliceorder.txt ;\
       #$scriptdir/feat_hpf.sh $fldr/_tmp.nii.gz $fldr/__tmp.nii.gz $ALFF_HPF_CUTOFF $TR_bold $subj $sess ;\
       #rm -f $fldr/filtered_func_data.nii.gz $fldr/_tmp.nii.gz ;\
