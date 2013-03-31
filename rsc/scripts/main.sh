@@ -2409,10 +2409,12 @@ if [ $BOLD_STG1 -eq 1 ] ; then
               sed -i "s|set fmri(alternative_example_func) \"X\"|set fmri(alternative_example_func) \"\"|g" $conffile # unset alternative example func
               sed -i "s|set fmri(regstandard) .*|set fmri(regstandard) \"$FSL_DIR/data/standard/MNI152_T1_2mm_brain\"|g" $conffile # set MNI template
               sed -i "s|set fmri(analysis) .*|set fmri(analysis) 1|g" $conffile # do only pre-stats
-              if [ x$BOLD_MC = "x" ] ; then BOLD_MC=1 ; fi    
-              sed -i "s|set fmri(mc) .*|set fmri(mc) $BOLD_MC|g" $conffile # enable motion correction
               sed -i "s|set fmri(reginitial_highres_yn) .*|set fmri(reginitial_highres_yn) 0|g" $conffile # unset registration to initial highres
               sed -i "s|fmri(overwrite_yn) .*|fmri(overwrite_yn) 1|g" $conffile # overwrite on re-run
+              
+              # set motion correction
+              if [ x$BOLD_MC = "x" ] ; then BOLD_MC=1 ; fi    
+              sed -i "s|set fmri(mc) .*|set fmri(mc) $BOLD_MC|g" $conffile # enable motion correction
               
               # set slice timing correction method
               sed -i "s|set fmri(st) .*|set fmri(st) $stc_val|g" $conffile              
