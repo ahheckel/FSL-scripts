@@ -126,13 +126,13 @@ FSLNETS_STG1=0             # prepare and execute FSLNETS in MATLAB (requires dua
 # SGE CLUSTER
 #SGE_ROOT=""                    # set SGE_ROOT to empty, if no cluster, otherwise comment this line out
 
-# FIRST LEVEL
+# FIRST LEVEL (entries will be sorted alphabetically)
 # overwrite pre-existing subject /session file (to disable set any to "")
 FIRSTLEV_SUBJECTS="01 02 03 04 flip04 05 flip05 06 flip06 07 flip07 08 09 flip09 10" 
 FIRSTLEV_SESSIONS_FUNC="a b c d e" # enter "." for single session designs
 FIRSTLEV_SESSIONS_STRUC="a c e"    # enter "." for single session designs          
 
-# SECOND LEVEL
+# SECOND LEVEL (entries will be sorted alphabetically)
 SECONDLEV_SUBJECTS="01 02 03 flip04 flip05 flip06 flip07 08 flip09 10" 
 SECONDLEV_SESSIONS_FUNC="a b c d e" # enter "." for single session designs            
 SECONDLEV_SESSIONS_STRUC="a c e"    # enter "." for single session designs
