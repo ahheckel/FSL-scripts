@@ -73,7 +73,7 @@ elif [ ! -d $mcdir ] ; then
 fi  
 
 # display info
-if [ $douw -eq 0 -a "$mcdir" = "none" ] ; then  echo "`basename $0` : neither motion correction nor unwarping is to be applied - exiting..." ; exit 1 ; fi
+if [ $douw -eq 0 -a "$mcdir" = "none" ] ; then  echo "`basename $0` : neither motion correction nor unwarping is to be applied - just copying..." ; imcp $input $output ; exit ; fi
 if [ "$mcdir" != "none" ] ; then
   echo "`basename $0` : applying motion-correction."
 fi
