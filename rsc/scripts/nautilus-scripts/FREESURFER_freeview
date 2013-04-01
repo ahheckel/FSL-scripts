@@ -1,6 +1,11 @@
 #!/bin/bash
 # freeview wrapper for Nautilus.
 
+# INSTALL:
+# mkdir -p ~/.gnome2/nautilus-scripts
+# cp "script.sh" ~/.gnome2/nautilus-scripts/
+# chmod +x ~/.gnome2/nautilus-scripts/"script.sh"
+
 # Written by Andreas Heckel
 # University of Heidelberg
 # heckelandreas@googlemail.com
@@ -14,7 +19,7 @@ vollist_lh=""   ; vollist_rh=""
 surflist_lh=""  ; surflist_rh=""
 overlist_lh=""  ; overlist_rh=""
 annotlist_lh="" ; annotlist_rh=""
-labels_lh=""    ; labels_rh="" ; labels=""
+labels_lh=""    ; labels_rh=""
 lastfile=""
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   niigz=$(echo $i | grep "\.nii.gz$" | wc -l)
@@ -97,6 +102,17 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     fi    
   fi
 done # end for loop
+
+# add fsaverage surface and annotation if applicable
+if [ $fsaverage -eq 1 ] ; then
+  if [ $lh -eq 1 ] ; then 
+    surflist_lh=$surflist_lh" -f $SUBJECTS_DIR/fsaverage/surf/lh.inflated"
+    annotlist_lh=$annotlist_lh":annot=$SUBJECTS_DIR/fsaverage/label/lh.aparc.a2009s.annot"
+  elif [ $rh -eq 1 ] ; then
+    annotlist_rh=$annotlist_rh":annot=$SUBJECTS_DIR/fsaverage/label/rh.aparc.a2009s.annot"
+    surflist_rh=$surflist_rh" -f $SUBJECTS_DIR/fsaverage/surf/rh.inflated"
+  fi
+fi
 
 # remove spaces before ':' in freeview arguments
 opts=$(echo "${vollist_lh} ${vollist_rh} ${surflist_lh}${annotlist_lh}${overlist_lh}${labels_lh} ${surflist_rh}${annotlist_rh}${overlist_rh}${labels_rh}" | sed "s| :|:|g") 

@@ -794,8 +794,8 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       x=0 ; y=0 ; z=0; 
       if [ "$uw_dir" = "+x" ] ; then x=1  ; fi
       if [ "$uw_dir" = "-x" ] ; then x=-1 ; fi
-      if [ "$uw_dir" = "+y" ] ; then y=1  ; fi
-      if [ "$uw_dir" = "-y" ] ; then y=-1 ; fi
+      if [ "$uw_dir" = "+y" ] ; then y=-1 ; fi # sic! (so that TOPUP and SIEMENS phasemaps match in sign)
+      if [ "$uw_dir" = "-y" ] ; then y=1  ; fi # sic! (so that TOPUP and SIEMENS phasemaps match in sign)
       if [ "$uw_dir" = "+z" ] ; then z=1  ; fi
       if [ "$uw_dir" = "-z" ] ; then z=-1 ; fi
       mx=$(echo "scale=0; -1 * ${x}" | bc -l)
@@ -1129,9 +1129,9 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       fldr=${subjdir}/${subj}/${sess}/topup
 
       echo "TOPUP : subj $subj , sess $sess : masking topup-derived fieldmap..."
-      if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_merged.nii.gz ; fi
-      if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ; fi ;
-      if [ -f $fldr/$(subjsess)_topup_corr_eddy_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_eddy_merged.nii.gz ; fi ;
+      if [ $TOPUP_USE_NATIVE -eq 1 ] ; then corrfile=$fldr/$(subjsess)_topup_corr_merged.nii.gz ; fi
+      if [ $TOPUP_USE_EC -eq 1 ] ; then corrfile=$fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ; fi ;
+      if [ $TOPUP_USE_EDDY -eq 1 ] ; then corrfile=$fldr/$(subjsess)_topup_corr_eddy_merged.nii.gz ; fi ;
       if [ ! -f $fldr/fm/fmap_rads.nii.gz ] ; then  echo "TOPUP : subj $subj , sess $sess : ERROR : fieldmap not found in '$fldr/fm/' - exiting..." ; exit 1 ; fi
       min=`row2col $fldr/bvals_concat.txt | getMin`
       b0idces=`getIdx $fldr/bvals-_concat.txt $min` 
@@ -1787,6 +1787,7 @@ if [ $RECON_STG5 -eq 1 ] ; then
     # check
     if [ $(cat ${subj}/sessions_struc | wc -l) -le 1 ] ; then 
       echo "RECON : subj $subj : structural single-session design !"
+      if [ $(cat ${subj}/sessions_struc) != "." ] ; then subj=${subj}$(cat ${subj}/sessions_struc) ; fi 
       template=$FS_subjdir/$subj/mri/brain.mgz
       if [ -f $template ] ; then
         echo "RECON : subj $subj : registering Freesurfer's brain.mgz to FSL's MNI152 template..."
@@ -1859,15 +1860,21 @@ if [ $VBM_STG1 -eq 1 ] ; then
       $scriptdir/fslreorient2std.sh $file ${fldr}/$(subjsess)_t1_reor
       ln -sf $(subjsess)_t1_reor.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz
       
-      # convert to .mnc & perform non-uniformity correction
-      if [ $VBM_NU_CORRECT_T1 -eq 1 ] ; then
+      # bias correction     
+      if [ $VBM_FSLV5 -eq 1 ] ; then # execute fsl_anat script (fsl v.5) if applicable
+        if [ ! -f $FSL_DIR/bin/fsl_anat ] ; then echo "VBM PREPROC : ERROR : fsl_anat not found... is this really FSL v.5 ? Exiting." ; exit 1 ; fi
+        echo "VBM PREPROC : subj $subj , sess $sess : 'fsl_anat' is being executed..."
+        fldr=$subjdir/$subj/$sess/vbm
+        echo "fsl_anat --clobber --noseg --nosubcortseg -i ${fldr}/$(subjsess)_t1_orig ; \
+        ln -sf ./$(subjsess)_t1_orig.anat/T1_biascorr.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz" > $fldr/vbm_fsl_anat.cmd        
+        fsl_sub -l $logdir -N vbm_fsl_anat_$(subjsess) -t $fldr/vbm_fsl_anat.cmd
+      elif [ $VBM_NU_CORRECT_T1 -eq 1 ] ; then # convert to .mnc & perform non-uniformity correction
         echo "VBM PREPROC : subj $subj , sess $sess : performing non-uniformity correction..."
         echo "mri_convert ${fldr}/$(subjsess)_t1_reor.nii.gz $fldr/tmp.mnc ; \
         nu_correct -clobber $fldr/tmp.mnc $fldr/t1_nu_struc.mnc; \
         mri_convert $fldr/t1_nu_struc.mnc $fldr/$(subjsess)_t1_nu_struc.nii.gz -odt float; \
         rm -f $fldr/tmp.mnc ; rm -f $fldr/t1_nu_struc.mnc ; \
-        ln -sf $(subjsess)_t1_nu_struc.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz" > $fldr/vbm_nu_correct.cmd
-        
+        ln -sf $(subjsess)_t1_nu_struc.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz" > $fldr/vbm_nu_correct.cmd        
         fsl_sub -l $logdir -N vbm_nu_correct_$(subjsess) -t $fldr/vbm_nu_correct.cmd
       fi      
     done
@@ -1883,7 +1890,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
         echo "VBM PREPROC : subj $subj , sess $sess : applying FREESURFER brain-mask to '$(subjsess)_t1_struc.nii.gz' (-> '$(subjsess)_FS_brain.nii.gz' & '$(subjsess)_FS_struc.nii.gz')..."
         echo "mri_convert $FS_subjdir/$(subjsess)/mri/brain.mgz $fldr/$(subjsess)_FS_brain.nii.gz -odt float ;\
         fslmaths $fldr/$(subjsess)_FS_brain.nii.gz -bin $fldr/$(subjsess)_FS_brain_mask.nii.gz ;\
-        mri_convert --conform $fldr/$(subjsess)_t1_struc.nii.gz $fldr/$(subjsess)_FS_struc.nii.gz -odt float ;\
+        mri_convert --conform $fldr/$(subjsess)_t1_struc.nii.gz $fldr/$(subjsess)_FS_struc.nii.gz -odt float -rt sinc ;\
         fslmaths $fldr/$(subjsess)_FS_struc.nii.gz -mas $fldr/$(subjsess)_FS_brain_mask.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz ;\
         fslreorient2std $fldr/$(subjsess)_FS_brain.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz ;\
         fslreorient2std $fldr/$(subjsess)_FS_struc.nii.gz $fldr/$(subjsess)_FS_struc.nii.gz ;\
@@ -1894,21 +1901,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
       fi
     done
   done
-  
-  waitIfBusy
-  
-  # also execute fsl_anat script (fsl v.5) if applicable
-  if [ $VBM_FSLV5 -eq 1 ] ; then
-    if [ ! -f $FSL_DIR/bin/fsl_anat ] ; then echo "VBM PREPROC : ERROR : fsl_anat not found... is this really FSL v.5 ? Exiting." ; exit 1 ; fi
-    for subj in `cat subjects`; do 
-      for sess in `cat ${subj}/sessions_struc` ; do
-        echo "VBM PREPROC : subj $subj , sess $sess : 'fsl_anat' is being executed..."
-        fldr=$subjdir/$subj/$sess/vbm
-        fsl_sub -l $logdir -N vbm_fsl_anat_$(subjsess) fsl_anat --clobber --noseg --nosubcortseg -i ${fldr}/$(subjsess)_t1_orig
-      done
-    done
-  fi
-  
+
 fi
 
 waitIfBusy
@@ -2362,9 +2355,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       # create symlinks to t1-structurals (highres registration reference)
       if [ $BOLD_REGISTER_TO_MNI -eq 1 ] ; then
         echo "BOLD : subj $subj , sess $sess : creating symlinks to t1-structurals (highres registration reference) to please FEAT's naming convention..."
-        line=`cat $subjdir/config_func2highres.reg | awk '{print $1}' | grep -nx $(subjsess) | cut -d : -f1`
-        sess_t1=`cat $subjdir/config_func2highres.reg | awk '{print $2}' | sed -n ${line}p `
-        if [ $sess_t1 = '.' ] ; then sess_t1="" ; fi # single-session design   
+        sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
         t1_brain=$fldr/${subj}${sess_t1}_t1_brain.nii.gz
         t1_struc=$fldr/${subj}${sess_t1}_t1.nii.gz
         feat_t1struc=`ls $subjdir/$subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_STRUC` ; feat_t1brain=`ls $subjdir/$subj/$sess_t1/vbm/$BOLD_PTTRN_HIGHRES_BRAIN`
@@ -2552,12 +2543,12 @@ if [ $BOLD_STG2 -eq 1 ] ; then
             lname=$(echo "$featdir" | sed "s|"uw[-+]y"|"uw"|g") # remove unwarp direction from link's name
             ln -sfv ./$(basename $featdir)/filtered_func_data.nii.gz ${lname%.feat}_filtered_func_data.nii.gz
             # create a link to report_log.html in logdir.
-            ln -sfv $featdir/report_log.html $logdir/bold_reportlog_$(basename $featdir)_$(subjsess).html
+            ln -sfv $(path_abs2rel $logdir/ $featdir/)/report_log.html $logdir/$(subjsess)_reportlog_bold_$(basename $featdir).html
    
           done # end stc_val
         done # end sm_krnl        
       done # end hpf_cut
-      
+      echo "---------------------------"
     done # end sess
   done # end subj
   
@@ -2628,7 +2619,7 @@ if [ $BOLD_STG3 -eq 1 ] ; then
           done # end stc_val
         done # end sm_krnl
       done # end hpf_cut
-        
+      echo "---------------------------"
     done
   done  
 fi
@@ -2726,7 +2717,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
             done # end stc_val
           done # end sm_krnl
         done # end hpf_cut
-
+        echo "---------------------------"
       done # end sess
     done # end subj
   fi # end BOLD_USE_FS_LONGT_TEMPLATE
@@ -2832,7 +2823,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
           done # end stc_val
         done # end sm_krnl
       done # end hpf_cut
-    
+      echo "---------------------------"
     done # end sess
   done # end subj
 fi
@@ -2938,7 +2929,7 @@ if [ $BOLD_STG5 -eq 1 ]; then
           done # end stc_val
         done # end sm_krnl
       done # end hpf_cut
-
+      echo "---------------------------"
     done # end sess
   done # end subj    
 fi

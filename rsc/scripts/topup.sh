@@ -11,7 +11,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <out-dir> <isBOLD: 0|1> [n_dummyB0] <dwi-blip+> <dwi-blip-> <unwarp-dir> <TotalReadoutTime(s)> <use noec: 0|1> <use EDDY: 0|1> <use ec: 0|1> [<dof> <costfunction>] [<subj>] [<sess>]"
+    echo "Usage: `basename $0` <out-dir> <isBOLD: 0|1> [n_dummyB0] <dwi-blip-> <dwi-blip+> <unwarp-dir> <TotalReadoutTime(s)> <use noec: 0|1> <use EDDY: 0|1> <use ec: 0|1> [<dof> <costfunction>] [<subj>] [<sess>]"
     echo "Example: topup.sh topupdir 0 \"dwi*+.nii.gz\" \"dwi*-.nii.gz\" -y 0.02975 1 0 1 12 corratio 01 a"
     echo "         topup.sh topupdir 1 4 \"bold*+.nii.gz\" \"bold*-.nii.gz\" +x 0.02975 1 0 1 6 mutualinfo 01 a"
     echo ""
@@ -30,8 +30,8 @@ if [ $isBOLD -eq 1 ] ; then
   n_b0=$3
   shift
 fi
-pttrn_diffsplus="$3"
-pttrn_diffsminus="$4"
+pttrn_diffsminus="$3"
+pttrn_diffsplus="$4"
 uw_dir="$5"
 TROT_topup=$6 # total readout time in seconds (EES_diff * (PhaseEncodingSteps - 1), i.e. 0.25 * 119 / 1000)
 TOPUP_USE_NATIVE=$7
@@ -52,7 +52,7 @@ source $(dirname $0)/globalfuncs
 trap 'echo "$0 : An ERROR has occured."' ERR
 
 # create temporary dir.
-wdir=`pwd`/.topup$$ ; mkdir -p $wdir
+wdir=/tmp/$(basename $0)_$$ ; mkdir -p $wdir
 
 # create joblist file for SGE
 echo "`basename $0`: touching SGE job control file in '$wdir'."
@@ -288,8 +288,8 @@ if [ $TOPUP_STG1 -eq 1 ] ; then
       x=0 ; y=0 ; z=0; 
       if [ "$uw_dir" = "+x" ] ; then x=1  ; fi
       if [ "$uw_dir" = "-x" ] ; then x=-1 ; fi
-      if [ "$uw_dir" = "+y" ] ; then y=1  ; fi
-      if [ "$uw_dir" = "-y" ] ; then y=-1 ; fi
+      if [ "$uw_dir" = "+y" ] ; then y=-1 ; fi # sic! (so that TOPUP and SIEMENS phasemaps match in sign)
+      if [ "$uw_dir" = "-y" ] ; then y=1  ; fi # sic! (so that TOPUP and SIEMENS phasemaps match in sign)
       if [ "$uw_dir" = "+z" ] ; then z=1  ; fi
       if [ "$uw_dir" = "-z" ] ; then z=-1 ; fi
       mx=$(echo "scale=0; -1 * ${x}" | bc -l)
@@ -670,9 +670,9 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       
       echo "TOPUP : subj $subj , sess $sess : masking topup-derived fieldmap..."
       if [ ! -f $fldr/fm/fmap_rads.nii.gz ] ; then  echo "TOPUP : subj $subj , sess $sess : ERROR : fieldmap not found in '$fldr/fm/' - exiting..." ; exit 1 ; fi
-      if [ -f $fldr/$(subjsess)_topup_corr_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_merged.nii.gz ; fi
-      if [ -f $fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ; fi ;
-      if [ -f $fldr/$(subjsess)_topup_corr_eddy_merged.nii.gz ] ; then corrfile=$fldr/$(subjsess)_topup_corr_eddy_merged.nii.gz ; fi ;
+      if [ $TOPUP_USE_NATIVE -eq 1 ] ; then corrfile=$fldr/$(subjsess)_topup_corr_merged.nii.gz ; fi
+      if [ $TOPUP_USE_EC -eq 1 ] ; then corrfile=$fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ; fi ;
+      if [ $TOPUP_USE_EDDY -eq 1 ] ; then corrfile=$fldr/$(subjsess)_topup_corr_eddy_merged.nii.gz ; fi ;
       min=`row2col $fldr/bvals_concat.txt | getMin`
       b0idces=`getIdx $fldr/bvals-_concat.txt $min` 
       lowbs=""

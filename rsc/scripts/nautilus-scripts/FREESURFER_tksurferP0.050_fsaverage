@@ -1,6 +1,11 @@
 #!/bin/bash
 # tksurfer wrapper for Nautilus.
 
+# INSTALL:
+# mkdir -p ~/.gnome2/nautilus-scripts
+# cp "script.sh" ~/.gnome2/nautilus-scripts/
+# chmod +x ~/.gnome2/nautilus-scripts/"script.sh"
+
 # Written by Andreas Heckel
 # University of Heidelberg
 # heckelandreas@googlemail.com

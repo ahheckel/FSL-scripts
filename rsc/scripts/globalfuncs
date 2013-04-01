@@ -85,6 +85,7 @@ function save_config()
   local _studydir="$1"
   local _subjdir="$2"
   local _stamp="$3"
+  local _glmdir=""
   local _config=""
   local savdir="$_studydir/.savlog"
   local log=""
@@ -124,9 +125,13 @@ function save_config()
       fi      
     fi
     
+    ## include GLMs
+    #echo "  including GLMs."
+    #_glmdir=$(path_abs2rel $_studydir $glmdir)
+    
     # create archive
     echo "  creating archive."
-    tar -czf $savdir/conf_${_date}.tar.gz -C $_studydir globalvars $_config $log $logo $loge
+    tar -czf $savdir/conf_${_date}.tar.gz -C $_studydir globalvars $_config $log $logo $loge #$_glmdir
     
     # check for RAM dumps
     echo -n  "  searching for kernel dumps..."
