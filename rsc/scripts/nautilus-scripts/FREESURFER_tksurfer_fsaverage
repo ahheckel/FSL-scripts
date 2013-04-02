@@ -12,9 +12,8 @@
 # https://github.com/ahheckel
 # 02/26/2013
 
-if [ x"$logP1" = "x" ] ; then logP1=1.3010 ; fi
-if [ x"$logP2" = "x" ] ; then logP2=2 ; fi
 if [ x"$flatpatch" = "x" ] ; then flatpatch=0 ; fi
+if [ x"$subject" = "x" ] ; then subject=fsaverage ; fi
 
 FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
@@ -35,6 +34,7 @@ overlist_lh=""  ; overlist_rh=""
 annotlist_lh="" ; annotlist_rh=""
 labels_lh=""    ; labels_rh=""
 lastfile=""
+sigmap=0
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   niigz=$(echo $i | grep "\.nii.gz$" | wc -l)
   nii=$(echo $i | grep "\.nii$" | wc -l)
@@ -74,11 +74,12 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   # check
   #zenity --info --text="$rh $lh"
   
-  if [ $sig -eq 1 -o $F -eq 1 -o $gamma -eq 1 -o $gammavar -eq 1 -o $cnr -eq 1 ] ; then # file is a statistical map...  
+  if [ $sig -eq 1 -o $F -eq 1 -o $gamma -eq 1 -o $gammavar -eq 1 -o $cnr -eq 1 ] ; then # file is a statistical map...
+    sigmap=1
     if [ $lh -eq 1 ] ; then # ...of the left hemi.
-      overlist_lh=$overlist_lh" -overlay $i -fminmax $logP1 $logP2"
+      overlist_lh=$overlist_lh" -overlay $i -fminmax P_VAL_MIN P_VAL_MAX"
     elif [ $rh -eq 1 ] ; then # ...of the right hemi.
-      overlist_rh=$overlist_rh" -overlay $i -fminmax $logP1 $logP2"
+      overlist_rh=$overlist_rh" -overlay $i -fminmax P_VAL_MIN P_VAL_MAX"
     fi
   fi
   
@@ -98,17 +99,43 @@ if [ $(cat /tmp/$$tmp.tcl | grep labl_load | wc -l) -gt 0 ] ; then
   labelsunder=""
 else
   labelsunder="-labels-under"
-  annot_lh="-annotation $SUBJECTS_DIR/fsaverage/label/lh.aparc.a2009s.annot $labelsunder"
-  annot_rh="-annotation $SUBJECTS_DIR/fsaverage/label/rh.aparc.a2009s.annot $labelsunder"
+  annot_lh="-annotation $SUBJECTS_DIR/${subject}/label/lh.aparc.a2009s.annot $labelsunder"
+  annot_rh="-annotation $SUBJECTS_DIR/${subject}/label/rh.aparc.a2009s.annot $labelsunder"
 fi
 
-# execute
+# define commando
 if [ $lh -eq 1 ] ; then
-  if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/fsaverage/surf/lh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
+  if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/${subject}/surf/lh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
   #opts="$patchBrain $patchSel  -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl"
-  #zenity --info --text="$opts"  
-  xterm -e "tksurfer fsaverage lh inflated $flatpatchBrain $patchSel -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl ; rm /tmp/$$tmp.tcl"
+  #zenity --info --text="$opts"
+  cmd="tksurfer ${subject} lh inflated $flatpatchBrain $patchSel -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl"
 elif [ $rh -eq 1 ] ; then
-  if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/fsaverage/surf/rh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
-  xterm -e "tksurfer fsaverage rh inflated $flatpatchBrain $patchSel -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl ; rm /tmp/$$tmp.tcl"
+  if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/${subject}/surf/rh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
+  cmd="tksurfer ${subject} rh inflated $flatpatchBrain $patchSel -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl /tmp/$$tmp.tcl"
+fi
+
+# execute in subshell
+if [ $sigmap -eq 1 ] ; then
+  xterm -e "\
+  echo \"Choose (or enter) a significance threshold:\" ;\
+  echo -e \" a. p=0.050\n b. p=0.025\n c. p=0.010\n d. p=0.005\n\" ;\
+  read s ;\
+  echo \"------------------------------\" ;\
+  if   [ \$s = a ] ; then logP1=1.3010 ; logP2=2  ;\
+  elif [ \$s = b ] ; then logP1=1.6021 ; logP2=3  ;\
+  elif [ \$s = c ] ; then logP1=2.0000 ; logP2=3  ;\
+  elif [ \$s = d ] ; then logP1=2.3010 ; logP2=3  ;\
+  else logP1=\$(echo \"l(\$s)/l(10)*-1\"|bc -l) ; logP2=\$(echo \"\$logP1+1\"|bc -l) ;\
+  fi ;\
+  echo \"p_min = \$logP1\" ;\
+  echo \"p_max = \$logP2\" ;\
+  echo \"------------------------------\" ;\
+  echo \"------------------------------\" ;\
+  cmd=\$(echo \"$cmd\" | sed \"s|P_VAL_MIN|\$logP1|g\" | sed \"s|P_VAL_MAX|\$logP2|g\") ;\
+  echo \$cmd ;\
+  echo \"------------------------------\" ;\
+  echo \"------------------------------\" ;\
+  \$cmd ; rm /tmp/$$tmp.tcl"
+else
+  xterm -e "$cmd ; rm /tmp/$$tmp.tcl"
 fi

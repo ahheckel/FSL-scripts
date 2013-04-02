@@ -52,3 +52,6 @@ for i in $(ls $outdir/*.nii) ; do
   cmd="gzip $i"
   echo "    $cmd" ; $cmd
 done
+
+# done
+echo "`basename $0`: done."

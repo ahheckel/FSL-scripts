@@ -1,5 +1,5 @@
 #!/bin/bash
-# Removes confounds from 4D functionals using masks.
+# Removes confounds from 4D functionals using masks and motion parameters.
 
 # Written by Andreas Heckel
 # University of Heidelberg
@@ -26,8 +26,10 @@ function row2col()
   for i in $dat ; do echo $i ; done
 }
 
+# OCTAVE installed ?
 if [ x$(which octave) = "x" ] ; then echo "`basename $0` : ERROR : OCTAVE does not seem to be installed on your system ! Exiting..." ; exit 1 ; fi
 
+# parse options
 if [ "$1" = "-m" ] ; then 
   denoise=0
   shift
