@@ -119,7 +119,7 @@ if [ $sigmap -eq 1 ] ; then
   xterm -e "\
   echo \"Choose (or enter) a significance threshold:\" ;\
   echo -e \" a. p=0.050\n b. p=0.025\n c. p=0.010\n d. p=0.005\n\" ;\
-  read s ;\
+  read -p \> s ;\
   echo \"------------------------------\" ;\
   if   [ \$s = a ] ; then logP1=1.3010 ; logP2=2  ;\
   elif [ \$s = b ] ; then logP1=1.6021 ; logP2=3  ;\

@@ -20,7 +20,7 @@ source $FREESURFER_HOME/SetUpFreeSurfer.sh
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do # for each feat-dir
   
   # define vars
-  highres="$i/reg/example_func2highres.nii.gz"
+  highres="$i/reg/highres.nii.gz"
   exf2std="$i/reg/example_func2standard.nii.gz"
   standard="$i/reg/standard.nii.gz"
   exf2highres="$i/reg/example_func2highres.nii.gz"
