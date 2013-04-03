@@ -55,7 +55,7 @@ if [ "$f2t1_mat" = "none" -a "$f2mni_warp" = "none" ] ; then  echo "`basename $0
 
 # create working dir.
 tmpdir=/tmp/$(basename $0)_$$
-mkdir -p $tmpdir
+mkdir $tmpdir
 
 # define exit trap
 trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT

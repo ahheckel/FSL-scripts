@@ -78,7 +78,7 @@ logdir="$4"
 
 # create working dir.
 wdir=/tmp/$(basename $0)_$$
-mkdir -p $wdir
+mkdir $wdir
 touch $wdir/jid.list
 
 # define exit trap

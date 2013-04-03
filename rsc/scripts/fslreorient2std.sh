@@ -21,7 +21,13 @@ Usage() {
 [ "$2" = "" ] && Usage
 input=$(remove_ext "$1")
 output=$(remove_ext "$2")
-tmpfile=/tmp/$(basename $output)_$$
+
+# create working dir.
+tmpdir=/tmp/$(basename $0)_$$ ; mkdir $tmpdir
+tmpfile=$tmpdir/$(basename $output)
+
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 cmd="fslreorient2std $input $tmpfile"
 echo "    $cmd" ; $cmd

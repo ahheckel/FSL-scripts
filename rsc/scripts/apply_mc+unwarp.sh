@@ -45,7 +45,7 @@ if [ x"$interp" = "x" ] ; then interp="trilinear" ; fi
 
 # create working dir.
 tmpdir=/tmp/$(basename $0)_$$
-mkdir -p $tmpdir
+mkdir $tmpdir
 
 # define exit trap
 trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
