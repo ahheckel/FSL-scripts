@@ -3060,6 +3060,8 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       echo "ALFF : execute cmd:"
       cat -nb $cmd        
       jid=`fsl_sub -l $logdir -N $(basename $cmd)_$(subjsess) -t $cmd`
+
+      echo "---------------------------"
     done
   done
 
@@ -3085,7 +3087,9 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       
       echo "ALFF : execute cmd:"
       cat -nb $cmd        
-      jid=`fsl_sub -l $logdir -N $(basename $cmd)_$(subjsess) -t $cmd`      
+      jid=`fsl_sub -l $logdir -N $(basename $cmd)_$(subjsess) -t $cmd`
+      
+      echo "---------------------------"
     done
   done
 
@@ -3114,6 +3118,8 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       jid=`fsl_sub -l $logdir -N $(basename $cmd)_$(subjsess) -t $cmd`
       
       sleepfor $DELAYINSECS
+      
+      echo "---------------------------"
     done
   done
 fi
@@ -3144,6 +3150,8 @@ if [ $ALFF_STG2 -eq 1 ] ; then
       echo "ALFF : execute cmd:"
       cat -nb $cmd
       jid=`fsl_sub -l $logdir -N $(basename $cmd)_$(subjsess) -t $cmd`
+      
+      echo "---------------------------"
     done
   done
 fi
@@ -3193,7 +3201,8 @@ if [ $ALFF_STG3 -eq 1 ] ; then
         echo $cmd ; $cmd
         cmd="    fslmaths $fldr/susan_mask_mni${mni_res} -bin $fldr/susan_mask_mni${mni_res}"
         echo $cmd ; $cmd
-      done    
+      done
+      echo "---------------------------"
     done
   done  
 fi

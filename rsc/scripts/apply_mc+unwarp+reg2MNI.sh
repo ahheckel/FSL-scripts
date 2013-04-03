@@ -53,6 +53,13 @@ if [ x"$ref" = "x" ] ; then ref="${FSLDIR}/data/standard/MNI152_T1_2mm_brain" ; 
 if [ "$f2t1_mat" != "none" -a "$f2mni_warp" = "none" ] ; then MNIaff=1 ; else MNIaff=0 ; fi
 if [ "$f2t1_mat" = "none" -a "$f2mni_warp" = "none" ] ; then  echo "`basename $0` : You must enter an MNI transform (warpfield or affine or both) - exiting..." ; exit 1 ; fi
 
+# create working dir.
+tmpdir=/tmp/$(basename $0)_$$
+mkdir -p $tmpdir
+
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+
 # display info
 echo ""
 echo "`basename $0` : input:         $input"
@@ -131,9 +138,9 @@ else
 fi
 
 # apply transforms
-imrm ${output}_tmp_????.*
-fslsplit $input ${output}_tmp_
-full_list=`imglob ${output}_tmp_????.*`
+imrm ${tmpdir}/$(basename $output)_tmp_????.*
+fslsplit $input ${tmpdir}/$(basename $output)_tmp_
+full_list=`imglob ${tmpdir}/$(basename $output)_tmp_????.*`
 i=0
 for file in $full_list ; do
   echo "processing $file"

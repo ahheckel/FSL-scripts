@@ -43,6 +43,13 @@ uwdir="$5" ; if [ "$uwdir" = "00" -o "$uwdir" = "0" ] ; then douw=0 ; fi
 interp="$6"
 if [ x"$interp" = "x" ] ; then interp="trilinear" ; fi
 
+# create working dir.
+tmpdir=/tmp/$(basename $0)_$$
+mkdir -p $tmpdir
+
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+
 # display info
 echo ""
 echo "`basename $0` : input:         $input"
@@ -100,9 +107,9 @@ else
 fi
 
 # combine with motion correction
-imrm ${output}_tmp_????.*
-fslsplit $input ${output}_tmp_
-full_list=`imglob ${output}_tmp_????.*`
+imrm ${tmpdir}/$(basename $output)_tmp_????.*
+fslsplit $input ${tmpdir}/$(basename $output)_tmp_
+full_list=`imglob ${tmpdir}/$(basename $output)_tmp_????.*`
 i=0
 for file in $full_list ; do
   echo "processing $file"
@@ -121,7 +128,6 @@ for file in $full_list ; do
     i=`zeropad $i 4`  
     cmd="applywarp --ref=${output}_example_func --in=${file} $warpopt --premat=${mcdir}/MAT_${i} --rel --out=${file} --interp=${interp}"  
   fi
-  
   echo $cmd
   $cmd
   
@@ -138,4 +144,5 @@ imrm ${output}_example_func
 imrm ${output}_WARP1
 rm -f ${output}_tmp_ecclog.mat 
 
+# done
 echo "`basename $0`: done."

@@ -28,6 +28,7 @@ fi
 
 [ "$3" = "" ] && Usage
 
+# define input arguments
 input=`${FSLDIR}/bin/remove_ext ${1}`
 output=`${FSLDIR}/bin/remove_ext ${2}`
 ref=${3}
@@ -35,29 +36,40 @@ dof=${4}
 cost=${5}
 interp=${6}
 full_list=""
-
 if [ "$4" = "" ] ; then dof=12 ; fi
 if [ "$5" = "" ] ; then cost="mutualinfo" ; fi
 if [ "$6" = "" ] ; then interp="trilinear" ; fi
 
+# check input
 if [ `${FSLDIR}/bin/imtest $input` -eq 0 ];then
 echo "Input does not exist or is not in a supported format"
     exit 1
 fi
 
+# create working dir.
+tmpdir=/tmp/$(basename $0)_$$
+mkdir -p $tmpdir
+
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+
+# display info
 fslversion=$(cat $FSLDIR/etc/fslversion | cut -d . -f 1)
-echo "FSL    : v.${fslversion}"
-echo "dof    : $dof"
-echo "cost   : $cost"
-echo "interp : $interp"
+echo "`basename $0`: FSL    : v.${fslversion}"
+echo "`basename $0`: dof    : $dof"
+echo "`basename $0`: cost   : $cost"
+echo "`basename $0`: interp : $interp"
 
+# extract reference image
 fslroi $input ${output}_ref $ref 1
-imrm ${output}_tmp????.*
-fslsplit $input ${output}_tmp
-full_list=`${FSLDIR}/bin/imglob ${output}_tmp????.*`
 
+# split
+imrm ${tmpdir}/$(basename $output)_tmp????.*
+fslsplit $input ${tmpdir}/$(basename $output)_tmp
+full_list=`imglob ${tmpdir}/$(basename $output)_tmp????.*`
+
+# execute
 rm -f ${output}.ecclog # to avoid accumulation on re-run
-
 for i in $full_list ; do
   echo processing $i
   echo processing $i >> ${output}.ecclog
@@ -75,27 +87,30 @@ for i in $full_list ; do
       else
         ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost > ${output}.ecclog.tmp
       fi        
-    fi
-    
+    fi    
     # remove neg. values          
     #if [ "$interp" = "spline" -a $nowrite -eq 0 ] ; then
       ##${FSLDIR}/bin/fslmaths $i -abs $i
       #${FSLDIR}/bin/fslmaths $i -thr 0 $i
-    #fi
-  
+    #fi  
   else
     echo "" >> ${output}.ecclog.tmp
     echo "Final result:" >> ${output}.ecclog.tmp
     cat $FSLDIR/etc/flirtsch/ident.mat >> ${output}.ecclog.tmp
     echo "" >> ${output}.ecclog.tmp 
   fi
-
   cat ${output}.ecclog.tmp >> ${output}.ecclog ; rm ${output}.ecclog.tmp
 done
 
+# merge results
 if [ $nowrite -eq 0 ] ; then
   fslmerge -t $output $full_list
 fi
 
-/bin/rm ${output}_tmp????.* ${output}_ref*
+# cleanup
+imrm $full_list
+imrm ${output}_ref
+
+# done
+echo "`basename $0`: done."
 
