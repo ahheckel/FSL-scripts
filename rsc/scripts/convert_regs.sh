@@ -54,6 +54,3 @@ rm -f $$deleteme.reg.dat
 rm -f $_inmat
 
 echo "`basename $0` : done."
-
-
-             

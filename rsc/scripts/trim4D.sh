@@ -26,7 +26,16 @@ input=$(remove_ext "$1")
 n1=$(echo $2 | cut -d , -f 1)
 n2=$(echo $2 | cut -d , -f 2)
 output=$(remove_ext "$3")
-_tmp=/tmp/$(basename $output)_$$
+
+# create working dir.
+tmpdir=/tmp/$(basename $0)_$$
+mkdir -p $tmpdir
+
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+
+# define temporary file
+_tmp=${tmpdir}/$(basename $output)
 
 ## check 
 #if [ $n1 -eq 0 -a $n2 -eq 0 ] ; then echo "`basename $0`: ERROR: no trimming specified - exiting." ; exit 1 ; fi

@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Adapts and runs FSLNets' nets_examples.m
 
 # Written by Andreas Heckel

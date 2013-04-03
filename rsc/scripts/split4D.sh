@@ -25,7 +25,6 @@ Usage() {
 input=$(remove_ext "$1")
 n=$2
 output=$(remove_ext "$3")
-_tmp=/tmp/$(basename $output)_$$
 
 # declare vars
 nvols=`fslinfo $input | grep ^dim4 | awk '{print $2}'`

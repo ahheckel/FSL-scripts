@@ -20,6 +20,7 @@ source $FREESURFER_HOME/SetUpFreeSurfer.sh
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do # for each feat-dir
   
   # define vars
+  exf="$i/example_func.nii.gz"
   highres="$i/reg/highres.nii.gz"
   exf2std="$i/reg/example_func2standard.nii.gz"
   standard="$i/reg/standard.nii.gz"
@@ -31,13 +32,26 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do # for each feat-dir
   EF_D_v5="$i/reg/unwarp/EF_D_example_func.nii.gz"
   EF_UD_v5="$i/reg/unwarp/EF_UD_example_func.nii.gz"
   EF_mag_v5="$i/reg/unwarp/EF_UD_fmap_mag_brain.nii.gz"
-
+  
+  highresbbr="$i/reg_longt/highres.nii.gz"
+  exf2highresbbr="$i/reg_longt/example_func2highres_bbr.nii.gz"
+  CSF="$i/noise/EF_CSF.nii.gz"
+  WM="$i/noise/EF_WM.nii.gz"
+  WB="$i/noise/EF_WB.nii.gz"
+  
   if [ -d $i/reg ] ; then # check registrations
     if [ -f $exf2highres ] ; then
       fslview $exf2highres $highres &
     fi
+    if [ -f $exf2highresbbr ] ; then
+      fslview $exf2highresbbr $highres &
+    fi
     if [ -f $exf2std -o -f $highres2std ] ; then
       fslview $exf2std $highres2std $standard &
+    fi
+    if [ -f $CSF -a -f $WB -a -f $exf ] ; then
+      cp $exf /tmp/example_func_$$.nii.gz
+      fslview /tmp/example_func_$$ $WB -t 0 $CSF -l "Blue" -t 0.5 $WM -l "Yellow" -t 0.5 &
     fi
   fi
   if [ -d $i/unwarp ] ; then # check unwarping
@@ -52,3 +66,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do # for each feat-dir
   fi  
 
 done
+
+# cleanup
+sleep 10
+rm -f /tmp/example_func_$$.nii.gz

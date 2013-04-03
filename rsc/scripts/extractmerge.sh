@@ -77,7 +77,7 @@ inputs="$3"
 logdir="$4"
 
 # create working dir.
-wdir=/tmp/.extmerge$$
+wdir=/tmp/$(basename $0)_$$
 mkdir -p $wdir
 touch $wdir/jid.list
 
