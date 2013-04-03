@@ -23,7 +23,7 @@ Usage() {
 # define vars
 input=`remove_ext "$1"`
 output=`remove_ext "$2"`
-mask=/tmp/$(basename $0)_mask_$$
+mask=${output}_mask_$$
 
 # create mask
 fslmaths $input -bin $mask
