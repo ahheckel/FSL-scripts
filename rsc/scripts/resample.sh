@@ -27,10 +27,16 @@ out=`remove_ext "$3"`
 refflag=$4
 if [ x${refflag} = "x" ] ; then refflag=0 ; else refflag=1 ; fi
 
+# create working dir.
+tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+
 if [ $refflag -eq 0 ] ; then ref=$data ; fi
 if [ $refflag -eq 1 ] ; then 
   mniref=$FSLDIR/data/standard/MNI152_T1_2mm.nii.gz
-  ref=/tmp/$$_ref_${res}mm
+  ref=${tmpdir}/ref_${res}mm
   echo "`basename $0`: resampling '$mniref' to a resolution of $res mm (output: '$ref'):"
   cmd="flirt -in $mniref -ref $mniref -applyisoxfm $res -out $ref" ; echo "    $cmd"
   $cmd

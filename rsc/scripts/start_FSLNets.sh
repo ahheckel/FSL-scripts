@@ -13,8 +13,11 @@ set -e
 # define error trap
 trap 'echo "$0 : An ERROR has occured."' ERR
 
+# create working dir.
+tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+
 # define exit trap
-trap "set +e ; rm -fv /tmp/nets_examples.m$$ ; exit" EXIT
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 Usage() {
     echo ""
@@ -64,30 +67,30 @@ echo "`basename $0` : NPERM:                $nperm"
 echo "`basename $0` : output-dir:           $outdir"
 echo ""
 
-cp $template /tmp/nets_examples.m$$ 
+cp $template $tmpdir/nets_examples.m$$ 
 
-sed -i "s|design_nperm=.*|design_nperm=${nperm}|g"   /tmp/nets_examples.m$$
-sed -i "s|design_mat=.*|design_mat='$design_mat'|g"  /tmp/nets_examples.m$$
-sed -i "s|design_con=.*|design_con='$design_con'|g"  /tmp/nets_examples.m$$
-sed -i "s|design_grp=.*|design_grp='$design_grp'|g"  /tmp/nets_examples.m$$
+sed -i "s|design_nperm=.*|design_nperm=${nperm}|g"   $tmpdir/nets_examples.m$$
+sed -i "s|design_mat=.*|design_mat='$design_mat'|g"  $tmpdir/nets_examples.m$$
+sed -i "s|design_con=.*|design_con='$design_con'|g"  $tmpdir/nets_examples.m$$
+sed -i "s|design_grp=.*|design_grp='$design_grp'|g"  $tmpdir/nets_examples.m$$
 
-sed -i "s|addpath FSLNETS.*|addpath $install_path|g"   /tmp/nets_examples.m$$
-sed -i "s|addpath L1PREC.*|addpath $l1prec_path|g"     /tmp/nets_examples.m$$
-sed -i "s|addpath PAIRCAUSAL.*|addpath $causal_path|g" /tmp/nets_examples.m$$
+sed -i "s|addpath FSLNETS.*|addpath $install_path|g"   $tmpdir/nets_examples.m$$
+sed -i "s|addpath L1PREC.*|addpath $l1prec_path|g"     $tmpdir/nets_examples.m$$
+sed -i "s|addpath PAIRCAUSAL.*|addpath $causal_path|g" $tmpdir/nets_examples.m$$
 
-sed -i "s|group_maps=.*|group_maps='$(remove_ext $group_maps)'|g" /tmp/nets_examples.m$$
-sed -i "s|ts.DD=.*|ts.DD=${good_comp}|g"              /tmp/nets_examples.m$$  
-sed -i "s|ts_dir='.*|ts_dir='${dreg_path}'|g"         /tmp/nets_examples.m$$  
+sed -i "s|group_maps=.*|group_maps='$(remove_ext $group_maps)'|g" $tmpdir/nets_examples.m$$
+sed -i "s|ts.DD=.*|ts.DD=${good_comp}|g"              $tmpdir/nets_examples.m$$  
+sed -i "s|ts_dir='.*|ts_dir='${dreg_path}'|g"         $tmpdir/nets_examples.m$$  
 
-sed -i "s|outputdir=.*|outputdir='${outdir}'|g"       /tmp/nets_examples.m$$
+sed -i "s|outputdir=.*|outputdir='${outdir}'|g"       $tmpdir/nets_examples.m$$
 
-sed -i "s|for t=.*|for t=${t_thresh}|g"               /tmp/nets_examples.m$$
+sed -i "s|for t=.*|for t=${t_thresh}|g"               $tmpdir/nets_examples.m$$
 
 # check
 echo "---------------------------------"
 echo "---------------------------------"
 echo ""
-cat /tmp/nets_examples.m$$ # | head -n 40
+cat $tmpdir/nets_examples.m$$ # | head -n 40
 echo ""
 echo "---------------------------------"
 echo "---------------------------------"
@@ -119,6 +122,6 @@ echo "    $cmd" ; $cmd
 # start MATLAB
 mkdir -p $outdir
 cd $outdir
-mv /tmp/nets_examples.m$$ ./nets_examples.m
+mv $tmpdir/nets_examples.m$$ ./nets_examples.m
 #xterm -e "matlab -nodesktop -r nets_examples"
 matlab -nodesktop -r nets_examples

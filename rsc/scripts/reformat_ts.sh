@@ -54,9 +54,15 @@ ncond="$2"
 txtout="$3"
 order="$4" ; if [ x${order} = "x" ] ; then order=1 ; fi
 
+# create working dir.
+tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+
 # additional vars
-txtin_tmp=/tmp/$(basename $0)_$$
-header_tmp=/tmp/$(basename $0)_header_$$
+txtin_tmp=$tmpdir/txtin.txt
+header_tmp=$tmpdir/header.txt
 
 # remove blanks and text header
 istext=1 ; iscomment=1
@@ -68,7 +74,7 @@ for i in `seq 1 $(cat $txtin_tmp | wc -l)` ; do
 done
 j=$[$i-1]
 if [ $j -gt 0 ] ; then head -n${j} $txtin_tmp > $header_tmp ; else touch $header_tmp ; fi
-tail -n+${i} $txtin_tmp > /tmp/data_$$ ; mv /tmp/data_$$ $txtin_tmp
+tail -n+${i} $txtin_tmp > $tmpdir/_txtin ; mv $tmpdir/_txtin.txt $txtin_tmp
 echo "`basename $0`: discarding ${j} header lines"
 i="" ; j=""
 
