@@ -123,5 +123,6 @@ echo "    $cmd" ; $cmd
 mkdir -p $outdir
 cd $outdir
 mv $tmpdir/nets_examples.m$$ ./nets_examples.m
+rmdir $tmpdir
 #xterm -e "matlab -nodesktop -r nets_examples"
 matlab -nodesktop -r nets_examples
