@@ -69,8 +69,7 @@ mkdir -p $outdir
 
 # execute
 for label in $labels ; do
-  #if [ $(echo $label | grep -v ^/ | wc -l) -eq 1 ] ; then label=`pwd`/$label ; fi # rel2abs path
-  #hemi=$(get_hemi $label)
+  #if [ $(ls $outdir/$(basename $label) | wc -l) -ne 0 ] ; then echo "`basename $0` : ERROR: will not overwrite '$label' - exiting..." ; exit 1 ; fi
   cmd="mri_label2label --hemi $hemi --srclabel $label --srcsubject $src --trgsubject $trg --trglabel $outdir/$(basename $label) --regmethod surface --sd $sdir"
   echo "    $cmd" ; $cmd
 done
