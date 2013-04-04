@@ -74,7 +74,7 @@ for i in `seq 1 $(cat $txtin_tmp | wc -l)` ; do
 done
 j=$[$i-1]
 if [ $j -gt 0 ] ; then head -n${j} $txtin_tmp > $header_tmp ; else touch $header_tmp ; fi
-tail -n+${i} $txtin_tmp > $tmpdir/_txtin ; mv $tmpdir/_txtin.txt $txtin_tmp
+tail -n+${i} $txtin_tmp > $tmpdir/_txtin.txt ; mv $tmpdir/_txtin.txt $txtin_tmp
 echo "`basename $0`: discarding ${j} header lines"
 i="" ; j=""
 
