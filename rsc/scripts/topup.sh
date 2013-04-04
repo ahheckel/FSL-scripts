@@ -52,7 +52,8 @@ source $(dirname $0)/globalfuncs
 trap 'echo "$0 : An ERROR has occured."' ERR
 
 # create temporary dir.
-wdir=/tmp/$(basename $0)_$$ ; mkdir -p $wdir
+wdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+#wdir=/tmp/$(basename $0)_$$ ; mkdir -p $wdir
 
 # create joblist file for SGE
 echo "`basename $0`: touching SGE job control file in '$wdir'."

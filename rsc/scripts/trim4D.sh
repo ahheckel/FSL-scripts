@@ -28,8 +28,9 @@ n2=$(echo $2 | cut -d , -f 2)
 output=$(remove_ext "$3")
 
 # create working dir.
-tmpdir=/tmp/$(basename $0)_$$
-mkdir -p $tmpdir
+tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+#tmpdir=/tmp/$(basename $0)_$$
+#mkdir -p $tmpdir
 
 # define exit trap
 trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT

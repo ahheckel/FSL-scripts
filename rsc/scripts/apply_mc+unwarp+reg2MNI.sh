@@ -54,8 +54,9 @@ if [ "$f2t1_mat" != "none" -a "$f2mni_warp" = "none" ] ; then MNIaff=1 ; else MN
 if [ "$f2t1_mat" = "none" -a "$f2mni_warp" = "none" ] ; then  echo "`basename $0` : You must enter an MNI transform (warpfield or affine or both) - exiting..." ; exit 1 ; fi
 
 # create working dir.
-tmpdir=/tmp/$(basename $0)_$$
-mkdir -p $tmpdir
+tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+#tmpdir=/tmp/$(basename $0)_$$
+#mkdir -p $tmpdir
 
 # define exit trap
 trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT

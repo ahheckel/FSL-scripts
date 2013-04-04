@@ -23,8 +23,9 @@ input=$(remove_ext "$1")
 output=$(remove_ext "$2")
 
 # create working dir.
-tmpdir=/tmp/$(basename $0)_$$ ; mkdir -p $tmpdir
-tmpfile=$tmpdir/$(basename $output)
+tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+#tmpdir=/tmp/$(basename $0)_$$ ; mkdir -p $tmpdir
+#tmpfile=$tmpdir/$(basename $output)
 
 # define exit trap
 trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
