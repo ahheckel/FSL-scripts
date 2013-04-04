@@ -3885,7 +3885,9 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
   done # end DUALREG_INPUT_ICA_DIRNAME
 fi
 
+
 waitIfBusy
+
 
 # DUALREG execute randomise call
 if [ $DUALREG_STG2 -eq 1 ] ; then
