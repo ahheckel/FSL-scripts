@@ -2359,7 +2359,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       echo " ${npts}."
       if [ $n -gt 0 ] ; then
         if [ ! $npts -eq $_npts ] ; then
-          "BOLD : subj $subj , sess $sess : WARNING : Number of volumes does not match with previous image file in the loop!" 
+          echo "BOLD : subj $subj , sess $sess : WARNING : Number of volumes does not match with previous image file in the loop!" 
         fi
       fi
       _npts=$npts
