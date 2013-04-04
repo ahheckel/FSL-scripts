@@ -58,7 +58,7 @@ cmd="tkregister2 --noedit --mov $mov --targ $targ $regin $regout $delme"
 echo $cmd ; $cmd
 
 # cleanup
-rm -f $$deleteme.reg.dat
+rm -f $tmpdir/deleteme.reg.dat
 rm -f $_inmat
 
 # done
