@@ -1903,7 +1903,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
   #done  
   
   # also obtain skull-stripped volumes from FREESURFER, if available
-  # Using bbregister to register mask with T1 (no need to conform T1)
+  # using bbregister to register brain-mask with T1 (no need to conform T1)
   for subj in `cat subjects`; do 
     for sess in `cat ${subj}/sessions_struc` ; do
       if [ -f $FS_subjdir/$(subjsess)/mri/brain.mgz -a -f $FS_subjdir/$(subjsess)/mri/aparc+aseg.mgz ] ; then
@@ -3337,7 +3337,7 @@ fi
 
 waitIfBusy
 
-# TBSS randomise..
+# TBSS randomise...
 if [ $TBSS_STG3 -eq 1 ] ; then
   echo "----- BEGIN TBSS_STG3 -----"
   # define tbss subdirectories
@@ -3400,6 +3400,7 @@ if [ $TBSS_STG4 -eq 1 ] ; then
       # create TBSSX directories
       mkdir -p F1 F2 D1 D2
        
+      # copy bedpostX files either from TRACULA or bedpostX run
       if [ $TBSS_USE_BPX_FROM_TRACULA -eq 1 ] ; then
         # copy bedpostX files from TRACULA
         for subj in $TBSS_INCLUDED_SUBJECTS ; do
