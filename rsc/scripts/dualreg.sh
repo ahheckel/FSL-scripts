@@ -84,7 +84,7 @@ echo "`basename $0` : USE_MOVPARS_HPF: $USE_MOVPARS_HPF"
 echo "`basename $0` : DO_MASK:         $DO_MASK"
 echo "`basename $0` : DO_DUALREG:      $DO_DUALREG"
 echo "`basename $0` : DO_RANDOMISE:    $DO_RANDOMISE"
-
+echo "---------------------------"
 
 ########################################################################
 ########################################################################
@@ -151,6 +151,7 @@ if [ $USE_MOVPARS -eq 1 ] ; then
       movparfile=$featdir/mc/prefiltered_func_data_mcf.par
       $(dirname $0)/hpf_movpar.sh $movparfile $OUTPUT/movpar_${s}.hpf${USE_MOVPARS_HPF} $USE_MOVPARS_HPF $USE_MOVPARS_TR
       j=`echo "$j 1 + p" | dc -`
+      echo "---------------------------"
     done
   else
     echo "`basename $0` : ERROR : at least one motion parameter file is missing -> cannot include motion parameters as confounds in DUALREG-stage2... exiting." ; exit 1

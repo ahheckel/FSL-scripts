@@ -48,7 +48,7 @@ fi
 
 # create working dir.
 tmpdir=/tmp/$(basename $0)_$$
-mkdir $tmpdir
+mkdir -p $tmpdir
 
 # define exit trap
 trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT

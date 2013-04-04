@@ -1916,7 +1916,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
         fslmaths $fldr/$(subjsess)_t1_struc.nii.gz -mas $fldr/$(subjsess)_FS_brain_mask.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz ;\
         ln -sf ./$(subjsess)_t1_struc.nii.gz $fldr/$(subjsess)_FS_struc.nii.gz ;\
         imrm $fldr/_FS_brain.nii.gz $fldr/_FS_brain_mask.nii.gz" > $fldr/vbm_FSbrainmask.cmd
-        fsl_sub -l $logdir -N vbm_FSbrainmask_$(subjsess) -t $fldr/vbm_FSbrainmask.cmd
+        $scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N vbm_FSbrainmask_$(subjsess) -t $fldr/vbm_FSbrainmask.cmd # fsl_sub gives "error: comparison in expresion" error (bbregister/tkregister) (!)
       else
         echo "VBM PREPROC : subj $subj , sess $sess : no FREESURFER processed MRIs found."
       fi
@@ -3246,62 +3246,6 @@ waitIfBusy
 cd $grpdir
 
 ########################
-# ----- BEGIN ALFF -----
-########################
-
-# ALFF prepare ALFF data
-if [ $ALFF_2NDLEV_STG1 -eq 1 ] ; then
-  echo "----- BEGIN ALFF_2NDLEV_STG1 -----"
-  echo "ALFF_2NDLEV: prepare..."
-  for res in $ALFF_RESOLUTIONS ; do
-    ztransform2ndlev=1
-    prepareALFF $subjdir alff $alffdir/$ALFF_OUTDIRNAME/stats_mni${res} "*_ALFF_mni${res}.nii.gz" "*_fALFF_mni${res}.nii.gz" "susan_mask_mni${res}.nii.gz" $ztransform2ndlev $ALFF_DELETE_PREV_RUNS
-    ##################
-    ztransform2ndlev=0
-    prepareALFF $subjdir alff $alffdir/$ALFF_OUTDIRNAME/stats_nativeZ_mni${res} "*_ALFF_Z_mni${res}.nii.gz" "*_fALFF_Z_mni${res}.nii.gz" "susan_mask_mni${res}.nii.gz" $ztransform2ndlev $ALFF_DELETE_PREV_RUNS
-  done 
-fi
-
-waitIfBusy
-
-if [ $ALFF_2NDLEV_STG2 -eq 1 ] ; then
-  echo "----- BEGIN ALFF_2NDLEV_STG2 -----"
-  echo "ALFF_2NDLEV : copying GLM designs..."  
- 
-  for res in $ALFF_RESOLUTIONS ; do
-    statdirs=${alffdir}/${ALFF_OUTDIRNAME}/stats_mni${res}" "${alffdir}/${ALFF_OUTDIRNAME}/stats_nativeZ_mni${res} 
-    
-    for statdir in $statdirs ; do
-      echo "ALFF_2NDLEV : copying GLM designs to $statdir"
-      cat $glmdir_alff/designs | xargs -I{} cp -r $glmdir_alff/{} $statdir; cp $glmdir_alff/designs $statdir
-      
-      echo "ALFF_2NDLEV : starting permutations for fALFF-maps..."
-      _randomise $statdir falff "fALFF_Z_merged" "-m ../brain_mask -d design.mat -t design.con -e design.grp $ALFF_RANDOMISE_OPTS" 0 brain_mask.nii.gz $RANDOMISE_PARALLEL
-      waitIfBusy
-    done    
-  done
-  
-  waitIfBusy
-  
-  for res in $ALFF_RESOLUTIONS ; do
-    statdirs=${alffdir}/${ALFF_OUTDIRNAME}/stats_mni${res}" "${alffdir}/${ALFF_OUTDIRNAME}/stats_nativeZ_mni${res}
-    
-    for statdir in $statdirs ; do
-      echo "ALFF_2NDLEV : starting permutations for ALFF-maps..."
-      _randomise $statdir alff "ALFF_Z_merged" "-m ../brain_mask -d design.mat -t design.con -e design.grp $ALFF_RANDOMISE_OPTS" 0 brain_mask.nii.gz $RANDOMISE_PARALLEL
-      waitIfBusy
-    done
-  done
-  
-fi
-
-########################
-# ----- END ALFF -----
-########################
-
-waitIfBusy
-
-########################
 # ----- BEGIN TBSS -----
 ########################
 
@@ -4034,21 +3978,23 @@ fi
 # ----- END DUALREG -----
 #########################
 
+
 waitIfBusy
+
 
 ###########################
 # ----- BEGIN FSLNETS -----
 ###########################
 
-# resampling to fsaverage space
 if [ $FSLNETS_STG1 -eq 1 ] ; then
+  echo "----- BEGIN FSLNETS_STG1 -----"
 
   FSLNETS_GOODCOMPONENTS=\'$FSLNETS_GOODCOMPONENTS\'
   FSLNETS_T_THRESHOLDS=\'$FSLNETS_T_THRESHOLDS\'
 
   for dr in $FSLNETS_DREGDIRS ; do
     
-    fldr=$fslnetsdir/${FSLNETS_OUTIDR_PREFIX}_${dr}
+    fldr=$fslnetsdir/${FSLNETS_OUTIDR_PREFIX}__${dr}
     groupIC=$(ls $dregdir/$dr/stats/*.nii.gz) # define group IC map
     
     mkdir -p $fldr
@@ -4071,6 +4017,63 @@ fi
 # ----- END FSLNETS -----
 #########################
 
+
+waitIfBusy
+
+
+########################
+# ----- BEGIN ALFF -----
+########################
+
+# ALFF prepare ALFF data
+if [ $ALFF_2NDLEV_STG1 -eq 1 ] ; then
+  echo "----- BEGIN ALFF_2NDLEV_STG1 -----"
+  echo "ALFF_2NDLEV: prepare..."
+  for res in $ALFF_RESOLUTIONS ; do
+    ztransform2ndlev=1
+    prepareALFF $subjdir alff $alffdir/$ALFF_OUTDIRNAME/stats_mni${res} "*_ALFF_mni${res}.nii.gz" "*_fALFF_mni${res}.nii.gz" "susan_mask_mni${res}.nii.gz" $ztransform2ndlev $ALFF_DELETE_PREV_RUNS
+    ##################
+    ztransform2ndlev=0
+    prepareALFF $subjdir alff $alffdir/$ALFF_OUTDIRNAME/stats_nativeZ_mni${res} "*_ALFF_Z_mni${res}.nii.gz" "*_fALFF_Z_mni${res}.nii.gz" "susan_mask_mni${res}.nii.gz" $ztransform2ndlev $ALFF_DELETE_PREV_RUNS
+  done 
+fi
+
+waitIfBusy
+
+if [ $ALFF_2NDLEV_STG2 -eq 1 ] ; then
+  echo "----- BEGIN ALFF_2NDLEV_STG2 -----"
+  echo "ALFF_2NDLEV : copying GLM designs..."  
+ 
+  for res in $ALFF_RESOLUTIONS ; do
+    statdirs=${alffdir}/${ALFF_OUTDIRNAME}/stats_mni${res}" "${alffdir}/${ALFF_OUTDIRNAME}/stats_nativeZ_mni${res} 
+    
+    for statdir in $statdirs ; do
+      echo "ALFF_2NDLEV : copying GLM designs to $statdir"
+      cat $glmdir_alff/designs | xargs -I{} cp -r $glmdir_alff/{} $statdir; cp $glmdir_alff/designs $statdir
+      
+      echo "ALFF_2NDLEV : starting permutations for fALFF-maps..."
+      _randomise $statdir falff "fALFF_Z_merged" "-m ../brain_mask -d design.mat -t design.con -e design.grp $ALFF_RANDOMISE_OPTS" 0 brain_mask.nii.gz $RANDOMISE_PARALLEL
+      waitIfBusy
+    done    
+  done
+  
+  waitIfBusy
+  
+  for res in $ALFF_RESOLUTIONS ; do
+    statdirs=${alffdir}/${ALFF_OUTDIRNAME}/stats_mni${res}" "${alffdir}/${ALFF_OUTDIRNAME}/stats_nativeZ_mni${res}
+    
+    for statdir in $statdirs ; do
+      echo "ALFF_2NDLEV : starting permutations for ALFF-maps..."
+      _randomise $statdir alff "ALFF_Z_merged" "-m ../brain_mask -d design.mat -t design.con -e design.grp $ALFF_RANDOMISE_OPTS" 0 brain_mask.nii.gz $RANDOMISE_PARALLEL
+      waitIfBusy
+    done
+  done
+  
+fi
+
+########################
+# ----- END ALFF -----
+########################
 
 waitIfBusy
 

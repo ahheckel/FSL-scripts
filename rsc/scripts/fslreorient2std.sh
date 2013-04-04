@@ -23,7 +23,7 @@ input=$(remove_ext "$1")
 output=$(remove_ext "$2")
 
 # create working dir.
-tmpdir=/tmp/$(basename $0)_$$ ; mkdir $tmpdir
+tmpdir=/tmp/$(basename $0)_$$ ; mkdir -p $tmpdir
 tmpfile=$tmpdir/$(basename $output)
 
 # define exit trap

@@ -39,7 +39,7 @@ jid=1 # init jobID
 source $(dirname $0)/globalfuncs
   
 # create temporary dir.
-wdir=/tmp/$(basename $0)_$$ ; mkdir $wdir
+wdir=/tmp/$(basename $0)_$$ ; mkdir -p $wdir
 
 # create joblist file for SGE
 echo "`basename $0`: touching SGE job control file in '$wdir'."
