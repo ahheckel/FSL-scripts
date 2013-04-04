@@ -31,8 +31,15 @@ in_ext=${inmat##*.}
 
 if [ "$in_ext" = "$out_ext" ] ; then echo "`basename $0` : ERROR : file extension of input and output matrices are the same (*.$out_ext)" ; exit 1 ; fi
 
-cp $inmat /tmp/$(basename $0)_$$.${in_ext}
-_inmat=/tmp/$(basename $0)_$$.${in_ext}
+# create working dir.
+tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+
+# copy input matrix to another dir. (it gets overwritten otherwise)
+cp $inmat $tmpdir/inmat.${in_ext}
+_inmat=$tmpdir/inmat.${in_ext}
 
 if [ "$in_ext" = "dat" ] ; then regin="--reg $_inmat" ; fi
 if [ "$in_ext" = "xfm" ] ; then regin="--xfm $_inmat" ; fi
@@ -45,12 +52,14 @@ if [ "$out_ext" = "xfm" ] ; then regout="--xfmout $outmat" ; fi
 if [ "$out_ext" = "mat" ] ; then regout="--fslregout $outmat" ; fi
 if [ "$out_ext" = "lta" ] ; then regout="--ltaout $outmat" ; fi
 
-if [ "$in_ext" != "dat" -a  "$out_ext" != "dat" ] ; then delme="--reg $$deleteme.reg.dat" ; else delme="" ; fi
+if [ "$in_ext" != "dat" -a  "$out_ext" != "dat" ] ; then delme="--reg $tmpdir/deleteme.reg.dat" ; else delme="" ; fi
 
 cmd="tkregister2 --noedit --mov $mov --targ $targ $regin $regout $delme"
 echo $cmd ; $cmd
 
+# cleanup
 rm -f $$deleteme.reg.dat
 rm -f $_inmat
 
+# done
 echo "`basename $0` : done."
