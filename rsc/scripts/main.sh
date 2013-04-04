@@ -3677,7 +3677,7 @@ if [ $MELODIC_CMD_STG1 -eq 1 ]; then
   
   for melodic_input in $MELODIC_CMD_INPUT_FILES ; do
     
-    fldr=$gicadir/${MELODIC_CMD_OUTDIR_PREFIX}_$(remove_ext $melodic_input).gica
+    fldr=$gicadir/${MELODIC_CMD_OUTDIR_PREFIX}__$(remove_ext $melodic_input).gica
     
     # erase prev. run
     if [ -d $fldr ] ; then
