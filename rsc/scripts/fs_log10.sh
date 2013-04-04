@@ -25,6 +25,9 @@ input=`remove_ext "$1"`
 output=`remove_ext "$2"`
 mask=${output}_mask_$$
 
+# define exit trap
+trap "imrm $mask ; exit" EXIT
+
 # create mask
 fslmaths $input -bin $mask
 

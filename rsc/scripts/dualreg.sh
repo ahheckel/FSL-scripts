@@ -86,9 +86,6 @@ echo "`basename $0` : DO_DUALREG:      $DO_DUALREG"
 echo "`basename $0` : DO_RANDOMISE:    $DO_RANDOMISE"
 echo "---------------------------"
 
-########################################################################
-########################################################################
-
 mkdir -p $OUTPUT
 LOGDIR=${OUTPUT}/scripts+logs
 mkdir -p $LOGDIR
@@ -98,6 +95,11 @@ echo $ORIG_COMMAND > $LOGDIR/command
   #/bin/cp $dc $OUTPUT/design.con
 #fi
 JID=1 # dummy jobID (HKL)
+
+
+########################################################################
+########################################################################
+
 
 if [ $DO_MASK -eq 1 ] ; then
 
