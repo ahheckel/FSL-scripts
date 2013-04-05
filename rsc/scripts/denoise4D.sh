@@ -169,8 +169,15 @@ if [ $denoise -eq 1 ] ; then
   n_total=$(echo "scale=0; $n_movpar + $n_masks + 1" | bc) # add 1 for the mean regressor (!)
   comps=$(echo `seq 1 $n_total` | sed "s| |","|g")
   
+  # are confounds given ?
+  if [ "$masks" = "none" -a "$movpar_calcs" = "0" ] ; then 
+    echo "`basename $0` : subj $subj , sess $sess : no confounds selected - just copying..."
+    cmd="imcp $input $output"
+  else
+    cmd="fsl_regfilt -i $input -o ${output} -d ${confounds%.mat}_proc.mat -f $comps"
+  fi
+  
   # execute
-  cmd="fsl_regfilt -i $input -o ${output} -d ${confounds%.mat}_proc.mat -f $comps"
   echo $cmd | tee ${output}.cmd ; $cmd
 fi
 
