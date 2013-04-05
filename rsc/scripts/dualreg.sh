@@ -204,6 +204,7 @@ fi
 echo "`basename $0` : sorting maps and running randomise on design '$dname'"
 j=0
 Nics=`$FSLDIR/bin/fslnvols $ICA_MAPS`
+rm -f $OUTPUT/stats/$dname/randomise.cmd # added by HKL
 while [ $j -lt $Nics ] ; do
   jj=`$FSLDIR/bin/zeropad $j 4`
 
@@ -214,7 +215,7 @@ while [ $j -lt $Nics ] ; do
   if [ $NPERM -gt 1 ] ; then
     # EDIT HERE
     RAND="$FSLDIR/bin/${RANDCMD} -i $OUTPUT/dr_stage2_ic$jj -o $OUTPUT/stats/$dname/dr_stage3_${dname}_ic$jj -m $OUTPUT/mask $DESIGN -n $NPERM -T -V -x"  # randomise_parallel only works if /bin/sh points to /bin/bash ! (!) ; HKL added -x switch
-    echo $RAND > $OUTPUT/stats/$dname/randomise.cmd # added by HKL
+    echo $RAND >> $OUTPUT/stats/$dname/randomise.cmd # added by HKL
   fi
 
   echo "$FSLDIR/bin/fslmerge -t $OUTPUT/dr_stage2_ic$jj \`\$FSLDIR/bin/imglob $OUTPUT/dr_stage2_subject*_ic${jj}.*\` ; \

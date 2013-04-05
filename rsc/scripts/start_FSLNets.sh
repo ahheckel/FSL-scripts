@@ -118,11 +118,13 @@ set -e
 echo "$(basename $0) : executing slices_summary..."
 cmd="slices_summary $(remove_ext $group_maps) 4 $bg $(remove_ext $group_maps).sum"
 echo "    $cmd" ; $cmd
+n=$(ls $(remove_ext $group_maps).sum/*.png | wc -l) ; n=$[$n-1]
+cmd="slices_summary $(remove_ext $group_maps).sum $outdir/grot.png $(seq 0 $n)"
+echo "    $cmd" ; $cmd
 
 # start MATLAB
 mkdir -p $outdir
 cd $outdir
 mv $tmpdir/nets_examples.m$$ ./nets_examples.m
-rmdir $tmpdir
 #xterm -e "matlab -nodesktop -r nets_examples"
 matlab -nodesktop -r nets_examples

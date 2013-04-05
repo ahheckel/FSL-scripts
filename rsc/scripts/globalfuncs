@@ -107,8 +107,8 @@ function save_config()
   cd $_studydir
     # collect SGE logfiles
     echo -n "  searching for SGE logfiles..."
-    logo="$(find ./ -maxdepth 4 -newer ./.lockdir121978 -name "*.o[0-9]*")"
-    loge="$(find ./ -maxdepth 4 -newer ./.lockdir121978 -name "*.e[0-9]*")"
+    logo="$(find ./  -newer ./.lockdir121978 -name "*.o[0-9]*")"
+    loge="$(find ./  -newer ./.lockdir121978 -name "*.e[0-9]*")"
     echo " done."
     
     # collect config files
