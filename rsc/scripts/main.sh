@@ -2723,7 +2723,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
               elif [ $BOLD_USE_FS_LONGT_TEMPLATE -eq 2 ] ; then
                 echo "BOLD : subj $subj , sess $sess : using FS's bbreg to register 'example_func.nii.gz' -> FS's structural (ID '${subj}')..."
                 echo "BOLD : subj $subj , sess $sess : writing example_func -> FS's structural..."
-                              
+                
                 echo "bbregister --s ${subj} --mov $featdir/example_func.nii.gz --init-fsl --reg $featdir/reg_longt/example_func2highres_bbr.dat --t2 --fslmat $featdir/reg_longt/example_func2highres_bbr.mat ;\
                 mri_convert $FS_subjdir/${subj}/mri/brain.mgz $featdir/reg_longt/brain.nii.gz ;\
                 flirt -in $featdir/example_func.nii.gz -ref $featdir/reg_longt/brain.nii.gz -init $featdir/reg_longt/example_func2highres_bbr.mat -applyxfm -out $featdir/reg_longt/example_func2highres_bbr ;\
@@ -2767,8 +2767,7 @@ if [ $BOLD_STG4 -eq 1 ] ; then
             if [ ! -d $featdir ] ;  then echo "BOLD : subj $subj , sess $sess : WARNING : feat-directory '$featdir' does not exist - continuing loop..." ; continue ; fi
             
             # create $featdir/reg_standard
-            echo "BOLD : subj $subj , sess $sess : featregapply -> '$featdir/reg_standard'..."
-            featregapply $featdir
+            if [ $BOLD_REGISTER_TO_MNI -eq 1 ] ; then echo "BOLD : subj $subj , sess $sess : featregapply -> '$featdir/reg_standard'..." ; featregapply $featdir ; fi
             
             if [ $BOLD_USE_FS_LONGT_TEMPLATE -ge 1 ] ; then            
               T1_file=$featdir/reg_longt/longt_brain # see RECON_STG5

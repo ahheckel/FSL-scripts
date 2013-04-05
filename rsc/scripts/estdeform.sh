@@ -16,6 +16,7 @@ Usage() {
     echo ""
     echo "Usage: `basename $0` <fnirt-warpfield>"
     echo "Example: `basename $0` t1_2_mni_warp.nii.gz"
+    echo ""
     exit 1
 }
 
