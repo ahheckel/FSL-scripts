@@ -3453,6 +3453,7 @@ outdir=$FSstatsdir/${FS_STATS_OUTDIR_PREFIX}_${FS_STATS_GROUPSPACE}
 
 # resampling to stereotactic space ("group-space")
 if [ $FS_STATS_STG1 -eq 1 ] ; then
+  echo "----- BEGIN FS_STATS_STG1 -----"
   mkdir -p $outdir
   echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $FS_STATS_GROUPSPACE $glmdir_fs $outdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "1 0 0 0 $FS_STATS_NPERM $logdir" > $outdir/fs_stats_01.cmd  
   . $outdir/fs_stats_01.cmd
@@ -3464,6 +3465,7 @@ waitIfBusy
 
 # smoothing
 if [ $FS_STATS_STG2 -eq 1 ] ; then
+  echo "----- BEGIN FS_STATS_STG2 -----"
   echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $FS_STATS_GROUPSPACE $glmdir_fs $outdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "0 1 0 0 $FS_STATS_NPERM $logdir" > $outdir/fs_stats_02.cmd  
   . $outdir/fs_stats_02.cmd
   echo ""
@@ -3474,6 +3476,7 @@ waitIfBusy
 
 # GLM
 if [ $FS_STATS_STG3 -eq 1 ] ; then
+  echo "----- BEGIN FS_STATS_STG3 -----"
   echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $FS_STATS_GROUPSPACE $glmdir_fs $outdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "0 0 1 0 $FS_STATS_NPERM $logdir" > $outdir/fs_stats_03.cmd  
   . $outdir/fs_stats_03.cmd
   echo ""
@@ -3484,6 +3487,7 @@ waitIfBusy
 
 # GLM permutation testing
 if [ $FS_STATS_STG4 -eq 1 ] ; then
+  echo "----- BEGIN FS_STATS_STG4 -----"
   echo "$scriptdir/fs_stats.sh $SUBJECTS_DIR $FS_STATS_GROUPSPACE $glmdir_fs $outdir" $FS_STATS_MEASURES $FS_STATS_SMOOTHING_KRNLS "0 0 0 1 $FS_STATS_NPERM $logdir" > $outdir/fs_stats_04.cmd  
   . $outdir/fs_stats_04.cmd
   echo ""
