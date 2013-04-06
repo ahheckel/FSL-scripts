@@ -33,6 +33,13 @@ done
 # checks
 if [ "$hemi" != "lh" -a "$hemi" != "rh" ] ; then echo "$(basename $0): ERROR: no hemisphere ('lh' or 'rh') specified - exiting..." ; exit 1 ; fi
 
+# create working dir.
+tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+tmpout=$tmpdir/$(basename $output)
+
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+
 # execute mri_segstats in a loop
 i=1 ; outlist=""
 for roi in $rois ; do
@@ -41,16 +48,16 @@ for roi in $rois ; do
   
   heading=$(basename $roi)
   
-  cmd="mri_segstats --i $input --slabel $subj $hemi $roi --excludeid 0 --avgwf ${output}_$(zeropad $i 3)"
+  cmd="mri_segstats --i $input --slabel $subj $hemi $roi --excludeid 0 --avgwf ${tmpout}_$(zeropad $i 3)"
   echo "$cmd" ; $cmd 1> /dev/null
   
-  sed -i "1i $heading" ${output}_$(zeropad $i 3)
+  sed -i "1i $heading" ${tmpout}_$(zeropad $i 3)
   
-  echo "${output}_$(zeropad $i 3): "
-  cat ${output}_$(zeropad $i 3)
+  echo "${tmpout}_$(zeropad $i 3): "
+  cat ${tmpout}_$(zeropad $i 3)
   echo "--------"
   
-  outlist="$outlist ${output}_$(zeropad $i 3)"
+  outlist="$outlist ${tmpout}_$(zeropad $i 3)"
   
   i=$[$i+1]
 

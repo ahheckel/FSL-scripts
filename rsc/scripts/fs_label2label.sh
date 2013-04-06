@@ -64,14 +64,20 @@ done
 if [ $err -eq 1 ] ; then exit 1 ; fi
 label=""
 
+# define exit trap
+trap "rm -f $outdir/file.$$ ; exit" EXIT
+
 # create outdir
 mkdir -p $outdir
 
 # execute
 for label in $labels ; do
-  #if [ $(ls $outdir/$(basename $label) | wc -l) -ne 0 ] ; then echo "`basename $0` : ERROR: will not overwrite '$label' - exiting..." ; exit 1 ; fi
+  # check
+  touch $outdir/file.$$ ; if [ -f $(dirname $label)/file.$$ ] ; then echo "`basename $0` : ERROR: input dir. and output dir. are identical - exiting..." ; exit 1 ; fi
+  # execute
   cmd="mri_label2label --hemi $hemi --srclabel $label --srcsubject $src --trgsubject $trg --trglabel $outdir/$(basename $label) --regmethod surface --sd $sdir"
   echo "    $cmd" ; $cmd
 done
 
+# done
 echo "`basename $0` : done."
