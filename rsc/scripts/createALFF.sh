@@ -32,11 +32,11 @@ if [ ! -f ${mask}.nii.gz ] ; then
   echo "`basename $0`: ERROR: file '$mask' not found... exiting" ; exit 1
 fi
 
-# mkdir
-wdir=$(dirname $out) ; mkdir -p $wdir
+# create working dir.
+wdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
 
-## 0. Bet
-#fslmaths $input -Tmean $wdir/prealff_mean ; bet2 $wdir/prealff_mean $wdir/prealff_mean_bet -f 0.3 ; fslmaths $wdir/prealff_mean_bet -bin ${out}_mask
+# define exit trap
+trap "rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
 
 ## CALCULATING ALFF AND fALFF
 ## 1. primary calculations
@@ -56,13 +56,11 @@ then
     cp ${input}.nii.gz $wdir/prealff_func_data.nii.gz
 fi
 
-## 1. Despike
-
 ## 2. Computing power spectrum
 echo "`basename $0`: Computing power spectrum"
 fslpspec $wdir/prealff_func_data.nii.gz $wdir/prealff_func_data_ps.nii.gz
 ## copy power spectrum to keep it for later (i.e. it does not get deleted in the clean up at the end of the script)
-cp $wdir/prealff_func_data_ps.nii.gz $wdir/power_spectrum_distribution.nii.gz
+cp $wdir/prealff_func_data_ps.nii.gz $(dirname $out)/power_spectrum_distribution.nii.gz
 echo "`basename $0`: Computing square root of power spectrum"
 fslmaths $wdir/prealff_func_data_ps.nii.gz -sqrt $wdir/prealff_func_data_ps_sqrt.nii.gz
 
