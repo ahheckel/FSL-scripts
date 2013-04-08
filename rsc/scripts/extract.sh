@@ -13,17 +13,17 @@ trap 'echo "$0 : An ERROR has occured."' ERR
     
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <out-Prefix> <idx> <input file>"
-    echo "Example: `basename $0` ./test/melodic 0,1,2,3 melodic_IC.nii.gz"
+    echo "Usage: `basename $0` <input file> <out-Prefix> <idx>"
+    echo "Example: `basename $0` melodic_IC.nii.gz ./test/melodic 0,1,2,3"
     echo ""
     exit 1
 }
 
 [ "$3" = "" ] && Usage    
 
-pref="$1" ; mkdir -p $(dirname $pref)
-idxs="$(echo "$2" | sed 's|,| |g')"
-input=$(remove_ext "$3")
+input=$(remove_ext "$1")
+pref="$2" ; mkdir -p $(dirname $pref)
+idxs="$(echo "$3" | sed 's|,| |g')"
 #pref=$(basename $input)
 
 for idx in $idxs ; do

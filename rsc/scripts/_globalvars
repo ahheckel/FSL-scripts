@@ -204,6 +204,7 @@ TRACULA_USE_TOPUP_EC_BVECROT=1   # use TOPUP corrected & eddy-corrected merged D
 
 # BOLD - preproc
 BOLD_FEATDIR_PREFIX="preprocBOLD"                             # prefix for .feat output directory
+BOLD_ALT_EXFUNC=""                                            # name of alternative example_func in source directory (default "")
 BOLD_BET_EXFUNC=0                                             # bet example func (middle of the 4D) (default 0)
 BOLD_FEAT_NO_BROWSER=1                                        # don't open browser window
 #---------------------

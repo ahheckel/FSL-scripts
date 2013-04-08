@@ -2387,13 +2387,29 @@ if [ $BOLD_STG1 -eq 1 ] ; then
         ln -sf $relpath/$(basename $feat_t1brain) $t1_brain 
       fi
       
+      # using alternative example func ?
+      altExFunc=""
+      if [ x${BOLD_ALT_EXFUNC} != "x" ] ; then altExFunc=$srcdir/$subj/$sess/${BOLD_ALT_EXFUNC} ; fi
+      if [ $(_imtest ${altExFunc}) -eq 0 ] ; then
+        echo "BOLD : subj $subj , sess $sess : ERROR : '${altExFunc}' not found - exiting..." ; exit 1
+      else
+        echo "BOLD : subj $subj , sess $sess : using '${altExFunc}' as example_func..."
+        imcp $altExFunc $fldr
+      fi
+      
       # preparing alternative example func
       if [ $BOLD_BET_EXFUNC -eq 1 ] ; then
-        mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
-        echo "BOLD : subj $subj , sess $sess : betting bold at pos. $mid_pos / $npts and using as example_func..."
-        altExFunc=$fldr/example_func_bet
-        fslroi $fldr/$bold_lnk $altExFunc $mid_pos 1
-        fslmaths $altExFunc $altExFunc -odt float
+        if [ x${altExFunc} = "x" ] ; then
+          altExFunc=$fldr/example_func_bet
+          mid_pos=$(echo "scale=0 ; $npts / 2" | bc) # equals: floor($npts / 2)
+          echo "BOLD : subj $subj , sess $sess : betting bold at pos. $mid_pos / $npts and using as example_func..."
+          fslroi $fldr/$bold_lnk $altExFunc $mid_pos 1
+          fslmaths $altExFunc $altExFunc -odt float
+        else
+          echo "BOLD : subj $subj , sess $sess : betting '$altExFunc' and using it as example_func..."
+          fslmaths $altExFunc $fldr/$(basename $(remove_ext ${altExFunc}))_bet -odt float
+          altExFunc=$fldr/$(basename $(remove_ext ${altExFunc}))_bet
+        fi
         bet $altExFunc $altExFunc -f 0.3
       fi
 
@@ -2436,7 +2452,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
               fi
               
               # set alternative example func
-              if [ $BOLD_BET_EXFUNC -eq 1 ] ; then 
+              if [ $BOLD_BET_EXFUNC -eq 1 -o x"$BOLD_ALT_EXFUNC" != "x" ] ; then 
                 sed -i "s|set fmri(alternative_example_func) .*|set fmri(alternative_example_func) \"$altExFunc\"|g" $conffile 
               fi
               
