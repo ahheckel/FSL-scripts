@@ -2431,7 +2431,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
               sed -i "s|set fmri(dwell) X|set fmri(dwell) $EES_bold|g" $conffile # set Eff. Echo Spacing
               sed -i "s|set fmri(te) X|set fmri(te) $TE_bold|g" $conffile # set TE
               sed -i "s|set fmri(signallossthresh) X|set fmri(signallossthresh) $BOLD_SIGNLOSS_THRES|g" $conffile # set signal loss threshold in percent
-              sed -i "s|set feat_files(1) \"X\"|set feat_files(1) \"$fldr/$bold_lnk\"|g" $conffile # set input files
+              sed -i "s|set feat_files(1) \"X\"|set feat_files(1) \"$fldr/$(remove_ext $bold_lnk)\"|g" $conffile # set input files
               sed -i "s|set unwarp_files(1) \"X\"|set unwarp_files(1) \"$(remove_ext $fmap)\"|g" $conffile # set fieldmap file (removing extension might be important for finding related files by feat) (?)
               sed -i "s|set unwarp_files_mag(1) \"X\"|set unwarp_files_mag(1) \"$(remove_ext $fmap_magn)\"|g" $conffile # set fieldmap magnitude file (removing extension might be important for finding related files by feat) (?)
               sed -i "s|set fmri(alternative_example_func) \"X\"|set fmri(alternative_example_func) \"\"|g" $conffile # unset alternative example func
@@ -2511,6 +2511,17 @@ if [ $BOLD_STG1 -eq 1 ] ; then
                 sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 0|g" $conffile
               else 
                 sed -i "s|set fmri(featwatcher_yn) .*|set fmri(featwatcher_yn) 1|g" $conffile
+              fi
+              
+              # compute total voxel number
+              if [ $(cat $FSLDIR/etc/fslversion | cut -d . -f 1) -ge 5 ] ; then
+                dim1=$(fslinfo $fldr/$bold_lnk | grep ^dim1 | awk '{print $2}')
+                dim2=$(fslinfo $fldr/$bold_lnk | grep ^dim2 | awk '{print $2}')
+                dim3=$(fslinfo $fldr/$bold_lnk | grep ^dim3 | awk '{print $2}')
+                dim4=$(fslinfo $fldr/$bold_lnk | grep ^dim4 | awk '{print $2}')
+                totalvx=$(echo "scale=0 ; $dim1 * $dim2 * $dim3 * $dim4" | bc -l)
+                echo "# Total voxels" >> $conffile
+                echo "set fmri(totalVoxels) $totalvx" >> $conffile
               fi
               
               echo "---------------------------"
