@@ -1133,15 +1133,27 @@ if [ $TOPUP_STG5 -eq 1 ] ; then
       if [ $TOPUP_USE_EC -eq 1 ] ; then corrfile=$fldr/$(subjsess)_topup_corr_ec_merged.nii.gz ; fi ;
       if [ $TOPUP_USE_EDDY -eq 1 ] ; then corrfile=$fldr/$(subjsess)_topup_corr_eddy_merged.nii.gz ; fi ;
       if [ ! -f $fldr/fm/fmap_rads.nii.gz ] ; then  echo "TOPUP : subj $subj , sess $sess : ERROR : fieldmap not found in '$fldr/fm/' - exiting..." ; exit 1 ; fi
-      min=`row2col $fldr/bvals_concat.txt | getMin`
-      b0idces=`getIdx $fldr/bvals-_concat.txt $min` 
-      lowbs=""
-      for b0idx in $b0idces ; do 
+      #min=`row2col $fldr/bvals_concat.txt | getMin`
+      #b0idces=`getIdx $fldr/bvals-_concat.txt $min` 
+      #lowbs=""
+      #for b0idx in $b0idces ; do 
+        #lowb="$fldr/fm/uw_b${min}_`printf '%05i' $b0idx`"
+        #echo "    found B0 image in merged diff. at pos. $b0idx (val:${min}) - extracting from '$corrfile'..."
+        #fslroi $corrfile $lowb $b0idx 1
+        #lowbs=$lowbs" "$lowb
+      #done
+      lowbs=""; nvols=0 ; b0idx=0
+      for f in $(cat $fldr/bval-.files) ; do
+        min=$(cat $f | row2col | getMin); idx=$(findIndex $f $min)
+        b0idx=$[$b0idx+$nvols+$idx]
+        echo "    found B0 image in merged diff. at pos. $b0idx (val:${min}) - extracting from '$corrfile':"
         lowb="$fldr/fm/uw_b${min}_`printf '%05i' $b0idx`"
-        echo "    found B0 image in merged diff. at pos. $b0idx (val:${min}) - extracting from '$corrfile'..."
-        fslroi $corrfile $lowb $b0idx 1
+        cmd="fslroi $corrfile $lowb $b0idx 1"
+        echo "      $cmd"
+        $cmd
         lowbs=$lowbs" "$lowb
-      done
+        nvols=$(cat $f | row2col | wc -l)
+      done ; nvols="" ; b0idx=""
       echo "    creating mask..."
       fithres=`getBetThres ${subjdir}/config_bet_lowb $subj $sess` # get info for current subject
       echo "fslmerge -t $fldr/fm/uw_lowb_merged $lowbs ; \

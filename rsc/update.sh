@@ -11,7 +11,7 @@ if [ x$FREESURFER_HOME = "x" ] ; then echo "FREESURFER_HOME variable is not defi
 
 v5=$(cat $FSLDIR/etc/fslversion | grep ^5 | wc -l)
 
-cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
+#cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
 cp -iv fsl/fsl5/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection, should also work for FSL < v.5
 cp -iv fsl/templates/MNI152*.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/templates/avg152T1_white_bin.nii.gz $FSLDIR/data/standard/
@@ -60,7 +60,7 @@ chmod +x $FSLDIR/bin/applytopup
 chmod +x $FSLDIR/bin/swap_voxelwise
 chmod +x $FSLDIR/bin/swap_subjectwise
 chmod +x $FSLDIR/bin/tbss_x
-chmod +x $FREESURFER_HOME/bin/trac-all
+#chmod +x $FREESURFER_HOME/bin/trac-all
 chmod +x $FSLDIR/bin/3dTcat
 chmod +x $FSLDIR/bin/3dDespike
 chmod +x $FSLDIR/bin/3dTstat
