@@ -31,7 +31,10 @@ wd=$(dirname $0); cd $wd ; wd=`pwd`
 if [ x$FSL_DIR = "x" ] ; then FSL_DIR="$FSLDIR" ; fi
 if [ x$FSL_DIR = "x" ] ; then echo "ERROR : \$FSL_DIR and \$FSLDIR variable not defined - exiting."  ; exit 1 ; fi
 fslversion=$(cat $(dirname $(dirname `which imglob`))/etc/fslversion)
-echo ""; echo "FSL version is ${fslversion}." ; echo "" ; # sleep 1
+echo ""; echo "FSL version is '${fslversion}'." ; # sleep 1
+
+# display FREESURFER version
+echo "FREESURFER build-stamp is '`cat $FREESURFER_HOME/build-stamp.txt`'." ; echo ""
 
 # display Job-Id
 echo "Job-Id : $$" ; echo ""
