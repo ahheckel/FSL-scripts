@@ -9,7 +9,13 @@ if [ $# -lt 1 ] ; then echo "Usage: update [32|64]" ; exit 1 ; fi
 if [ x$FSLDIR = "x" ] ; then echo "FSLDIR variable is not defined ! Exiting." ; exit 1 ; fi
 if [ x$FREESURFER_HOME = "x" ] ; then echo "FREESURFER_HOME variable is not defined ! Exiting." ; exit 1 ; fi
 
+# display FSL version
+fslversion=$(cat $FSLDIR/etc/fslversion)
+echo ""; echo "FSL version is '${fslversion}'." ; # sleep 1
 v5=$(cat $FSLDIR/etc/fslversion | grep ^5 | wc -l)
+
+# display FREESURFER version
+echo "FREESURFER build-stamp is '`cat $FREESURFER_HOME/build-stamp.txt`'." ; echo ""
 
 #cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
 cp -iv fsl/fsl5/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection, should also work for FSL < v.5
@@ -70,7 +76,7 @@ chmod +x $FSLDIR/bin/fsl_sub
 chmod +x $FSLDIR/bin/slices_summary
 chmod 777 $FREESURFER_HOME/subjects/fsaverage/tmp # need write access so that cursor postion in tksurfer/tkmedit can be saved ! (!)
 if [ -f $FREESURFER_HOME/bin/fsl_sub_mgh ] ; then # for TRACULA
-  mv -i $FREESURFER_HOME/bin/fsl_sub_mgh $FREESURFER_HOME/bin/fsl_sub_mgh_sav 
-  ln -si $FSLDIR/bin/fsl_sub $FREESURFER_HOME/bin/fsl_sub_mgh
+  mv -iv $FREESURFER_HOME/bin/fsl_sub_mgh $FREESURFER_HOME/bin/fsl_sub_mgh_sav 
 fi
-ln -si ./bedpostx $FSLDIR/bin/bedpostx_seychelles # for TRACULA
+ln -vsi $FSLDIR/bin/fsl_sub $FREESURFER_HOME/bin/fsl_sub_mgh # for TRACULA
+ln -vsi ./bedpostx $FSLDIR/bin/bedpostx_seychelles # for TRACULA
