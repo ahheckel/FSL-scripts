@@ -12,6 +12,7 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 set -e
 
 Usage() {
+    echo ""
     echo "`basename $0` will recursively parse <input-dir> for DICOMS, which will be converted to nii.gz files in <output-dir>."
     echo "Usage:   `basename $0` <input-dir> <output-dir>"
     echo "Example: `basename $0` dcm-dir out-dir"

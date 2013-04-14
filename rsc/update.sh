@@ -9,13 +9,20 @@ if [ $# -lt 1 ] ; then echo "Usage: update [32|64]" ; exit 1 ; fi
 if [ x$FSLDIR = "x" ] ; then echo "FSLDIR variable is not defined ! Exiting." ; exit 1 ; fi
 if [ x$FREESURFER_HOME = "x" ] ; then echo "FREESURFER_HOME variable is not defined ! Exiting." ; exit 1 ; fi
 
+# display dir. variables
+echo ""
+echo "FSLDIR:                   '$FSLDIR'"
+echo "FREESURFER_HOME:          '$FREESURFER_HOME'"
 # display FSL version
 fslversion=$(cat $FSLDIR/etc/fslversion)
-echo ""; echo "FSL version is '${fslversion}'." ; # sleep 1
+echo "FSL version:              '${fslversion}'." ; # sleep 1
 v5=$(cat $FSLDIR/etc/fslversion | grep ^5 | wc -l)
-
 # display FREESURFER version
-echo "FREESURFER build-stamp is '`cat $FREESURFER_HOME/build-stamp.txt`'." ; echo ""
+echo "FREESURFER build-stamp:   '`cat $FREESURFER_HOME/build-stamp.txt`'."
+# wait to check
+echo ""
+read -p "press Key to continue..."
+echo ""
 
 #cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
 cp -iv fsl/fsl5/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection, should also work for FSL < v.5
