@@ -24,6 +24,11 @@ Usage() {
 input=$(remove_ext "$1")
 pref="$2" ; mkdir -p $(dirname $pref)
 idxs="$(echo "$3" | sed 's|,| |g')"
+if [ $idxs = "mid" ] ; then
+  total_volumes=`fslnvols $input 2> /dev/null`
+  idxs=$(echo "$total_volumes / 2" | bc)
+  echo "`basename $0`: mid-position: $idxs"
+fi
 #pref=$(basename $input)
 
 for idx in $idxs ; do
