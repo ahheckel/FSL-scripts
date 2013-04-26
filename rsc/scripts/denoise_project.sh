@@ -39,7 +39,7 @@ for i in `seq 1 $(cat $textfile | wc -l)` ; do
   bads=$(cat $textfile | sed -n ${i}p | cut -d " " -f 3)
   path=$commondir/$subj/$sess/$featdir
 
-  if [ "$bads" = "keine" ] ; then 
+  if [ "$bads" = "keine" -o "$bads" = "none" -o "$bads" = "na" ] ; then 
     cmd="fslmaths $path/$input $path/$output" 
     echo $cmd 
   else
