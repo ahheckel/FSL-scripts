@@ -93,7 +93,6 @@ max=$(echo $c | row2col | getMax)
 nl=$(cat $txtin_tmp | wc -l)
 
 # trimming
-rm -f $(basename $0).cmd
 for l in `seq 1 $nl` ; do
 
   for c in `seq 1 $n_col` ; do
@@ -113,7 +112,7 @@ for l in `seq 1 $nl` ; do
       diff=$(echo "$max - $entry" | bc) ;
       input=$(ls $rootdir/$subj/${pttrn} | sed -n ${n_sess}p) ;
       output=$rootdir/$subj/$sess/bold_${n_sess}.nii.gz
-      echo "trim4D.sh $input $entry,$diff $output" | tee -a $(basename $0).cmd; 
+      echo "trim4D.sh $input $entry,$diff $output"
     fi
   
   done

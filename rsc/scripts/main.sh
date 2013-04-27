@@ -45,7 +45,7 @@ source ./globalvars
 
 # define subdirs
 scriptdir=$studydir/rsc/scripts
-tmpltdir=$studydir/rsc/templates
+tmpltdir=$studydir/rsc/scripts/templates
 tmpdir=$studydir/.tmp
 
 # source environment functions

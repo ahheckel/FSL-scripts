@@ -80,7 +80,7 @@ echo $subj > $outdir/.subjects
 echo $sess > $outdir/.sessions_struc
 logdir=$outdir/logs ; mkdir -p $logdir
 scriptdir=$(dirname $0)
-tmpltdir=$(dirname $scriptdir)/templates
+tmpltdir=$scriptdir/templates
 sdir=`pwd`
 
 # define bval/bvec files
