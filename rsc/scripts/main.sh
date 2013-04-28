@@ -278,16 +278,17 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   
   # is registration mapping file present ? 
   if [ ! -f ${subjdir}/config_func2highres.reg ] ; then
-    echo "Registration mapping between functionals and t1 structural not found. You may need to create that file..."
-    subj=`head -n 1 $subjdir/subjects`
-    if [ $(find $srcdir/$subj/ -maxdepth 1 -type d | wc -l) -eq 1 ] ; then
-      read -p "No subdirectories in $subjdir/$subj detected - assuming single session design. Press Key to create default func->highres mapping for single session designs..."
-      for i in $(cat $subjdir/subjects) ; do
-        echo "$i ." >> $subjdir/config_func2highres.reg
-      done
-      echo "done."
-    fi
-    subj=""
+    echo "Registration mapping between functionals and t1 structural not found -> file created. You may need to edit that file..."
+    touch ${subjdir}/config_func2highres.reg
+    #subj=`head -n 1 $subjdir/subjects`
+    #if [ $(find $srcdir/$subj/ -maxdepth 1 -type d | wc -l) -eq 1 ] ; then
+      #read -p "No subdirectories in $subjdir/$subj detected - assuming single session design. Press Key to create default func->highres mapping for single session designs..."
+      #for i in $(cat $subjdir/subjects) ; do
+        #echo "$i ." >> $subjdir/config_func2highres.reg
+      #done
+      #echo "done."
+    #fi
+    #subj=""
   fi
   
   # are template files present?
@@ -326,14 +327,18 @@ for infofile in config_bet_magn config_unwarp_bold config_func2highres.reg ; do
     done
     
     if [ $errflag -eq 1 ] ; then
-      line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx ${subj} || true)
-      if [ "x$line" = "x" ] ; then 
-        errpause=1
-        echo "WARNING : '$infofile' : entry for subject '${subj}' not found ! This may or may not be a problem depending on your setup."
-        if [ $infofile = "config_bet_magn" ] ; then read -p "Press key to add default value." ; echo "$subj $BETMAGN_INFO" | tee -a ${subjdir}/$infofile ; fi
-        if [ $infofile = "config_unwarp_bold" ] ; then read -p "Press key to add default value." ; echo "$subj $DWIUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
-        if [ $infofile = "config_func2highres.reg" -a "$(cat ${subjdir}/${subj}/sessions_* | sort | uniq)" = "." ] ; then read -p "Press key to add default value." ; echo "$subj ." | tee -a ${subjdir}/$infofile ; fi
-      fi
+      for sess in `cat $subjdir/$subj/sessions_func` ; do
+        if [ $sess = "." ] ; then sess="" ; fi
+        line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
+        if [ "x$line" = "x" ] ; then 
+          errpause=1
+          echo "WARNING : '$infofile' : entry for '$(subjsess)' not found ! This may or may not be a problem depending on your setup."
+          if [ $infofile = "config_bet_magn" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETMAGN_INFO" | tee -a ${subjdir}/$infofile ; fi
+          if [ $infofile = "config_unwarp_bold" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $DWIUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
+          if [ $infofile = "config_func2highres.reg" -a "$(cat ${subjdir}/${subj}/sessions_struc)" = "." ] ; then read -p "Press key to add default value." ; echo "$(subjsess) ." | tee -a ${subjdir}/$infofile ; fi
+          sort ${subjdir}/$infofile > $tmpdir/_${infofile} ; mv $tmpdir/_${infofile} ${subjdir}/$infofile
+        fi
+      done
     fi    
   done
 done
@@ -353,15 +358,19 @@ for infofile in config_bet_lowb config_bet_struc0 config_bet_struc1 config_unwar
     done
     
     if [ $errflag -eq 1 ] ; then
-      line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx ${subj} || true)
-      if [ "x$line" = "x" ] ; then
-        errpause=1
-        echo "WARNING : '$infofile' : entry for subject '${subj}' not found ! This may or may not be a problem depending on your setup."
-        if [ $infofile = "config_bet_lowb" ] ; then read -p "Press key to add default value." ; echo "$subj $BETLOWB_INFO" | tee -a ${subjdir}/$infofile ; fi
-        if [ $infofile = "config_bet_struc0" ] ; then read -p "Press key to add default value." ; echo "$subj $BETSTRUC0_INFO" | tee -a ${subjdir}/$infofile ; fi
-        if [ $infofile = "config_bet_struc1" ] ; then read -p "Press key to add default value." ; echo "$subj $BETSTRUC1_INFO" | tee -a ${subjdir}/$infofile ; fi
-        if [ $infofile = "config_unwarp_dwi" ] ; then read -p "Press key to add default value." ; echo "$subj $DWIUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
-      fi
+      for sess in `cat $subjdir/$subj/sessions_struc` ; do
+        if [ $sess = "." ] ; then sess="" ; fi
+        line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
+        if [ "x$line" = "x" ] ; then
+          errpause=1
+          echo "WARNING : '$infofile' : entry for '$(subjsess)' not found ! This may or may not be a problem depending on your setup."
+          if [ $infofile = "config_bet_lowb" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETLOWB_INFO" | tee -a ${subjdir}/$infofile ; fi
+          if [ $infofile = "config_bet_struc0" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETSTRUC0_INFO" | tee -a ${subjdir}/$infofile ; fi
+          if [ $infofile = "config_bet_struc1" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETSTRUC1_INFO" | tee -a ${subjdir}/$infofile ; fi
+          if [ $infofile = "config_unwarp_dwi" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $DWIUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
+          sort ${subjdir}/$infofile > $tmpdir/_${infofile} ; mv $tmpdir/_${infofile} ${subjdir}/$infofile
+        fi
+      done
     fi    
   done
 done
