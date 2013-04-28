@@ -83,7 +83,9 @@ chmod +x $FSLDIR/bin/fsl_sub
 chmod +x $FSLDIR/bin/slices_summary
 chmod 777 $FREESURFER_HOME/subjects/fsaverage/tmp # need write access so that cursor postion in tksurfer/tkmedit can be saved ! (!)
 if [ -f $FREESURFER_HOME/bin/fsl_sub_mgh ] ; then # for TRACULA
-  mv -iv $FREESURFER_HOME/bin/fsl_sub_mgh $FREESURFER_HOME/bin/fsl_sub_mgh_sav 
+  if [ "$(readlink $FREESURFER_HOME/bin/fsl_sub_mgh)" != "$FSLDIR/bin/fsl_sub" ] ; then
+    mv -iv $FREESURFER_HOME/bin/fsl_sub_mgh $FREESURFER_HOME/bin/fsl_sub_mgh_sav
+    ln -vsi $FSLDIR/bin/fsl_sub $FREESURFER_HOME/bin/fsl_sub_mgh
+  fi
 fi
-ln -vsi $FSLDIR/bin/fsl_sub $FREESURFER_HOME/bin/fsl_sub_mgh # for TRACULA
 ln -vsi ./bedpostx $FSLDIR/bin/bedpostx_seychelles # for TRACULA
