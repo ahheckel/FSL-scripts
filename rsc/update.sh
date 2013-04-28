@@ -88,4 +88,10 @@ if [ -f $FREESURFER_HOME/bin/fsl_sub_mgh ] ; then # for TRACULA
     ln -vsi $FSLDIR/bin/fsl_sub $FREESURFER_HOME/bin/fsl_sub_mgh
   fi
 fi
+if [ -f $FREESURFER_HOME/bin/fsl_sub_seychelles ] ; then # for TRACULA
+  if [ "$(readlink $FREESURFER_HOME/bin/fsl_sub_seychelles)" != "$FSLDIR/bin/fsl_sub" ] ; then
+    mv -iv $FREESURFER_HOME/bin/fsl_sub_seychelles $FREESURFER_HOME/bin/fsl_sub_seychelles_sav
+    ln -vsi $FSLDIR/bin/fsl_sub $FREESURFER_HOME/bin/fsl_sub_seychelles
+  fi
+fi
 ln -vsi ./bedpostx $FSLDIR/bin/bedpostx_seychelles # for TRACULA
