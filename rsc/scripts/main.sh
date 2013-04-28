@@ -76,8 +76,6 @@ if [ $(cat `which fsl_sub` | grep GRID_JOB_ID_FILE | grep HKL | wc -l) -eq 3 -a 
   echo "touching job-ID file '$GRID_JOB_ID_FILE'" ; echo ""
   touch $GRID_JOB_ID_FILE
   export GRID_JOB_ID_FILE
-else
-  echo "WARNING: fsl_sub is NOT patched for job control" ; echo ""
 fi
 
 # create subjects-dir.
