@@ -503,6 +503,12 @@ if [ $CHECK_CONSISTENCY_DIFFS = 1 ] ; then
   fi
 fi
 
+# Updating MELODIC templates
+echo "Updating MELODIC templates..."
+mkdir -p $gicadir/templates.gica/groupmelodic.ica
+cp $(dirname $scriptdir)/fsl/templates/rsn*.nii.gz $gicadir/templates.gica/groupmelodic.ica/
+echo "...done." ; echo ""
+
 # make log directory for fsl_sub
 mkdir -p $logdir
 $scriptdir/delbrokenlinks.sh $logdir 1 # delete broken symlinks
@@ -533,6 +539,8 @@ waitIfBusy
 
 # change to subjects directory...
 cd $subjdir
+
+echo ""
 
 ###########################
 # ----- BEGIN SCRATCH -----
