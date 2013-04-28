@@ -94,4 +94,4 @@ if [ -f $FREESURFER_HOME/bin/fsl_sub_seychelles ] ; then # for TRACULA
     ln -vsi $FSLDIR/bin/fsl_sub $FREESURFER_HOME/bin/fsl_sub_seychelles
   fi
 fi
-ln -vsi ./bedpostx $FSLDIR/bin/bedpostx_seychelles # for TRACULA
+#ln -vsi ./bedpostx $FSLDIR/bin/bedpostx_seychelles # for TRACULA
