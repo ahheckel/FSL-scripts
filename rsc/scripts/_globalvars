@@ -8,7 +8,7 @@ studydir=`pwd` # absolute path
 srcdir=$studydir/subj
 subjdir=$studydir/subj
 grpdir=$studydir/grp
-glmdir=$grpdir/glm
+glmdir=$grpdir/GLM
 logdir=$studydir/logs 
 
 tbssdir=$grpdir/tbss        ; glmdir_tbss=$glmdir/tbss
