@@ -71,10 +71,13 @@ set -e
 
 # export JOB-ID variable, if fsl_sub is patched accordingly
 if [ $(cat `which fsl_sub` | grep GRID_JOB_ID_FILE | grep HKL | wc -l) -eq 3 -a x"$SGE_ROOT" != "x" ] ; then
+  echo -n  "fsl_sub is patched for job control ; " 
   GRID_JOB_ID_FILE=$wd/.jid.grid.$$
   echo "touching job-ID file '$GRID_JOB_ID_FILE'" ; echo ""
   touch $GRID_JOB_ID_FILE
   export GRID_JOB_ID_FILE
+else
+  echo "WARNING: fsl_sub is NOT patched for job control" ; echo ""
 fi
 
 # create subjects-dir.
