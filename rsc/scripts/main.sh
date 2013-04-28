@@ -309,7 +309,7 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   fi
 fi
 
-# are all subjects registered in infofiles ?
+# are all subjects registered in struc. and func. infofiles ?
 errpause=0
 # ...in func. infofiles
 for infofile in config_bet_magn config_unwarp_bold config_func2highres.reg ; do
@@ -336,14 +336,14 @@ for infofile in config_bet_magn config_unwarp_bold config_func2highres.reg ; do
           if [ $infofile = "config_bet_magn" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETMAGN_INFO" | tee -a ${subjdir}/$infofile ; fi
           if [ $infofile = "config_unwarp_bold" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $DWIUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
           if [ $infofile = "config_func2highres.reg" -a "$(cat ${subjdir}/${subj}/sessions_struc)" = "." ] ; then read -p "Press key to add default value." ; echo "$(subjsess) ." | tee -a ${subjdir}/$infofile ; fi
-          sort ${subjdir}/$infofile > $tmpdir/_${infofile} ; mv $tmpdir/_${infofile} ${subjdir}/$infofile
+          sort ${subjdir}/$infofile | uniq  > $tmpdir/_${infofile} ; mv $tmpdir/_${infofile} ${subjdir}/$infofile
         fi
       done
     fi    
   done
 done
 # ...in struc. infofiles
-for infofile in config_bet_lowb config_bet_struc0 config_bet_struc1 config_unwarp_dwi ; do
+for infofile in config_bet_magn config_bet_lowb config_bet_struc0 config_bet_struc1 config_unwarp_dwi ; do
   for subj in `cat $subjdir/subjects` ; do
     errflag=0
     
@@ -364,11 +364,12 @@ for infofile in config_bet_lowb config_bet_struc0 config_bet_struc1 config_unwar
         if [ "x$line" = "x" ] ; then
           errpause=1
           echo "WARNING : '$infofile' : entry for '$(subjsess)' not found ! This may or may not be a problem depending on your setup."
+          if [ $infofile = "config_bet_magn" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETMAGN_INFO" | tee -a ${subjdir}/$infofile ; fi
           if [ $infofile = "config_bet_lowb" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETLOWB_INFO" | tee -a ${subjdir}/$infofile ; fi
           if [ $infofile = "config_bet_struc0" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETSTRUC0_INFO" | tee -a ${subjdir}/$infofile ; fi
           if [ $infofile = "config_bet_struc1" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETSTRUC1_INFO" | tee -a ${subjdir}/$infofile ; fi
           if [ $infofile = "config_unwarp_dwi" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $DWIUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
-          sort ${subjdir}/$infofile > $tmpdir/_${infofile} ; mv $tmpdir/_${infofile} ${subjdir}/$infofile
+          sort ${subjdir}/$infofile | uniq > $tmpdir/_${infofile} ; mv $tmpdir/_${infofile} ${subjdir}/$infofile
         fi
       done
     fi    
