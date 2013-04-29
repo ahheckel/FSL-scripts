@@ -27,6 +27,8 @@ inputs="$1"
 _pref="$2"
 idxs="$(echo "$3" | sed 's|,| |g')"
 
+if [ $(echo $inputs | wc -w) -gt 1 -a "$_pref" != "-1" ] ; then echo "`basename $0`: ERROR: multiple inputs require option '-1' - exiting..." ; exit 1 ; fi
+
 for input in $inputs ; do
 
   input=$(remove_ext "$input")
