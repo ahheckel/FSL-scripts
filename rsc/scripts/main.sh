@@ -504,7 +504,7 @@ if [ $CHECK_CONSISTENCY_DIFFS = 1 ] ; then
 fi
 
 # Updating MELODIC templates
-echo "Updating MELODIC templates..."
+echo "Updating ICA templates..."
 mkdir -p $gicadir/templates.gica/groupmelodic.ica
 cp $(dirname $scriptdir)/fsl/templates/rsn*.nii.gz $gicadir/templates.gica/groupmelodic.ica/
 echo "...done." ; echo ""

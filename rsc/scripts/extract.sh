@@ -5,7 +5,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 11/18/2012
+# 04/29/2013
 
 set -e
 
@@ -13,28 +13,51 @@ trap 'echo "$0 : An ERROR has occured."' ERR
     
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input file> <out-Prefix> <idx>"
-    echo "Example: `basename $0` melodic_IC.nii.gz ./test/melodic 0,1,2,3"
+    echo "Usage:    `basename $0` <input file> <out-Prefix> <idx>"
+    echo "Example:  `basename $0` melodic_IC.nii.gz ./test/melodic 0,1,2,3"
+    echo "          `basename $0` \"\$files\" -1 beg,mid,end"
+    echo "Note:     -1 : creates extraction in directory of input file."
     echo ""
     exit 1
 }
 
 [ "$3" = "" ] && Usage    
 
-input=$(remove_ext "$1")
-pref="$2" ; mkdir -p $(dirname $pref)
+inputs="$1"
+_pref="$2"
 idxs="$(echo "$3" | sed 's|,| |g')"
-if [ $idxs = "mid" ] ; then
-  total_volumes=`fslnvols $input 2> /dev/null`
-  idxs=$(echo "$total_volumes / 2" | bc)
-  echo "`basename $0`: mid-position: $idxs"
-fi
-#pref=$(basename $input)
 
-for idx in $idxs ; do
-  #echo "`basename $0`: extracting volume at pos. $idx from '$input'..."
-  cmd="fslroi $input ${pref}_$(zeropad $idx 4) $idx 1"
-  echo $cmd ; $cmd
+for input in $inputs ; do
+
+  input=$(remove_ext "$input")
+
+  if [ "$_pref" = "-1" ] ; then
+    pref=$(dirname $input)/$(basename $input)
+  else
+    pref=$_pref
+    mkdir -p $(dirname $pref)
+  fi
+
+  total_volumes=`fslnvols $input 2> /dev/null`
+
+  for idx in $idxs ; do
+    #echo "`basename $0`: extracting volume at pos. $idx from '$input'..."
+    if [ $idx = "beg" ] ; then
+      idx=0
+      echo "`basename $0`: start-position: $idx"
+    fi
+    if [ $idx = "mid" ] ; then
+      idx=$(echo "$total_volumes / 2" | bc)
+      echo "`basename $0`: mid-position: $idx"
+    fi
+    if [ $idx = "end" ] ; then
+      idx=$(echo "$total_volumes - 1" | bc)
+      echo "`basename $0`: end-position: $idx"
+    fi
+    cmd="fslroi $input ${pref}_$(zeropad $idx 4) $idx 1"
+    echo "    $cmd" ; $cmd
+  done
+  
 done
 
 echo "`basename $0`: done."
