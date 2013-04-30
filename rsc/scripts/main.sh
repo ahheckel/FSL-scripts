@@ -82,7 +82,7 @@ fi
 mkdir -p $subjdir
 
 # remove lock on exit
-trap "set +e ; delJIDs $GRID_JOB_ID_FILE ; save_config $studydir $subjdir \"$startdate\" ; rmdir $wd/.lockdir121978 ; echo \"Lock removed.\" ; time_elapsed $startdate_sec ; echo \"Exiting on `date`\" ; echo --------------------------- ; exit" EXIT
+trap "set +e ; echo --------------------------- ; delJIDs $GRID_JOB_ID_FILE ; save_config $studydir $subjdir \"$startdate\" ; rmdir $wd/.lockdir121978 ; echo \"Lock removed.\" ; time_elapsed $startdate_sec ; echo \"Exiting on `date`\" ; echo --------------------------- ; exit" EXIT
 
 # remove duplicates in string arrays (to avoid collisions on the cluster)
 FIRSTLEV_SUBJECTS=$(echo $FIRSTLEV_SUBJECTS | row2col | sort -u)
@@ -306,19 +306,6 @@ errpause=0
 # ...in func. infofiles
 for infofile in config_bet_magn config_unwarp_bold config_func2highres.reg ; do
   for subj in `cat $subjdir/subjects` ; do
-    line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx ${subj} || true)
-    if [ "x$line" = "x" ] ; then
-      for sess in `cat $subjdir/$subj/sessions_func` ; do
-        if [ $sess = "." ] ; then sess="" ; fi
-        line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
-        if [ "x$line" = "x" ] ; then
-          errpause=1
-          echo "WARNING : '$infofile' : entry for '$(subjsess)' not found ! This may or may not be a problem depending on your setup."
-          if [ $infofile = "config_bet_magn" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETMAGN_INFO" | tee -a ${subjdir}/$infofile ; fi
-          if [ $infofile = "config_unwarp_bold" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $DWIUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
-        fi
-      done
-    fi
     if [ $infofile = "config_func2highres.reg" ] ; then
       for sess in `cat $subjdir/$subj/sessions_func` ; do
         if [ $sess = "." ] ; then sess="" ; fi
@@ -330,6 +317,19 @@ for infofile in config_bet_magn config_unwarp_bold config_func2highres.reg ; do
             read -p "Press key to add default value."
             echo "$(subjsess) ." | tee -a ${subjdir}/$infofile
           fi
+        fi
+      done
+    fi
+    line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx ${subj} || true)
+    if [ "x$line" = "x" ] ; then
+      for sess in `cat $subjdir/$subj/sessions_func` ; do
+        if [ $sess = "." ] ; then sess="" ; fi
+        line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
+        if [ "x$line" = "x" ] ; then
+          errpause=1
+          echo "WARNING : '$infofile' : entry for '$(subjsess)' not found ! This may or may not be a problem depending on your setup."
+          if [ $infofile = "config_bet_magn" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETMAGN_INFO" | tee -a ${subjdir}/$infofile ; fi
+          if [ $infofile = "config_unwarp_bold" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $DWIUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
         fi
       done
     fi
