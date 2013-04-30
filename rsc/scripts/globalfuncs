@@ -96,7 +96,7 @@ function save_config()
   local relpath=""
   local dumps=""
  
-  echo "" ; echo "saving configuration in '$savdir/':"
+  echo "saving configuration in '$savdir/':"
   if [ x"$_subjdir" = "x" ] ; then echo "ERROR: 'subjdir' var. not defined - cannot save..." ; return ; fi
   if [ x"$_studydir" = "x" ] ; then echo "ERROR: 'studydir' var. not defined - cannot save..." ; return ; fi
   if [ ! -d $_subjdir ] ; then echo "ERROR: '$_subjdir' not found - cannot save..." ; return ; fi
