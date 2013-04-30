@@ -308,7 +308,6 @@ for infofile in config_bet_magn config_unwarp_bold config_func2highres.reg ; do
   for subj in `cat $subjdir/subjects` ; do
     if [ $infofile = "config_func2highres.reg" ] ; then
       for sess in `cat $subjdir/$subj/sessions_func` ; do
-        if [ $sess = "." ] ; then sess="" ; fi
         line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
         if [ "x$line" = "x" ] ; then
           errpause=1
@@ -323,7 +322,6 @@ for infofile in config_bet_magn config_unwarp_bold config_func2highres.reg ; do
     line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx ${subj} || true)
     if [ "x$line" = "x" ] ; then
       for sess in `cat $subjdir/$subj/sessions_func` ; do
-        if [ $sess = "." ] ; then sess="" ; fi
         line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
         if [ "x$line" = "x" ] ; then
           errpause=1
@@ -342,7 +340,6 @@ for infofile in config_bet_magn config_bet_lowb config_bet_struc0 config_bet_str
     line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx ${subj} || true)
     if [ "x$line" = "x" ] ; then
       for sess in `cat $subjdir/$subj/sessions_struc` ; do
-        if [ $sess = "." ] ; then sess="" ; fi
         line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
         if [ "x$line" = "x" ] ; then
           errpause=1

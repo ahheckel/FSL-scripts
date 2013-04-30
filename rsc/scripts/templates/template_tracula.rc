@@ -62,3 +62,15 @@ set pathlist = (lh.cst_AS rh.cst_AS \
 # Number of path control points
 # Default: 5
 set ncpts = 5
+# Reinitialize path reconstruction? (works only for revision >= 1.3.2.4)
+# This is an option of last resort, to be used only if one of the reconstructed
+# pathway distributions looks like a single curve. This is a sign that the
+# initial guess for the pathway was problematic, perhaps due to poor alignment
+# between the individual and the atlas. Setting the reinit parameter to 1 and
+# rerunning "trac-all -prior" and "trac-all -path", only for the specific
+# subjects and pathways that had this problem, will attempt to reconstruct them
+# with a different initial guess.
+# Default: 0 (do not reinitialize)
+#
+#set reinit = 0
+
