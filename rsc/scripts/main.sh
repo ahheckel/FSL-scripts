@@ -315,50 +315,41 @@ errpause=0
 # ...in func. infofiles
 for infofile in config_bet_magn config_unwarp_bold config_func2highres.reg ; do
   for subj in `cat $subjdir/subjects` ; do
-    errflag=0
-    
-    for sess in `cat $subjdir/$subj/sessions_func` ; do
-      if [ $sess = "." ] ; then sess="" ; fi
-      
-      line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
-      if [ "x$line" = "x" ] ; then 
-        errflag=1
-        #echo "WARNING : '$infofile' : entry for id '$(subjsess)' not found ! This may or may not be a problem depending on your setup."
-      fi
-    done
-    
-    if [ $errflag -eq 1 ] ; then
+    line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx ${subj} || true)
+    if [ "x$line" = "x" ] ; then
       for sess in `cat $subjdir/$subj/sessions_func` ; do
         if [ $sess = "." ] ; then sess="" ; fi
         line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
-        if [ "x$line" = "x" ] ; then 
+        if [ "x$line" = "x" ] ; then
           errpause=1
           echo "WARNING : '$infofile' : entry for '$(subjsess)' not found ! This may or may not be a problem depending on your setup."
           if [ $infofile = "config_bet_magn" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETMAGN_INFO" | tee -a ${subjdir}/$infofile ; fi
           if [ $infofile = "config_unwarp_bold" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $DWIUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
-          if [ $infofile = "config_func2highres.reg" -a "$(cat ${subjdir}/${subj}/sessions_struc)" = "." ] ; then read -p "Press key to add default value." ; echo "$(subjsess) ." | tee -a ${subjdir}/$infofile ; fi
-          sort ${subjdir}/$infofile | uniq  > $tmpdir/_${infofile} ; mv $tmpdir/_${infofile} ${subjdir}/$infofile
         fi
       done
-    fi    
+    fi
+    if [ $infofile = "config_func2highres.reg" ] ; then
+      for sess in `cat $subjdir/$subj/sessions_func` ; do
+        if [ $sess = "." ] ; then sess="" ; fi
+        line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
+        if [ "x$line" = "x" ] ; then
+          errpause=1
+          echo "WARNING : '$infofile' : entry for '$(subjsess)' not found ! This may or may not be a problem depending on your setup."
+          if [ "$(cat ${subjdir}/${subj}/sessions_struc)" = "." ] ; then
+            read -p "Press key to add default value."
+            echo "$(subjsess) ." | tee -a ${subjdir}/$infofile
+          fi
+        fi
+      done
+    fi
   done
+  sort ${subjdir}/$infofile | uniq  > $tmpdir/_${infofile} ; mv $tmpdir/_${infofile} ${subjdir}/$infofile
 done
 # ...in struc. infofiles
 for infofile in config_bet_magn config_bet_lowb config_bet_struc0 config_bet_struc1 config_unwarp_dwi ; do
   for subj in `cat $subjdir/subjects` ; do
-    errflag=0
-    
-    for sess in `cat $subjdir/$subj/sessions_struc` ; do
-      if [ $sess = "." ] ; then sess="" ; fi
-      
-      line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
-      if [ "x$line" = "x" ] ; then 
-        errflag=1
-        #echo "WARNING : '$infofile' : entry for id '$(subjsess)' not found ! This may or may not be a problem depending on your setup."
-      fi
-    done
-    
-    if [ $errflag -eq 1 ] ; then
+    line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx ${subj} || true)
+    if [ "x$line" = "x" ] ; then
       for sess in `cat $subjdir/$subj/sessions_struc` ; do
         if [ $sess = "." ] ; then sess="" ; fi
         line=$(cat $subjdir/$infofile | awk '{print $1}' | grep -nx $(subjsess) || true)
@@ -370,11 +361,11 @@ for infofile in config_bet_magn config_bet_lowb config_bet_struc0 config_bet_str
           if [ $infofile = "config_bet_struc0" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETSTRUC0_INFO" | tee -a ${subjdir}/$infofile ; fi
           if [ $infofile = "config_bet_struc1" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $BETSTRUC1_INFO" | tee -a ${subjdir}/$infofile ; fi
           if [ $infofile = "config_unwarp_dwi" ] ; then read -p "Press key to add default value." ; echo "$(subjsess) $DWIUNWARP_INFO" | tee -a ${subjdir}/$infofile ; fi
-          sort ${subjdir}/$infofile | uniq > $tmpdir/_${infofile} ; mv $tmpdir/_${infofile} ${subjdir}/$infofile
         fi
       done
     fi    
   done
+  sort ${subjdir}/$infofile | uniq > $tmpdir/_${infofile} ; mv $tmpdir/_${infofile} ${subjdir}/$infofile
 done
 if [ $errpause -eq 1 ] ; then echo "" ; echo "***CHECK*** (sleeping 2 seconds)..." ; sleep 2 ; echo "" ; fi
 
@@ -504,7 +495,7 @@ if [ $CHECK_CONSISTENCY_DIFFS = 1 ] ; then
 fi
 
 # Updating MELODIC templates
-echo "Updating ICA templates..."
+echo "Copying ICA templates..."
 mkdir -p $gicadir/templates.gica/groupmelodic.ica
 cp $(dirname $scriptdir)/fsl/templates/rsn*.nii.gz $gicadir/templates.gica/groupmelodic.ica/
 echo "...done." ; echo ""
