@@ -82,8 +82,6 @@ for i=0:5
         netmat=netmat4;
     elseif i==5
         netmat=netmat5;
-    elseif i==6
-        netmat=netmat6; 
     end
     [grotH,grotP,grotCI,grotSTATS]=ttest(netmat);
     warning off % fileparts issues annoying warnings (HKL)
