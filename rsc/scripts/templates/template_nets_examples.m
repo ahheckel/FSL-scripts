@@ -96,6 +96,8 @@ for i=0:5
        path=strcat(outputdir,'/netmat',num2str(i),'_t',num2str(t))
        [p_uncorrected,p_corrected]=nets_glm(netmat,design_mat,design_con,design_grp,design_nperm,0,path); % path argument added (HKL)
     end
+    path=strcat(outputdir,'/netmat',num2str(i))
+    [p_uncorrected,p_corrected]=nets_glm(netmat,design_mat,design_con,design_grp,design_nperm,0,path); % path argument added (HKL)
     warning on % (HKL)
 end
 exit % (HKL)
