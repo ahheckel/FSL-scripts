@@ -279,17 +279,8 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   
   # is registration mapping file present ? 
   if [ ! -f ${subjdir}/config_func2highres.reg ] ; then
-    echo "Registration mapping between functionals and t1 structural not found -> file created. You may need to edit that file..."
+    echo "WARNING: Registration mapping between functionals and t1 structural not found -> file created. You may need to edit that file..."
     touch ${subjdir}/config_func2highres.reg
-    #subj=`head -n 1 $subjdir/subjects`
-    #if [ $(find $srcdir/$subj/ -maxdepth 1 -type d | wc -l) -eq 1 ] ; then
-      #read -p "No subdirectories in $subjdir/$subj detected - assuming single session design. Press Key to create default func->highres mapping for single session designs..."
-      #for i in $(cat $subjdir/subjects) ; do
-        #echo "$i ." >> $subjdir/config_func2highres.reg
-      #done
-      #echo "done."
-    #fi
-    #subj=""
   fi
   
   # are template files present?
