@@ -47,8 +47,10 @@ netmat1=nets_r2z(ts, nets_makemats(ts,'corr') );       % full correlation (norma
 netmat2=nets_r2z(ts, nets_makemats(ts,'icov') );       % partial correlation
 netmat3=nets_r2z(ts, nets_makemats(ts,'icov',0.1) );   % regularised partial, with lambda=0.1
 netmat4=nets_r2z(ts, nets_makemats(ts,'icov',1) );     %                                 =1
-netmat5=nets_r2z(ts, nets_makemats(ts,'icov',10) );    %                                 =10
-netmat6=nets_makemats(ts,'pwling');                    % Hyvarinen's pairwise causality measure
+netmat5=nets_r2z(ts, nets_makemats(ts,'icov',5) );     %                                 =5   # (HKL) see Smith 2011
+netmat6=nets_r2z(ts, nets_makemats(ts,'icov',10) );    %                                 =10
+netmat7=nets_r2z(ts, nets_makemats(ts,'icov',100) );   %                                 =100 # (HKL) see Smith 2011
+netmat11=nets_makemats(ts,'pwling');                   % Hyvarinen's pairwise causality measure
 
 
 %%% view of consistency of netmats across subjects
@@ -69,7 +71,7 @@ nets_hierarchy(meanCORR,meanPCORR,ts.DD,sprintf('%s.sum',group_maps));
 
 %%% OR - GLM, but with pre-masking that tests only the connections that are strong on average across all subjects.
 %%% change the "8" to a different tstat threshold to make this sparser or less sparse.
-for i=0:5
+for i=0:7
     if i==0
         netmat=netmat0;
     elseif i==1
@@ -82,6 +84,10 @@ for i=0:5
         netmat=netmat4;
     elseif i==5
         netmat=netmat5;
+    elseif i==6
+        netmat=netmat6;
+    elseif i==7
+        netmat=netmat7;
     end
     [grotH,grotP,grotCI,grotSTATS]=ttest(netmat);
     warning off % fileparts issues annoying warnings (HKL)
@@ -95,8 +101,8 @@ for i=0:5
        [p_uncorrected,p_corrected]=nets_glm(netmat,design_mat,design_con,design_grp,design_nperm,0,path); % path argument added (HKL)
     end
 end
-path=strcat(outputdir,'/netmat6')
-[p_uncorrected,p_corrected]=nets_glm(netmat6,design_mat,design_con,design_grp,design_nperm,0,path); % path argument added (HKL)
+path=strcat(outputdir,'/netmat11')
+[p_uncorrected,p_corrected]=nets_glm(netmat11,design_mat,design_con,design_grp,design_nperm,0,path); % path argument added (HKL)
 warning on % (HKL)
 exit % (HKL)
 return % (HKL)
