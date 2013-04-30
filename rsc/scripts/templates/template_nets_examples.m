@@ -48,7 +48,7 @@ netmat2=nets_r2z(ts, nets_makemats(ts,'icov') );       % partial correlation
 netmat3=nets_r2z(ts, nets_makemats(ts,'icov',0.1) );   % regularised partial, with lambda=0.1
 netmat4=nets_r2z(ts, nets_makemats(ts,'icov',1) );     %                                 =1
 netmat5=nets_r2z(ts, nets_makemats(ts,'icov',10) );    %                                 =10
-netmat6=nets_makemats(ts,'pwling');                   % Hyvarinen's pairwise causality measure
+netmat6=nets_makemats(ts,'pwling');                    % Hyvarinen's pairwise causality measure
 
 
 %%% view of consistency of netmats across subjects
