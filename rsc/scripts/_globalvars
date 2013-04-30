@@ -109,7 +109,7 @@ VBM_2NDLEV_STG3=0          # VBM permutation testing
 MELODIC_2NDLEV_STG1=0      # MELODIC create *.fsf file 
 MELODIC_2NDLEV_STG2=0      # MELODIC create sym-links to t1-structurals
 
-MELODIC_CMD_STG1=0         # MELODIC use melodic-command line tool (optional)
+MELODIC_CMD_STG1=0         # MELODIC use melodic-command line tool
 
 DUALREG_STG1=0             # DUALREG prepare for randomie
 DUALREG_STG2=0             # DUALREG randomise
@@ -303,7 +303,7 @@ MELODIC_SMOOTH=4.0                                             # smoothing kerne
 MELODIC_REGSTD_RESOLUTION=4.0                                  # resampling resolution of normalised volumes volumes
 MELODIC_HIGHPASS_CUTOFF=100                                    # high-pass filter cutoff value
 
-# MELODIC_CMD (optional)
+# MELODIC_CMD
 MELODIC_CMD_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS               # subjects to be included in the ICA analysis
 MELODIC_CMD_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC          # sessions to be included in the ICA analysis
 MELODIC_CMD_INPUT_FILES="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni2    preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s4_longt_mni4"   # preprocBOLD_mni_uw_mc_bold_hpf100_s4_stc0_res4.nii.gz preprocBOLD_mni_uw_mc_bold_hpf100_s2_stc0_res2.nii.gz"  # filename of input file (in 'bold' subdirectory)
