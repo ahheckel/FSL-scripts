@@ -12,6 +12,8 @@
 # https://github.com/ahheckel
 # 02/26/2013
 
+tmpfile=/tmp/$(basename $0)_$$
+
 if [ x"$flatpatch" = "x" ] ; then flatpatch=0 ; fi
 if [ x"$subject" = "x" ] ; then subject=fsaverage ; fi
 
@@ -36,6 +38,7 @@ labels_lh=""    ; labels_rh=""
 lastfile=""
 sigmap=0
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
+  
   niigz=$(echo $i | grep "\.nii.gz$" | wc -l)
   nii=$(echo $i | grep "\.nii$" | wc -l)
   mgh=$(echo $i | grep "\.mgh$" | wc -l)
@@ -50,6 +53,16 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   gamma=$(echo $(basename $i) | grep "^gamma\.mgh$" | wc -l)
   gammavar=$(echo $(basename $i) | grep "^gammavar\.mgh$" | wc -l)
   cnr=$(echo $(basename $i) | grep "^cnr\.mgh$" | wc -l)
+  
+  if [ $mgz -eq 0 ] ; then
+    mri_info $i > $tmpfile  
+    type=$(cat $tmpfile | grep type: | head -n1 | cut -d : -f 2)  
+    isscalar=$(cat $tmpfile | grep dimensions | cut -d : -f 2- | grep "x 1 x 1" | wc -l)
+    rm $tmpfile
+  else
+    type=XXX
+    isscalar=0
+  fi
   
   # left or right hemisphere ?
   lh=0 ; rh=0
@@ -81,6 +94,12 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     elif [ $rh -eq 1 ] ; then # ...of the right hemi.
       overlist_rh=$overlist_rh" -overlay $i -fminmax P_VAL_MIN P_VAL_MAX"
     fi
+  elif [ $type = "MGH" -a $isscalar -eq 1 ] ; then # file is (probably) a scalar
+    if [ $lh -eq 1 ] ; then # ...of the left hemi.
+      overlist_lh=$overlist_lh" -overlay $i"
+    elif [ $rh -eq 1 ] ; then # ...of the right hemi.
+      overlist_rh=$overlist_rh" -overlay $i"
+    fi  
   fi
   
   if [ $label -eq 1 ] ; then # file is a label...

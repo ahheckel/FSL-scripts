@@ -12,6 +12,8 @@
 # https://github.com/ahheckel
 # 01/12/2013
 
+tmpfile=/tmp/$(basename $0)_$$
+
 FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
@@ -22,6 +24,7 @@ annotlist_lh="" ; annotlist_rh=""
 labels_lh=""    ; labels_rh=""
 lastfile=""
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
+    
   niigz=$(echo $i | grep "\.nii.gz$" | wc -l)
   nii=$(echo $i | grep "\.nii$" | wc -l)
   mgh=$(echo $i | grep "\.mgh$" | wc -l)
@@ -36,6 +39,16 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   gamma=$(echo $(basename $i) | grep "^gamma\.mgh$" | wc -l)
   gammavar=$(echo $(basename $i) | grep "^gammavar\.mgh$" | wc -l)
   cnr=$(echo $(basename $i) | grep "^cnr\.mgh$" | wc -l)
+  
+  if [ $mgz -eq 0 ] ; then
+    mri_info $i > $tmpfile  
+    type=$(cat $tmpfile | grep type: | head -n1 | cut -d : -f 2)  
+    isscalar=$(cat $tmpfile | grep dimensions | cut -d : -f 2- | grep "x 1 x 1" | wc -l)
+    rm $tmpfile
+  else
+    type=XXX
+    isscalar=0
+  fi
   
   # left or right hemisphere ?
   lh=0 ; rh=0
@@ -66,12 +79,13 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     elif [ $rh -eq 1 ] ; then # ...of the right hemi.
       overlist_rh=$overlist_rh":overlay=$i"
     fi
+  elif [ $type = "MGH" -a $isscalar -eq 1 ] ; then # file is (probably) a scalar
+    if [ $lh -eq 1 ] ; then # ...of the left hemi.
+      overlist_lh=$overlist_lh":overlay=$i"
+    elif [ $rh -eq 1 ] ; then # ...of the right hemi.
+      overlist_rh=$overlist_rh":overlay=$i"
+    fi
   elif [ $niigz -eq 1 -o $nii -eq 1 -o $mgh -eq 1 -o $mgz -eq 1 ] ; then # file is a volume...    
-    #if [ $lh -eq 1 ] ; then # ...of the left hemi.
-      #vollist_lh=$vollist_lh" -v $i"
-    #elif [ $rh -eq 1 ] ; then # ...of the right hemi.
-      #vollist_rh=$vollist_rh" -v $i"
-    #fi # side (left/right) probably not sensible here...
     vollist_rh=$vollist_rh" -v $i"
   elif [ $annot -eq 1 ] ; then # file is an annotation...
     if [ $lh -eq 1 ] ; then # ...of the left hemi.
@@ -86,7 +100,6 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
       labels_rh=$labels_rh":label=$i"
     fi
   else
-    type=$(mri_info $i | grep type: | head -n1 | cut -d : -f 2)
     if [ $type = "curv" ] ; then # file is an overlay...
       if [ $lh -eq 1 ] ; then # ...of the left hemi.
         overlist_lh=$overlist_lh":overlay=$i"

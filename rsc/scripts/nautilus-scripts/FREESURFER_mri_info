@@ -1,0 +1,23 @@
+#!/bin/bash
+# freeview wrapper for Nautilus.
+
+# INSTALL:
+# mkdir -p ~/.gnome2/nautilus-scripts
+# cp "script.sh" ~/.gnome2/nautilus-scripts/
+# chmod +x ~/.gnome2/nautilus-scripts/"script.sh"
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 01/12/2013
+
+FREESURFER_HOME=/usr/local/freesurfer
+source $FREESURFER_HOME/SetUpFreeSurfer.sh
+
+for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
+    xterm -e "mri_info $i ; read -p \"Press key...\""
+done
+
+
+
