@@ -3767,6 +3767,7 @@ if [ $MELODIC_CMD_STG1 -eq 1 ]; then
     echo "MELODIC_CMD : executing melodic command line tool:"
     echo "melodic -i $fldr/input.files -o $fldr/groupmelodic.ica $opts -v --tr=$TR_bold --report --guireport=$fldr/report.html -d 0 --mmthresh=0.5 -a concat --Oall" | tee $fldr/melodic.cmd
     . $fldr/melodic.cmd
+    #fsl_sub -l $logdir -N melodic_$(subjsess) -t $fldr/melodic.cmd
   done
 fi
 
