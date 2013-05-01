@@ -4,4 +4,4 @@
 set -e
 cp $(dirname $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS)/design.grp $(dirname $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS)/_design.grp 
 /usr/bin/fsl4.1-Glm $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS
-mv $(dirname $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS)/_design.grp $(dirname $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS)/design.grp
+#mv $(dirname $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS)/_design.grp $(dirname $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS)/design.grp
