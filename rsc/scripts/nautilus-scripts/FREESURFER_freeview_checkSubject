@@ -22,7 +22,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   #zenity --info --text="$opts"
 
   # execute
-  freeview ${opts}
+  freeview ${opts} &
 done
 
 
