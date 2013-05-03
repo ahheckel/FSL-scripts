@@ -48,6 +48,9 @@ scriptdir=$studydir/rsc/scripts
 tmpltdir=$studydir/rsc/scripts/templates
 tmpdir=$studydir/.tmp
 
+# make temp directory
+mkdir -p $tmpdir
+
 # source environment functions
 source $scriptdir/globalfuncs
 
@@ -76,6 +79,8 @@ if [ $(cat `which fsl_sub` | grep GRID_JOB_ID_FILE | grep HKL | wc -l) -eq 3 -a 
   echo "touching job-ID file '$GRID_JOB_ID_FILE'" ; echo ""
   touch $GRID_JOB_ID_FILE
   export GRID_JOB_ID_FILE
+elif [ $(cat `which fsl_sub` | grep GRID_JOB_ID_FILE | grep HKL | wc -l) -lt 3 -a x"$SGE_ROOT" != "x" ] ; then
+  echo "ERROR: fsl_sub is NOT patched for job control! Exiting... " ; exit 1
 fi
 
 # create subjects-dir.
@@ -491,9 +496,6 @@ echo "...done." ; echo ""
 # make log directory for fsl_sub
 mkdir -p $logdir
 $scriptdir/delbrokenlinks.sh $logdir 1 # delete broken symlinks
-
-# make temp directory
-mkdir -p $tmpdir
 
 # make directory for 2nd level GLMs
 mkdir -p $glmdir_tbss

@@ -87,7 +87,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   # check
   #zenity --info --text="$rh $lh"
   
-  if [ $sig -eq 1 -o $F -eq 1 -o $gamma -eq 1 -o $gammavar -eq 1 -o $cnr -eq 1 ] ; then # file is a statistical map...
+  if [ $sig -eq 1 -o $F -eq 1 ] ; then # file is a significance map...
     sigmap=1
     if [ $lh -eq 1 ] ; then # ...of the left hemi.
       overlist_lh=$overlist_lh" -overlay $i -fminmax P_VAL_MIN P_VAL_MAX"
