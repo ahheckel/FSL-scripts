@@ -185,7 +185,8 @@ BPX_USE_TOPUP_EDDY_NOROT=0
 
 # RECON-ALL
 RECON_USE_CUDA=0           # use CUDA for recon-all, if available
-RECON_USE_MRITOTAL=0       # may improve talairach registration
+RECON_USE_MRITOTAL=0       # may improve Talairach registration
+RECON_OPTIONS=""           # "-nuintensitycor-3T -schwartzya3t-atlas" only for FREESURFER >= v.5.2
 
 # VBM_PREPROC
 VBM_FSLV5=0                # perform fsl_anat script OR

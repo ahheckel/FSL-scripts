@@ -1725,8 +1725,9 @@ if [ $RECON_STG2 -eq 1 ] ; then
       # use CUDA if available...
       if [ $RECON_USE_CUDA = 1 ] ; then exitflag=0 ; else exitflag=X ; fi
       
-      # additional switches
+      # additional options
       if [ $RECON_USE_MRITOTAL = 1 ] ; then opts="-use-mritotal" ; else opts="" ; fi # -use-mritotal may give better talairach transforms (!)
+      opts="$opts $RECON_OPTIONS"
       
       echo '#!/bin/bash' > $fldr/recon-all_cuda.sh
       echo 'cudadetect &>/dev/null' >>  $fldr/recon-all_cuda.sh
@@ -1759,8 +1760,9 @@ if [ $RECON_STG3 -eq 1 ] ; then
       cmd="$cmd -tp $(subjsess)" 
     done
     
-    # additional switches
+    # additional options
     if [ $RECON_USE_MRITOTAL = 1 ] ; then opts="-use-mritotal" ; else opts="" ; fi
+    opts="$opts $RECON_OPTIONS"
     
     # executing...
     echo "RECON : subj $subj , sess $sess : executing recon-all - unbiased template generation..."
