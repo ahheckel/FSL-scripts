@@ -17,7 +17,8 @@ source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do    
   SUBJECTS_DIR=$(dirname $i)
-  opts="--s $(basename $i) --fstal --surf"
+  #opts="--s $(basename $i) --fstal --surf"
+  opts="--s $(basename $i) --fstal"
 
   # check
   #zenity --info --text="$opts"

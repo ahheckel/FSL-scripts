@@ -34,7 +34,7 @@ if [ $domc -eq 1 ] ; then
   echo "`basename $0`: $cmd" ; $cmd
 fi
 if [ $domc -eq 1 ] ; then sminput=${input}_mcf ; else sminput=${input} ; fi
-cmd="$(dirname $0)/feat_smooth.sh ${sminput} ${sminput} $_smkrnl $hpf $TR"
+cmd="$(dirname $0)/feat_smooth.sh ${sminput} ${sminput} $smkrnl $hpf $TR"
 echo "`basename $0`: $cmd" ; $cmd
 imrm ${sminput}_susan_mask.nii.gz
 rm ${sminput}_susan_mask_vals
