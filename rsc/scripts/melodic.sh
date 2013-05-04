@@ -104,7 +104,13 @@ if [ $(echo "$inputs" | wc -w) -eq 1 ] ; then
   if [ $(_imtest $inputs) -eq 1 ] ; then # single session ICA
     gica=0
   elif [ $(testascii $inputs) -eq 1 ] ; then # assume group ICA
-    gica=1
+    if [ $(cat $inputs | grep "[[:alnum:]]" | wc -l) -eq 1 ] ; then
+      gica=0
+    elif [ $(cat $inputs | grep "[[:alnum:]]" | wc -l) -gt 1 ] ; then
+      gica=1
+    else
+      echo "`basename $0`: ERROR : '$input' is empty - exiting." ; exit 1
+    fi      
     inputs="$(cat $inputs)" # assuming ascii list with volumes
   else
     echo "`basename $0`: ERROR : cannot read inputfile '$inputs' - exiting." ; exit 1 
@@ -118,7 +124,7 @@ err=0
 for file in $inputs ; do
   if [ $(_imtest $file) -eq 0 ] ; then echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
 done
-if [ $err -eq 1 ] ; then "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
+if [ $err -eq 1 ] ; then echo "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
 
 # create command options
 opts="-v --tr=${TR} --report -d 0 --mmthresh=0.5 --Oall $_opts"
