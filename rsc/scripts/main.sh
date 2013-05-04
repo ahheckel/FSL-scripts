@@ -62,6 +62,29 @@ if [ $(echo $dumps | wc -w) -gt 0 ] ; then
   exit 1
 fi
 
+# export JOB-ID variable and check if fsl_sub is patched accordingly
+if [ $(cat `which fsl_sub` | grep GRID_JOB_ID_FILE | grep HKL | wc -l) -eq 3 -a x"$SGE_ROOT" != "x" ] ; then
+  echo -n  "NOTE: fsl_sub is patched for job control ; " 
+  GRID_JOB_ID_FILE=$wd/.jid.grid.$$
+  echo "touching job-ID file '$GRID_JOB_ID_FILE'"
+  touch $GRID_JOB_ID_FILE
+  export GRID_JOB_ID_FILE
+elif [ $(cat `which fsl_sub` | grep GRID_JOB_ID_FILE | grep HKL | wc -l) -lt 3 -a x"$SGE_ROOT" != "x" ] ; then
+  echo "ERROR: fsl_sub is NOT patched for job control! Exiting... " ; exit 1
+fi
+
+# check if FREESURFER's fsl_sub is patched
+for fs_fsl_sub in $FREESURFER_HOME/bin/fsl_sub_mgh FREESURFER_HOME/bin/fsl_sub_seychelles ; do
+  if [ -f  $fs_fsl_sub ] ; then
+    if [ "$(readlink $fs_fsl_sub)" = "$FSLDIR/bin/fsl_sub" -a x"$SGE_ROOT" != "x" ] ; then
+      echo "NOTE: '$fs_fsl_sub' is linked to '$FSLDIR/bin/fsl_sub'"
+    else
+      echo "ERROR: '$fs_fsl_sub' is NOT linked to '$FSLDIR/bin/fsl_sub'! Exiting... " ; exit 1
+    fi
+  fi
+done
+echo ""
+
 # create and check lock
 set +e
   lock="$wd/.lockdir121978"
@@ -71,17 +94,6 @@ set +e
   lock=""
   echo ""
 set -e
-
-# export JOB-ID variable, if fsl_sub is patched accordingly
-if [ $(cat `which fsl_sub` | grep GRID_JOB_ID_FILE | grep HKL | wc -l) -eq 3 -a x"$SGE_ROOT" != "x" ] ; then
-  echo -n  "NOTE: fsl_sub is patched for job control ; " 
-  GRID_JOB_ID_FILE=$wd/.jid.grid.$$
-  echo "touching job-ID file '$GRID_JOB_ID_FILE'" ; echo ""
-  touch $GRID_JOB_ID_FILE
-  export GRID_JOB_ID_FILE
-elif [ $(cat `which fsl_sub` | grep GRID_JOB_ID_FILE | grep HKL | wc -l) -lt 3 -a x"$SGE_ROOT" != "x" ] ; then
-  echo "ERROR: fsl_sub is NOT patched for job control! Exiting... " ; exit 1
-fi
 
 # create subjects-dir.
 mkdir -p $subjdir
