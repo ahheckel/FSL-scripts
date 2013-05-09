@@ -76,7 +76,7 @@ fi
 # check if FREESURFER's fsl_sub is patched
 for fs_fsl_sub in $FREESURFER_HOME/bin/fsl_sub_mgh FREESURFER_HOME/bin/fsl_sub_seychelles ; do
   if [ -f  $fs_fsl_sub ] ; then
-    if [ "$(readlink $fs_fsl_sub)" = "$FSLDIR/bin/fsl_sub" -a x"$SGE_ROOT" != "x" ] ; then
+    if [ "$(readlink $fs_fsl_sub)" = "$FSLDIR/bin/fsl_sub" ] ; then
       echo "NOTE: '$fs_fsl_sub' is linked to '$FSLDIR/bin/fsl_sub'"
     else
       echo "ERROR: '$fs_fsl_sub' is NOT linked to '$FSLDIR/bin/fsl_sub'! Exiting... " ; exit 1
@@ -2620,7 +2620,7 @@ if [ $BOLD_STG2 -eq 1 ] ; then
             lname=$(echo "$featdir" | sed "s|"uw[-+]y"|"uw"|g") # remove unwarp direction from link's name
             ln -sfv ./$(basename $featdir)/filtered_func_data.nii.gz ${lname%.feat}_filtered_func_data.nii.gz
             # create a link to report_log.html in logdir.
-            ln -sfv $(path_abs2rel $logdir/ $featdir/)/report_log.html $logdir/$(subjsess)_reportlog_bold_$(basename $featdir).html
+            ln -sfv $(path_abs2rel $logdir/ $featdir/)/report_log.html $logdir/$(basename $featdir)_$(subjsess).html
    
           done # end stc_val
         done # end sm_krnl        
