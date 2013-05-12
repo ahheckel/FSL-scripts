@@ -1738,8 +1738,7 @@ if [ $RECON_STG2 -eq 1 ] ; then
       if [ $RECON_USE_CUDA = 1 ] ; then exitflag=0 ; else exitflag=X ; fi
       
       # additional options
-      if [ $RECON_USE_MRITOTAL = 1 ] ; then opts="-use-mritotal" ; else opts="" ; fi # -use-mritotal may give better talairach transforms (!)
-      opts="$opts $RECON_OPTIONS"
+      opts="$RECON_OPTIONS"
       
       echo '#!/bin/bash' > $fldr/recon-all_cuda.sh
       echo 'cudadetect &>/dev/null' >>  $fldr/recon-all_cuda.sh
@@ -1773,8 +1772,7 @@ if [ $RECON_STG3 -eq 1 ] ; then
     done
     
     # additional options
-    if [ $RECON_USE_MRITOTAL = 1 ] ; then opts="-use-mritotal" ; else opts="" ; fi
-    opts="$opts $RECON_OPTIONS"
+    opts="$RECON_OPTIONS"
     
     # executing...
     echo "RECON : subj $subj , sess $sess : executing recon-all - unbiased template generation..."
@@ -2240,6 +2238,18 @@ if [ $TRACULA_STG1 -eq 1 ] ; then
         ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/topup/)/avg_bvals.txt $fldr/bvals_concat.txt
         ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/topup/)/avg_bvecs_topup_ec.rot $fldr/bvecs_concat.txt
         ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/topup/)/$(subjsess)_topup_corr_ec_merged.nii.gz $fldr/diff_merged.nii.gz
+       
+        # tracula shall not eddy-correct
+        sed -i "s|set doeddy = .*|set doeddy = 0|g" $fldr/tracula.rc
+        sed -i "s|set dorotbvecs = .*|set dorotbvecs = 0|g" $fldr/tracula.rc
+      elif [ $TRACULA_USE_TOPUP_EDDY_NOROT -eq 1 ] ; then
+        # is topup directory present ?
+        if [ ! -d $subjdir/$subj/$sess/topup ] ; then echo "TRACULA : subj $subj , sess $sess : ERROR : you must run the TOPUP-stream first - breaking loop..." ; break ; fi
+        
+        echo "TRACULA : subj $subj , sess $sess : linking to TOPUP corrected, EDDY-corrected DWIs (w/o corrected b-vectors)..."
+        ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/topup/)/avg_bvals.txt $fldr/bvals_concat.txt
+        ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/topup/)/avg_bvecs.txt $fldr/bvecs_concat.txt
+        ln -sfv $(path_abs2rel $fldr/ $subjdir/$subj/$sess/topup/)/$(subjsess)_topup_corr_eddy_merged.nii.gz $fldr/diff_merged.nii.gz
        
         # tracula shall not eddy-correct
         sed -i "s|set doeddy = .*|set doeddy = 0|g" $fldr/tracula.rc

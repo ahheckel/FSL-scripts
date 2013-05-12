@@ -185,8 +185,7 @@ BPX_USE_TOPUP_EDDY_NOROT=0
 
 # RECON-ALL
 RECON_USE_CUDA=0           # use CUDA for recon-all, if available
-RECON_USE_MRITOTAL=0       # may improve Talairach registration
-RECON_OPTIONS=""           # "-nuintensitycor-3T -schwartzya3t-atlas" only for FREESURFER >= v.5.2
+RECON_OPTIONS=""           # "-use-mritotal" (may improve Talairach registration) ; NOTE: "-nuintensitycor-3T -schwartzya3t-atlas" only for FREESURFER >= v.5.2
 
 # VBM_PREPROC
 VBM_FSLV5=0                # perform fsl_anat script OR
@@ -202,6 +201,7 @@ TRACULA_USE_NATIVE=0             # use unprocessed merged DWI files (TRACULA doe
 TRACULA_USE_UNWARPED_BVECROT=0   # use unwarped and eddy-corrected merged DWI files and corrected b-vectors
 TRACULA_USE_TOPUP_NOEC_BVECROT=0 # use TOPUP corrected merged DWI files with corrected b-vectors
 TRACULA_USE_TOPUP_EC_BVECROT=1   # use TOPUP corrected & eddy-corrected merged DWI files with corrected b-vectors
+TRACULA_USE_TOPUP_EDDY_NOROT=1   # use TOPUP corrected & EDDY (FSLv5) merged DWI files w/o corrected b-vectors
 
 # BOLD - preproc
 BOLD_FEATDIR_PREFIX="preprocBOLD"                             # prefix for .feat output directory

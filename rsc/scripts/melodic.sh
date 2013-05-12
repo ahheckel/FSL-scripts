@@ -99,7 +99,7 @@ TR=$2
 outdir="$3"
 _opts="$4"
 
-# single session ICA ?
+# single session or group ICA ?
 if [ $(echo "$inputs" | wc -w) -eq 1 ] ; then
   if [ $(_imtest $inputs) -eq 1 ] ; then # single session ICA
     gica=0
@@ -137,7 +137,7 @@ else
   echo "`basename $0`: applying single session mode."
 fi
 
-# group melodic
+# group melodic - output in $outdir
 if [ $gica -eq 1 -a "$outdir" != "-1" ] ; then
   # create output directory
   mkdir -p $outdir/$subdir
@@ -174,9 +174,9 @@ if  [ $gica -eq 1 -a "$outdir" = "-1" ] ; then
   done
 fi
 
-# single session - single file
+# single session - single file - output in $outdir
 if [ $gica -eq 0 -a "$outdir" != "-1" ] ; then
-  input2melodic="$inputs" # sinlge file for single session ICA
+  input2melodic="$inputs" # single file for single session ICA
   outdir="$outdir"
   subdir=${prefix}$(remove_ext $(basename $inputs)).ica  
   # execute
@@ -185,7 +185,7 @@ fi
 
 # single session - single file - input directory as outdir
 if [ $gica -eq 0 -a "$outdir" = "-1" ] ; then
-  input2melodic="$inputs" # sinlge file for single session ICA
+  input2melodic="$inputs" # single file for single session ICA
   outdir="$(dirname $inputs)"
   subdir=${prefix}$(remove_ext $(basename $inputs)).ica
   # execute

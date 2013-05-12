@@ -12,11 +12,12 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <atlas:-tbss|-vbm|-ica|-na> <dir> <search-pttrn> <thres> [<showall 1|0>] [<fslview 1|0>]"
+    echo "Usage: `basename $0` <atlas:-tbss|-vbm|-ica|-na> <dir> <search-pttrn> <thres> [<sort 0|1>] [<showall 0|1>] [<fslview 0|1>]"
     echo "Example: `basename $0` -vbm ./stats \"*_corrp_*\" 0.95"
     echo "         `basename $0` -ica ./stats \"*_tfce_corrp_*\" -0.95"
     echo "         `basename $0` -na ./stats \"*_corrp_*\" -1"
-    echo "         NOTE: thres=-1     reports only the most significant cluster."
+    echo "         NOTE: sort[0|1]    sort according to p-val (0) or cluster-size (1)."
+    echo "               thres=-1     reports only the most significant cluster."
     echo "               thres=-0.95  reports only clusters with p > 0.95."
     echo ""
     exit 1
@@ -30,8 +31,9 @@ anal=$1
 dir=$2
 pttrn=$3
 thres=$4
-if [ -z $5 ] ; then showall=0 ; else showall=$5 ; fi
-if [ -z $6 ] ; then fslview=0 ; else fslview=$6 ; fi
+if [ -z $5 ] ; then smode=0 ; else smode=$5 ; fi
+if [ -z $6 ] ; then showall=0 ; else showall=$6 ; fi
+if [ -z $7 ] ; then fslview=0 ; else fslview=$7 ; fi
 reportfirst=0
 if [ "$thres" = "-1" ] ; then reportfirst=1 ; thres=0.01 ; fi
 if [ "$(echo $thres | cut -c 1)" = "-" ] ; then reportfirst=1 ; thres=$(echo $thres | cut -d - -f2) ; fi
@@ -53,8 +55,11 @@ echo "*** thres > $thres ***" | tee -a $logfile
 
 for f in $files ; do # for each collected file execute 'cluster'
   if [ $(imtest $f) -eq 0 ] ; then continue ; fi
-  cluster --in=$f -t $thres --mm  | tail -n+2 | sort -k +3 -r > $tmpfile # sort according to p-value
-  #cluster --in=$f -t $thres --mm  | tail -n+2 > $tmpfile # sort according to cluster size
+  if [ $smode -eq 0 ] ; then
+    cluster --in=$f -t $thres --mm  | tail -n+2 | sort -k +3 -r > $tmpfile # sort according to p-value    
+  else
+    cluster --in=$f -t $thres --mm  | tail -n+2 > $tmpfile # sort according to cluster size    
+  fi
   nl=$(cat $tmpfile | wc -l)
   if [ $nl -gt 0 ] ; then
     echo "------------------------------" | tee -a $logfile

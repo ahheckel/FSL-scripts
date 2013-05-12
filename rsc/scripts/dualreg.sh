@@ -198,7 +198,15 @@ if [ "$DESIGN" != -1 ] ; then
   mkdir -p $OUTPUT/stats/$dname
   /bin/cp $dm $OUTPUT/stats/$dname/
   /bin/cp $dc $OUTPUT/stats/$dname/
-  /bin/cp $dgrp $OUTPUT/stats/$dname/  
+  /bin/cp $dgrp $OUTPUT/stats/$dname/
+  fcon=$(basename $dc) ; fcon="${fcon%.*}".fts
+  if [ -f $(dirname $dc)/$fcon ] ; then # added by HKL
+    cp $(dirname $dc)/$fcon $OUTPUT/stats/$dname/
+    echo "`basename $0` : F-test contrast file is '$OUTPUT/stats/$dname/$fcon'"
+    fopts="-f $OUTPUT/stats/$dname/$fcon"
+  else 
+    fopts=""
+  fi
 fi
 
 echo "`basename $0` : sorting maps and running randomise on design '$dname'"
@@ -214,7 +222,7 @@ while [ $j -lt $Nics ] ; do
   fi
   if [ $NPERM -gt 1 ] ; then
     # EDIT HERE
-    RAND="$FSLDIR/bin/${RANDCMD} -i $OUTPUT/dr_stage2_ic$jj -o $OUTPUT/stats/$dname/dr_stage3_${dname}_ic$jj -m $OUTPUT/mask $DESIGN -n $NPERM -T -V -x"  # randomise_parallel only works if /bin/sh points to /bin/bash ! (!) ; HKL added -x switch
+    RAND="$FSLDIR/bin/${RANDCMD} -i $OUTPUT/dr_stage2_ic$jj -o $OUTPUT/stats/$dname/dr_stage3_${dname}_ic$jj -m $OUTPUT/mask $DESIGN -n $NPERM -T -V -x $fopts"  # randomise_parallel only works if /bin/sh points to /bin/bash ! (!) ; HKL added -x switch and $fopts
     echo $RAND >> $OUTPUT/stats/$dname/randomise.cmd # added by HKL
   fi
 
