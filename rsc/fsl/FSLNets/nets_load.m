@@ -25,7 +25,7 @@ startdir=pwd;
 cd(indir);
 
 %d=dir('*.txt'); % (HKL)
-d=dir('dr_stage1*.txt'); % added by HKL
+d=dir('dr_stage1*.txt'); % (HKL)
 Nsubjects=size(d,1);
 TS=[];
 for i=1:Nsubjects

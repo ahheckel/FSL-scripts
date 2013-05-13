@@ -14,21 +14,36 @@ if (N==Nf)
 end
 
 %fname=tempname; % commented out by HKL
-mkdir(path) % create output dir. (HKL)
-fname=strcat(path,'/FSLNETRAND') % define input to randomise (HKL)
-mask=strcat(path,'/FSLNET_mask') % define mask (HKL)
-system(sprintf('rm -fv %s',fname)) % delete prev. input (HKL)
-system(sprintf('rm -fv %s',mask)) % delete prev. mask (HKL)
-system(sprintf('rm -fv %s_vox_*tstat*.nii.gz',fname)) % delete prev. results (HKL)
+mkdir(path); % create output dir. (HKL)
+fname=strcat(path,'/FSLNETRAND'); % define input to randomise (HKL)
+disp(fname)
+mask=strcat(path,'/FSLNET_mask'); % define mask (HKL)
+disp(mask)
+system(sprintf('rm -fv %s',fname)); % delete prev. input (HKL)
+system(sprintf('rm -fv %s',mask)); % delete prev. mask (HKL)
+system(sprintf('rm -fv %s_vox_*tstat*.nii.gz',fname)); % delete prev. results (HKL)
 
 save_avw(reshape(netmat',XXX,1,1,TTT),fname,'f',[1 1 1 1]);
-sprintf('randomise -i %s -o %s -d %s -t %s -e %s -x -n %i', fname,fname,des,con,grp,nperm)  % -e added (HKL)
-sprintf('fslmaths %s -abs -bin %s', fname, mask) % make mask for randomise in FSL < v5 (HKL)
-system(sprintf('fslmaths %s -abs -bin %s', fname, mask)) % make mask for randomise in FSL < v5 (HKL)
-system(sprintf('randomise -i %s -m %s -o %s -d %s -t %s -e %s -x -n %i 1>/dev/null',fname,mask,fname,des,con,grp,nperm))  % -e added (HKL)
+disp(sprintf('fslmaths %s -abs -bin %s', fname, mask)) % make mask for randomise in FSL < v5 (HKL)
+system(sprintf('fslmaths %s -abs -bin %s', fname, mask)); % make mask for randomise in FSL < v5 (HKL)
+
+%F-contrast file present ? (HKL)
+    [a,b,c]=fileparts(con);
+    fcon=sprintf('%s/%s%s',a,b,'.fts');
+    if exist(fcon, 'file')==2
+        disp('F-test contrast file found:')
+        disp(sprintf('%s',fcon))
+        fopts=sprintf('-f %s',fcon);
+    else
+        fopts='';
+    end
+
+disp(sprintf('randomise -i %s -m %s -o %s -d %s -t %s -e %s %s -x -n %i', fname,mask,fname,des,con,grp,fopts,nperm))  % -e added (HKL)
+system(sprintf('randomise -i %s -m %s -o %s -d %s -t %s -e %s %s -x -n %i 1>/dev/null',fname,mask,fname,des,con,grp,fopts,nperm));  % -e added (HKL)
 
 % how many contrasts were run?
 [grot,ncon]=system(sprintf('imglob %s_vox_corrp_tstat*.* | wc -w',fname));
+%[grot,ncon]=system(sprintf('imglob *_vox_corrp_tstat*.* | wc -w'));
 ncon=str2num(ncon);
 
 if view==1
@@ -49,7 +64,8 @@ for i=1:ncon
   mpc=max(p_corrected(i,:));
   idx_c=find(p_corrected(i,:)>=mpc);
     
-  sprintf('contrast %d, best values: uncorrected_p=%f FWE_corrected_p=%f. position:uncorr:%i ; corr:%i\nFDR-correction-threshold=%f (to be applied to uncorrected p-values)',i,1-max(p_uncorrected(i,:)),1-max(p_corrected(i,:)),idx_u(1),idx_c(1),FDRthresh)
+  textmsg=sprintf('contrast %d, best values: uncorrected_p=%f FWE_corrected_p=%f. position:uncorr:%i ; corr:%i\nFDR-correction-threshold=%f (to be applied to uncorrected p-values)',i,1-max(p_uncorrected(i,:)),1-max(p_corrected(i,:)),idx_u(1),idx_c(1),FDRthresh);
+  disp(textmsg)
   if view==1
     subplot(1,ncon,i);
     if ShowSquare==1

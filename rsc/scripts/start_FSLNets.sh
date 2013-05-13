@@ -94,7 +94,9 @@ cat $tmpdir/nets_examples.m$$ # | head -n 40
 echo ""
 echo "---------------------------------"
 echo "---------------------------------"
+set +e
 read -p "Press Key to continue..."
+set -e
 
 
 # check if size / resolution matches to have a background image for slices_summary

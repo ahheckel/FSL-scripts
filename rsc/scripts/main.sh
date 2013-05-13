@@ -55,7 +55,8 @@ mkdir -p $tmpdir
 source $scriptdir/globalfuncs
 
 # check for RAM dumps
-dumps=$(find ./ -maxdepth 2 -name "core*")
+#dumps=$(find ./ -maxdepth 2 -name "core*")
+dumps=$(find ./ -name "core*")
 if [ $(echo $dumps | wc -w) -gt 0 ] ; then
   echo "ERROR: memory dumps (core-files) detected - you should look into this. Exiting... "
   echo $dumps | row2col
@@ -4129,7 +4130,6 @@ if [ $ALFF_2NDLEV_STG2 -eq 1 ] ; then
       
       echo "ALFF_2NDLEV : starting permutations for fALFF-maps..."
       _randomise $statdir falff "fALFF_Z_merged" "-m ../brain_mask -d design.mat -t design.con -e design.grp $ALFF_RANDOMISE_OPTS" 0 brain_mask.nii.gz $RANDOMISE_PARALLEL
-      waitIfBusy
     done    
   done
   
@@ -4141,7 +4141,6 @@ if [ $ALFF_2NDLEV_STG2 -eq 1 ] ; then
     for statdir in $statdirs ; do
       echo "ALFF_2NDLEV : starting permutations for ALFF-maps..."
       _randomise $statdir alff "ALFF_Z_merged" "-m ../brain_mask -d design.mat -t design.con -e design.grp $ALFF_RANDOMISE_OPTS" 0 brain_mask.nii.gz $RANDOMISE_PARALLEL
-      waitIfBusy
     done
   done
   

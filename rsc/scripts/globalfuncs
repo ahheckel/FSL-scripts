@@ -135,7 +135,8 @@ function save_config()
     
     # check for RAM dumps
     echo -n  "  searching for kernel dumps..."
-    dumps=$(find ./ -maxdepth 4 -newer ./.lockdir121978  -name "core*")
+    #dumps=$(find ./ -maxdepth 4 -newer ./.lockdir121978  -name "core*")
+    dumps=$(find ./ -newer ./.lockdir121978  -name "core*")
     if [ $(echo $dumps | wc -w) -gt 0 ] ; then
       echo "ERROR: memory dumps (core-files) detected - you should look into this... "
       echo $dumps | row2col
