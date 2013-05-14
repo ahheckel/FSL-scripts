@@ -55,8 +55,8 @@ mkdir -p $tmpdir
 source $scriptdir/globalfuncs
 
 # check for RAM dumps
-#dumps=$(find ./ -maxdepth 2 -name "core*")
-dumps=$(find ./ -name "core*")
+dumps=$(find ./ -maxdepth 2 -name "core*")
+#dumps=$(find ./ -name "core*")
 if [ $(echo $dumps | wc -w) -gt 0 ] ; then
   echo "ERROR: memory dumps (core-files) detected - you should look into this. Exiting... "
   echo $dumps | row2col
