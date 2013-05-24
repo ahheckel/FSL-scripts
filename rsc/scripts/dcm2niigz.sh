@@ -45,7 +45,7 @@ for i in $(ls $outdir/*.nii 2>/dev/null) ; do
 done
 
 # execute
-cmd="dcm2nii -d n -e y -g n -i n -p y -n y -r n -x n -o $outdir $indir/*"
+cmd="dcm2nii -d n -e y -g n -i y -p y -n y -r n -x n -o $outdir $indir/*"
 echo "    $cmd" ; $cmd
 
 # compress

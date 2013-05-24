@@ -44,7 +44,7 @@ logfile="./findClusters.log"
 tmpfile="./findClusters.tmp"
 
 # delete temporary files from prev. run
-rm -f $logfile
+rm -f $logfile ${logfile}.xls
 rm -f $tmpfile
 
 # gather input files
@@ -54,6 +54,7 @@ files=`find $dir -name "$pttrn" | grep -v SEED | $(dirname $0)/bin/sort8 -V`
 echo "*** thres > $thres ***" | tee -a $logfile
 
 for f in $files ; do # for each collected file execute 'cluster'
+  f=$(remove_ext $f)
   if [ $(imtest $f) -eq 0 ] ; then continue ; fi
   if [ $smode -eq 0 ] ; then
     cluster --in=$f -t $thres --mm  | tail -n+2 | sort -k +3 -r > $tmpfile # sort according to p-value    
@@ -83,6 +84,24 @@ for f in $files ; do # for each collected file execute 'cluster'
         tval=-999
       fi
       
+      # extract contrast (fstat or tstat) and type of significance (vox or tfce)
+      if [ $(echo $f | grep _tstat | wc -l) -eq 1 ] ; then      
+        stat=tstat${f#*tstat}
+      elif [ $(echo $f | grep _fstat | wc -l) -eq 1 ] ; then
+        stat=fstat${f#*fstat}
+      else
+        stat="X"
+      fi
+      if [ $(echo $f | grep _tfce_ | wc -l) -eq 1 ] ; then
+        type=$(echo tfce_${f#*_tfce_} | cut -d _ -f 1-2)
+      elif [ $(echo $f | grep _vox_ | wc -l) -eq 1 ] ; then
+        type=$(echo vox_${f#*_vox_} | cut -d _ -f 1-2)
+      else
+        type="X"
+      fi
+      type1=$(echo $type | cut -d _ -f 1) # tfce or vox
+      type2=$(echo $type | cut -d _ -f 2) # corrp or p
+      
       # display
       printf '   %5.3f t/f=%4.2f (%5i) at [ %5.1f %5.1f %5.1f ] (mm) \n' $max $tval $size $x $y $z | tee -a $logfile
       if [ $anal = "-tbss" ] ; then
@@ -90,16 +109,28 @@ for f in $files ; do # for each collected file execute 'cluster'
         JHU2=$(atlasquery  -a "JHU White-Matter Tractography Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)        
         printf '\t JHU1: %s\n' "$JHU1" | tee -a $logfile
         printf '\t JHU2: %s\n' "$JHU2" | tee -a $logfile
-      fi
-      if [ $anal = "-vbm" -o $anal = "-ica" ] ; then
+        printf '%s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ]\t %s\t %s \n'           $f $stat $type1 $type2 $max $tval $size $x $y $z "$JHU1" "$JHU2" >> ${logfile}.xls
+      elif [ $anal = "-vbm" ] ; then
         HAV1=$(atlasquery  -a "Harvard-Oxford Cortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         HAV2=$(atlasquery  -a "Harvard-Oxford Subcortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         TAL=$(atlasquery  -a "Talairach Daemon Labels" -c ${x},${y},${z} | cut -d ">" -f 4)        
         printf '\t TAL:  %s \n' "$TAL" | tee -a $logfile
         printf '\t HAV1: %s \n' "$HAV1" | tee -a $logfile
         printf '\t HAV2: %s \n' "$HAV2" | tee -a $logfile
+        printf '%s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ]\t %s\t %s\t %s \n'      $f $stat $type1 $type2 $max $tval $size $x $y $z "$HAV1" "$HAV2" "$TAL" >> ${logfile}.xls
+      elif [ $anal = "-ica" ] ; then
+        ic=$(echo $f | grep -o 'ic[[:digit:]]*' | head -n1)
+        HAV1=$(atlasquery  -a "Harvard-Oxford Cortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
+        HAV2=$(atlasquery  -a "Harvard-Oxford Subcortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
+        TAL=$(atlasquery  -a "Talairach Daemon Labels" -c ${x},${y},${z} | cut -d ">" -f 4)        
+        printf '\t TAL:  %s \n' "$TAL" | tee -a $logfile
+        printf '\t HAV1: %s \n' "$HAV1" | tee -a $logfile
+        printf '\t HAV2: %s \n' "$HAV2" | tee -a $logfile
+        printf '%s\t %s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ]\t %s\t %s\t %s \n' $f $ic $stat $type1 $type2 $max $tval $size $x $y $z "$HAV1" "$HAV2" "$TAL" >> ${logfile}.xls
+      else
+        printf '%s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ] \n'                     $f $stat $type1 $type2 $max $tval $size $x $y $z >> ${logfile}.xls
       fi
-      
+            
       if [ $reportfirst -eq 1 ] ; then break ; fi
       
     done # end atlasquery loop
