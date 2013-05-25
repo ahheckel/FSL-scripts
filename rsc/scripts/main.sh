@@ -2429,12 +2429,14 @@ if [ $BOLD_STG1 -eq 1 ] ; then
       
       # using alternative example func ?
       altExFunc=""
-      if [ x${BOLD_ALT_EXFUNC} != "x" ] ; then altExFunc=$srcdir/$subj/$sess/${BOLD_ALT_EXFUNC} ; fi
-      if [ $(_imtest ${altExFunc}) -eq 0 ] ; then
-        echo "BOLD : subj $subj , sess $sess : ERROR : '${altExFunc}' not found - exiting..." ; exit 1
-      else
-        echo "BOLD : subj $subj , sess $sess : using '${altExFunc}' as example_func..."
-        imcp $altExFunc $fldr
+      if [ x${BOLD_ALT_EXFUNC} != "x" ] ; then 
+        altExFunc=$srcdir/$subj/$sess/${BOLD_ALT_EXFUNC}
+        if [ $(_imtest ${altExFunc}) -eq 0 ] ; then
+          echo "BOLD : subj $subj , sess $sess : ERROR : '${altExFunc}' not found - exiting..." ; exit 1
+        else
+          echo "BOLD : subj $subj , sess $sess : using '${altExFunc}' as example_func..."
+          imcp $altExFunc $fldr
+        fi
       fi
       
       # preparing alternative example func

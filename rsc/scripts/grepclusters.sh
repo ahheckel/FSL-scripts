@@ -85,10 +85,12 @@ for f in $files ; do # for each collected file execute 'cluster'
       fi
       
       # extract contrast (fstat or tstat) and type of significance (vox or tfce)
-      if [ $(echo $f | grep _tstat | wc -l) -eq 1 ] ; then      
-        stat=tstat${f#*tstat}
+      if [ $(echo $f | grep _tstat | wc -l) -eq 1 ] ; then
+        n_test=$(zeropad ${f#*tstat} 2)
+        stat=tstat${n_test}
       elif [ $(echo $f | grep _fstat | wc -l) -eq 1 ] ; then
-        stat=fstat${f#*fstat}
+        n_test=$(zeropad ${f#*tstat} 2)
+        stat=fstat${n_test}
       else
         stat="X"
       fi
@@ -128,7 +130,15 @@ for f in $files ; do # for each collected file execute 'cluster'
         printf '\t HAV2: %s \n' "$HAV2" | tee -a $logfile
         printf '%s\t %s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ]\t %s\t %s\t %s \n' $f $ic $stat $type1 $type2 $max $tval $size $x $y $z "$HAV1" "$HAV2" "$TAL" >> ${logfile}.xls
       else
-        printf '%s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ] \n'                     $f $stat $type1 $type2 $max $tval $size $x $y $z >> ${logfile}.xls
+        if [ $(echo $f | grep /netmat | wc -l) -eq 1 ] ; then
+          type=$(echo netmat${f#*/netmat} | cut -d / -f 1)
+          netmat=$(echo $type | cut -d _ -f 1)
+          tthres=$(echo $type | cut -d _ -f 2)
+        else
+          netmat="X"
+          tthres="X"
+        fi
+        printf '%s\t %s\t %s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ] \n'           $f $netmat $tthres $stat $type1 $type2 $max $tval $size $x $y $z >> ${logfile}.xls
       fi
             
       if [ $reportfirst -eq 1 ] ; then break ; fi
