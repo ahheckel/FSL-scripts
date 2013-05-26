@@ -89,7 +89,7 @@ for f in $files ; do # for each collected file execute 'cluster'
         n_test=$(zeropad ${f#*tstat} 2)
         stat=tstat${n_test}
       elif [ $(echo $f | grep _fstat | wc -l) -eq 1 ] ; then
-        n_test=$(zeropad ${f#*tstat} 2)
+        n_test=$(zeropad ${f#*fstat} 2)
         stat=fstat${n_test}
       else
         stat="X"
