@@ -53,6 +53,8 @@ for roi in $rois ; do
   
   sed -i "1i $heading" ${tmpout}_$(zeropad $i 3)
   
+  sed 's/^ *//' -i ${tmpout}_$(zeropad $i 3)
+  
   echo "${tmpout}_$(zeropad $i 3): "
   cat ${tmpout}_$(zeropad $i 3)
   echo "--------"

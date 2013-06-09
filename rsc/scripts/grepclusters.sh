@@ -121,7 +121,7 @@ for f in $files ; do # for each collected file execute 'cluster'
         printf '\t HAV2: %s \n' "$HAV2" | tee -a $logfile
         printf '%s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ]\t %s\t %s\t %s \n'      $f $stat $type1 $type2 $max $tval $size $x $y $z "$HAV1" "$HAV2" "$TAL" >> ${logfile}.xls
       elif [ $anal = "-ica" ] ; then
-        ic=$(echo $f | grep -o 'ic[[:digit:]]*' | head -n1)
+        ic=$(echo $(basename $f) | grep -o 'ic[[:digit:]]*' | head -n1)
         HAV1=$(atlasquery  -a "Harvard-Oxford Cortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         HAV2=$(atlasquery  -a "Harvard-Oxford Subcortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         TAL=$(atlasquery  -a "Talairach Daemon Labels" -c ${x},${y},${z} | cut -d ">" -f 4)        
