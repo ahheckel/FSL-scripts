@@ -5,7 +5,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 11/18/2012
+# 06/15/2013
 
 trap 'echo "$0 : An ERROR has occured." ; exit 1' ERR
 
@@ -13,7 +13,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: eddy_correct [-t|-n] <4dinput> <4doutput> <reference_no> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}>"
+    echo "Usage: $(basename $0) [-t|-n] <4dinput> <4doutput> <reference_no> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}>"
     echo "Options (mutually exclusive):  -t :  test mode: just copy input->output and create .ecclog file with identities."
     echo "                               -n :  no write-outs, just create .ecclog file."
     exit 1
