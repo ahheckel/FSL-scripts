@@ -80,7 +80,7 @@ dof=${4}
 cost=${5}
 interp=${6}
 full_list=""
-jidfile=${output}.sge ; touch $jidfile
+jidfile=${output}.sge.$$ ; touch $jidfile
 if [ "$4" = "" ] ; then dof=12 ; fi
 if [ "$5" = "" ] ; then cost="mutualinfo" ; fi
 if [ "$6" = "" ] ; then interp="trilinear" ; fi
@@ -109,9 +109,9 @@ echo "---------------------------"
 fslroi $input ${output}_ref $ref 1
 
 # split
-imrm ${tmpdir}/$(basename $output)_tmp????.*
-fslsplit $input ${tmpdir}/$(basename $output)_tmp
-full_list=`imglob ${tmpdir}/$(basename $output)_tmp????.*`
+imrm ${output}_tmp????.*
+fslsplit $input ${output}_tmp
+full_list=`imglob ${output}_tmp????.*`
 
 # execute
 JID=1 # dummy job ID
@@ -154,7 +154,8 @@ if [ -f ${output}.cmd ] ; then
   cat ${output}.cmd
   fsl_sub -l $tmpdir -N $(basename $0) -j $JID -t ${output}.cmd > $jidfile
   waitIfBusyIDs $jidfile
-  cat ${tmpdir}/$(basename $output)_tmp????.ecclog.tmp >> ${output}.ecclog
+  cat ${output}_tmp????.ecclog.tmp >> ${output}.ecclog
+  rm ${output}_tmp????.ecclog.tmp
 fi
 
 # merge results
@@ -162,8 +163,9 @@ if [ $nowrite -eq 0 ] ; then
   fsl_sub -l $tmpdir -N $(basename $0) -j $JID fslmerge -t $output $full_list > $jidfile
 fi
 
-# cleanup
 waitIfBusyIDs $jidfile
+
+# cleanup
 imrm $full_list # ${output}_ref
 
 # done
