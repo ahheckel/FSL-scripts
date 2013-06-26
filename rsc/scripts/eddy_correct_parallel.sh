@@ -13,9 +13,12 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: $(basename $0) [-t|-n] <4dinput> <4doutput> <reference_no> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}> [<flirt-opts>]"
-    echo "Options (mutually exclusive):  -t :  test mode: just copy input->output and create .ecclog file with identities."
-    echo "                               -n :  no write-outs, just create .ecclog file."
+    echo "Usage:   $(basename $0) [-t|-n] <4dinput> <4doutput> <reference_no> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}> [<flirt-opts>]"
+    echo "Options  (mutually exclusive):    -t :  test mode: just copy input->output and create .ecclog file with identities."
+    echo "                                  -n :  no write-outs, just create .ecclog file."
+    echo ""
+    echo "Example: $(basename $0) input.nii.gz ec_input 0 12 corratio spline \"-2D\""
+    echo ""
     exit 1
 }
 
@@ -174,7 +177,7 @@ fi
 waitIfBusyIDs $jidfile
 
 # cleanup
-imrm $full_list #${output}_ref
+imrm $full_list ${output}_ref
 
 # done
 echo "`basename $0`: done."
