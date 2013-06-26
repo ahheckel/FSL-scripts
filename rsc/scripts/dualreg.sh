@@ -12,19 +12,27 @@ dual_regression v0.5 (beta)
 
 ***NOTE*** ORDER OF COMMAND-LINE ARGUMENTS IS DIFFERENT FROM PREVIOUS VERSION
 
-Usage: dual_regression <group_IC_maps> <des_norm> <design.mat> <design.con> <design.grp> <randomise||randomise_parallel> <n_perm> <output_directory> <USE_MOVPARS> <USE_MOVPARS_TR> <USE_MOVPARS_HPF> <DO_MASK> <DO_DUALREG> <DO_RANDOMISE> <input1> <input2> <input3> .........
-e.g.   dual_regression groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat design.con 500 grot \`cat groupICA.gica/.filelist\`
+Usage: $(basename $0) <group_IC_maps> <des_norm> <design.mat> <design.con> <design.grp> <randomise||randomise_parallel> <n_perm> <output_directory> <USE_MOVPARS> <USE_MOVPARS_TR> <USE_MOVPARS_HPF> <DO_MASK> <DO_DUALREG> <DO_RANDOMISE> <input1> <input2> <input3> .........
+e.g.   $(basename $0) groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat design.con design.grp randomise_parallel 500 outdir 0 3.330 100 1 1 0 \`cat groupICA.gica/.filelist\`
 
-<group_IC_maps_4D>            4D image containing spatial IC maps (melodic_IC) from the whole-group ICA analysis
-<des_norm>                    0 or 1 (1 is recommended). Whether to variance-normalise the timecourses used as the stage-2 regressors
-<design.mat>                  Design matrix for final cross-subject modelling with randomise
-<design.con>                  Design contrasts for final cross-subject modelling with randomise
-<n_perm>                      Number of permutations for randomise; set to 1 for just raw tstat output, set to 0 to not run randomise at all.
-<output_directory>            This directory will be created to hold all output and logfiles
-<input1> <input2> ...         List all subjects' preprocessed, standard-space 4D datasets
+<group_IC_maps_4D>                 4D image containing spatial IC maps (melodic_IC) from the whole-group ICA analysis
+<des_norm>                         0 or 1 (1 is recommended). Whether to variance-normalise the timecourses used as the stage-2 regressors
+<design.mat>                       Design matrix for final cross-subject modelling with randomise
+<design.con>                       Design contrasts for final cross-subject modelling with randomise
+<design.grp>                       Exchangeability block file
+<randomise||randomise_parallel>    use either randomise or randomise_parallel
+<n_perm>                           Number of permutations for randomise; set to 1 for just raw tstat output, set to 0 to not run randomise at all.
+<output_directory>                 This directory will be created to hold all output and logfiles
+<USE_MOVPARS>                      Use motion parameters as confound regressors (0|1)
+<USE_MOVPARS_TR>                   TR for high pass filtering of motion parameters
+<USE_MOVPARS_HPF>                  High pass filter cutoff (s), \"Inf\" to switch off
+<DO_MASK>                          Enable stage1
+<DO_DUALREG>                       Enable stage2
+<DO_RANDOMISE>                     Enable stage3
+<input1> <input2> ...              List all subjects' preprocessed, standard-space 4D datasets
+<design.mat> <design.con>          can be replaced with just
+-1                                 for group-mean (one-group t-test) modelling.
 
-<design.mat> <design.con>     can be replaced with just
--1                            for group-mean (one-group t-test) modelling.
 If you need to add other randomise option then just edit the line after "EDIT HERE" below
 
 EOF

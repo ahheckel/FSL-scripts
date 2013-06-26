@@ -1,11 +1,11 @@
 #!/bin/bash
-# Extracts and merges volumes from a series of 4D input files (for clusters).
+# Extracts and merges volumes from a series of 4D input files (for clusters). This script is self-submitting.
 
 # Written by Andreas Heckel
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 12/06/2012
+# 06/26/2013
 
 set -e
 
@@ -77,9 +77,10 @@ inputs="$3"
 logdir="$4"
 
 # create working dir.
-wdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
-#wdir=/tmp/$(basename $0)_$$
-#mkdir -p $wdir
+# Don't use mktemp because script is self-submitting.
+#wdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+wdir=./$(basename $out).$$
+mkdir -p $wdir
 touch $wdir/jid.list
 
 # define exit trap

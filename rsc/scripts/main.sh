@@ -658,7 +658,11 @@ if [ $FIELDMAP_STG2 -eq 1 ]; then
       # jetzt noch swi ohne swi:
       # smooth with gauss kernel of s=xx mm and subtract to get filtered image
       fslmaths $fldr/uphase_rad -s 10 $fldr/uphase_rad_s10 
-      fslmaths $fldr/uphase_rad -sub $fldr/uphase_rad_s10 $fldr/uphase_rad_filt 
+      fslmaths $fldr/uphase_rad -sub $fldr/uphase_rad_s10 $fldr/uphase_rad_filt
+      # center pSWI to median
+      p50=`fslstats $fldr/uphase_rad_filt -k $fldr/magn_brain_mask_ero -P 50`
+      echo "FIELDMAP : subj $subj , sess $sess : pSWI: P50: $p50"
+      fslmaths $fldr/uphase_rad_filt -sub $p50 -mas $fldr/magn_brain_mask_ero $fldr/uphase_rad_filt_masked
     done
   done
 fi
