@@ -1,5 +1,5 @@
 #!/bin/bash
-# Gather plots from directory tree ans save as .png.
+# Gather plots from directory tree and save as .png.
 
 # Written by Andreas Heckel
 # University of Heidelberg

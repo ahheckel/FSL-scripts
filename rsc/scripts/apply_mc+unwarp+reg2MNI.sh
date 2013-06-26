@@ -81,7 +81,7 @@ ecclog=0 ; sinlgemat=0
 if [ "$mcdir" = "none" ] ; then
   echo "`basename $0` : no motion correction."
 elif [ ! -d $mcdir ] ; then
-  echo "`basename $0`: '$mcdir' is not a directory..."
+  echo "`basename $0` : '$mcdir' is not a directory..."
   if [ -f $mcdir -a ${mcdir##*.} = "ecclog" ] ; then
     echo "`basename $0` : '$mcdir' is an .ecclog file."
     ecclog=1

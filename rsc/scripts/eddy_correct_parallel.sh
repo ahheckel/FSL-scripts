@@ -1,5 +1,5 @@
 #!/bin/bash
-# Modification of FSL's eddy_correct (v.4.1.9). 
+# Modification of FSL's eddy_correct (v.4.1.9). This script is self-submitting to SGE cluster to speed things up.
 
 # Adapted by Andreas Heckel
 # University of Heidelberg
@@ -13,7 +13,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: $(basename $0) [-t|-n] <4dinput> <4doutput> <reference_no> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}>"
+    echo "Usage: $(basename $0) [-t|-n] <4dinput> <4doutput> <reference_no> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}> [<flirt-opts>]"
     echo "Options (mutually exclusive):  -t :  test mode: just copy input->output and create .ecclog file with identities."
     echo "                               -n :  no write-outs, just create .ecclog file."
     exit 1
@@ -79,20 +79,26 @@ ref=${3}
 dof=${4}
 cost=${5}
 interp=${6}
+opts="$7"
 full_list=""
-jidfile=${output}.sge.$$ ; touch $jidfile
 if [ "$4" = "" ] ; then dof=12 ; fi
 if [ "$5" = "" ] ; then cost="mutualinfo" ; fi
 if [ "$6" = "" ] ; then interp="trilinear" ; fi
 
 # check input
 if [ `${FSLDIR}/bin/imtest $input` -eq 0 ];then
-echo "Input does not exist or is not in a supported format"
-    exit 1
+  echo "Input does not exist or is not in a supported format"
+  exit 1
 fi
 
 # create working dir.
-tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+# NOTE: Don't use mktemp, because this script is self-submitting.
+#tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+tmpdir=./$(basename $output).$$ ; mkdir -p $tmpdir
+
+# create jid file
+jidfile=$tmpdir/$(basename ${output}).sge.$$
+touch $jidfile
 
 # define exit trap
 trap "delJIDs $jidfile ; rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
@@ -103,15 +109,17 @@ echo "`basename $0`: FSL    : v.${fslversion}"
 echo "`basename $0`: dof    : $dof"
 echo "`basename $0`: cost   : $cost"
 echo "`basename $0`: interp : $interp"
+echo "`basename $0`: opts   : $opts"
+echo "`basename $0`: output : $output"
 echo "---------------------------"
 
 # extract reference image
 fslroi $input ${output}_ref $ref 1
 
 # split
-imrm ${output}_tmp????.*
-fslsplit $input ${output}_tmp
-full_list=`imglob ${output}_tmp????.*`
+imrm $tmpdir/$(basename $output)_tmp????.*
+fslsplit $input $tmpdir/$(basename $output)_tmp
+full_list=`imglob $tmpdir/$(basename $output)_tmp????.*`
 
 # execute
 JID=1 # dummy job ID
@@ -122,15 +130,15 @@ for i in $full_list ; do
     echo processing $i
     cmd="echo processing $i > ${i}.ecclog.tmp ;"
     if [ "$interp" = "spline" -a $fslversion -lt 5 ] ; then
-      cmd="flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost >> ${i}.ecclog.tmp ;"
+      cmd="flirt $opts -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost >> ${i}.ecclog.tmp ;"
       if [ $nowrite -eq 0 ] ; then          
         cmd="$cmd cat ${i}.ecclog.tmp | sed -n '3,6'p > ${i}.ecclog.tmp.applywarp ; applywarp --ref=${output}_ref --in=$i --out=$i --premat=${i}.ecclog.tmp.applywarp --interp=spline ; rm ${i}.ecclog.tmp.applywarp ;"
       fi        
     else      
       if [ $nowrite -eq 0 ] ; then
-        cmd="$cmd flirt -in $i -ref ${output}_ref -out $i -nosearch -paddingsize 1 -dof $dof -cost $cost -interp $interp >> ${i}.ecclog.tmp ;"
+        cmd="$cmd flirt $opts -in $i -ref ${output}_ref -out $i -nosearch -paddingsize 1 -dof $dof -cost $cost -interp $interp >> ${i}.ecclog.tmp ;"
       else
-        cmd="$cmd flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost >> ${i}.ecclog.tmp ;"
+        cmd="$cmd flirt $opts -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost >> ${i}.ecclog.tmp ;"
       fi        
     fi
     ## remove neg. values          
@@ -154,8 +162,8 @@ if [ -f ${output}.cmd ] ; then
   cat ${output}.cmd
   fsl_sub -l $tmpdir -N $(basename $0) -j $JID -t ${output}.cmd > $jidfile
   waitIfBusyIDs $jidfile
-  cat ${output}_tmp????.ecclog.tmp >> ${output}.ecclog
-  rm ${output}_tmp????.ecclog.tmp
+  cat $tmpdir/$(basename $output)_tmp????.ecclog.tmp >> ${output}.ecclog
+  rm $tmpdir/$(basename $output)_tmp????.ecclog.tmp
 fi
 
 # merge results
@@ -166,7 +174,7 @@ fi
 waitIfBusyIDs $jidfile
 
 # cleanup
-imrm $full_list # ${output}_ref
+imrm $full_list #${output}_ref
 
 # done
 echo "`basename $0`: done."
