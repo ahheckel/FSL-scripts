@@ -36,13 +36,13 @@ if [ $indir = "." ] ; then indir=$(pwd) ; fi
 # make outdir
 mkdir -p $outdir
 
-# delete nii.gz files in outdir
-for i in $(ls $outdir/*.nii.gz 2>/dev/null) ; do
-  rm -i $i 
-done
-for i in $(ls $outdir/*.nii 2>/dev/null) ; do
-  rm -i $i 
-done
+## delete nii.gz files in outdir
+#for i in $(ls $outdir/*.nii.gz 2>/dev/null) ; do
+  #rm -i $i 
+#done
+#for i in $(ls $outdir/*.nii 2>/dev/null) ; do
+  #rm -i $i 
+#done
 
 # execute
 cmd="dcm2nii -d n -e y -g n -i y -p y -n y -r n -x n -o $outdir $indir/*"

@@ -53,10 +53,14 @@ function getIdx()
 
 [ "$2" = "" ] && Usage
 
+# assign input arguments
 fldr="$1"
 out=$(remove_ext $2)
 wd="`pwd`" # define current working directory
 dwi=diffs_merged.nii.gz # define input filename in topup directory
+
+# rel. 2 abs. path
+if [ $(echo $out | grep ^/ | wc -l) -eq 0 ] ; then out=`pwd`/$out ; fi
 
 # check version of FSL
 fslversion=$(cat $FSLDIR/etc/fslversion | cut -d . -f 1)

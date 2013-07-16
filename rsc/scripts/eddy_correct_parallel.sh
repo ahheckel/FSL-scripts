@@ -13,11 +13,12 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage:   $(basename $0) [-t|-n] <4dinput> <4doutput> <reference_no> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}> [<flirt-opts>]"
+    echo "Usage:   $(basename $0) [-t|-n] <4dinput> <4doutput> <reference_no|reference_vol> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}> [<flirt-opts>]"
     echo "Options  (mutually exclusive):    -t :  test mode: just copy input->output and create .ecclog file with identities."
     echo "                                  -n :  no write-outs, just create .ecclog file."
     echo ""
     echo "Example: $(basename $0) input.nii.gz ec_input 0 12 corratio spline \"-2D\""
+    echo "         $(basename $0) input.nii.gz ec_input b0 12 corratio spline \"-2D\""
     echo ""
     exit 1
 }
@@ -68,9 +69,9 @@ function waitIfBusyIDs()
 
 noec=0 ; nowrite=0
 if [ "$1" = "-t" ] ; then 
-  noec=1 ; echo "`basename $0` : test-mode." ; shift
+  noec=1 ; echo "`basename $0`: test-mode." ; shift
 elif [ "$1" = "-n" ] ; then 
-  nowrite=1 ; echo "`basename $0` : no write-outs." ; shift
+  nowrite=1 ; echo "`basename $0`: no write-outs." ; shift
 fi
 
 [ "$3" = "" ] && Usage
@@ -97,7 +98,7 @@ fi
 # create working dir.
 # NOTE: Don't use mktemp, because this script is self-submitting.
 #tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
-tmpdir=./$(basename $output).$$ ; mkdir -p $tmpdir
+tmpdir=${output}.$$ ; mkdir -p $tmpdir
 
 # create jid file
 jidfile=$tmpdir/$(basename ${output}).sge.$$
@@ -117,7 +118,12 @@ echo "`basename $0`: output : $output"
 echo "---------------------------"
 
 # extract reference image
-fslroi $input ${output}_ref $ref 1
+if [ $(imtest $ref) -eq 0 ] ; then
+  fslroi $input ${output}_ref $ref 1
+else
+  echo "`basename $0`: NOTE: '$ref' is a volume, not an index."
+  imcp $ref ${output}_ref
+fi
 
 # split
 imrm $tmpdir/$(basename $output)_tmp????.*
@@ -160,7 +166,7 @@ for i in $full_list ; do
   fi
 done
 
-# execte cmd-list
+# execute cmd-list
 if [ -f ${output}.cmd ] ; then
   cat ${output}.cmd
   fsl_sub -l $tmpdir -N $(basename $0) -j $JID -t ${output}.cmd > $jidfile

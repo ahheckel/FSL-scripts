@@ -18,7 +18,7 @@ Usage() {
     echo "NOTE:    -requires same number of blipup and blipdown images."
     echo "         -bvals/bvecs files are detected by suffix *_bvals and *_bvecs."
     echo "         -alphabetical listings of blipup/blipdown images (dwi*+, dwi*-) and bvals/bvecs must match !"
-    echo "         -TotalReadoutTime(s): ESP(ms) * (PhaseEncodingSteps - 1) ; e.g. 0.25ms * 119 / 1000"
+    echo "         -TotalReadoutTime(s): effectiveESP(ms) * (PhaseEncodingSteps - 1) ; e.g. 0.25ms * 119 / 1000"
     echo ""
     exit 1
 }

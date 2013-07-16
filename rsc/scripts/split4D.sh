@@ -33,7 +33,7 @@ iter=$(echo "scale=0 ; $nvols / $n" | bc -l)
 # check
 _nvols=$(echo "scale=0; $iter*$n" | bc -l)
 resid=$(echo "scale=0; $nvols - $_nvols" | bc -l)
-if [ $resid -gt 0 ] ; then echo "`basename $0`: WARNING: last 4D ('${output}_$(zeropad $iter 3)')  will only have $resid volumes (not $n)." ; fi
+if [ $resid -gt 0 ] ; then echo "`basename $0`: WARNING: last 4D ('${output}_$(zeropad $iter 3)') will only have $resid volumes (not $n)." ; fi
 
 # execute
 echo "`basename $0`:"
