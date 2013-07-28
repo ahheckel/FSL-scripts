@@ -9,6 +9,8 @@ if [ $# -lt 1 ] ; then echo "Usage: update [32|64]" ; exit 1 ; fi
 if [ x$FSLDIR = "x" ] ; then echo "FSLDIR variable is not defined ! Exiting." ; exit 1 ; fi
 if [ x$FREESURFER_HOME = "x" ] ; then echo "FREESURFER_HOME variable is not defined ! Exiting." ; exit 1 ; fi
 
+clear
+
 # display dir. variables
 echo ""
 echo "FSLDIR:                   '$FSLDIR'"
@@ -81,7 +83,7 @@ chmod +x $FSLDIR/bin/3dcalc
 chmod +x $FSLDIR/bin/3dDetrend
 chmod +x $FSLDIR/bin/fsl_sub
 chmod +x $FSLDIR/bin/slices_summary
-chmod 777 $FREESURFER_HOME/subjects/fsaverage/tmp # need write access so that cursor postion in tksurfer/tkmedit can be saved ! (!)
+mkdir $FREESURFER_HOME/subjects/fsaverage/tmp ; chmod 777 $FREESURFER_HOME/subjects/fsaverage/tmp # need write access so that cursor postion in tksurfer/tkmedit can be saved ! (!)
 if [ -f $FREESURFER_HOME/bin/fsl_sub_mgh ] ; then # for TRACULA
   if [ "$(readlink $FREESURFER_HOME/bin/fsl_sub_mgh)" != "$FSLDIR/bin/fsl_sub" ] ; then
     mv -iv $FREESURFER_HOME/bin/fsl_sub_mgh $FREESURFER_HOME/bin/fsl_sub_mgh_sav
