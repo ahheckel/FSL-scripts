@@ -13,17 +13,21 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: $(basename $0) [-t|-n] <4dinput> <4doutput> <reference_no> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}>"
+    echo "Usage: $(basename $0) [-t|-n] <4dinput> <4doutput> <reference_no|reference_vol> <dof> <cost{mutualinfo(=default),corratio,normcorr,normmi,leastsq,labeldiff}> <interp{spline,trilinear(=default),nearestneighbour,sinc}> [<flirt-opts>]"
     echo "Options (mutually exclusive):  -t :  test mode: just copy input->output and create .ecclog file with identities."
     echo "                               -n :  no write-outs, just create .ecclog file."
+    echo ""
+    echo "Example: $(basename $0) input.nii.gz ec_input 0 12 corratio spline \"-2D\""
+    echo "         $(basename $0) input.nii.gz ec_input b0 12 corratio spline \"-2D\""
+    echo ""
     exit 1
 }
 
 noec=0 ; nowrite=0
 if [ "$1" = "-t" ] ; then 
-  noec=1 ; echo "`basename $0` : test-mode." ; shift
+  noec=1 ; echo "`basename $0`: test-mode." ; shift
 elif [ "$1" = "-n" ] ; then 
-  nowrite=1 ; echo "`basename $0` : no write-outs." ; shift
+  nowrite=1 ; echo "`basename $0`: no write-outs." ; shift
 fi
 
 [ "$3" = "" ] && Usage
@@ -35,6 +39,7 @@ ref=${3}
 dof=${4}
 cost=${5}
 interp=${6}
+opts="$7"
 full_list=""
 if [ "$4" = "" ] ; then dof=12 ; fi
 if [ "$5" = "" ] ; then cost="mutualinfo" ; fi
@@ -60,9 +65,17 @@ echo "`basename $0`: FSL    : v.${fslversion}"
 echo "`basename $0`: dof    : $dof"
 echo "`basename $0`: cost   : $cost"
 echo "`basename $0`: interp : $interp"
+echo "`basename $0`: opts   : $opts"
+echo "`basename $0`: output : $output"
+echo "---------------------------"
 
 # extract reference image
-fslroi $input ${output}_ref $ref 1
+if [ $(imtest $ref) -eq 0 ] ; then
+  fslroi $input ${output}_ref $ref 1
+else
+  echo "`basename $0`: NOTE: '$ref' is a volume, not an index."
+  imcp $ref ${output}_ref
+fi
 
 # split
 imrm ${tmpdir}/$(basename $output)_tmp????.*
@@ -76,7 +89,7 @@ for i in $full_list ; do
   echo processing $i >> ${output}.ecclog
   if [ $noec != 1 ] ; then    
     if [ "$interp" = "spline" -a $fslversion -lt 5 ] ; then
-      ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost > ${output}.ecclog.tmp    
+      ${FSLDIR}/bin/flirt $opts -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost > ${output}.ecclog.tmp    
       if [ $nowrite -eq 0 ] ; then          
         cat ${output}.ecclog.tmp | sed -n '3,6'p > ${output}.ecclog.tmp.applywarp
         ${FSLDIR}/bin/applywarp --ref=${output}_ref --in=$i --out=$i --premat=${output}.ecclog.tmp.applywarp --interp=spline
@@ -84,9 +97,9 @@ for i in $full_list ; do
       fi        
     else      
       if [ $nowrite -eq 0 ] ; then
-        ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -out $i -nosearch -paddingsize 1 -dof $dof -cost $cost -interp $interp > ${output}.ecclog.tmp
+        ${FSLDIR}/bin/flirt $opts -in $i -ref ${output}_ref -out $i -nosearch -paddingsize 1 -dof $dof -cost $cost -interp $interp > ${output}.ecclog.tmp
       else
-        ${FSLDIR}/bin/flirt -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost > ${output}.ecclog.tmp
+        ${FSLDIR}/bin/flirt $opts -in $i -ref ${output}_ref -nosearch -paddingsize 1 -dof $dof -cost $cost > ${output}.ecclog.tmp
       fi        
     fi    
     # remove neg. values          

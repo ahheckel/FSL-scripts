@@ -36,6 +36,9 @@ output=$(remove_ext $3)
 if [ $(imtest $input) -eq 0 ] ; then
   echo "$(basename $0): ERROR: '$input' does not exist or is not a volume - exiting..." ; exit 1
 fi
+if [ "$input" = "$output" ] ; then
+  echo "$(basename $0): ERROR: input '$input' and output '$output' are the same - exiting..." ; exit 1
+fi
 
 # rem commas
 vals="$(echo "$vals" | sed 's|,| |g')"
