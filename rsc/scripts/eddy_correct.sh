@@ -47,7 +47,7 @@ if [ "$6" = "" ] ; then interp="trilinear" ; fi
 
 # check input
 if [ `${FSLDIR}/bin/imtest $input` -eq 0 ];then
-echo "Input does not exist or is not in a supported format"
+echo "`basename $0`: Input does not exist or is not in a supported format."
     exit 1
 fi
 

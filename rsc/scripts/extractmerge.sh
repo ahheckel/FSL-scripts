@@ -1,5 +1,6 @@
 #!/bin/bash
-# Extracts and merges volumes from a series of 4D input files (for clusters). This script is self-submitting.
+# Extracts and merges volumes from a series of 4D input files (for clusters).
+# NOTE: This script is self-submitting and should never be submitted to a cluster.
 
 # Written by Andreas Heckel
 # University of Heidelberg

@@ -1,5 +1,6 @@
 #!/bin/bash
 # Modification of FSL's eddy_correct (v.4.1.9). This script is self-submitting to SGE cluster to speed things up.
+# NOTE: This script is self-submitting and should never be submitted to a cluster.
 
 # Adapted by Andreas Heckel
 # University of Heidelberg
