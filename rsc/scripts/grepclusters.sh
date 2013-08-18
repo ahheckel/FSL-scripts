@@ -12,13 +12,14 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <atlas:-tbss|-vbm|-ica|-na> <dir> <search-pttrn> <thres> [<sort 0|1>] [<showall 0|1>] [<fslview 0|1>]"
+    echo "Usage:   `basename $0` <atlas:-tbss|-vbm|-ica|-na> <dir> <search-pttrn> <thres> [<sort 0|1>] [<showall 0|1>] [<fslview 0|1>]"
     echo "Example: `basename $0` -vbm ./stats \"*_corrp_*\" 0.95"
     echo "         `basename $0` -ica ./stats \"*_tfce_corrp_*\" -0.95"
     echo "         `basename $0` -na ./stats \"*_corrp_*\" -1"
     echo "         NOTE: sort[0|1]    sort according to p-val (0) or cluster-size (1)."
-    echo "               thres=-1     reports only the most significant cluster."
-    echo "               thres=-0.95  reports only clusters with p > 0.95."
+    echo "               thres=0.95   reports only clusters with p > 0.95."
+    echo "               thres=-1     reports only the most significant/largest cluster."
+    echo "               thres=-0.95  reports only the most significant/largest cluster with p > 0.95."
     echo ""
     exit 1
 }

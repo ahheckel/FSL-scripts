@@ -1,5 +1,5 @@
 #!/bin/bash
-# Creates fieldmap.
+# Extracts values from concatenated *.mgh using label files.
 
 # Written by Andreas Bartsch & Andreas Heckel
 # University of Heidelberg

@@ -16,7 +16,7 @@ Usage() {
     echo ""
     echo "Usage: `basename $0` <out4D> <indices|all|mid> [<fslmaths unary operator>] <\"input files\"> <qsub logdir>"
     echo "Example: `basename $0` ./chk/means.nii.gz 0,1,2,3 -Tmean \"\$inputs\" /tmp"
-    echo "         `basename $0` ./chk/bolds.nii.gz \"0 1 2 3\" \" \" \"\$inputs\" /tmp"
+    echo "         `basename $0` ./chk/bolds.nii.gz 0,1,2,3 none \"\$inputs\" /tmp"
     echo "         `basename $0` ./chk/bolds.nii.gz 0 \"\$inputs\" /tmp"
     echo "         `basename $0` ./chk/bolds.nii.gz all -Tmean \"\$inputs\" /tmp"
     echo "         `basename $0` ./chk/bolds.nii.gz mid \"\$inputs\""
@@ -73,7 +73,10 @@ function waitIfBusyIDs()
 # define vars
 out="$1"
 idces="$(echo "$2" | sed 's|,| |g')"
-if [ $(echo $idces | wc -w) -gt 1 -o "$idces" = "all" ] ; then op="$3" ; shift ; fi
+if [ $(echo $idces | wc -w) -gt 1 -o "$idces" = "all" ] ; then
+  op="$3" ; shift
+  if [ x"$op" = "xnone" ] ; then op=" " ; fi
+fi
 inputs="$3"
 logdir="$4"
 
