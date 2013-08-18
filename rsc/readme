@@ -2,15 +2,15 @@ Modifications of original FSL / Freesurfer files.
 
 All modifications are indicated in the respective files (HKL).
 
-fsl/fsl_sub_v4
-fsl/fsl_sub_v5
+fsl/fsl4/fsl_sub_v4
+fsl/fsl5/fsl_sub_v5
 --------------
 A RAM limit was added to avoid cluster overload.
 
 
-fsl/fsl_sub_v5_patched
+fsl/fsl5/fsl_sub_v5_patched
 ----------------------
-RAM limit added + JOB-IDs are written to file for better job control.
+RAM limit added & JOB-IDs are written to file for better job control.
 
 
 scripts/fsl_sub_NOPOSIXLY.sh
@@ -20,16 +20,28 @@ POSIXLY_CORRECT variable was commented out to ensure compatibility with recon-al
 JOB-IDs are written to file for better job control.
   
 
-fsl/featlib_v4.tcl
+fsl/fsl4/featlib_v4.tcl
 ------------------
 Cross-modal affine registrations use mutualinfo (rather than corratio) as cost-function. 
 Unwarping: +/- y unwarp example files are created.
 Only for use with FSL 4.9.1.
   
 
+fsl/FSLNets/nets_glm.m
+fsl/FSLNets/nets_load.m
+------------------
+Adapted to work with FSL 4.9.1 and this framework.
+
+
+fsl/templates
+------------------
+Added multi-resolution MNI152 templates, the Smith & Beckmann templates and CSF & WM masks.
+  
+
 fs/trac-all
 -----------
-Adapted to work with SunGridEngine.
+Adapted to work with SunGridEngine. 
+Only for use with Tracula Revision 1.35.
 
   
 scripts/longt_tbss_2_reg.sh
@@ -39,6 +51,5 @@ and b0->T1 is done via Freesurfer's bbregister.
 
 -----
 Notes.
-  /FSL-scripts must be exportet and mounted on all nodes
-  "recon-all -use-mritotal" may give better talairach registrations in some cases
-
+  The FSL-scripts folder must be exportet and mounted on all nodes.
+  "recon-all -use-mritotal" may give better talairach registrations in some cases.
