@@ -33,7 +33,7 @@ h3. Requirements
 
 h3. Status
 
-preAlpha (experimental)
+Alpha
 
 h3. Contact
 
