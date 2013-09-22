@@ -308,9 +308,6 @@ if [ $CHECK_INFOFILES = 1 ] ; then
   if [ ! -f ${tmpltdir}/template_preprocBOLD.fsf ] ; then
     read -p "FEAT template file for BOLD preprocessing not found. You may need to create that file..."  
   fi
-  if [ ! -f ${tmpltdir}/template_unwarpDWI.fsf ] ; then
-    read -p "FEAT template file for DWI unwarping not found. You may need to create that file..."  
-  fi
   if [ ! -f ${tmpltdir}/template_makeXfmMatrix.m ] ; then 
     read -p "WARNING: OCTAVE file 'template_makeXfmMatrix.m' not found. You will need that file for TOPUP-related b-vector correction. Press key to continue..."
   fi
