@@ -6,18 +6,18 @@ Script-framework using FSL, Freesurfer and AFNI functionality for automatization
 
 * Full automated cascades leading to 2nd level GLM stats for cross-sectional and longitudinal designs  
 * Functional analyses  
-+ FSL's Independent Component Analysis (Melodic-ICA)  
-** FSL's Dual Regression  
-** FSL's Network analysis (FSLNets)  
-** Amplitute of Low Frequency Fluctuations (ALFF)  
-** fractional Amplitute of Low Frequency Fluctuations (fALFF)  
+    - FSL's Independent Component Analysis (Melodic-ICA)  
+    - FSL's Dual Regression  
+    - FSL's Network analysis (FSLNets)  
+    - Amplitute of Low Frequency Fluctuations (ALFF)  
+    - fractional Amplitute of Low Frequency Fluctuations (fALFF)  
 * Structural analyses  
-** FSL's Tract-Based Spatial Statistics (TBSS)  
-** FSL's Tract-Based Spatial Statistics (crossing fibres) (TBSSX)  
-** FSL's Voxel-Based Morphometry (VBM)  
-** Freesurfer cross-sectional / longitudinal streams  
-** Freesurfer's TRActs Constrained by UnderLying Anatomy (TRACULA)  
-** Freesurfer's cortical thickness analysis  
+    - FSL's Tract-Based Spatial Statistics (TBSS)  
+    - FSL's Tract-Based Spatial Statistics (crossing fibres) (TBSSX)  
+    - FSL's Voxel-Based Morphometry (VBM)  
+    - Freesurfer cross-sectional / longitudinal streams  
+    - Freesurfer's TRActs Constrained by UnderLying Anatomy (TRACULA)  
+    - Freesurfer's cortical thickness analysis  
 * Cluster engines are addressed via FSL's fsl_sub  
 * Processing of intermediate files in node's local /tmp to minimize network traffic  
 * Nautilus scripts for easy viewing  
@@ -102,10 +102,10 @@ Alpha
 
 ### Contact
 
-Dr. Andi Heckel, M.Sc.
-University of Heidelberg
-Department of Neuroradiology
-heckelandreas@googlemail.com
+Dr. Andi Heckel, M.Sc.  
+University of Heidelberg  
+Department of Neuroradiology  
+heckelandreas@googlemail.com  
 
 ### Links
 
