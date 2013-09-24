@@ -43,8 +43,6 @@ h3. Usage
 * Run ./go.sh to start processing.
 
 ```
-dgdfg
-```
 my-study              study-directory
   |
   |-rsc               symlink to /FSL-scripts/rsc
@@ -96,7 +94,7 @@ my-study              study-directory
   globalvars          global configuration file
   run_scripts.sh      link to ./rsc/main.sh
   go.sh               start processing on cluster as background task
-  
+```  
  
 h3. Status
 
