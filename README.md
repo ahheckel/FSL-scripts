@@ -1,8 +1,8 @@
-h2. FSL-scripts
+## FSL-scripts
 
 Script-framework using FSL, Freesurfer and AFNI functionality for automatization and high-throughput processing of MRI data in clustered environments.
 
-h3. Features
+### Features
 
 * Full automated cascades leading to 2nd level GLM stats for cross-sectional and longitudinal designs  
 * Functional analyses  
@@ -12,35 +12,35 @@ h3. Features
 ** Amplitute of Low Frequency Fluctuations (ALFF)  
 ** fractional Amplitute of Low Frequency Fluctuations (fALFF)  
 * Structural analyses  
-** FSL's Tract-Based Spatial Statistics (TBSS)
-** FSL's Tract-Based Spatial Statistics (crossing fibres) (TBSSX)
-** FSL's Voxel-Based Morphometry (VBM)
-** Freesurfer cross-sectional / longitudinal streams
-** Freesurfer's TRActs Constrained by UnderLying Anatomy (TRACULA)
-** Freesurfer's cortical thickness analysis
-* Cluster engines are addressed via FSL's fsl_sub
-* Processing of intermediate files in node's local /tmp to minimize network traffic
-* Nautilus scripts for easy viewing
+** FSL's Tract-Based Spatial Statistics (TBSS)  
+** FSL's Tract-Based Spatial Statistics (crossing fibres) (TBSSX)  
+** FSL's Voxel-Based Morphometry (VBM)  
+** Freesurfer cross-sectional / longitudinal streams  
+** Freesurfer's TRActs Constrained by UnderLying Anatomy (TRACULA)  
+** Freesurfer's cortical thickness analysis  
+* Cluster engines are addressed via FSL's fsl_sub  
+* Processing of intermediate files in node's local /tmp to minimize network traffic  
+* Nautilus scripts for easy viewing  
 
-h3. Requirements
+### Requirements
 
-* Linux (CentOS5 or compatible)
-* Bash > 3.2.25 
-* FSL > 4.9.1 / 5.0
-* Freesurfer > 5.1.0
-* SunGridEngine > 6.1u6
-* Octave > 3.0.5
-* Gnome > 2.32
-* ImageMagick > 6.7.5-3 (optional)
+* Linux (CentOS5 or compatible)  
+* Bash > 3.2.25  
+* FSL > 4.9.1 / 5.0  
+* Freesurfer > 5.1.0 
+* SunGridEngine > 6.1u6  
+* Octave > 3.0.5  
+* Gnome > 2.32  
+* ImageMagick > 6.7.5-3 (optional)  
 
-h3. Usage
+### Usage
 
-* Create study-directory.
-* Copy and edit ./globalvars global configuration file.
-* Arrange *.nii.gz files in input directory (./src).
-* Define GLMs for each module (./grp/GLM).
-* Edit config* files in ./subj (if settings differ across subjects/sessions).
-* Run ./go.sh to start processing.
+* Create study-directory.  
+* Copy and edit ./globalvars global configuration file.  
+* Arrange *.nii.gz files in input directory (./src).  
+* Define GLMs for each module (./grp/GLM).  
+* Edit config* files in ./subj (if settings differ across subjects/sessions).  
+* Run ./go.sh to start processing.  
 
 ```
 my-study              study-directory
@@ -56,7 +56,7 @@ my-study              study-directory
   |  ... ...
   |_subj              1st level processing
   |  |
-  |  config_*         files containing per-subject/session preprocessing settings deviating from 'globalvars'
+  |  config_*         files with per-subject/session pre-proc. settings deviating from 'globalvars'
   |  |_01             subject 01
   |  |  |_a           session a
   |  |    |_alff      alff processing
@@ -96,25 +96,25 @@ my-study              study-directory
   go.sh               start processing on cluster as background task
 ```  
  
-h3. Status
+### Status
 
 Alpha
 
-h3. Contact
+### Contact
 
 Dr. Andi Heckel, M.Sc.
 University of Heidelberg
 Department of Neuroradiology
 heckelandreas@googlemail.com
 
-h3. Links
+### Links
 
-FSL http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/
-Freesurfer http://surfer.nmr.mgh.harvard.edu/fswiki
-TRACULA http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/Tracula
-1000FunctionalConnectomes http://www.nitrc.org/projects/fcon_1000/
-MRIConvert http://lcni.uoregon.edu/~jolinda/MRIConvert/
-ImageMagick http://www.imagemagick.org/script/index.php
-FSL-compatible-transformation-matrix http://www.mathworks.es/matlabcentral/fileexchange/30804-make-fsl-compatible-transformation-matrix
+FSL http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/  
+Freesurfer http://surfer.nmr.mgh.harvard.edu/fswiki  
+TRACULA http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/Tracula  
+1000FunctionalConnectomes http://www.nitrc.org/projects/fcon_1000/  
+MRIConvert http://lcni.uoregon.edu/~jolinda/MRIConvert/  
+ImageMagick http://www.imagemagick.org/script/index.php  
+FSL-compatible-transformation-matrix http://www.mathworks.es/matlabcentral/fileexchange/30804-make-fsl-compatible-transformation-matrix  
 
 
