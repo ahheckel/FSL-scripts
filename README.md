@@ -40,7 +40,7 @@ Script-framework using FSL, Freesurfer and AFNI functionality for automatization
 * Arrange *.nii.gz files in input directory (./src).  
 * Define GLMs for each module using FSL's Glm (./grp/GLM).  
 * Edit config* files in ./subj (if preprocessing settings differ across subjects/sessions).  
-* Run ```./go.sh``` to start processing.  
+* Run ```./run_script.sh``` to start processing.  
 
 ```
 my-study              study-directory
