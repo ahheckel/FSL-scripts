@@ -50,7 +50,7 @@ i)   sections (mask / dualreg / randomise) can be called separately.
 ii)  insert exchangeability block file in randomise call & voxel-wise stats.
 iii) naming of randomise results based on the name of the design used.
 iv)  delete ${LOGDIR}/dr[ABCD] cmd-file to avoid accumulation on re-run.
-v)   randomise_parallel or randomise are used on demand, randomise_parallel, however.
+v)   randomise_parallel or randomise can be used.
 vi)  high-pass filtered motion parameters can be used for dr_stage2.
 
 
