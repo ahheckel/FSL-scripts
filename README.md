@@ -4,7 +4,7 @@ Script-framework using FSL, Freesurfer and AFNI functionality for automatization
 
 ### Features
 
-* Full automated cascades leading to 2nd level GLM stats for cross-sectional and longitudinal designs  
+* Fully automated cascades up to 2nd-level GLM stats for cross-sectional and longitudinal designs  
 * Functional analyses  
     - FSL's Independent Component Analysis (Melodic-ICA)  
     - FSL's Dual Regression  
@@ -36,11 +36,11 @@ Script-framework using FSL, Freesurfer and AFNI functionality for automatization
 ### Usage
 
 * Create study-directory.  
-* Copy and edit ./globalvars global configuration file.  
+* Copy and edit ./globalvars.  
 * Arrange *.nii.gz files in input directory (./src).  
-* Define GLMs for each module (./grp/GLM).  
-* Edit config* files in ./subj (if settings differ across subjects/sessions).  
-* Run ./go.sh to start processing.  
+* Define GLMs for each module using FSL's Glm (./grp/GLM).  
+* Edit config* files in ./subj (if preprocessing settings differ across subjects/sessions).  
+* Run ```./go.sh``` to start processing.  
 
 ```
 my-study              study-directory
