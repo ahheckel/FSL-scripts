@@ -131,7 +131,7 @@ function save_config()
     
     # create archive
     echo "  creating archive."
-    tar -czf $savdir/conf_${_date}.tar.gz -C $_studydir globalvars $_config $log $logo $loge #$_glmdir
+    tar -chzf $savdir/conf_${_date}.tar.gz -C $_studydir globalvars $_config $log $logo $loge #$_glmdir
     
     # check for RAM dumps
     echo -n  "  searching for kernel dumps..."

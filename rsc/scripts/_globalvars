@@ -5,12 +5,13 @@
 ########################################################################
 
 studydir=`pwd` # absolute path
-srcdir=$studydir/subj
-subjdir=$studydir/subj
-grpdir=$studydir/grp
-glmdir=$grpdir/GLM
-logdir=$studydir/logs 
+srcdir=$studydir/subj  # nifti input files (nii.gz)
+subjdir=$studydir/subj # 1st level processing
+grpdir=$studydir/grp   # 2nd level processing
+glmdir=$grpdir/GLM     # 2nd level GLM
+logdir=$studydir/logs  # SGE logfiles
 
+# 2nd level subdirs & corresponding GLM directories
 tbssdir=$grpdir/tbss        ; glmdir_tbss=$glmdir/tbss
 vbmdir=$grpdir/vbm          ; glmdir_vbm=$glmdir/vbm
 alffdir=$grpdir/alff        ; glmdir_alff=$glmdir/alff
@@ -19,7 +20,7 @@ dregdir=$grpdir/dualreg     ; glmdir_dr=$glmdir/dualreg
 FSstatsdir=$grpdir/FS_stats ; glmdir_fs=$glmdir/FS_stats
 fslnetsdir=$grpdir/fslnets  ; glmdir_fslnets=$glmdir/fslnets
 
-FS_subjdir=$subjdir/FS_subj
+FS_subjdir=$subjdir/FS_subj # FREESURFER subject's directory
 FS_sessdir=$subjdir/FS_sess
 export SUBJECTS_DIR=$FS_subjdir
 
@@ -219,7 +220,7 @@ BOLD_BET=1                                                    # enable betting (
 BOLD_SMOOTHING_KRNLS="0 4"                                    # FWHM (mm) ; enter "0" to swith off smoothing (note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes) 
 BOLD_HPF_CUTOFFS="100"                                        # enter "Inf" or "" to switch off high-pass filter
 BOLD_REGISTER_TO_STRUC_DOF=6                                  # degrees of freedom when registering bold -> T1 (6,12 or "BBR")
-BOLD_PTTRN_HIGHRES_BRAIN="*_FS_brain.nii.gz"                  # pattern of t1 skull-stripped image
+BOLD_PTTRN_HIGHRES_BRAIN="*_FS_brain.nii.gz"                  # pattern of t1 skull-stripped image (*_FS_brain.nii.gz, *_betted_initbrain.nii.gz, *_watershed_initbrain.nii.gz, *_betted_masked_brain.nii.gz)
 BOLD_PTTRN_HIGHRES_STRUC="*_FS_struc.nii.gz"                  # pattern of t1 non-skull-stripped image
 #---------------------
 BOLD_DENOISE_MASKS_NAT="EF_CSF EF_WM"                         # masks used for denoising [EF_CSF.nii.gz EF_WB.nii.gz EF_WM.nii.gz EF_GM.nii.gz ; "none" to switch off] located in feat-dir (need FS-recons for creation) -> see FS_create_masks.sh
@@ -297,7 +298,7 @@ MELODIC_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS                  # subjects to be 
 MELODIC_INCLUDED_SESSIONS=$SECONDLEV_SESSIONS_FUNC             # sessions to be included in the ICA analysis
 MELODIC_INPUT_FILE="preprocBOLD_uw_st0_s0_hpf100_filtered_func_data_denoised_s2_longt_mni2.nii.gz" # filename of input file (in 'bold' subdirectory)
 MELODIC_OUTDIRNAME="MELODIC-GUI01"                             # output directory (ommit '.gica' suffix)
-MELODIC_PTTRN_HIGHRES_BRAIN="*_FS_brain.nii.gz"  # pattern of t1 skull-stripped image
+MELODIC_PTTRN_HIGHRES_BRAIN="*_FS_brain.nii.gz"                # pattern of t1 skull-stripped image
 MELODIC_PTTRN_HIGHRES_STRUC="*_FS_struc.nii.gz"                # pattern of t1 non skull-stripped image
 MELODIC_BET=0                                                  # enable betting
 MELODIC_SMOOTH=4.0                                             # smoothing kernel width in mm
