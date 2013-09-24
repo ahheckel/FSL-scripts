@@ -44,12 +44,12 @@ h3. Usage
 
 my-study              study-directory
   |
-  \|\_rsc               symlink to /FSL-scripts/rsc
-  |_src               data directory containing unprocessed nii.gz files
-  |  |_01             subject 01
-  |  |  |_a           session a
-  |  |  |_b           session b
-  |  |_02             subject 02
+  |-rsc               symlink to /FSL-scripts/rsc
+  |-src               data directory containing unprocessed nii.gz files
+  |  |-01             subject 01
+  |  |  |-a           session a
+  |  |  |-b           session b
+  |  |-02             subject 02
   |  |  |_a           session a
   |  |  |_b           session b
   |  ... ...
