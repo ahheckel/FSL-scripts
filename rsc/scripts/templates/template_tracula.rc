@@ -31,6 +31,13 @@
 setenv SUBJECTS_DIR X
 set dtroot = X
 set subjlist = (X)
+#Longitudinal base template subject IDs (one for each time point above)
+#set baselist = ( huey \
+#                 huey \
+#                 dewey \
+#                 dewey \
+#                 louie \
+#                 louie )
 set runlist = (1)
 set dcmroot = X
 set dcmlist = (X)
@@ -66,7 +73,7 @@ set doregmni = 1
 #set trainfile = $FREESURFER_HOME/trctrain/trainlist.txt
 #set nstick = 2
 #set nburnin = 200
-#set nsample = 5000
+#set nsample = 7500
 #set nkeep = 5
 # Reinitialize path reconstruction?
 # This is an option of last resort, to be used only if one of the reconstructed
