@@ -42,6 +42,9 @@ h3. Usage
 * Edit config* files in ./subj (if settings differ across subjects/sessions).
 * Run ./go.sh to start processing.
 
+```
+dgdfg
+```
 my-study              study-directory
   |
   |-rsc               symlink to /FSL-scripts/rsc
