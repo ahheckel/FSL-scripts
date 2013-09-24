@@ -6,7 +6,7 @@ h3. Features
 
 * Full automated cascades leading to 2nd level GLM stats for cross-sectional and longitudinal designs  
 * Functional analyses  
-** FSL's Independent Component Analysis (Melodic-ICA)  
++ FSL's Independent Component Analysis (Melodic-ICA)  
 ** FSL's Dual Regression  
 ** FSL's Network analysis (FSLNets)  
 ** Amplitute of Low Frequency Fluctuations (ALFF)  
