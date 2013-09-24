@@ -4,7 +4,7 @@ Script-framework using FSL, Freesurfer and AFNI functionality for automatization
 
 ### Features
 
-* Fully automated cascades up to 2nd-level GLM stats for cross-sectional and longitudinal designs  
+* Fully automated cascade up to 2nd-level GLM stats for cross-sectional and longitudinal designs  
 * Functional analyses  
     - FSL's Independent Component Analysis (Melodic-ICA)  
     - FSL's Dual Regression  
@@ -75,7 +75,7 @@ my-study              study-directory
   |    |-02b          subject 02, session b
   |    ...
   |-grp               2nd-level processing
-  |  |-GLM            General linear models (defined using FSL's'Glm')
+  |  |-GLM            General linear models
   |  | |-alff      
   |  | |-dualreg
   |  | |-fslnets
