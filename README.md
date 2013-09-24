@@ -48,52 +48,52 @@ my-study              study-directory
   |-rsc               symlink to /FSL-scripts/rsc
   |-src               data directory containing unprocessed nii.gz files
   |  |-01             subject 01
-  |  |  |-a           session a
-  |  |  |-b           session b
+  |  | |-a            session a
+  |  | |-b            session b
   |  |-02             subject 02
-  |  |  |_a           session a
-  |  |  |_b           session b
+  |  | |-a            session a
+  |  | |-b            session b
   |  ... ...
-  |_subj              1st level processing
+  |-subj              1st-level processing
   |  |
-  |  config_*         files with per-subject/session pre-proc. settings deviating from 'globalvars'
-  |  |_01             subject 01
-  |  |  |_a           session a
-  |  |    |_alff      alff processing
-  |  |    |_bold      bold processing
-  |  |    |_bpx       bedpostx processing
-  |  |    |_fdt       dwi processing
-  |  |    |_fm        fieldmap processing
-  |  |    |_topup     dwi processing using topup
-  |  |    |_vbm       vbm processing
+  |  |-config_*       files with per-subject/session pre-proc. settings deviating from 'globalvars'
+  |  |-01             subject 01
+  |  | |-a            session a
+  |  |   |-alff       alff processing
+  |  |   |-bold       bold processing
+  |  |   |-bpx        bedpostx processing
+  |  |   |-fdt        dwi processing
+  |  |   |-fm         fieldmap processing
+  |  |   |-topup      dwi processing using topup
+  |  |   |-vbm        vbm processing
   |  ...
-  |  |_FS_subj        Freesurfer subjects' directory
-  |      |_01a        subject 01, session a
-  |      |_01b        subject 01, session b
-  |      ...
-  |      |_02a        subject 02, session a
-  |      |_02b        subject 02, session b
-  |      ...
-  |_grp               2nd level processing
-  |  |_GLM            General linear models (defined using FSL's'Glm')
-  |  |  |_alff      
-  |  |  |_dualreg
-  |  |  |_fslnets
-  |  |  |_FS_stats
-  |  |  |_tbss
-  |  |  |_vbm
+  |  |-FS_subj        Freesurfer subjects' directory
+  |    |-01a          subject 01, session a
+  |    |-01b          subject 01, session b
+  |    ...
+  |    |-02a          subject 02, session a
+  |    |-02b          subject 02, session b
+  |    ...
+  |-grp               2nd-level processing
+  |  |-GLM            General linear models (defined using FSL's'Glm')
+  |  | |-alff      
+  |  | |-dualreg
+  |  | |-fslnets
+  |  | |-FS_stats
+  |  | |-tbss
+  |  | |-vbm
   |  |
-  |  |_alff           2nd level processing of alff incl. GLM results
-  |  |_dualreg        2nd level processing of dual-regression incl. GLM results
-  |  |_fslnets        2nd level processing of FSLNets incl. GLM results
-  |  |_FS_stats       2nd level processing of cortical thickness incl. GLM results
-  |  |_melodic        ICA decomposition
-  |  |_tbss           2nd level processing of tbss(x) incl. GLM results
-  |  |_vbm            2nd level processing of vbm incl. GLM results
+  |  |-alff           2nd-level processing of alff incl. GLM results
+  |  |-dualreg        2nd-level processing of dual-regression incl. GLM results
+  |  |-fslnets        2nd-level processing of FSLNets incl. GLM results
+  |  |-FS_stats       2nd-level processing of cortical thickness incl. GLM results
+  |  |-melodic        ICA decomposition
+  |  |-tbss           2nd-level processing of tbss(x) incl. GLM results
+  |  |-vbm            2nd-level processing of vbm incl. GLM results
   |      
-  globalvars          global configuration file
-  run_scripts.sh      link to ./rsc/main.sh
-  go.sh               start processing on cluster as background task
+  |-globalvars        global configuration file
+  |-run_scripts.sh    link to ./rsc/main.sh
+  |-go.sh             start processing on cluster as background task
 ```  
  
 ### Status
