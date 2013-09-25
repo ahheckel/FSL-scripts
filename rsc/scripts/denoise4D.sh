@@ -13,8 +13,10 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` [-m] <input4D> <\"mask1 mask2 ...\" |none> <movpar|none> <movpar_calcs 0:none|1:orig|2:^2|3:abs|4:diff+|5:diff-> <hpf-cutoff(s)|Inf> <TR(s)> <output> <subj_idx> <sess_idx>"
-    echo "        Options:      -m     just create confound matrix, don't denoise"
+    echo "Usage:    `basename $0` [-m] <input4D> <\"mask1 mask2 ...\" |none> <movpar|none> <movpar_calcs 0:none|1:orig|2:^2|3:abs|4:diff+|5:diff-|6:diff+^2|7:diff-^2> <hpf-cutoff(s)|Inf> <TR(s)> <output> <subj_idx> <sess_idx>"
+    echo "Options:  -m   just create confound matrix, don't denoise"
+    echo ""
+    echo "Example:  `basename $0` [-m] data4D \"EF_CSF,EF_WM,EF_WB\" prefiltered_func_data_mcf.par \"1,4,5,2,6,7\" 100 3.330 data4D_denoised"
     echo ""
     exit 1
 }
@@ -49,6 +51,10 @@ TR=$6
 output=$(remove_ext "$7")
 subj="$8"  # optional
 sess="$9"  # optional
+
+# rem commas
+masks="$(echo "$masks" | sed 's|,| |g')"
+movpar_calcs="$(echo "$movpar_calcs" | sed 's|,| |g')"
 
 # define additional vars
 outdir=`dirname $output`
@@ -100,6 +106,8 @@ if [ "$movpar_calcs" != 0 ] ; then
       if [ $calc -eq 3 ] ; then formula2="output_precision(8); abs(c)" ; fi
       if [ $calc -eq 4 ] ; then formula2="output_precision(8); c=diff(c); c=[0 ; c]" ; fi
       if [ $calc -eq 5 ] ; then formula2="output_precision(8); c=diff(c); c=[c ; 0]" ; fi
+      if [ $calc -eq 6 ] ; then formula2="output_precision(8); c=diff(c); c=[0 ; c]; c.*c" ; fi
+      if [ $calc -eq 7 ] ; then formula2="output_precision(8); c=diff(c); c=[c ; 0]; c.*c" ; fi
 
       echo "`basename $0` : subj $subj , sess $sess : applied OCTAVE formula for motion parameter regressors: '$formula2'" 
 
