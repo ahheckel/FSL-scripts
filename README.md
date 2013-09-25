@@ -24,8 +24,7 @@ Script-framework using FSL, Freesurfer and AFNI functionality for automatization
 
 ### Requirements
 
-* Linux (CentOS5 or compatible)  
-* Bash > 3.2.25  
+* Linux (CentOS5 or compatible and Bash > 3.2.25)  
 * FSL > 4.9.1 / 5.0  
 * Freesurfer > 5.1.0 
 * SunGridEngine > 6.1u6  
@@ -52,12 +51,12 @@ my-study              study-directory
   |  |-01             subject 01
   |  | |-a            session a
   |  | |-b            session b
+  |  | ...
   |  |-02             subject 02
   |  | |-a            session a
   |  | |-b            session b
-  |  ... ...
+  |  .....
   |-subj              1st-level processing
-  |  |
   |  |-config_*       files with per-subject/session pre-proc. settings deviating from 'globalvars'
   |  |-01             subject 01
   |  | |-a            session a
@@ -68,7 +67,7 @@ my-study              study-directory
   |  |   |-fm         fieldmap processing
   |  |   |-topup      dwi processing using topup
   |  |   |-vbm        vbm processing
-  |  ...
+  |  .....
   |  |-FS_subj        Freesurfer subjects' directory
   |    |-01a          subject 01, session a
   |    |-01b          subject 01, session b
@@ -78,7 +77,10 @@ my-study              study-directory
   |    ...
   |-grp               2nd-level processing
   |  |-GLM            General linear models
-  |  | |-alff      
+  |  | |-alff
+  |  |   |-glm01      alff GLM 01
+  |  |   |-glm02      alff GLM 02
+  |  |   ...
   |  | |-dualreg
   |  | |-fslnets
   |  | |-FS_stats
@@ -94,7 +96,7 @@ my-study              study-directory
   |  |-vbm            2nd-level processing of vbm incl. GLM results
   |      
   |-globalvars        global configuration file
-  |-run_scripts.sh    link to ./rsc/main.sh
+  |-run_scripts.sh    symlink to ./rsc/main.sh
   |-go.sh             start processing on cluster as background task
 ```  
  
