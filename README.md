@@ -3,7 +3,6 @@
 Script-framework using FSL, Freesurfer and AFNI functionality for automatization and high-throughput processing of MRI data in clustered environments.
 
 ### Features
-
 * Fully automated cascades up to 2nd-level GLM stats for cross-sectional and longitudinal designs  
 * Functional analyses  
     - FSL's Independent Component Analysis (Melodic-ICA)  
@@ -23,7 +22,6 @@ Script-framework using FSL, Freesurfer and AFNI functionality for automatization
 * Nautilus scripts for easy viewing  
 
 ### Requirements
-
 * Linux (CentOS5 or compatible and Bash > 3.2.25)  
 * FSL > 4.9.1 / 5.0  
 * Freesurfer > 5.1.0 
@@ -32,15 +30,21 @@ Script-framework using FSL, Freesurfer and AFNI functionality for automatization
 * Gnome > 2.32  
 * ImageMagick > 6.7.5-3 (optional)  
 
-### Usage
+### Installation
+* Download and unpack zip-file.
+* Export installation directory and mount on all nodes.
+* run ```./rsc/check_compatibility.sh ./rsc``` to check  whether files of existing  
+FSL/Freesurfer installations differ from what is expected by this framework.
+* run ```./rsc/update.sh [32|64]```
 
+### Usage
 * Create study-directory.  
 * Copy and edit ./globalvars.  
 * Arrange *.nii.gz files in input directory (./src).  
 * Define GLMs for each module using FSL's Glm (./grp/GLM).  
   For Freesurfer stats see https://surfer.nmr.mgh.harvard.edu/fswiki/FsgdExamples and  
                            https://surfer.nmr.mgh.harvard.edu/fswiki/RepeatedMeasuresAnova
-* Edit config* files in ./subj (if preprocessing settings differ across subjects/sessions).  
+* Copy and edit config* files in ./subj (if preprocessing settings differ across subjects/sessions).  
 * Run ```./run_script.sh``` to start processing.  
 
 ```
@@ -101,18 +105,15 @@ my-study              study-directory
 ```  
  
 ### Status
-
 Alpha
 
 ### Contact
-
 Dr. Andi Heckel, M.Sc.  
 University of Heidelberg  
 Department of Neuroradiology  
 heckelandreas@googlemail.com  
 
 ### Links
-
 FSL http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/  
 Freesurfer http://surfer.nmr.mgh.harvard.edu/fswiki  
 TRACULA http://surfer.nmr.mgh.harvard.edu/fswiki/FsTutorial/Tracula  
