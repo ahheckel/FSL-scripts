@@ -47,6 +47,8 @@ FSL/Freesurfer installations differ from what is expected by this framework.
 * Copy and edit config* files in ./subj (if preprocessing settings differ across subjects/sessions).  
 * Run ```./run_script.sh``` to start processing.  
 
+Directory structure and naming of input files and subjects/session is defined in './globalvars'. 
+Example:
 ```
 my-study              study-directory
   |

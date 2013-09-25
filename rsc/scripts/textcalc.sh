@@ -40,6 +40,12 @@ output="$3"
 outdir=`dirname $output`
 indir=`dirname $data`
 
+# create working dir.
+tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+
 # check inout file
 if [ ! -f $data ] ; then echo "`basename $0` : ERROR : input file '$data' not found... exiting." ; exit 1 ; fi
 
@@ -58,16 +64,12 @@ for i in `seq 1 $n_cols` ; do
   # extract column
   vals=$(cat $data | awk -v c=${i} '{print $c}')
   # apply formula
-  c=$(octave -q --eval "c=[$vals] ; $formula") ; echo $c | cut -d "=" -f 2- | row2col > ${output}_$(zeropad $i 4)
-  files=$files" "${output}_$(zeropad $i 4)
+  c=$(octave -q --eval "c=[$vals] ; $formula") ; echo $c | cut -d "=" -f 2- | row2col > ${tmpdir}/$(basename $output)_$(zeropad $i 4)
+  files=$files" "${tmpdir}/$(basename $output)_$(zeropad $i 4)
 done
 
 # create matrix
 echo "`basename $0` : creating matrix '$output'..."
 paste -d " " $files > $output
 
-# cleanup
-rm $files
-
 echo "`basename $0` : done."
-
