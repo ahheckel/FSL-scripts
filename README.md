@@ -39,7 +39,7 @@ Script-framework using FSL, Freesurfer and AFNI functionality for automatization
 * Copy and edit ./globalvars.  
 * Arrange *.nii.gz files in input directory (./src).  
 * Define GLMs for each module using FSL's Glm (./grp/GLM).  
-  For Freesurfer stats see https://surfer.nmr.mgh.harvard.edu/fswiki/FsgdExamples and
+  For Freesurfer stats see https://surfer.nmr.mgh.harvard.edu/fswiki/FsgdExamples and  
                            https://surfer.nmr.mgh.harvard.edu/fswiki/RepeatedMeasuresAnova
 * Edit config* files in ./subj (if preprocessing settings differ across subjects/sessions).  
 * Run ```./run_script.sh``` to start processing.  
