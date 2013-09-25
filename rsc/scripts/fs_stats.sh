@@ -1,4 +1,6 @@
 #!/bin/bash
+# Performs resampling of scalar data (e.g. thickness, curvature) to space of target-subject (e.g. fsaverage), smoothing, GLM analysis and permutation testing.
+# This script is self-submitting and should never be submitted to a cluster.
 
 # Written by Andreas Heckel
 # University of Heidelberg
@@ -12,7 +14,7 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
-    echo "Usage:   `basename $0` <SUBJECTS_DIR> <subject> <glm-dir> <out-dir> <measure> <smoothing-kernels(FWHM)> <do-resamp:0|1> <do-smooth:0|1> <do-glm:0|1> <do-glm_sim: 0|1> <Nsim> [<sge-logdir>]"
+    echo "Usage:   `basename $0` <SUBJECTS_DIR> <target-subject> <glm-dir> <out-dir> <measure> <smoothing-kernels(FWHM)> <do-resamp:0|1> <do-smooth:0|1> <do-glm:0|1> <do-glm_sim: 0|1> <Nsim> [<sge-logdir>]"
     echo "Example: `basename $0` ./subj/FS_subj fsaverage ./grp/glm/FS_stats ./grp/FS_stats \"thickness\" \"5 10 15 20 25\" 1 1 1 1 5000 ./logs"
     echo ""
     exit 1 
