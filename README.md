@@ -44,11 +44,12 @@ FSL/Freesurfer installations differ from what is expected by this framework.
 * Define GLMs for each module using FSL's Glm (./grp/GLM).  
   For Freesurfer stats see https://surfer.nmr.mgh.harvard.edu/fswiki/FsgdExamples and  
                            https://surfer.nmr.mgh.harvard.edu/fswiki/RepeatedMeasuresAnova
-* Copy and edit config* files in ./subj (if preprocessing settings differ across subjects/sessions).  
+* Copy and edit config* files in ./subj (if preprocessing settings vary across subjects/sessions).  
 * Run ```./run_script.sh``` to start processing.  
 
-Directory structure and naming of input files and subjects/session is defined in './globalvars'. 
-Example:
+Processing settings, acquisition parameters, directory structure and naming of input files and subjects/session are defined in './globalvars'. 
+Processing settings and acquisition parameters that vary across subjects/sessions are defined in ./subj/config_* files.
+Example directory tree:
 ```
 my-study              study-directory
   |
@@ -56,8 +57,8 @@ my-study              study-directory
   |-src               data directory containing unprocessed nii.gz files
   |  |-01             subject 01
   |  | |-a            session a
-  |  | |-b            session b
   |  | | |-*.nii.gz   input nifti files (t1,bold,dwi with bvals/bvecs, fieldmapp magn/phase)
+  |  | |-b            session b
   |  | ...
   |  |-02             subject 02
   |  | |-a            session a
@@ -67,13 +68,15 @@ my-study              study-directory
   |  |-config_*       files with per-subject/session pre-proc. settings deviating from 'globalvars'
   |  |-01             subject 01
   |  | |-a            session a
-  |  |   |-alff       alff processing
-  |  |   |-bold       bold processing
-  |  |   |-bpx        bedpostx processing
-  |  |   |-fdt        dwi processing
-  |  |   |-fm         fieldmap processing
-  |  |   |-topup      dwi processing using topup
-  |  |   |-vbm        vbm processing
+  |  | | |-alff       alff processing
+  |  | | |-bold       bold processing
+  |  | | |-bpx        bedpostx processing
+  |  | | |-fdt        dwi processing
+  |  | | |-fm         fieldmap processing
+  |  | | |-topup      dwi processing using topup
+  |  | | |-vbm        vbm processing
+  |  | | 
+  |  | |-b            session b
   |  .....
   |  |-FS_subj        Freesurfer subjects' directory
   |    |-01a          subject 01, session a
@@ -85,9 +88,15 @@ my-study              study-directory
   |-grp               2nd-level processing
   |  |-GLM            General linear models
   |  | |-alff
-  |  |   |-glm01      alff GLM 01
-  |  |   |-glm02      alff GLM 02
-  |  |   ...
+  |  | | |-glm01      alff GLM 01
+  |  | | |-glm02      alff GLM 02
+  |  | | | |-design.con
+  |  | | | |-design.fts
+  |  | | | |-design.mat
+  |  | | | |-design.grp
+  |  | | | |-design.fsf
+  |  | | |
+  |  | | ...
   |  | |-dualreg
   |  | |-fslnets
   |  | |-FS_stats
