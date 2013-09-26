@@ -50,7 +50,7 @@ FSL/Freesurfer installations differ from what is expected by this framework.
   and/or acquisition parameters vary across subjects/sessions).  
 * Run ```./run_script.sh``` to start processing.  
 
-Example:  
+Example directory structure:  
 
 ```
 my-study              study-directory
