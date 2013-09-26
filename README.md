@@ -57,6 +57,7 @@ my-study              study-directory
   |  |-01             subject 01
   |  | |-a            session a
   |  | |-b            session b
+  |  | | |-*.nii.gz   input nifti files (t1,bold,dwi with bvals/bvecs, fieldmapp magn/phase)
   |  | ...
   |  |-02             subject 02
   |  | |-a            session a
