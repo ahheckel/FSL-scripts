@@ -47,8 +47,7 @@ FSL/Freesurfer installations differ from what is expected by this framework.
 * Copy and edit config* files in ./subj (if preprocessing settings  
   and/or acquisition parameters vary across subjects/sessions).  
 * Run ```./run_script.sh``` to start processing.  
-
-Processing settings, acquisition parameters, directory structure and naming subjects/sessions and input files are defined in './globalvars'.  
+Processing settings, acquisition parameters, directory structure and naming of subjects/sessions and input files are defined in './globalvars'.  
 Example directory tree:
 ```
 my-study              study-directory
@@ -57,7 +56,7 @@ my-study              study-directory
   |-src               data directory containing unprocessed nii.gz files
   |  |-01             subject 01
   |  | |-a            session a
-  |  | | |-*.nii.gz   input nifti files (t1,bold,dwi with bvals/bvecs,fieldmapp magn/phase)
+  |  | | |-*.nii.gz   input nifti files (t1,bold,dwi with bvals/bvecs,fieldmap magn/phase)
   |  | |-b            session b
   |  | ...
   |  |-02             subject 02
