@@ -39,7 +39,9 @@ FSL/Freesurfer installations differ from what is expected by this framework.
 
 ### Usage
 * Create study-directory.  
-* Copy and edit ./globalvars.  
+* Copy and edit global settings in ./globalvars.  
+  Processing settings, acquisition parameters, directory structure  
+  and naming of subjects/sessions and input files are defined there.  
 * Arrange *.nii.gz files in input directory (./src).  
 * Define GLMs for each module using FSL's Glm (./grp/GLM).  
   For Freesurfer stats see https://surfer.nmr.mgh.harvard.edu/fswiki/FsgdExamples and  
@@ -47,9 +49,8 @@ FSL/Freesurfer installations differ from what is expected by this framework.
 * Copy and edit config* files in ./subj (if preprocessing settings  
   and/or acquisition parameters vary across subjects/sessions).  
 * Run ```./run_script.sh``` to start processing.  
-Processing settings, acquisition parameters, directory structure and naming of subjects/sessions and input files are defined in './globalvars'.  
 
-Example directory tree:  
+Example:  
 
 ```
 my-study              study-directory
