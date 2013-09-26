@@ -49,6 +49,7 @@ FSL/Freesurfer installations differ from what is expected by this framework.
 * Run ```./run_script.sh``` to start processing.  
 Processing settings, acquisition parameters, directory structure and naming of subjects/sessions and input files are defined in './globalvars'.  
 Example directory tree:  
+
 ```
 my-study              study-directory
   |
