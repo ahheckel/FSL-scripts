@@ -44,11 +44,11 @@ FSL/Freesurfer installations differ from what is expected by this framework.
 * Define GLMs for each module using FSL's Glm (./grp/GLM).  
   For Freesurfer stats see https://surfer.nmr.mgh.harvard.edu/fswiki/FsgdExamples and  
                            https://surfer.nmr.mgh.harvard.edu/fswiki/RepeatedMeasuresAnova
-* Copy and edit config* files in ./subj (if preprocessing settings vary across subjects/sessions).  
+* Copy and edit config* files in ./subj (if preprocessing settings  
+  and/or acquisition parameters vary across subjects/sessions).  
 * Run ```./run_script.sh``` to start processing.  
 
-Processing settings, acquisition parameters, directory structure and naming of input files and subjects/session are defined in './globalvars'. 
-Processing settings and acquisition parameters that vary across subjects/sessions are defined in ./subj/config_* files.
+Processing settings, acquisition parameters, directory structure and naming subjects/sessions and input files are defined in './globalvars'.  
 Example directory tree:
 ```
 my-study              study-directory
@@ -57,7 +57,7 @@ my-study              study-directory
   |-src               data directory containing unprocessed nii.gz files
   |  |-01             subject 01
   |  | |-a            session a
-  |  | | |-*.nii.gz   input nifti files (t1,bold,dwi with bvals/bvecs, fieldmapp magn/phase)
+  |  | | |-*.nii.gz   input nifti files (t1,bold,dwi with bvals/bvecs,fieldmapp magn/phase)
   |  | |-b            session b
   |  | ...
   |  |-02             subject 02
