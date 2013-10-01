@@ -92,8 +92,8 @@ function exec_melodic()
   ln -sfv ./report/00index.html $outdir/$subdir/report.html  
 }
 
-[ "$3" = "" ] && Usage
 if [ "$1" = "-pref" ] ; then prefix="$2"_ ; shift 2 ; else prefix="" ; fi
+[ "$3" = "" ] && Usage
 inputs="$1"
 TR=$2
 outdir="$3"

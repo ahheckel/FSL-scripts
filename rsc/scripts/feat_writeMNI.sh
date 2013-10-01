@@ -1,5 +1,5 @@
 #!/bin/bash
-# Writes input to MNI space according to given transforms.
+# Writes input to MNI space according to given transforms. For internal use only.
 
 # Based on FSL's featlib.tcl (v. 4.1.9). 
 # Adapted by Andreas Heckel
@@ -19,7 +19,6 @@ Usage() {
     exit 1
 }
 
-
 [ "$7" = "" ] && Usage
 input=$(remove_ext "$1")
 MNI=$(remove_ext "$2")
@@ -32,14 +31,21 @@ subj="$8"  # optional
 sess="${9}"  # optional
 
 outdir=$(dirname $output)
-_mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'            
+_mni_res=$(echo $mni_res | sed "s|\.||g") # remove '.'    
+
+# create working dir.
+tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 echo "`basename $0`: subj $subj , sess $sess : output directory: '$outdir'"
 
-echo "`basename $0`: subj $subj , sess $sess : write Input->MNI ('$input' -> '$output')..." 
-imrm ${output}_tmp_????.*
-fslsplit $input ${output}_tmp_
-full_list=`imglob ${output}_tmp_????.*`
+echo "`basename $0`: subj $subj , sess $sess : write Input->MNI ('$input' -> '$output')..."
+
+imrm ${tmpdir}/$(basename $output)_tmp_????.*
+fslsplit $input ${tmpdir}/$(basename $output)_tmp_
+full_list=`imglob ${tmpdir}/$(basename $output)_tmp_????.*`
 for i in $full_list ; do
   echo "processing $i"
   cmd="applywarp --ref=$outdir/$(basename $MNI)_${_mni_res} --in=$i --out=$i --warp=${warp} --premat=${affine} --interp=${interp}"

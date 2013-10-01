@@ -37,7 +37,7 @@ tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for tempor
 # define exit trap
 trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
-# copy input matrix to another dir. (it gets overwritten otherwise)
+# copy input matrix to temporary dir. (it gets overwritten otherwise)
 cp $inmat $tmpdir/inmat.${in_ext}
 _inmat=$tmpdir/inmat.${in_ext}
 
