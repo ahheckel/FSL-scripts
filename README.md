@@ -39,9 +39,9 @@ FSL/Freesurfer installations differ from what is expected by this framework.
 
 ### Usage
 * Create study-directory.  
-* Copy and edit global settings in ./globalvars.  
-  Processing settings, acquisition parameters, directory structure  
-  and naming of subjects/sessions and input files are defined there.  
+* Copy and edit global settings in ./globalvars ,  
+  where processing settings, acquisition parameters, directory structure,  
+  naming of subjects/sessions and input files are defined.  
 * Arrange *.nii.gz files in input directory (./src).  
 * Define GLMs for each module using FSL's Glm (./grp/GLM).  
   For Freesurfer stats see https://surfer.nmr.mgh.harvard.edu/fswiki/FsgdExamples and  
@@ -70,13 +70,13 @@ my-study              study-directory
   |  |-config_*       files with per-subject/session pre-proc. settings deviating from 'globalvars'
   |  |-01             subject 01
   |  | |-a            session a
-  |  | | |-alff       alff processing
-  |  | | |-bold       bold processing
-  |  | | |-bpx        bedpostx processing
-  |  | | |-fdt        dwi processing
-  |  | | |-fm         fieldmap processing
-  |  | | |-topup      dwi processing using topup
-  |  | | |-vbm        vbm processing
+  |  | | |-alff       output of alff processing
+  |  | | |-bold       output of bold processing
+  |  | | |-bpx        output of bedpostx processing
+  |  | | |-fdt        output of dwi processing
+  |  | | |-fm         output of fieldmap processing
+  |  | | |-topup      output of dwi processing using topup
+  |  | | |-vbm        output of vbm processing
   |  | | 
   |  | |-b            session b
   |  .....
@@ -105,13 +105,13 @@ my-study              study-directory
   |  | |-tbss
   |  | |-vbm
   |  |
-  |  |-alff           2nd-level processing of alff incl. GLM results
-  |  |-dualreg        2nd-level processing of dual-regression incl. GLM results
-  |  |-fslnets        2nd-level processing of FSLNets incl. GLM results
-  |  |-FS_stats       2nd-level processing of cortical thickness incl. GLM results
-  |  |-melodic        ICA decomposition
-  |  |-tbss           2nd-level processing of tbss(x) incl. GLM results
-  |  |-vbm            2nd-level processing of vbm incl. GLM results
+  |  |-alff           output of 2nd-level processing of alff incl. GLM results
+  |  |-dualreg        output of 2nd-level processing of dual-regression incl. GLM results
+  |  |-fslnets        output of 2nd-level processing of FSLNets incl. GLM results
+  |  |-FS_stats       output of 2nd-level processing of cortical thickness incl. GLM results
+  |  |-melodic        output of ICA decomposition
+  |  |-tbss           output of 2nd-level processing of tbss(x) incl. GLM results
+  |  |-vbm            output of 2nd-level processing of vbm incl. GLM results
   |      
   |-globalvars        global configuration file
   |-run_scripts.sh    symlink to ./rsc/main.sh

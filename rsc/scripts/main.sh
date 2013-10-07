@@ -3890,7 +3890,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
         else
           echo "DUALREG : ERROR : number of input-files ($n_files) does NOT match number of rows in design matrix $glmdir_dr/$dr_glm_name/design.mat ($n_rows entries) !"
           echo "Exiting."
-          exit
+          exit 1
         fi
       done
       

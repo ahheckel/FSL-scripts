@@ -1,12 +1,12 @@
 #!/bin/bash
-# Extracts and merges volumes from a series of 4D input files (for clusters).
+# Extracts and merges volumes from a series of 4D input files according to vector (for clusters).
 # NOTE: This script is self-submitting and should never be submitted to a cluster.
 
 # Written by Andreas Heckel
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 06/26/2013
+# 10/06/2013
 
 set -e
 
@@ -14,13 +14,13 @@ trap 'echo "$0 : An ERROR has occured."' ERR
     
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <out4D> <indices|all|mid> [<fslmaths unary operator>] <\"input files\"> [<qsub logdir>]"
+    echo "Usage:   `basename $0` <out4D> <indices|all|mid> [<fslmaths unary operator>] <\"input files\"> [<qsub logdir>]"
     echo "Example: `basename $0` ./chk/means.nii.gz [0,1,2:2:end-1] -Tmean \"\$inputs\" /tmp"
     echo "         `basename $0` ./chk/means.nii.gz [0,1,2,3] -Tmean \"\$inputs\" /tmp"
     echo "         `basename $0` ./chk/bolds.nii.gz [0,1,2,3] none \"\$inputs\" /tmp"
+    echo "         `basename $0` ./chk/bolds.nii.gz all -Tmean \"\$inputs\" /tmp"
     echo "         `basename $0` ./chk/bolds.nii.gz 0 \"\$inputs\" /tmp"
     echo "         `basename $0` ./chk/bolds.nii.gz mid \"\$inputs\""
-    echo "         `basename $0` ./chk/bolds.nii.gz all -Tmean \"\$inputs\" /tmp"
     echo ""
     exit 1
 }
@@ -151,7 +151,7 @@ done
 waitIfBusyIDs $wdir/jid.list
 
 # apply fslmaths operator if more than one index...
-if [ $multi -eq 1 ] ; then
+if [ $multi -eq 1 -a "$idces" != "all" ] ; then
   n=0 ; rm -f $wdir/apply_operator.cmd
   echo "`basename $0`: merging (and applying unary fslmaths operator: '$op')..."  | tee -a ${out}.txt
   for input in $inputs ; do
@@ -171,12 +171,12 @@ if [ $multi -eq 1 ] ; then
         files=$files" "$wdir/_tmp_$(zeropad $n 4)_idx$(zeropad $idx 4)
       fi
     done
-    echo "fslmerge -t $wdir/_tmp_$(zeropad $n 4) $files ; \
+    echo "    fslmerge -t $wdir/_tmp_$(zeropad $n 4) $files ; \
     imrm $files ; \
     fslmaths $wdir/_tmp_$(zeropad $n 4) $op $wdir/_tmp_$(zeropad $n 4)" >> $wdir/apply_operator.cmd
     n=$(echo "$n + 1" | bc)
   done
-  echo -n "    " ; cat $wdir/apply_operator.cmd
+  cat $wdir/apply_operator.cmd
   fsl_sub -l $logdir -t $wdir/apply_operator.cmd >> $wdir/jid.list
   # waiting...
   waitIfBusyIDs $wdir/jid.list
@@ -192,8 +192,8 @@ fsl_sub -l $logdir "$cmd" >> $wdir/jid.list
 waitIfBusyIDs $wdir/jid.list
 
 # list error log entries
-echo "`basename $0`: cat SGE *.e logs:"
-cat $logdir/*.e*
+echo "`basename $0`: cat SGE *.e/*.o logs:"
+cat $logdir/*.[eo]*
 
 # done
 echo "`basename $0`: done." 

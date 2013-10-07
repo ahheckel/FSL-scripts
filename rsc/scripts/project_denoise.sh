@@ -7,9 +7,9 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage:  `basename $0` <textfile> <root-dir> <bold/featdir>"
-    echo "Examle: `basename $0` artfefacts.txt /mnt/nas/data/fmrtkiralutz/subj bold/preprocBOLD_uw+y_st0_s4_hpf100.feat"
-    echo "Note:   'artefacts.txt' must be formatted this way:"
+    echo "Usage:   `basename $0` <textfile> <root-dir> <bold/featdir>"
+    echo "Example: `basename $0` artfefacts.txt /mnt/nas/data/fmrtkiralutz/subj bold/preprocBOLD_uw+y_st0_s4_hpf100.feat"
+    echo "Note:    'artefacts.txt' must be formatted this way:"
     echo "  multisession designs:"
     echo "  01 a 1,5,9"
     echo "  01 b 2,3,4"
@@ -38,7 +38,6 @@ for i in `seq 1 $(cat $textfile | wc -l)` ; do
   sess=$(cat $textfile | sed -n ${i}p | cut -d " " -f 2)
   bads=$(cat $textfile | sed -n ${i}p | cut -d " " -f 3)
   path=$commondir/$subj/$sess/$featdir
-
   if [ "$bads" = "keine" -o "$bads" = "none" -o "$bads" = "na" ] ; then 
     cmd="fslmaths $path/$input $path/$output" 
     echo $cmd 
@@ -46,5 +45,4 @@ for i in `seq 1 $(cat $textfile | wc -l)` ; do
     cmd="fsl_regfilt -i $path/$input -d $path/${input}.ica/melodic_mix -f "$bads" -o $path/$output"
     echo $cmd
   fi
-  i=$[$i+1]
 done
