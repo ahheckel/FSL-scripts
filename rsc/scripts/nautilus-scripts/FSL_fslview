@@ -24,15 +24,18 @@ else
 fi
 mkdir -p $wdir
 
+# define exit trap
 trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
 
-n=0 ; files=""
+n=0 ; files="" ; links2del=""
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   bn=$(basename $i) ; ext=`echo ${bn##*.}` ;  bn0=${bn%.*}
   if [ "$ext" = "mgz" -o "$ext" = "mgh" ] ; then
     #zenity --info --text="   mri_convert $i $wdir/$bn0.nii.gz $FSLDIR"
     mri_convert $i $wdir/${bn0}.nii.gz
-    files=$files" "$wdir/${bn0}.nii.gz
+    ln -s $wdir/${bn0}.nii.gz $(dirname $i)/${bn0}_$$.nii.gz
+    files=$files" "$(dirname $i)/${bn0}_$$.nii.gz
+    links2del=$links2del" "$(dirname $i)/${bn0}_$$.nii.gz
     n=$[$n+1]
   else
     files=$files" "$i
@@ -46,4 +49,8 @@ done
   #zenity --info --text="$i $sizex $sizey $sizez"
 #done
 
+# execute
 fslview $files
+
+# cleanup
+rm -f $links2del

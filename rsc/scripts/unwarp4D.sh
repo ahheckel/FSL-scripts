@@ -13,9 +13,9 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` [--nomc] <input4D> <output4D> <magn img> <dphase img> <dphaseTE(s)> <TE(ms)> <ESP(ms)> <siglossthres(%)> <unwarp direction: x/y/z/x-/y-/z-> <interp (default:trilinear)> <subj_idx> <sess_idx>"
-    echo "Options: --nomc        skip motion correction"
-    echo "Example: `basename $0` bold uw_bold magn dphase 0.00246 30 0.233 10 y- spline"
+    echo "Usage:    `basename $0` [--nomc] <input4D> <output4D> <magn img> <dphase img> <dphaseTE(s)> <TE(ms)> <ESP(ms)> <siglossthres(%)> <unwarp direction: x/y/z/x-/y-/z-> <interp (default:trilinear)> <subj_idx> <sess_idx>"
+    echo "Options:  --nomc        skip motion correction"
+    echo "Example:  `basename $0` bold uw_bold magn dphase 0.00246 30 0.233 10 y- spline"
     echo ""
     exit 1
 }

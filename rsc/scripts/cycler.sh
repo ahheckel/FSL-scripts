@@ -13,8 +13,8 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <'cmd'> <'01 02 03...'> <'A B C...'> <'a b c...'>"
-    echo "example: `basename $0` 'ls @^/@^^' '01 02 03' 'a b c'"
+    echo "Usage:   `basename $0` <'cmd'> <'01 02 03...'> <'A B C...'> <'a b c...'>"
+    echo "Example: `basename $0` 'ls @^/@^^' '01 02 03' 'a b c'"
     echo ""
     exit 1
 }
