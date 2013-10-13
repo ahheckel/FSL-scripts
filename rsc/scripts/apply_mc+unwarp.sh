@@ -23,7 +23,8 @@ function testascii()
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input4D> <output4D> <mc mat-dir|.ecclog file|matrix file> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> [<interp (default:trilinear)>]"
+    echo "Usage:   `basename $0` <input4D> <output4D> <mc mat-dir|.ecclog file|matrix file> <unwarp shiftmap> <unwarp direction: x/y/z/x-/y-/z-> [<interp (default:trilinear)>]"
+    echo ""
     echo "Example: `basename $0` bold uw_bold ./mc/prefiltered_func_data_mcf.mat/ ./unwarp/EF_UD_shift.nii.gz y- spline"
     echo "         `basename $0` diff uw_diff ./ec_dwi.ecclog ./unwarp/EF_UD_shift.nii.gz y trilinear"
     echo "         `basename $0` diff uw_diff ./matrix.mat ./unwarp/EF_UD_shift.nii.gz y sinc"

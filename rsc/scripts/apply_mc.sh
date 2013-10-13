@@ -13,10 +13,11 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input4D> <output4D> <mc mat-dir|.ecclog file|matrix file> [<interp (default:trilinear)>]"
+    echo "Usage:   `basename $0` <input4D> <output4D> <mc mat-dir|.ecclog file|matrix file> [<interp (default:trilinear)>]"
+    echo ""
     echo "Example: `basename $0` bold mc_bold ./mc/prefiltered_func_data_mcf.mat/ spline"
-    echo "Example: `basename $0` bold mc_bold ./matrix.mat sinc"
-    echo "Example: `basename $0` diff mc_diff ./diff.ecclog trilinear"
+    echo "         `basename $0` bold mc_bold ./matrix.mat sinc"
+    echo "         `basename $0` diff mc_diff ./diff.ecclog trilinear"
     echo ""
     exit 1
 }

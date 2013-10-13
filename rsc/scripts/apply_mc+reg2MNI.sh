@@ -13,7 +13,8 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input4D> <output4D> <mc mat-dir|.ecclog file|matrix file> <func_to_T1 mat> <T1_to_MNI warp> [<interp (default:trilinear)>] [<MNI_ref>]"
+    echo "Usage:   `basename $0` <input4D> <output4D> <mc mat-dir|.ecclog file|matrix file> <func_to_T1 mat> <T1_to_MNI warp> [<interp (default:trilinear)>] [<MNI_ref>]"
+    echo ""
     echo "Example: `basename $0` bold mni_bold ./mc/prefiltered_func_data_mcf.mat/ ./reg/example_func2highres.mat ./reg/highres2standard_warp.nii.gz"
     echo "         `basename $0` diff mni_diff ./diff.ecclog none ./reg/highres2standard_warp.nii.gz nn"
     echo "         `basename $0` diff mni_diff ./matrix.mat  none ./reg/highres2standard_warp.nii.gz spline"
