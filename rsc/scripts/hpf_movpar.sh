@@ -51,7 +51,7 @@ for i in `seq 1 $n_cols` ; do
   # create pseudoimage
   fslascii2img ${out}_$(zeropad $i 4) 1 1 1 $n 1 1 1 $TR ${out}_$(zeropad $i 4).nii.gz
   # hpf pseudoimage
-  feat_hpf.sh ${out}_$(zeropad $i 4).nii.gz ${out}_$(zeropad $i 4)_hpf.nii.gz $hpf $TR $subj $sess
+  $(dirname $0)/feat_hpf.sh ${out}_$(zeropad $i 4).nii.gz ${out}_$(zeropad $i 4)_hpf.nii.gz $hpf $TR $subj $sess
   # convert to ascii
   fsl2ascii ${out}_$(zeropad $i 4)_hpf.nii.gz ${out}_$(zeropad $i 4)_hpf
   # concatenate ascii

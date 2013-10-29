@@ -201,7 +201,7 @@ VBM_USE_BETTED_INIT=1      # use betted brain as init. for standard space maskin
 TRACULA_USE_NATIVE=0             # use unprocessed merged DWI files (TRACULA does eddy-correction and bvec. rotation)
 TRACULA_USE_UNWARPED_BVECROT=0   # use unwarped and eddy-corrected merged DWI files and corrected b-vectors
 TRACULA_USE_TOPUP_NOEC_BVECROT=0 # use TOPUP corrected merged DWI files with corrected b-vectors
-TRACULA_USE_TOPUP_EC_BVECROT=1   # use TOPUP corrected & eddy-corrected merged DWI files with corrected b-vectors
+TRACULA_USE_TOPUP_EC_BVECROT=0   # use TOPUP corrected & eddy-corrected merged DWI files with corrected b-vectors
 TRACULA_USE_TOPUP_EDDY_NOROT=1   # use TOPUP corrected & EDDY (FSLv5) merged DWI files w/o corrected b-vectors
 
 # BOLD - preproc
