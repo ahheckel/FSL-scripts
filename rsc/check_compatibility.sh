@@ -7,17 +7,7 @@
 # https://github.com/ahheckel
 # 03/01/2013
 
-
-Usage() {
-    echo ""
-    echo "Usage:   `basename $0` <dir to framework>"
-    echo "Example: `basename $0` ./rsc"
-    echo ""
-    exit 1
-}
-
-[ "$1" = "" ] && Usage
-fwdir="$1"
+fwdir="$(dirname $0)"
 
 # check version
 v5=$(cat $FSLDIR/etc/fslversion | grep ^5 | wc -l)
@@ -63,5 +53,5 @@ if [ ! -z $(which sh) ] ; then
   if [ $(basename $(readlink `which sh`)) != "bash" ] ; then read -p "`basename $0` : WARNING : 'sh' is linked to $(readlink `which sh`), but should be linked to 'bash' for fsl compatibility. Press key to continue or abort with CTRL-C." ; fi
 fi
 
-
+# done
 echo "`basename $0` : done."

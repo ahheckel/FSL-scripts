@@ -33,7 +33,7 @@ Script-framework using FSL, Freesurfer and AFNI functionality for automatization
 ### Installation
 * Download and unpack zip-file.
 * Export installation directory and mount on all nodes.
-* run ```./rsc/check_compatibility.sh ./rsc``` to check  whether files of existing  
+* run ```./rsc/check_compatibility.sh``` to check  whether files of existing  
 FSL/Freesurfer installations differ from what is expected by this framework.
 * run ```./rsc/update.sh [32|64]```
 
@@ -115,7 +115,6 @@ my-study              study-directory
   |      
   |-globalvars        global configuration file
   |-run_scripts.sh    symlink to ./rsc/main.sh
-  |-go.sh             start processing on cluster as background task
 ```  
  
 ### Status
