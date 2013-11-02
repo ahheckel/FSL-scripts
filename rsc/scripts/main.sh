@@ -109,7 +109,7 @@ set -e
 mkdir -p $subjdir
 
 # remove lock on exit
-trap 'set +e ; echo --------------------------- ; delJIDs $GRID_JOB_ID_FILE ; save_config $studydir $subjdir \"$startdate\" ; rmdir $wd/.lockdir121978 ; echo "Lock removed." ; time_elapsed $startdate_sec ; echo "Exiting on `date`" ; echo --------------------------- ; exit' EXIT
+trap 'set +e ; echo --------------------------- ; delJIDs $GRID_JOB_ID_FILE ; save_config $studydir $subjdir "$startdate" ; rmdir $wd/.lockdir121978 ; echo "Lock removed." ; time_elapsed $startdate_sec ; echo "Exiting on `date`" ; echo --------------------------- ; exit' EXIT
 
 # remove duplicates in string arrays (to avoid collisions on the cluster)
 FIRSTLEV_SUBJECTS=$(echo $FIRSTLEV_SUBJECTS | row2col | sort -u)
