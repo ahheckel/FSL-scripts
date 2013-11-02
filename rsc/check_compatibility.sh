@@ -54,7 +54,7 @@ progs="$FSLDIR/bin/tbss_x $FSLDIR/bin/swap_voxelwise $FSLDIR/bin/swap_subjectwis
 for prog in $progs ; do
   if [ ! -f $prog ] ; then echo "`basename $0` : ERROR : '$prog' is not installed. Exiting." ; exit 1 ; fi
 done
-for prog in octave 3dDespike 3dDetrend 3dTcat mktemp ; do
+for prog in octave 3dDespike 3dDetrend 3dTcat mktemp dos2unix ; do
   if [ x$(which $prog) = "x" ] ; then echo "`basename $0` : ERROR : '$prog' does not seem to be installed on your system ! Exiting..." ; exit 1 ; fi
 done
 
