@@ -1,7 +1,7 @@
 #!/bin/bash
 # Extracts values from concatenated *.mgh using label files.
 
-# Written by Andreas Bartsch & Andreas Heckel
+# Written by Andreas Heckel
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel

@@ -81,7 +81,10 @@ chmod +x $FSLDIR/bin/3dcalc
 chmod +x $FSLDIR/bin/3dDetrend
 chmod +x $FSLDIR/bin/fsl_sub
 chmod +x $FSLDIR/bin/slices_summary
-mkdir $FREESURFER_HOME/subjects/fsaverage/tmp ; chmod 777 $FREESURFER_HOME/subjects/fsaverage/tmp # need write access so that cursor postion in tksurfer/tkmedit can be saved ! (!)
+if [ ! -d $FREESURFER_HOME/subjects/fsaverage/tmp ] ; then
+  mkdir $FREESURFER_HOME/subjects/fsaverage/tmp
+  chmod 777 $FREESURFER_HOME/subjects/fsaverage/tmp # need write access so that cursor postion in tksurfer/tkmedit can be saved ! (!)
+fi
 if [ -f $FREESURFER_HOME/bin/fsl_sub_mgh ] ; then # for TRACULA
   if [ "$(readlink $FREESURFER_HOME/bin/fsl_sub_mgh)" != "$FSLDIR/bin/fsl_sub" ] ; then
     mv -iv $FREESURFER_HOME/bin/fsl_sub_mgh $FREESURFER_HOME/bin/fsl_sub_mgh_sav

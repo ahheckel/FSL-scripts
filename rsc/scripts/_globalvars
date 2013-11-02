@@ -219,7 +219,7 @@ BOLD_SLICETIMING_VALUES="0"                                   # enter correction
 BOLD_BET=1                                                    # enable betting (default 1)
 BOLD_SMOOTHING_KRNLS="0 4"                                    # FWHM (mm) ; enter "0" to swith off smoothing (note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes) 
 BOLD_HPF_CUTOFFS="100"                                        # enter "Inf" or "" to switch off high-pass filter
-BOLD_REGISTER_TO_STRUC_DOF=6                                  # degrees of freedom when registering bold -> T1 (6,12 or "BBR")
+BOLD_REGISTER_TO_STRUC_DOF=6                                  # degrees of freedom when registering bold -> T1 (6,12 or "BBR") ; NOTE: "BBR" is automatically selected when unwarping is enabled.
 BOLD_PTTRN_HIGHRES_BRAIN="*_FS_brain.nii.gz"                  # pattern of t1 skull-stripped image (*_FS_brain.nii.gz, *_betted_initbrain.nii.gz, *_watershed_initbrain.nii.gz, *_betted_masked_brain.nii.gz)
 BOLD_PTTRN_HIGHRES_STRUC="*_FS_struc.nii.gz"                  # pattern of t1 non-skull-stripped image
 #---------------------
@@ -228,7 +228,7 @@ BOLD_DENOISE_USE_MOVPARS_NAT="1"                              # 0: none - 1: ori
 BOLD_DENOISE_SMOOTHING_KRNLS="4"                              # smooth denoised data (NOTE: denoising of native data requires feat-processed data without smoothing applied)
 #---------------------
 BOLD_REGISTER_TO_MNI=1                                        # enable MNI registration
-BOLD_USE_FS_LONGT_TEMPLATE=2                                  # using FS's mid-long template as unbiased registration basis for multisession designs (0: off / 1: bold->t1->long.template / 2: bold->long.template)
+BOLD_USE_FS_LONGT_TEMPLATE=2                                  # using FS's mid-long template as unbiased registration basis for multisession designs (0: off / 1: bold->t1->long.template / 2: bold->long.template) ; NOTE: '2' can also be used with single session designs.
 BOLD_MNI_RESAMPLE_FUNCDATAS="filtered_func_data      filtered_func_data_denoised_s2      filtered_func_data_denoised_s4"              # cycle through 4Ds that are to be resampled in MNI space
 BOLD_MNI_RESAMPLE_RESOLUTIONS="2 4"                           # resolution of the mni-registered data (0: disable) - note: the '.' decimal separator will be removed in the directory name for feat-compatibility purposes; note also: 1 mm may give "out of mem" error
 BOLD_MNI_RESAMPLE_INTERP="trilinear"                          # interpolation method for resampling MNI registered BOLDs (sinc, spline, trilinear)

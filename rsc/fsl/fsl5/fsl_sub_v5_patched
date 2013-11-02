@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2007-2010 University of Oxford
+# Copyright (C) 2007-2013 University of Oxford
 # Authors: Dave Flitney, Stephen Smith and Matthew Webster
 
 #   Part of FSL - FMRIB's Software Library
@@ -70,31 +70,52 @@
 # cluster.
 ###########################################################################
 
+# Domain mail should be sent to if necessary. The complete address will be
+# `whoami`@${fslcluster_mailto_domain}
+fslcluster_mailto_domain=localhost
+# When should the cluster engine send status email (see qsub -m ... docs)
+# Don't send email by default; can be overidden by FSLCLUSTER_MAILOPTS
+# environment variable
+fslcluster_mailopts="${FSLCLUSTER_MAILOPTS:-n}"
 
 ###########################################################################
 # The following section determines what to do when fsl_sub is called
-# by an FSL program. If it finds a local cluster if will pass the
-# commands onto the cluster. Otherwise it will run the commands
+# by an FSL program. If SGE_ROOT is set it will attempt to pass the
+# commands onto the cluster, otherwise it will run the commands
 # itself. There are two values for the METHOD variable, "SGE" and
-# "NONE". You should setup the tests to look for whether the calling
-# computer can see your cluster setup scripts, and run them (if that's
-# what you want, i.e. if you haven't already run them in the user's
-# login scripts). Note that these tests look for the environment
-# variable SGE_ROOT, which a user can unset if they don't want the
+# "NONE". Note that a user can unset SGE_ROOT if they don't want the
 # cluster to be used.
 ###########################################################################
-
 METHOD=SGE
+unset module
 if [ "x$SGE_ROOT" = "x" ] ; then
-    if [ -f /usr/local/share/sge/default/common/settings.sh ] ; then
-	. /usr/local/share/sge/default/common/settings.sh
-    elif [ -f /usr/local/sge/default/common/settings.sh ] ; then
-	. /usr/local/sge/default/common/settings.sh
-    else
 	METHOD=NONE
+fi
+
+# define the default 'qsub' implementation to be used for cluster submission
+qsub_cmd="qsub"
+
+# Allow to override the above automatic detection result with FSLPARALLEL
+if [ -n "$FSLPARALLEL" ] ; then
+    # Whenever FSLPARALLEL is set enfore using SGE even if no SGE_ROOT is set
+    # which, for example, is the case on Debian systems running SGE
+    METHOD=SGE
+    # TODO: move cluster engine detection here to be able to support more than
+    #       just SGE
+    if [ "$FSLPARALLEL" = "condor" ] ; then
+        # if condor shall be used, simply switch to Condor's qsub emulation
+        qsub_cmd="condor_qsub"
     fi
 fi
 
+# stop submitted scripts from submitting jobs themselves
+if [ "X$FSLSUBALREADYRUN" = "Xtrue" ] ; then
+    METHOD=NONE
+    echo "Warning: job on queue attempted to submit parallel jobs - running jobs serially instead" >&2
+fi
+
+FSLSUBALREADYRUN=true
+export FSLSUBALREADYRUN
 
 ###########################################################################
 # The following auto-decides what cluster queue to use. The calling
@@ -108,15 +129,23 @@ fi
 
 map_qname ()
 {
-    if [ $1 -le 20 ] ; then
-	queue=veryshort.q
-    elif [ $1 -le 120 ] ; then
-	queue=short.q
-    elif [ $1 -le 1440 ] ; then
-	queue=long.q
-    else
-	queue=verylong.q
-    fi
+	# for Debian we can't do the stuff below, because it would be hard
+	# to determine how particular queues are meant to be used on any given
+	# system. Instead of translating into a queue name we specify proper
+	# resource limits, and let SGE decide what queue matches
+	# (qsub wants the time limit in seconds)
+	queueCmd="$queueCmd -l h_rt=$(echo "$1 * 60" | bc)"
+    #if [ $1 -le 20 ] ; then
+	#queue=veryshort.q
+    #elif [ $1 -le 120 ] ; then
+	#queue=short.q
+    #elif [ $1 -le 1440 ] ; then
+	#queue=long.q
+    #else
+	#queue=verylong.q
+    #fi
+    #queueCmd=" -q $queue "
+
     #echo "Estimated time was $1 mins: queue name is $queue"
 }
 
@@ -124,6 +153,7 @@ map_qname ()
 # Don't change the following (but keep scrolling down!)
 ###########################################################################
 
+OLD_POSIXLY_CORRECT=${POSIXLY_CORRECT}
 POSIXLY_CORRECT=1
 export POSIXLY_CORRECT
 command=`basename $0`
@@ -140,13 +170,13 @@ $command gzip *.img *.hdr
 $command -q short.q gzip *.img *.hdr
 $command -a darwin regscript rawdata outputdir ...
 
-  -T <minutes>          Estimated job length in minutes, used to auto-set queue name
-  -q <queuename>        Possible values for <queuename> are "verylong.q", "long.q" 
-                        and "short.q". See below for details
-                        Default is "long.q".
+  -T <minutes>          Estimated job length in minutes, used to let SGE select
+                        an appropriate queue
+  -q <queuename>        Possible values for <queuename> can be queried with
+                        'qconf -sql'
   -a <arch-name>        Architecture [e.g., darwin or lx24-amd64]
   -p <job-priority>     Lower priority [0:-1024] default = 0                 
-  -M <email-address>    Who to email, default = `whoami`@fmrib.ox.ac.uk 
+  -M <email-address>    Who to email, default = `whoami`@localhost
   -j <jid>              Place a hold on this task until job jid has completed
   -t <filename>         Specify a task file of commands to execute in parallel
   -N <jobname>          Specify jobname as it will appear on queue
@@ -159,24 +189,26 @@ $command -a darwin regscript rawdata outputdir ...
                         <threads> specifies the number of threads to run
   -v                    Verbose mode.
 
-Queues:
-
-There are several batch queues configured on the cluster, each with defined CPU
-time limits. All queues, except bigmem.q, have a 8GB memory limit.
-
-veryshort.q:This queue is for jobs which last under 30mins.
-short.q:    This queue is for jobs which last up to 4h. 
-long.q:     This queue is for jobs which last less than 24h. Jobs run with a
-            nice value of 10.
-verylong.q: This queue is for jobs which will take longer than 24h CPU time.
-            There is one slot per node, and jobs on this queue have a nice value
-            of 15.
-bigmem.q:   This queue is like the verylong.q but has no memory limits.
-
 EOF
 
   exit 1
 }
+# This part of the help is not applicable anymore
+#
+#Queues:
+#
+#There are several batch queues configured on the cluster, each with defined CPU
+#time limits. All queues, except bigmem.q, have a 8GB memory limit.
+#
+#veryshort.q:This queue is for jobs which last under 30mins.
+#short.q:    This queue is for jobs which last up to 4h. 
+#long.q:     This queue is for jobs which last less than 24h. Jobs run with a
+#            nice value of 10.
+#verylong.q: This queue is for jobs which will take longer than 24h CPU time.
+#            There is one slot per node, and jobs on this queue have a nice value
+#            of 15.
+#bigmem.q:   This queue is like the verylong.q but has no memory limits.
+
 
 nargs=$#
 if [ $nargs -eq 0 ] ; then
@@ -193,6 +225,10 @@ if [ $nargs -eq 0 ] || [ $result != 0 ] ; then
   usage
 fi
 
+POSIXLY_CORRECT=${OLD_POSIXLY_CORRECT}
+export POSIXLY_CORRECT
+
+
 ###########################################################################
 # If you have a Parallel Environment configured for OpenMP tasks then
 # the variable omp_pe should be set to the name you have defined for that
@@ -207,9 +243,13 @@ omp_pe='openmp'
 # change. It also sets up the basic emailing control.
 ###########################################################################
 
-queue=long.q
-mailto=`whoami`@fmrib.ox.ac.uk
-MailOpts="n"
+# SGE should already have a default queue, but allow for overwrite
+queueCmd=""
+if [ "x$FSLCLUSTER_DEFAULT_QUEUE" != "x" ] ; then
+    queueCmd=" -q $FSLCLUSTER_DEFAULT_QUEUE "
+fi
+mailto=`whoami`@${fslcluster_mailto_domain}
+MailOpts=${fslcluster_mailopts}
 
 
 ###########################################################################
@@ -259,7 +299,8 @@ while [ $1 != -- ] ; do
       shift;;
     -q)
       queue=$2
-      qconf -sql | grep ^$queue 2>&1 >/dev/null
+      queueCmd=" -q $queue " 
+      qconf -sq $queue 2>&1 >/dev/null
       if [ $? -eq 1 ]; then
 	  echo "Invalid queue specified!"
 	  exit 127
@@ -373,7 +414,7 @@ case $METHOD in
 	if [ "x$peName" != x ]; then
             # Is this a configured PE?
 
-	    qconf -spl | grep ^$peName 2>&1 >/dev/null
+	    qconf -sp $peName 2>&1 >/dev/null
 
 	    if [ $? -eq 1 ]; then
 		echo $@
@@ -381,6 +422,11 @@ case $METHOD in
 		exit -1
 	    fi
 
+		if [ "x$queue" = "x" ] ; then
+		echo $@
+		echo "No queue specified."
+		exit -1
+	    fi
             # Get a list of queues configured for this PE and confirm that the queue
             # we have submitted to has that PE set up.
 	    qstat -g c -pe $peName 2>&1 >/dev/null
@@ -405,9 +451,9 @@ case $METHOD in
 
 	if [ "x$tasks" = "x" ] ; then
 	    if [ $scriptmode -ne 1 ] ; then
-		sge_command="qsub -V -cwd -shell n -b y -r y -q $queue $pe_options -M $mailto -N $JobName -m $MailOpts $LogOpts $sge_arch $sge_hold $sge_rsc" # sge_rsc added by HKL
+		sge_command="$qsub_cmd -V -cwd -shell n -b y -r y $queueCmd $pe_options -M $mailto -N $JobName -m $MailOpts $LogOpts $sge_arch $sge_hold $sge_rsc" # sge_rsc added by HKL
 	    else
-		sge_command="qsub $LogOpts $sge_arch $sge_hold $sge_rsc" # sge_rsc added by HKL
+		sge_command="$qsub_cmd $LogOpts $sge_arch $sge_hold $sge_rsc" # sge_rsc added by HKL
 	    fi
 	    if [ $verbose -eq 1 ] ; then 
 		echo sge_command: $sge_command >&2
@@ -415,7 +461,7 @@ case $METHOD in
 	    fi
 	    exec $sge_command $@ | awk '{print $3}' | tee -a $GRID_JOB_ID_FILE # tee- a added by HKL
 	else
-	    sge_command="qsub -V -cwd -q $queue $pe_options -M $mailto -N $JobName -m $MailOpts $LogOpts $sge_arch $sge_hold $sge_tasks $sge_rsc" # sge_rsc added by HKL
+	    sge_command="$qsub_cmd -V -cwd $queueCmd $pe_options -M $mailto -N $JobName -m $MailOpts $LogOpts $sge_arch $sge_hold $sge_tasks $sge_rsc" # sge_rsc added by HKL
 	    if [ $verbose -eq 1 ] ; then 
 		echo sge_command: $sge_command >&2
 		echo control file: $taskfile >&2

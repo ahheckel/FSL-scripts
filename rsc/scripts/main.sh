@@ -8,6 +8,15 @@
 
 echo "---------------------------"
 
+# start in background mode ?
+if [ x"$1" = "xbg" ] ; then
+  trap 'echo -e "\n********************\nTo cancel background job type \n kill $(cat ./log | grep Job | cut -d : -f 2)\n\nTo view logfile type \n tail -f log\n"********************' EXIT
+  cd $(dirname $0)
+  nohup ./run_script.sh &> log &
+  tail -f log
+  exit 0
+fi
+
 # check if superuser
 if [ "$(id -u)" = "0" ]; then
    echo "$(basename $0): This script must not be run as root !" 1>&2
