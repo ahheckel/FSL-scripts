@@ -30,7 +30,8 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do # for each feat-dir
   EF_UD="$i/unwarp/EF_UD_example_func.nii.gz"
   EF_mag="$i/unwarp/EF_UD_fmap_mag_brain.nii.gz"
   EF_D_v5="$i/reg/unwarp/EF_D_example_func.nii.gz"
-  EF_UD_v5="$i/reg/unwarp/EF_UD_example_func.nii.gz"
+  #EF_UD_v5="$i/reg/unwarp/EF_UD_example_func.nii.gz"
+  EF_UD_v5="$i/reg/unwarp/example_func_undistorted.nii.gz"
   EF_mag_v5="$i/reg/unwarp/EF_UD_fmap_mag_brain.nii.gz"
   
   highresbbr="$i/reg_longt/highres.nii.gz"
