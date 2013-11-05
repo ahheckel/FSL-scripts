@@ -189,7 +189,7 @@ RECON_USE_CUDA=0           # use CUDA for recon-all, if available
 RECON_OPTIONS=""           # "-use-mritotal" (may improve Talairach registration) ; NOTE: "-nuintensitycor-3T -schwartzya3t-atlas" only for FREESURFER >= v.5.2
 
 # VBM_PREPROC
-VBM_FSLV5=0                # perform fsl_anat script OR
+VBM_FSLV5=0                # perform fsl_anat script -OR-
 VBM_NU_CORRECT_T1=0        # perform non-uniformity correction prior to t1 skull-stripping - useful for mri_watershed (default: 0)
 VBM_SSM_ERODE_STEPS=3
                            # mutually exclusive:

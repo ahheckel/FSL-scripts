@@ -1947,11 +1947,12 @@ if [ $VBM_STG1 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       if [ -f $FS_subjdir/$(subjsess)/mri/brain.mgz -a -f $FS_subjdir/$(subjsess)/mri/aparc+aseg.mgz ] ; then
         fldr=$subjdir/$subj/$sess/vbm
-        echo "VBM PREPROC : subj $subj , sess $sess : applying FREESURFER brain-mask to '$(subjsess)_t1_struc.nii.gz' using bbregister (-> '$(subjsess)_FS_brain.nii.gz' & '$(subjsess)_FS_struc.nii.gz')..."
+        echo "VBM PREPROC : subj $subj , sess $sess : applying FREESURFER brain-mask to '$(subjsess)_t1_struc.nii.gz' using bbregister (-> '$(subjsess)_FS_brain.nii.gz')..."
         echo "mri_convert $FS_subjdir/$(subjsess)/mri/brain.mgz $fldr/_FS_brain.nii.gz -odt float ;\
         fslmaths $fldr/_FS_brain.nii.gz -bin $fldr/_FS_brain_mask.nii.gz ;\
         bbregister --s $(subjsess) --mov $fldr/$(subjsess)_t1_struc.nii.gz --init-fsl --reg $fldr/T12fsT1_bbr.dat --t1 --fslmat $fldr/T12fsT1_bbr.fslmat ;\
         mri_label2vol --reg $fldr/T12fsT1_bbr.dat --seg $fldr/_FS_brain_mask.nii.gz --temp $fldr/$(subjsess)_t1_struc.nii.gz --o $fldr/$(subjsess)_FS_brain_mask.nii.gz ;\
+        $scriptdir/bin/fslmaths $fldr/$(subjsess)_FS_brain_mask.nii.gz -fillh $fldr/$(subjsess)_FS_brain_mask.nii.gz ;\
         fslmaths $fldr/$(subjsess)_t1_struc.nii.gz -mas $fldr/$(subjsess)_FS_brain_mask.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz ;\
         ln -sf ./$(subjsess)_t1_struc.nii.gz $fldr/$(subjsess)_FS_struc.nii.gz ;\
         imrm $fldr/_FS_brain.nii.gz $fldr/_FS_brain_mask.nii.gz" > $fldr/vbm_FSbrainmask.cmd
