@@ -2,6 +2,6 @@
 # CAVE: will overwrite design.grp!
 
 set -e
-cp $(dirname $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS)/design.grp $(dirname $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS)/_design.grp 
+#cp $(dirname $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS)/design.grp $(dirname $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS)/_design.grp 
 /usr/bin/fsl5.0-Glm $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS
 #mv $(dirname $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS)/_design.grp $(dirname $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS)/design.grp

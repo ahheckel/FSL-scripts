@@ -16,7 +16,7 @@ FREESURFER_HOME=/usr/local/freesurfer
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
-    xterm -e "mri_info $i ; read -p \"Press key...\""
+    xterm -geometry 100x40 -e "mri_info $i ; read -p \"Press key...\""
 done
 
 
