@@ -1,4 +1,4 @@
 #!/bin/bash
-FSL=/usr/share/fsl/4.1
-fslview ${FSL}/data/standard/MNI152_T1_1mm_brain ../mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS -l "Red" -b 0.75,0.9
+source $(dirname $0)/env_vars
+fslview ${FSL_DIR}/data/standard/MNI152_T1_1mm_brain ../mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS -l "Red" -b 0.75,0.9
 

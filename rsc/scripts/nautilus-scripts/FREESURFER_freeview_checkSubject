@@ -12,8 +12,7 @@
 # https://github.com/ahheckel
 # 03/31/2013
 
-FREESURFER_HOME=/usr/local/freesurfer
-source $FREESURFER_HOME/SetUpFreeSurfer.sh
+source $(dirname $0)/env_vars
 
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do    
   opts="-v $i/mri/brain.mgz -f $i/surf/lh.white:edgecolor=0,255,0 -f $i/surf/rh.white:edgecolor=0,255,0 -f $i/surf/lh.pial:annot=label/lh.aparc.a2009s.annot:edgecolor=255,0,0 -f $i/surf/rh.pial:annot=label/rh.aparc.a2009s.annot:edgecolor=255,0,0"

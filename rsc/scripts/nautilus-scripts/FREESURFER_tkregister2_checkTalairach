@@ -12,8 +12,7 @@
 # https://github.com/ahheckel
 # 04/01/2013
 
-FREESURFER_HOME=/usr/local/freesurfer
-source $FREESURFER_HOME/SetUpFreeSurfer.sh
+source $(dirname $0)/env_vars
 
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do    
   SUBJECTS_DIR=$(dirname $i)
@@ -24,7 +23,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   #zenity --info --text="$opts"
 
   # execute
-  xterm -e "tkregister2 ${opts}"
+  xterm -e "cat $i/mri/transforms/talairach_avi_QA.log | grep TalAviQA ; echo -------------------- ; tkregister2 ${opts}"
 done
 
 

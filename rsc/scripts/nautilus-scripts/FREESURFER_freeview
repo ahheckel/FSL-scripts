@@ -12,10 +12,9 @@
 # https://github.com/ahheckel
 # 01/12/2013
 
-tmpfile=/tmp/$(basename $0)_$$
+source $(dirname $0)/env_vars
 
-FREESURFER_HOME=/usr/local/freesurfer
-source $FREESURFER_HOME/SetUpFreeSurfer.sh
+tmpfile=/tmp/$(basename $0)_$$
 
 vollist_lh=""   ; vollist_rh=""
 surflist_lh=""  ; surflist_rh=""
