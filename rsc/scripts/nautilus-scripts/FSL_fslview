@@ -30,9 +30,9 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   if [ "$ext" = "mgz" -o "$ext" = "mgh" ] ; then
     #zenity --info --text="   mri_convert $i $wdir/$bn0.nii.gz $FSLDIR"
     mri_convert $i $wdir/${bn0}.nii.gz
-    ln -s $wdir/${bn0}.nii.gz $(dirname $i)/${bn0}_$$.nii.gz
-    files=$files" "$(dirname $i)/${bn0}_$$.nii.gz
-    links2del=$links2del" "$(dirname $i)/${bn0}_$$.nii.gz
+    ln -s $wdir/${bn0}.nii.gz $(dirname $i)/${bn}_$$.nii.gz
+    files=$files" "$(dirname $i)/${bn}_$$.nii.gz
+    links2del=$links2del" "$(dirname $i)/${bn}_$$.nii.gz
     n=$[$n+1]
   else
     files=$files" "$i
