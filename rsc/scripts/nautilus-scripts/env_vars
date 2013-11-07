@@ -1,5 +1,5 @@
-FSL_DIR=/usr/share/fsl/5.0
+FSL_DIR=XXX
 source ${FSL_DIR}/etc/fslconf/fsl.sh
 
-FREESURFER_HOME=/usr/local/freesurfer
+FREESURFER_HOME=XXX
 source $FREESURFER_HOME/SetUpFreeSurfer.sh
