@@ -71,7 +71,6 @@ scripts/bin/fslmaths5
 -------------------------------
 Allows for filling holes in binary Freesurfer masks (32bit).
 
-
 -----
 Notes.
   The FSL-scripts folder must be exportet and mounted on all nodes.
