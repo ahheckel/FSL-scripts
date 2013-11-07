@@ -2,6 +2,13 @@ Modifications of original FSL / Freesurfer files.
 
 All modifications are indicated in the respective files (HKL).
 
+
+fs/trac-all
+-----------
+Adapted to work with SunGridEngine. 
+Only for use with Tracula Revision 1.35.
+
+
 fsl/fsl4/fsl_sub_v4
 fsl/fsl5/fsl_sub_v5
 --------------
@@ -12,13 +19,6 @@ fsl/fsl5/fsl_sub_v5_patched
 ----------------------
 RAM limit added & JOB-IDs are written to file for better job control.
 
-
-scripts/fsl_sub_NOPOSIXLY.sh
-scripts/fsl_sub_v5_NOPOSIXLY.sh
--------------------------------
-POSIXLY_CORRECT variable was commented out to ensure compatibility with recon-all.
-JOB-IDs are written to file for better job control.
-  
 
 fsl/fsl4/featlib_v4.tcl
 ------------------
@@ -36,12 +36,6 @@ Adapted to work with FSL 4.9.1 and this framework.
 fsl/templates
 ------------------
 Added multi-resolution MNI152 templates, the Smith & Beckmann templates and CSF & WM masks.
-  
-
-fs/trac-all
------------
-Adapted to work with SunGridEngine. 
-Only for use with Tracula Revision 1.35.
 
 
 scripts/dualreg.sh
@@ -59,6 +53,24 @@ scripts/longt_tbss_2_reg.sh
 ---------------------------
 FLIRT is initialised with transform b0->T1->MNI, where T1 is the unbiased template of the Freesurfer longit. stream,
 and b0->T1 is done via Freesurfer's bbregister.
+
+
+scripts/fsl_sub_NOPOSIXLY.sh
+scripts/fsl_sub_v5_NOPOSIXLY.sh
+-------------------------------
+POSIXLY_CORRECT variable was commented out to ensure compatibility with recon-all.
+JOB-IDs are written to file for better job control.
+
+
+scripts/bin/sort8
+-------------------------------
+Allows for natural sort of (version) numbers within text (32bit).
+
+
+scripts/bin/fslmaths5
+-------------------------------
+Allows for filling holes in binary Freesurfer masks (32bit).
+
 
 -----
 Notes.
