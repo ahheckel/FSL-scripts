@@ -11,17 +11,17 @@ Only for use with Tracula Revision 1.35.
 
 fsl/fsl4/fsl_sub_v4
 fsl/fsl5/fsl_sub_v5
---------------
+-------------------
 A RAM limit was added to avoid cluster overload.
 
 
 fsl/fsl5/fsl_sub_v5_patched
-----------------------
+---------------------------
 RAM limit added & JOB-IDs are written to file for better job control.
 
 
 fsl/fsl4/featlib_v4.tcl
-------------------
+-----------------------
 Cross-modal affine registrations use mutualinfo (rather than corratio) as cost-function. 
 Unwarping: +/- y unwarp example files are created.
 Only for use with FSL 4.9.1.
@@ -29,12 +29,12 @@ Only for use with FSL 4.9.1.
 
 fsl/FSLNets/nets_glm.m
 fsl/FSLNets/nets_load.m
-------------------
+-----------------------
 Adapted to work with FSL 4.9.1 and this framework.
 
 
 fsl/templates
-------------------
+-------------
 Added multi-resolution MNI152 templates, the Smith & Beckmann templates and CSF & WM masks.
 
 
@@ -63,12 +63,12 @@ JOB-IDs are written to file for better job control.
 
 
 scripts/bin/sort8
--------------------------------
+-----------------
 Allows for natural sort of (version) numbers within text (32bit).
 
 
 scripts/bin/fslmaths5
--------------------------------
+---------------------
 Allows for filling holes in binary Freesurfer masks (32bit).
 
 -----
