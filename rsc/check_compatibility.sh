@@ -12,6 +12,9 @@ fwdir="$(dirname $0)"
 # check version
 v5=$(cat $FSLDIR/etc/fslversion | grep ^5 | wc -l)
 
+# clear screen
+clear
+
 # check for differences...
 if [ $v5 -eq 1 ] ; then
   cmd="diff $fwdir/fsl/fsl5/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
@@ -38,20 +41,8 @@ cmd="diff $fwdir/fsl/orig/dual_regression $FSLDIR/bin/dual_regression" ; $cmd ; 
 
 #cmd="diff $fwdir/fs/trac-all $FREESURFER_HOME/bin/trac-all" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
 
-# are all progs / files installed ?
-echo "`basename $0` : checking for required progs..."
-progs="$FSLDIR/bin/tbss_x $FSLDIR/bin/swap_voxelwise $FSLDIR/bin/swap_subjectwise $FREESURFER_HOME/bin/trac-all $FSLDIR/etc/flirtsch/b02b0.cnf $FSLDIR/bin/topup $FSLDIR/bin/applytopup $FSLDIR/data/standard/avg152T1_white_bin.nii.gz $FSLDIR/data/standard/avg152T1_csf_bin.nii.gz"
-for prog in $progs ; do
-  if [ ! -f $prog ] ; then echo "`basename $0` : ERROR : '$prog' is not installed. Exiting." ; exit 1 ; fi
-done
-for prog in octave 3dDespike 3dDetrend 3dTcat mktemp dos2unix ; do
-  if [ x$(which $prog) = "x" ] ; then echo "`basename $0` : ERROR : '$prog' does not seem to be installed on your system ! Exiting..." ; exit 1 ; fi
-done
-
-# is sh linked to bash ?
-if [ ! -z $(which sh) ] ; then
-  if [ $(basename $(readlink `which sh`)) != "bash" ] ; then read -p "`basename $0` : WARNING : 'sh' is linked to $(readlink `which sh`), but should be linked to 'bash' for fsl compatibility. Press key to continue or abort with CTRL-C." ; fi
-fi
+# are all required progs / files installed ?
+$(dirname $0)/scripts/_check_progs.sh
 
 # done
 echo "`basename $0` : done."

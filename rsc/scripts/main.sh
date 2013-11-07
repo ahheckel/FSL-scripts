@@ -182,19 +182,8 @@ fi
 
 # ----- CHECKS -----
 
-# are all progs / files installed ?
-progs="$FSL_DIR/bin/tbss_x $FSL_DIR/bin/swap_voxelwise $FSL_DIR/bin/swap_subjectwise $FREESURFER_HOME/bin/trac-all $FSL_DIR/etc/flirtsch/b02b0.cnf $FSL_DIR/bin/topup $FSL_DIR/bin/applytopup $FSL_DIR/data/standard/avg152T1_white_bin.nii.gz $FSL_DIR/data/standard/avg152T1_csf_bin.nii.gz"
-for prog in $progs ; do
-  if [ ! -f $prog ] ; then echo "ERROR : '$prog' is not installed. Exiting." ; exit 1 ; fi
-done
-for prog in octave 3dDespike 3dDetrend 3dTcat mktemp dos2unix ; do
-  if [ x$(which $prog) = "x" ] ; then echo "ERROR : '$prog' does not seem to be installed on your system ! Exiting..." ; exit 1 ; fi
-done
-
-# is sh linked to bash ?
-if [ ! -z $(which sh) ] ; then
-  if [ $(basename $(readlink `which sh`)) != "bash" ] ; then read -p "WARNING : 'sh' is linked to $(readlink `which sh`), but should be linked to 'bash' for fsl compatibility. Press key to continue or abort with CTRL-C." ; fi
-fi
+# are all required progs / files installed ?
+$scriptdir/_check_progs.sh ; echo ""
 
 ## make scripts executable
 #dos2unix -q $scriptdir/*
