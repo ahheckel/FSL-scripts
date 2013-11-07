@@ -55,7 +55,7 @@ n_cols=$(awk '{print NF}' $data | sort -nu | head -n 1)
 # count number of data points
 n=$(cat $data | wc -l)
 
-echo "`basename $0` : $n data points in $n_cols columns."
+echo "`basename $0` : $n data points in $n_cols columns in '$data'."
 
 # extract data column-wise and apply formula
 echo "`basename $0` : applying formula '$formula' to each column..."
