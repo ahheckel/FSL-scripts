@@ -48,7 +48,7 @@ FSL/Freesurfer installations differ from what is expected by this framework.
                            https://surfer.nmr.mgh.harvard.edu/fswiki/RepeatedMeasuresAnova
 * Copy and edit config* files in ./subj (if preprocessing settings  
   and/or acquisition parameters vary across subjects/sessions).  
-* Run ```./run_script.sh``` to start processing.  
+* Run ```./run_script.sh [bg]``` to start processing.  
 
 Example directory structure:  
 
