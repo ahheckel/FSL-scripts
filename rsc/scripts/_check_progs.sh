@@ -16,4 +16,5 @@ if [ ! -z $(which sh) ] ; then
   if [ $(basename $(readlink `which sh`)) != "bash" ] ; then read -p "WARNING : 'sh' is linked to $(readlink `which sh`), but should be linked to 'bash' for fsl compatibility. Press key to continue or abort with CTRL-C." ; fi
 fi
 
+# done.
 echo "`basename $0` : ...done."

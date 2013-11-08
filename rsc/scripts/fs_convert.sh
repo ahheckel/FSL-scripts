@@ -46,7 +46,7 @@ if [ x"$opts" = "x" ] ; then
 fi
 
 if [ $normalize -eq 1 ] ; then
-  mri_convert $input ${input%%.*}.mnc $opts
+  mri_convert $input ${input%%.*}.mnc -odt float
   nu_correct -clobber ${input%%.*}.mnc ${input%%.*}_nu.mnc
   mri_normalize ${input%%.*}_nu.mnc ${input%%.*}_nu_norm.mnc
   mri_convert ${input%%.*}_nu_norm.mnc $out $opts
