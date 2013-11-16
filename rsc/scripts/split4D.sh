@@ -20,6 +20,7 @@ Usage() {
     echo ""
     echo "Example: `basename $0` t in 128 out"
     echo "         `basename $0` t in [128] out"
+    echo "         `basename $0` -m t in [2:1:end-2] out"
     echo "         `basename $0` -m x in [1,mid,end] out"
     echo "         `basename $0` -m y in [0:2:end-1] out"
     echo "         `basename $0` -m z in [0,2:2:end-1] out"
