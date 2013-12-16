@@ -47,7 +47,7 @@ cmd="flirt -in $data -ref $ref -applyisoxfm $res -out $out" ; echo "    $cmd"
 $cmd
 
 # cleanup
-imrm $ref
+#imrm $ref
 
 # done
 echo "`basename $0`: done."
