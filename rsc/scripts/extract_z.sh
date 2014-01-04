@@ -7,7 +7,7 @@ set -e
 Usage() {
     echo ""
     echo "Usage:   `basename $0` <input3D> <mask3D> <text-output>"
-    echo "Example: `basename $0` FA FA_1stb0-mask FA_vals.txt"
+    echo "Example: `basename $0` FA FA-mask FA_vals.txt"
     echo ""
     exit 1
 }
@@ -34,8 +34,7 @@ echo "`basename $0` : fsl V.:     $fslversion"
 echo "`basename $0` : input:      $input"
 echo "`basename $0` : slices(z):  $Z"
 echo "`basename $0` : mask:       $mask"
-echo "`basename $0` : markers:    ${n0min} - ${n0max}"
-echo "`basename $0` : mask:       $mask"
+echo "`basename $0` : markers:    1 - ${n0max}"
 echo "`basename $0` : txt-out:    $out"
 echo "---------------------------"
 
@@ -50,7 +49,7 @@ $(dirname $0)/split4D.sh z $mask [0:1:end] $tmpdir/$(basename $mask)
 $(dirname $0)/split4D.sh z $input [0:1:end] $tmpdir/$(basename $input)
 
 rm -f $tmpdir/meants ; outs_tmp=""
-for n in `seq $n0min $n0max` ; do # for each "color"
+for n in `seq 1 $n0max` ; do # for each "color"
   for i in `seq 0 $[$Z-1]` ; do # for each slice
     # segment
     cmd="$(dirname $0)/seg_mask.sh $tmpdir/$(basename $mask)_slice_$(zeropad $i 4) $n $tmpdir/$(basename $mask)_slice_$(zeropad $i 4)_$(zeropad $n 3)"
