@@ -55,13 +55,6 @@ FLIRT is initialised with transform b0->T1->MNI, where T1 is the unbiased templa
 and b0->T1 is done via Freesurfer's bbregister.
 
 
-scripts/fsl_sub_NOPOSIXLY.sh
-scripts/fsl_sub_v5_NOPOSIXLY.sh
--------------------------------
-POSIXLY_CORRECT variable was commented out to ensure compatibility with recon-all.
-JOB-IDs are written to file for better job control.
-
-
 scripts/bin/sort8
 -----------------
 Allows for natural sort of (version) numbers within text (32bit).
