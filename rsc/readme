@@ -3,17 +3,6 @@ Modifications of original FSL / Freesurfer files.
 All modifications are indicated in the respective files (HKL).
 
 
-fs/trac-all
------------
-Adapted to work with SunGridEngine. 
-Only for use with Tracula Revision 1.35.
-
-
-fsl/fsl4/fsl_sub_v4
-fsl/fsl5/fsl_sub_v5
--------------------
-A RAM limit was added to avoid cluster overload.
-
 
 fsl/fsl5/fsl_sub_v5_patched
 ---------------------------
