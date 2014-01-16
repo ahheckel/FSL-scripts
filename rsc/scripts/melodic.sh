@@ -111,7 +111,7 @@ if [ $(echo "$inputs" | wc -w) -eq 1 ] ; then
     else
       echo "`basename $0`: ERROR : '$input' is empty - exiting." ; exit 1
     fi      
-    inputs="$(cat $inputs)" # assuming ascii list with volumes
+    inputs="$(cat $inputs)" # asuming ascii list with volumes
   else
     echo "`basename $0`: ERROR : cannot read inputfile '$inputs' - exiting." ; exit 1 
   fi

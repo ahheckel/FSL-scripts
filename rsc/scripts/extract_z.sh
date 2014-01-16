@@ -48,7 +48,7 @@ trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 $(dirname $0)/split4D.sh z $mask [0:1:end] $tmpdir/$(basename $mask)
 $(dirname $0)/split4D.sh z $input [0:1:end] $tmpdir/$(basename $input)
 
-rm -f $tmpdir/meants ; outs_tmp=""
+rm -f $tmpdir/meants_??? ; outs_tmp=""
 for n in `seq 1 $n0max` ; do # for each "color"
   for i in `seq 0 $[$Z-1]` ; do # for each slice
     # segment

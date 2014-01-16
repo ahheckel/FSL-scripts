@@ -33,7 +33,6 @@ cp -iv fsl/templates/rsn10*.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/templates/rsn8*.nii.gz $FSLDIR/data/standard/
 
 if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
-  #cp -iv fsl/fsl_sub_v4 $FSLDIR/bin/fsl_sub # contains a RAM limit
   cp -iv fsl/fsl4/tbss_x/tbss_x $FSLDIR/bin/tbss_x
   cp -iv fsl/fsl4/topup/b02b0.cnf $FSLDIR/etc/flirtsch/b02b0.cnf
   cp -iv fsl/fsl4/featlib_v4.tcl $FSLDIR/tcl/featlib.tcl
@@ -52,6 +51,8 @@ if [ $1 -eq 64 ] ; then
   cp -iv afni/3dTstat_64 $FSLDIR/bin/3dTstat
   cp -iv afni/3dcalc_64 $FSLDIR/bin/3dcalc
   cp -iv afni/3dDetrend_64 $FSLDIR/bin/3dDetrend
+  cp -iv scripts/bin/sort8_64 scripts/bin/sort8
+  cp -iv scripts/bin/fslmaths_64 scripts/bin/fslmaths5
 fi
 
 if [ $1 -eq 32 ] ; then
@@ -66,6 +67,8 @@ if [ $1 -eq 32 ] ; then
   cp -iv afni/3dTstat_32 $FSLDIR/bin/3dTstat
   cp -iv afni/3dcalc_32 $FSLDIR/bin/3dcalc
   cp -iv afni/3dDetrend_32 $FSLDIR/bin/3dDetrend
+  cp -iv scripts/bin/sort8_32 scripts/bin/sort8
+  cp -iv scripts/bin/fslmaths_32 scripts/bin/fslmaths5
 fi
 
 chmod +x $FSLDIR/bin/topup
@@ -81,6 +84,8 @@ chmod +x $FSLDIR/bin/3dcalc
 chmod +x $FSLDIR/bin/3dDetrend
 chmod +x $FSLDIR/bin/fsl_sub
 chmod +x $FSLDIR/bin/slices_summary
+chmod +x scripts/bin/fslmaths5
+chmod +x scripts/bin/sort8
 if [ ! -d $FREESURFER_HOME/subjects/fsaverage/tmp ] ; then
   mkdir $FREESURFER_HOME/subjects/fsaverage/tmp
   chmod 777 $FREESURFER_HOME/subjects/fsaverage/tmp # need write access so that cursor postion in tksurfer/tkmedit can be saved ! (!)
@@ -97,4 +102,4 @@ if [ -f $FREESURFER_HOME/bin/fsl_sub_seychelles ] ; then # for TRACULA
     ln -vsi $FSLDIR/bin/fsl_sub $FREESURFER_HOME/bin/fsl_sub_seychelles
   fi
 fi
-#ln -vsi ./bedpostx $FSLDIR/bin/bedpostx_seychelles # for TRACULA
+
