@@ -37,9 +37,9 @@ output=$(remove_ext $4)
 if [ $(imtest $input) -eq 0 ] ; then
   echo "$(basename $0): ERROR: '$input' does not exist or is not a volume - exiting..." ; exit 1
 fi
-if [ "$input" = "$output" ] ; then
-  echo "$(basename $0): ERROR: input '$input' and output '$output' are the same - exiting..." ; exit 1
-fi
+#if [ "$input" = "$output" ] ; then
+  #echo "$(basename $0): ERROR: input '$input' and output '$output' are the same - exiting..." ; exit 1
+#fi
 
 # execute
 echo "$(basename $0):"

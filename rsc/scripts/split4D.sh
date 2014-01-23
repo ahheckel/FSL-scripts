@@ -14,7 +14,7 @@ trap 'echo "$0 : An ERROR has occured."' ERR
     
 Usage() {
     echo ""
-    echo "Usage:   `basename $0` [option] <dim> <input4D> <size> <output4D>"
+    echo "Usage:   `basename $0` [option] <dim> <input4D> <size|vector> <output4D>"
     echo ""
     echo "Options: -m    merge extraction to 4D"
     echo ""
