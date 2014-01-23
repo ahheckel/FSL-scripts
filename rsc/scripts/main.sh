@@ -2414,7 +2414,7 @@ if [ $BOLD_STG1 -eq 1 ] ; then
         if [ $(_imtest $fmap_magn) -eq 0 ] ; then echo "BOLD : subj $subj , sess $sess : ERROR : Fieldmap magnitude image '$fmap_magn' not found ! Exiting..." ; exit 1 ; fi
       fi
       
-      # create symlinks to t1-structurals (highres registration reference)
+      # create symlinks to t1-structurals (highres registration reference) to please FEAT's naming convention
       if [ $BOLD_REGISTER_TO_MNI -eq 1 ] ; then
         echo "BOLD : subj $subj , sess $sess : creating symlinks to t1-structurals (highres registration reference) to please FEAT's naming convention..."
         sess_t1=`getT1Sess4FuncReg $subjdir/config_func2highres.reg $subj $sess`
