@@ -39,37 +39,39 @@ if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
   cp -iv fsl/fsl4/slices_summary $FSLDIR/bin/ # this one is needed for FSLNets
 fi
 
-if [ $1 -eq 64 ] ; then
-  if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
-    cp -iv fsl/fsl4/topup/topup_64 $FSLDIR/bin/topup
-    cp -iv fsl/fsl4/topup/applytopup_64 $FSLDIR/bin/applytopup 
-    cp -iv fsl/fsl4/tbss_x/swap_voxelwise_64 $FSLDIR/bin/swap_voxelwise
-    cp -iv fsl/fsl4/tbss_x/swap_subjectwise_64 $FSLDIR/bin/swap_subjectwise
-  fi  
-  cp -iv afni/3dDespike_64 $FSLDIR/bin/3dDespike
-  cp -iv afni/3dTcat_64 $FSLDIR/bin/3dTcat
-  cp -iv afni/3dTstat_64 $FSLDIR/bin/3dTstat
-  cp -iv afni/3dcalc_64 $FSLDIR/bin/3dcalc
-  cp -iv afni/3dDetrend_64 $FSLDIR/bin/3dDetrend
-  cp -iv scripts/bin/sort8_64 scripts/bin/sort8
-  cp -iv scripts/bin/fslmaths_64 scripts/bin/fslmaths5
-fi
+for bit in 32 64 ; do
+  if [ $1 -eq ${bit} ] ; then
+    if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
+      cp -iv fsl/fsl4/topup/topup_${bit} $FSLDIR/bin/topup
+      cp -iv fsl/fsl4/topup/applytopup_${bit} $FSLDIR/bin/applytopup 
+      cp -iv fsl/fsl4/tbss_x/swap_voxelwise_${bit} $FSLDIR/bin/swap_voxelwise
+      cp -iv fsl/fsl4/tbss_x/swap_subjectwise_${bit} $FSLDIR/bin/swap_subjectwise
+    fi  
+    cp -iv afni/3dDespike_${bit} $FSLDIR/bin/3dDespike
+    cp -iv afni/3dTcat_${bit} $FSLDIR/bin/3dTcat
+    cp -iv afni/3dTstat_${bit} $FSLDIR/bin/3dTstat
+    cp -iv afni/3dcalc_${bit} $FSLDIR/bin/3dcalc
+    cp -iv afni/3dDetrend_${bit} $FSLDIR/bin/3dDetrend
+    cp -iv scripts/bin/sort8_${bit} scripts/bin/sort8
+    cp -iv scripts/bin/fslmaths5_${bit} scripts/bin/fslmaths5
+  fi
+done
 
-if [ $1 -eq 32 ] ; then
-  if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
-    cp -iv fsl/fsl4/topup/topup_32 $FSLDIR/bin/topup 
-    cp -iv fsl/fsl4/topup/applytopup_32 $FSLDIR/bin/applytopup
-    cp -iv fsl/fsl4/tbss_x/swap_voxelwise_32 $FSLDIR/bin/swap_voxelwise
-    cp -iv fsl/fsl4/tbss_x/swap_subjectwise_32 $FSLDIR/bin/swap_subjectwise
-  fi  
-  cp -iv afni/3dDespike_32 $FSLDIR/bin/3dDespike 
-  cp -iv afni/3dTcat_32 $FSLDIR/bin/3dTcat
-  cp -iv afni/3dTstat_32 $FSLDIR/bin/3dTstat
-  cp -iv afni/3dcalc_32 $FSLDIR/bin/3dcalc
-  cp -iv afni/3dDetrend_32 $FSLDIR/bin/3dDetrend
-  cp -iv scripts/bin/sort8_32 scripts/bin/sort8
-  cp -iv scripts/bin/fslmaths_32 scripts/bin/fslmaths5
-fi
+#if [ $1 -eq 32 ] ; then
+  #if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
+    #cp -iv fsl/fsl4/topup/topup_32 $FSLDIR/bin/topup 
+    #cp -iv fsl/fsl4/topup/applytopup_32 $FSLDIR/bin/applytopup
+    #cp -iv fsl/fsl4/tbss_x/swap_voxelwise_32 $FSLDIR/bin/swap_voxelwise
+    #cp -iv fsl/fsl4/tbss_x/swap_subjectwise_32 $FSLDIR/bin/swap_subjectwise
+  #fi  
+  #cp -iv afni/3dDespike_32 $FSLDIR/bin/3dDespike 
+  #cp -iv afni/3dTcat_32 $FSLDIR/bin/3dTcat
+  #cp -iv afni/3dTstat_32 $FSLDIR/bin/3dTstat
+  #cp -iv afni/3dcalc_32 $FSLDIR/bin/3dcalc
+  #cp -iv afni/3dDetrend_32 $FSLDIR/bin/3dDetrend
+  #cp -iv scripts/bin/sort8_32 scripts/bin/sort8
+  #cp -iv scripts/bin/fslmaths_32 scripts/bin/fslmaths5
+#fi
 
 chmod +x $FSLDIR/bin/topup
 chmod +x $FSLDIR/bin/applytopup
@@ -86,6 +88,7 @@ chmod +x $FSLDIR/bin/fsl_sub
 chmod +x $FSLDIR/bin/slices_summary
 chmod +x scripts/bin/fslmaths5
 chmod +x scripts/bin/sort8
+
 if [ ! -d $FREESURFER_HOME/subjects/fsaverage/tmp ] ; then
   mkdir $FREESURFER_HOME/subjects/fsaverage/tmp
   chmod 777 $FREESURFER_HOME/subjects/fsaverage/tmp # need write access so that cursor postion in tksurfer/tkmedit can be saved ! (!)
