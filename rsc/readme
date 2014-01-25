@@ -27,6 +27,11 @@ fsl/templates
 Added multi-resolution MNI152 templates, the Smith & Beckmann templates and CSF & WM masks.
 
 
+scripts/fsl_sub_NOPOSIXLY.sh
+----------------------------
+Adapted to run with Freesurfer.
+
+
 scripts/dualreg.sh
 ------------------
 i)    sections (mask / dualreg / randomise) can be called separately.
@@ -46,12 +51,12 @@ and b0->T1 is done via Freesurfer's bbregister.
 
 scripts/bin/sort8
 -----------------
-Allows for natural sort of (version) numbers within text (32bit).
+Allows for natural sort of (version) numbers within text (32/64bit).
 
 
 scripts/bin/fslmaths5
 ---------------------
-Allows for filling holes in binary Freesurfer masks (32bit).
+Allows for filling holes in binary Freesurfer masks (32/64bit).
 
 -----
 Notes.
