@@ -17,8 +17,9 @@ tmpfile=/tmp/$(basename $0)_$$
 if [ x"$flatpatch" = "x" ] ; then flatpatch=0 ; fi
 if [ x"$subject" = "x" ] ; then subject=fsaverage ; fi
 
-FREESURFER_HOME=/usr/local/freesurfer
-source $FREESURFER_HOME/SetUpFreeSurfer.sh
+source $(dirname $0)/env_vars
+#FREESURFER_HOME=/usr/local/freesurfer
+#source $FREESURFER_HOME/SetUpFreeSurfer.sh
 
 # add tcl-scripting commands
 echo "set gaLinkedVars(redrawlockflag) 1" > /tmp/$$tmp.tcl

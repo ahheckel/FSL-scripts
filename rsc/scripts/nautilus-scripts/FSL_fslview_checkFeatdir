@@ -12,10 +12,7 @@
 # https://github.com/ahheckel
 # 04/02/2013
 
-FREESURFER_HOME=/usr/local/freesurfer
-source $FREESURFER_HOME/SetUpFreeSurfer.sh
-#FSLDIR=/usr/share/fsl/4.1
-#zenity --info --text="$FSLDIR"
+source $(dirname $0)/env_vars
 
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do # for each feat-dir
   
