@@ -106,7 +106,7 @@ echo  $inputs | row2col > $tmpdir/inputs.txt
 n_lines1=$(cat $tmpdir/masks.txt | wc -l)
 n_lines2=$(cat $tmpdir/inputs.txt | wc -l)
 if [ $n_lines1 -ne $n_lines2 ] ; then
-  echo "`basename $0`: ERROR : Number of inputs ('$n_lines2') and number of masks ($n_lines1) do not match. Exiting" ; exit 1
+  echo "`basename $0`: ERROR : Number of inputs ($n_lines2) and number of masks ($n_lines1) do not match. Exiting" ; exit 1
 fi
 
 n_mask=0 ; mask_tmp="" ; header=""

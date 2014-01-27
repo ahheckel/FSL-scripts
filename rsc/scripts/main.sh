@@ -1743,8 +1743,8 @@ if [ $RECON_STG2 -eq 1 ] ; then
       
       echo '#!/bin/bash' > $fldr/recon-all_cuda.sh
       echo 'cudadetect &>/dev/null' >>  $fldr/recon-all_cuda.sh
-      echo "if [ \$? = $exitflag ] ; then recon-all -all -subjid $(subjsess) -use-gpu -no-isrunning -noappend -clean-tal -tal-check $opts" >> $fldr/recon-all_cuda.sh # you may want to remove clean-tal flag (!)
-      echo "else  recon-all -all -subjid $(subjsess) -no-isrunning -noappend -clean-tal -tal-check $opts ; fi" >> $fldr/recon-all_cuda.sh
+      echo "if [ \$? = $exitflag ] ; then recon-all -all -subjid $(subjsess) -use-gpu -no-isrunning -noappend -clean-tal -tal-check -cw256 $opts" >> $fldr/recon-all_cuda.sh # you may want to remove clean-tal flag (!)
+      echo "else  recon-all -all -subjid $(subjsess) -no-isrunning -noappend -clean-tal -tal-check -cw256 $opts ; fi" >> $fldr/recon-all_cuda.sh
       chmod +x $fldr/recon-all_cuda.sh
       
       # execute...
