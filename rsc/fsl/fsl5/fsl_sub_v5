@@ -1,6 +1,6 @@
 #!/bin/sh
 
-# Copyright (C) 2007-2010 University of Oxford
+# Copyright (C) 2007-2013 University of Oxford
 # Authors: Dave Flitney, Stephen Smith and Matthew Webster
 
 #   Part of FSL - FMRIB's Software Library
@@ -73,28 +73,26 @@
 
 ###########################################################################
 # The following section determines what to do when fsl_sub is called
-# by an FSL program. If it finds a local cluster if will pass the
-# commands onto the cluster. Otherwise it will run the commands
+# by an FSL program. If SGE_ROOT is set it will attempt to pass the
+# commands onto the cluster, otherwise it will run the commands
 # itself. There are two values for the METHOD variable, "SGE" and
-# "NONE". You should setup the tests to look for whether the calling
-# computer can see your cluster setup scripts, and run them (if that's
-# what you want, i.e. if you haven't already run them in the user's
-# login scripts). Note that these tests look for the environment
-# variable SGE_ROOT, which a user can unset if they don't want the
+# "NONE". Note that a user can unset SGE_ROOT if they don't want the
 # cluster to be used.
 ###########################################################################
-
 METHOD=SGE
+unset module
 if [ "x$SGE_ROOT" = "x" ] ; then
-    if [ -f /usr/local/share/sge/default/common/settings.sh ] ; then
-	. /usr/local/share/sge/default/common/settings.sh
-    elif [ -f /usr/local/sge/default/common/settings.sh ] ; then
-	. /usr/local/sge/default/common/settings.sh
-    else
 	METHOD=NONE
-    fi
 fi
 
+# stop submitted scripts from submitting jobs themselves
+if [ "X$FSLSUBALREADYRUN" = "Xtrue" ] ; then
+    METHOD=NONE
+    echo "Warning: job on queue attempted to submit parallel jobs - running jobs serially instead" >&2
+fi
+
+FSLSUBALREADYRUN=true
+export FSLSUBALREADYRUN
 
 ###########################################################################
 # The following auto-decides what cluster queue to use. The calling
@@ -117,6 +115,8 @@ map_qname ()
     else
 	queue=verylong.q
     fi
+    queueCmd=" -q $queue " 
+
     #echo "Estimated time was $1 mins: queue name is $queue"
 }
 
@@ -124,6 +124,7 @@ map_qname ()
 # Don't change the following (but keep scrolling down!)
 ###########################################################################
 
+OLD_POSIXLY_CORRECT=${POSIXLY_CORRECT}
 POSIXLY_CORRECT=1
 export POSIXLY_CORRECT
 command=`basename $0`
@@ -193,6 +194,10 @@ if [ $nargs -eq 0 ] || [ $result != 0 ] ; then
   usage
 fi
 
+POSIXLY_CORRECT=${OLD_POSIXLY_CORRECT}
+export POSIXLY_CORRECT
+
+
 ###########################################################################
 # If you have a Parallel Environment configured for OpenMP tasks then
 # the variable omp_pe should be set to the name you have defined for that
@@ -208,6 +213,7 @@ omp_pe='openmp'
 ###########################################################################
 
 queue=long.q
+queueCmd=" -q long.q "
 mailto=`whoami`@fmrib.ox.ac.uk
 MailOpts="n"
 
@@ -245,7 +251,6 @@ else
 fi
 
 scriptmode=0
-sge_rsc="-l mem_free=500M" # added by HKL
 
 while [ $1 != -- ] ; do
   case $1 in
@@ -259,7 +264,8 @@ while [ $1 != -- ] ; do
       shift;;
     -q)
       queue=$2
-      qconf -sql | grep ^$queue 2>&1 >/dev/null
+      queueCmd=" -q $queue " 
+      qconf -sq $queue 2>&1 >/dev/null
       if [ $? -eq 1 ]; then
 	  echo "Invalid queue specified!"
 	  exit 127
@@ -373,7 +379,7 @@ case $METHOD in
 	if [ "x$peName" != x ]; then
             # Is this a configured PE?
 
-	    qconf -spl | grep ^$peName 2>&1 >/dev/null
+	    qconf -sp $peName 2>&1 >/dev/null
 
 	    if [ $? -eq 1 ]; then
 		echo $@
@@ -405,9 +411,9 @@ case $METHOD in
 
 	if [ "x$tasks" = "x" ] ; then
 	    if [ $scriptmode -ne 1 ] ; then
-		sge_command="qsub -V -cwd -shell n -b y -r y -q $queue $pe_options -M $mailto -N $JobName -m $MailOpts $LogOpts $sge_arch $sge_hold $sge_rsc" # sge_rsc added by HKL
+		sge_command="qsub -V -cwd -shell n -b y -r y $queueCmd $pe_options -M $mailto -N $JobName -m $MailOpts $LogOpts $sge_arch $sge_hold"
 	    else
-		sge_command="qsub $LogOpts $sge_arch $sge_hold $sge_rsc" # sge_rsc added by HKL
+		sge_command="qsub $LogOpts $sge_arch $sge_hold"
 	    fi
 	    if [ $verbose -eq 1 ] ; then 
 		echo sge_command: $sge_command >&2
@@ -415,7 +421,7 @@ case $METHOD in
 	    fi
 	    exec $sge_command $@ | awk '{print $3}'
 	else
-	    sge_command="qsub -V -cwd -q $queue $pe_options -M $mailto -N $JobName -m $MailOpts $LogOpts $sge_arch $sge_hold $sge_tasks $sge_rsc" # sge_rsc added by HKL
+	    sge_command="qsub -V -cwd $queueCmd $pe_options -M $mailto -N $JobName -m $MailOpts $LogOpts $sge_arch $sge_hold $sge_tasks"
 	    if [ $verbose -eq 1 ] ; then 
 		echo sge_command: $sge_command >&2
 		echo control file: $taskfile >&2
