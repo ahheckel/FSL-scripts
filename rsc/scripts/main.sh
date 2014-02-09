@@ -1716,6 +1716,13 @@ if [ $RECON_STG1 -eq 1 ] ; then
       echo "RECON : subj $subj , sess $sess : reorienting T1 ('$file') to please fslview..."
       $scriptdir/fslreorient2std.sh $file $fldr/tmp_t1
       
+      # remove neck
+      if [ $VBM_FSLV5 -eq 1 ] ; then
+        echo "RECON : subj $subj , sess $sess : applying FSL's robustfov (v5)..."
+        cmd="fslroi $fldr/tmp_t1 $fldr/tmp_t1 $(robustfov -i $fldr/tmp_t1 | grep -v Final)"
+        echo "    $cmd" ; $cmd
+      fi
+      
       # convert to .mgz
       echo "RECON : subj $subj , sess $sess : converting T1 to .mgz format..."
       mri_convert $fldr/tmp_t1.nii.gz $fldr/001.mgz &>$logdir/recon_mri_convert_$(subjsess) # fslreorient2std above is probably useless...
@@ -1893,23 +1900,25 @@ if [ $VBM_STG1 -eq 1 ] ; then
         if [ ! -f $FSL_DIR/bin/fsl_anat ] ; then echo "VBM PREPROC : ERROR : fsl_anat not found... is this really FSL v.5 ? Exiting." ; exit 1 ; fi
         echo "VBM PREPROC : subj $subj , sess $sess : 'fsl_anat' is being executed..."
         fldr=$subjdir/$subj/$sess/vbm
-        echo "fsl_anat --clobber --noseg --nosubcortseg -i ${fldr}/$(subjsess)_t1_orig ; \
-        ln -sf ./$(subjsess)_t1_orig.anat/T1_biascorr.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz" > $fldr/vbm_fsl_anat.cmd        
+        echo "fsl_anat --clobber --nosubcortseg -i ${fldr}/$(subjsess)_t1_orig ; \
+        ln -sf ./$(subjsess)_t1_orig.anat/T1_biascorr.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz ; \
+        ln -sf ./$(subjsess)_t1_orig.anat/T1_biascorr_brain.nii.gz $fldr/$(subjsess)_t1_biascorr_brain.nii.gz" > $fldr/vbm_fsl_anat.cmd    
         fsl_sub -l $logdir -N vbm_fsl_anat_$(subjsess) -t $fldr/vbm_fsl_anat.cmd
+        sleepfor $DELAYINSECS
       elif [ $VBM_NU_CORRECT_T1 -eq 1 ] ; then # convert to .mnc & perform non-uniformity correction
         echo "VBM PREPROC : subj $subj , sess $sess : performing non-uniformity correction..."
         echo "mri_convert ${fldr}/$(subjsess)_t1_reor.nii.gz $fldr/tmp.mnc ; \
         nu_correct -clobber $fldr/tmp.mnc $fldr/t1_nu_struc.mnc; \
         mri_convert $fldr/t1_nu_struc.mnc $fldr/$(subjsess)_t1_nu_struc.nii.gz -odt float; \
         rm -f $fldr/tmp.mnc ; rm -f $fldr/t1_nu_struc.mnc ; \
-        ln -sf $(subjsess)_t1_nu_struc.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz" > $fldr/vbm_nu_correct.cmd        
+        ln -sf $(subjsess)_t1_nu_struc.nii.gz $fldr/$(subjsess)_t1_struc.nii.gz" > $fldr/vbm_nu_correct.cmd
         fsl_sub -l $logdir -N vbm_nu_correct_$(subjsess) -t $fldr/vbm_nu_correct.cmd
       fi      
     done
   done
 
   waitIfBusy
-
+  
   ## also obtain skull-stripped volumes from FREESURFER, if available
   #for subj in `cat subjects`; do 
     #for sess in `cat ${subj}/sessions_struc` ; do
@@ -1941,7 +1950,7 @@ if [ $VBM_STG1 -eq 1 ] ; then
         fslmaths $fldr/_FS_brain.nii.gz -bin $fldr/_FS_brain_mask.nii.gz ;\
         bbregister --s $(subjsess) --mov $fldr/$(subjsess)_t1_struc.nii.gz --init-fsl --reg $fldr/T12fsT1_bbr.dat --t1 --fslmat $fldr/T12fsT1_bbr.fslmat ;\
         mri_label2vol --reg $fldr/T12fsT1_bbr.dat --seg $fldr/_FS_brain_mask.nii.gz --temp $fldr/$(subjsess)_t1_struc.nii.gz --o $fldr/$(subjsess)_FS_brain_mask.nii.gz ;\
-        $scriptdir/fslmaths5 $fldr/$(subjsess)_FS_brain_mask.nii.gz -fillh $fldr/$(subjsess)_FS_brain_mask.nii.gz ;\
+        $scriptdir/bin/fslmaths5 $fldr/$(subjsess)_FS_brain_mask.nii.gz -fillh $fldr/$(subjsess)_FS_brain_mask.nii.gz ;\
         fslmaths $fldr/$(subjsess)_t1_struc.nii.gz -mas $fldr/$(subjsess)_FS_brain_mask.nii.gz $fldr/$(subjsess)_FS_brain.nii.gz ;\
         ln -sf ./$(subjsess)_t1_struc.nii.gz $fldr/$(subjsess)_FS_struc.nii.gz ;\
         imrm $fldr/_FS_brain.nii.gz $fldr/_FS_brain_mask.nii.gz" > $fldr/vbm_FSbrainmask.cmd

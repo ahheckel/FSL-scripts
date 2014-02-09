@@ -127,7 +127,7 @@ done
 if [ $err -eq 1 ] ; then echo "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
 
 # create command options
-opts="-v --tr=${TR} --report -d 0 --mmthresh=0.5 --Oall $_opts"
+opts="-v --tr=${TR} --report --mmthresh=0.5 --Oall $_opts"
 
 # display info
 if [ $gica -eq 1 -a "$outdir" != "-1" ] ; then
@@ -140,13 +140,13 @@ fi
 # group melodic - output in $outdir
 if [ $gica -eq 1 -a "$outdir" != "-1" ] ; then
   # create output directory
-  mkdir -p $outdir/$subdir
+  mkdir -p $outdir
   # gather inputs (four group melodic)
   err=0 ; rm -f $outdir/melodic.inputfiles ; i=1
   for file in $inputs ; do
     if [ $(_imtest $file) -eq 1 ] ; then echo "`basename $0`: $i adding '$file' to input filelist..." ; echo $file >> $outdir/melodic.inputfiles ; i=$[$i+1] ; else echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
   done
-  if [ $err -eq 1 ] ; then "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
+  if [ $err -eq 1 ] ; then echo "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
   input2melodic="$outdir/melodic.inputfiles"
   outdir="$outdir"
   subdir=${prefix}groupmelodic.ica
@@ -164,7 +164,7 @@ if  [ $gica -eq 1 -a "$outdir" = "-1" ] ; then
     if [ $(_imtest $file) -eq 0 ] ; then echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
     i=$[$i+1]
   done
-  if [ $err -eq 1 ] ; then "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi  
+  if [ $err -eq 1 ] ; then echo "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi  
   for file in $inputs ; do
     input2melodic="$file" # single file for single session ICA
     outdir="$(dirname $file)"

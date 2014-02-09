@@ -152,7 +152,7 @@ for counter in `seq 1 $n_lines2` ; do
       
       # extract
       cmd="fslmeants -i $tmpdir/$(basename $input)_slice_$(zeropad $i 4) -m $tmpdir/$(basename $mask)_slice_$(zeropad $i 4)_$(zeropad $n 3)"
-      echo $cmd ; $cmd >> $tmpdir/meants_$(zeropad $n 3)   
+      echo $cmd ; $cmd >> $tmpdir/meants_$(zeropad $n 3)
     done
     # remove blank lines
     sed '/^$/d' $tmpdir/meants_$(zeropad $n 3) > $tmpdir/out_$(zeropad $n 4)

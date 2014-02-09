@@ -30,8 +30,8 @@ function row2col()
 
 Usage() {
     echo ""
-    echo "Usage:  `basename $0` <input3D> <mask3D> <text-output>"
-    echo "Example:  `basename $0` \"FA-1 FA-2 FA-3\" \"FA-mask-1 FA-mask-2 FA-mask-3\" FA_table.txt"
+    echo "Usage:  `basename $0` <input3D> <mask3D> <text-output> [option]"
+    echo "Example:  `basename $0` \"FA-1 FA-2 FA-3\" \"FA-mask-1 FA-mask-2 FA-mask-3\" FA_table.txt -bin"
     echo "          `basename $0` FA-list.txt FA-mask-list.txt FA_table.txt"
     echo ""
     exit 1
@@ -43,6 +43,7 @@ Usage() {
 _input="$1"
 _mask="$2"
 out="$3"
+opts="$4"
 
 ## rem commas
 #_input="$(echo "$_input" | sed 's|,| |g')"
@@ -117,6 +118,11 @@ for counter in `seq 1 $n_lines2` ; do
   mask="$(cat $tmpdir/masks.txt | sed -n ${counter}p)"
   input="$(cat $tmpdir/inputs.txt | sed -n ${counter}p)"
   
+  if [ x"$opts" = "x-bin" ] ; then
+    fslmaths $mask -bin $tmpdir/$(basename $mask)
+    mask=$tmpdir/$(basename $mask)
+  fi
+  
   # rem extension
   mask=$(remove_ext $mask)
   input=$(remove_ext $input)
@@ -140,15 +146,18 @@ for counter in `seq 1 $n_lines2` ; do
   echo "`basename $0` : txt-out:    $out"
   echo "---------------------------"
 
-  fslmeants -i $input --label=$mask --transpose -o $tmpdir/out_${input}_${mask}
-  outs_tmp=$outs_tmp" "$tmpdir/out_${input}_${mask}
+  fslmeants -i $input --label=${mask} -o $tmpdir/out_$(basename $input)_$(basename $mask)
+  outs_tmp=$outs_tmp" "$tmpdir/out_$(basename $input)_$(basename $mask)
   header=$header" "$(basename $out)__$(basename $input)__$(basename $mask)
 done
 
 # horz-cat
-echo "paste -d \" \" $outs_tmp > $out"
-paste -d " " $outs_tmp > ${out}
-sed -i "1i $header" ${out}
+#echo "paste -d \" \" $outs_tmp > $out"
+cat $outs_tmp > $tmpdir/out
+#paste -d " " $outs_tmp > ${out}
+echo $header | row2col > $tmpdir/header
+paste -d " " $tmpdir/header $tmpdir/out > ${out}
+#sed -i "1i $header" ${out}
 
 # done.
 echo "`basename $0` : done."
