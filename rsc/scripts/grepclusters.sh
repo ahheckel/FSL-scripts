@@ -177,7 +177,7 @@ if [ $anal = "-vbm" ] ; then
       statsdir=$(dirname $f);
       if [ "$statsdir" = "." ] ; then statsdir=".." ; else statsdir=$(dirname $(dirname $f)) ; fi
       res=$(fslinfo $f | grep pixdim1 | awk {'print $2'}) ; res=$(printf '%.0f' $res)
-      fslview $statsdir/mean_GM_mod_merg_smoothed.nii.gz $f -l "Red" -b ${thres},1     
+      fslview $statsdir/GM_mod_merg_smoothed.nii.gz $FSLDIR/data/standard/MNI152_T1_2mm_brain $f -l "Red" -b ${thres},1     
     done
   fi
 fi

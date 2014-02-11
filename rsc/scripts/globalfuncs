@@ -961,7 +961,13 @@ function prepareVBM()
   
   # change to vbm directory
   echo "prepareVBM(): changing to <$destdir>..."
-  cd $destdir      
+  cd $destdir
+      # template_list file present ?
+      if [ -f $glmdir_vbm/vbm_template_list ] ; then
+        echo "VBM_2NDLEV : 'vbm_template_list' file found:"
+        cp $glmdir_vbm/vbm_template_list ./template_list
+        cat -n ./template_list
+      fi
       # are files already present for processing ? Otherwise copy strucs and skull-stripped brains from subjdir...
       if [ $(find ${destdir} -maxdepth 1 -name "*.nii.gz" -type f | wc -l) = 0 ]; then
         echo "prepareVBM(): copying structurals to <$destdir>..."
