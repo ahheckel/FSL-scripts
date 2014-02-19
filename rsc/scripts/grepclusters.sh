@@ -12,7 +12,7 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
-    echo "Usage:   `basename $0` <atlas:-tbss|-vbm|-ica|-na> <dir> <search-pttrn> <thres> [<sort 0|1>] [<showall 0|1>] [<fslview 0|1>]"
+    echo "Usage:   `basename $0` <atlas:-tbss|-vbm|-ica|-alff|-na> <dir> <search-pttrn> <thres> [<sort 0|1>] [<showall 0|1>] [<fslview 0|1>]"
     echo "Example: `basename $0` -vbm ./stats \"*_corrp_*\" 0.95"
     echo "         `basename $0` -ica ./stats \"*_tfce_corrp_*\" -0.95"
     echo "         `basename $0` -na ./stats \"*_corrp_*\" -1"
@@ -113,7 +113,7 @@ for f in $files ; do # for each collected file execute 'cluster'
         printf '\t JHU1: %s\n' "$JHU1" | tee -a $logfile
         printf '\t JHU2: %s\n' "$JHU2" | tee -a $logfile
         printf '%s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ]\t %s\t %s \n'           $f $stat $type1 $type2 $max $tval $size $x $y $z "$JHU1" "$JHU2" >> ${logfile}.xls
-      elif [ $anal = "-vbm" ] ; then
+      elif [ $anal = "-vbm" -o $anal = "-alff" ] ; then
         HAV1=$(atlasquery  -a "Harvard-Oxford Cortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         HAV2=$(atlasquery  -a "Harvard-Oxford Subcortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         TAL=$(atlasquery  -a "Talairach Daemon Labels" -c ${x},${y},${z} | cut -d ">" -f 4)        
@@ -164,8 +164,8 @@ if [ $anal = "-tbss" ] ; then
       statsdir=$(dirname $f);
       if [ "$statsdir" = "." ] ; then statsdir=".." ; else statsdir=$(dirname $(dirname $f)) ; fi
       res=$(fslinfo $f | grep pixdim1 | awk {'print $2'}) ; res=$(printf '%.0f' $res)
-      fslview $statsdir/mean_FA.nii.gz $statsdir/mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $f -l "Red" -b ${thres},1 
-      #fslview ${FSLDIR}/data/standard/MNI152_T1_${res}mm_brain $statsdir/mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $f -l "Red" -b 0.75,0.9
+      fslview $statsdir/mean_FA.nii.gz $statsdir/mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $f -l "Red" -b ${thres},1 &>/dev/null
+      #fslview ${FSLDIR}/data/standard/MNI152_T1_${res}mm_brain $statsdir/mean_FA_skeleton_mask.nii.gz -l "Blue" -t 0.2 $f -l "Red" -b 0.75,0.9 &>/dev/null
     done
   fi
 fi
@@ -177,17 +177,17 @@ if [ $anal = "-vbm" ] ; then
       statsdir=$(dirname $f);
       if [ "$statsdir" = "." ] ; then statsdir=".." ; else statsdir=$(dirname $(dirname $f)) ; fi
       res=$(fslinfo $f | grep pixdim1 | awk {'print $2'}) ; res=$(printf '%.0f' $res)
-      fslview $statsdir/GM_mod_merg_smoothed.nii.gz $FSLDIR/data/standard/MNI152_T1_2mm_brain $f -l "Red" -b ${thres},1     
+      fslview $statsdir/GM_mod_merg_smoothed.nii.gz $FSLDIR/data/standard/MNI152_T1_2mm_brain $f -l "Red" -b ${thres},1 &>/dev/null    
     done
   fi
 fi
 
 # display section 3
-if [ $anal = "-ica" ] ; then
+if [ $anal = "-ica" -o $anal = "-alff" ] ; then
   if [ $fslview -eq 1 ] ; then
     for f in $collect ; do
       # check if size / resolution matches
-      MNItemplates="${FSLDIR}/data/standard/MNI152_T1_4mm_brain ${FSLDIR}/data/standard/MNI152_T1_2mm_brain"
+      MNItemplates="${FSLDIR}/data/standard/MNI152_T1_4mm_brain ${FSLDIR}/data/standard/MNI152_T1_3mm_brain ${FSLDIR}/data/standard/MNI152_T1_2mm_brain"
       for MNI in $MNItemplates ; do        
         fslmeants -i $f -m $MNI &>/dev/null
         if [ $? -gt 0 ] ; then 
@@ -195,8 +195,10 @@ if [ $anal = "-ica" ] ; then
           continue
         else
           if [ $(echo $MNI | grep _4mm_ | wc -l) -eq 1 ] ; then rsn=${FSLDIR}/data/standard/rsn10_CSFWM_4mm.nii.gz ; fi
+          if [ $(echo $MNI | grep _3mm_ | wc -l) -eq 1 ] ; then rsn=${FSLDIR}/data/standard/rsn10_CSFWM_3mm.nii.gz ; fi
           if [ $(echo $MNI | grep _2mm_ | wc -l) -eq 1 ] ; then rsn=${FSLDIR}/data/standard/rsn10_CSFWM_2mm.nii.gz ; fi
-          fslview $MNI $rsn -t 0 -l "Blue-Lightblue" -b 1,2.1372 $f -l "Red" -b ${thres},1 -t 1
+          if [ $(imtest $rsn) -eq 0 ] ; then  echo "$(basename $0) : ERROR : '$rsn' overlay not found... exiting." ; exit 1 ; fi
+          fslview $MNI $rsn -t 0 -l "Blue-Lightblue" -b 1,2.1372 $f -l "Red" -b ${thres},1 -t 1 &>/dev/null
           break
         fi        
       done # end MNI    

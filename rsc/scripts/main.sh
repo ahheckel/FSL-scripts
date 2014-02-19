@@ -132,6 +132,8 @@ BOLD_MNI_RESAMPLE_RESOLUTIONS=$(echo $BOLD_MNI_RESAMPLE_RESOLUTIONS | row2col | 
 ALFF_DENOISE_MASKS_NAT=$(echo $ALFF_DENOISE_MASKS_NAT | row2col | sort -u)
 ALFF_DENOISE_USE_MOVPARS_NAT=$(echo $ALFF_DENOISE_USE_MOVPARS_NAT | row2col | sort -u)
 ALFF_RESAMPLING_RESOLUTIONS=$(echo $ALFF_RESAMPLING_RESOLUTIONS | row2col | sort -u)
+ALFF_INCLUDED_SUBJECTS=$(echo $ALFF_INCLUDED_SUBJECTS | row2col | sort -u)
+ALFF_INCLUDED_SESSIONS=$(echo $ALFF_INCLUDED_SESSIONS | row2col | sort -u)
 TBSS_INCLUDED_SUBJECTS=$(echo $TBSS_INCLUDED_SUBJECTS | row2col | sort -u)
 TBSS_INCLUDED_SESSIONS=$(echo $TBSS_INCLUDED_SESSIONS | row2col | sort -u)
 TBSS_THRES=$(echo $TBSS_THRES | row2col | sort -u)
@@ -3958,11 +3960,11 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
           echo "DUALREG : Motion parameters will be used in dual-regressions (hpf-cutoff (s): ${DUALREG_USE_MOVPARS_HPF})."        
         fi
         echo ""
-        cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 0 dummy dummy 1 0 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
+        cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 0 dummy dummy 1 0 0 dummy $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
         $cmd ; waitIfBusy
         
         echo ""
-        cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $usemov $TR_bold $DUALREG_USE_MOVPARS_HPF 0 1 0 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
+        cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $usemov $TR_bold $DUALREG_USE_MOVPARS_HPF 0 1 0 dummy $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
         $cmd ; waitIfBusy
         echo ""
       done  # end IC_fname
@@ -4041,19 +4043,19 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
         done
         
         # executing dualreg...
-        if [ $RANDOMISE_PARALLEL -eq 1 ] ; then
-          RANDCMD="randomise_parallel"
-          echo "DUALREG : using the '$RANDCMD' command."
-          echo "          - note that '$RANDCMD' will fail if i) /bin/sh does not point to /bin/bash and ii) you specify more permutations than uniquely possible."
-        else
-          RANDCMD="randomise"
-          echo "DUALREG : using the '$RANDCMD' command."
-        fi
+        #if [ $RANDOMISE_PARALLEL -eq 1 ] ; then
+          #RANDCMD="randomise_parallel"
+          #echo "DUALREG : using the '$RANDCMD' command."
+          #echo "          - note that '$RANDCMD' will fail if i) /bin/sh does not point to /bin/bash and ii) you specify more permutations than uniquely possible."
+        #else
+          #RANDCMD="randomise"
+          #echo "DUALREG : using the '$RANDCMD' command."
+        #fi # No longer possible in FSLv5 to submit self-submitting randomise_parallel within a script to a cluster (!)
         for dr_glm_name in $dr_glm_names ; do
           echo "DUALREG : copying GLM design '$dr_glm_name' to '$dr_outdir/stats'"
           mkdir -p $dr_outdir/stats ; cp -r $glmdir_dr/$dr_glm_name $dr_outdir/stats/ ; imcp $ICfile $dr_outdir/stats/
           echo "DUALREG : calling '$RANDCMD' for folder '$dr_outdir/stats/$dr_glm_name' ($DUALREG_NPERM permutations)."
-          cmd="${scriptdir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp $RANDCMD $DUALREG_NPERM $dr_outdir 0 dummy dummy 0 0 1 $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
+          cmd="${scriptdir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp randomise $DUALREG_NPERM $dr_outdir 0 dummy dummy 0 0 1 $DUALREG_ICS_OF_INTEREST $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
           #$cmd ; waitIfBusy0 # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
           $cmd ; waitIfBusy # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
         done

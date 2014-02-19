@@ -176,7 +176,7 @@ if [ $err -eq 1 ] ; then echo "`basename $0`: An ERROR has occured. Exiting..." 
 
 # create command options
 opts="-v --tr=${TR} --report --mmthresh=0.5 -a concat $_opts"
-optsMETA="-v --tr=${TR} --report --mmthresh=0.5 -a concat --vn $_opts"
+optsMETA="-v --tr=${TR} --report --mmthresh=0.5 -a concat --vn $_opts --Oall"
 
 # create output directory
 mkdir -p $outdir
@@ -231,7 +231,9 @@ if [ $err -eq 1 ] ; then echo "`basename $0`: An ERROR has occured. Exiting..." 
 # merge
 fslmerge -t $outdir/melodic_ICMETA $(cat ${input2melodic})
 # execute
-exec_melodic $outdir/melodic_ICMETA $outdir $subdir "$optsMETA" 
+exec_melodic $outdir/melodic_ICMETA $outdir $subdir "$optsMETA"
+# create symlink for compatibility
+ln -sfv $outdir/$subdir $outdir/groupmelodic.ica
 
 # wait till finished
 waitIfBusyIDs ./jid.list

@@ -12,15 +12,15 @@ dual_regression v0.5 (beta)
 
 ***NOTE*** ORDER OF COMMAND-LINE ARGUMENTS IS DIFFERENT FROM PREVIOUS VERSION
 
-Usage: $(basename $0) <group_IC_maps> <des_norm> <design.mat> <design.con> <design.grp> <randomise||randomise_parallel> <n_perm> <output_directory> <USE_MOVPARS> <USE_MOVPARS_TR> <USE_MOVPARS_HPF> <DO_MASK> <DO_DUALREG> <DO_RANDOMISE> <input1> <input2> <input3> .........
-e.g.   $(basename $0) groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat design.con design.grp randomise_parallel 500 outdir 0 3.330 100 1 1 0 \`cat groupICA.gica/.filelist\`
+Usage: $(basename $0) <group_IC_maps> <des_norm> <design.mat> <design.con> <design.grp> <randomise||randomise_parallel> <n_perm> <output_directory> <USE_MOVPARS> <USE_MOVPARS_TR> <USE_MOVPARS_HPF> <DO_MASK> <DO_DUALREG> <DO_RANDOMISE> <ICOFINTEREST|all> <input1> <input2> <input3> .........
+e.g.   $(basename $0) groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat design.con design.grp randomise_parallel 500 outdir 0 3.330 100 1 1 0 0,1,13,17,19 \`cat groupICA.gica/.filelist\`
 
 <group_IC_maps_4D>                 4D image containing spatial IC maps (melodic_IC) from the whole-group ICA analysis
 <des_norm>                         0 or 1 (1 is recommended). Whether to variance-normalise the timecourses used as the stage-2 regressors
 <design.mat>                       Design matrix for final cross-subject modelling with randomise
 <design.con>                       Design contrasts for final cross-subject modelling with randomise
 <design.grp>                       Exchangeability block file
-<randomise||randomise_parallel>    use either randomise or randomise_parallel
+<randomise||randomise_parallel>    use either randomise or randomise_parallel (the latter will not work in FSLv5)
 <n_perm>                           Number of permutations for randomise; set to 1 for just raw tstat output, set to 0 to not run randomise at all.
 <output_directory>                 This directory will be created to hold all output and logfiles
 <USE_MOVPARS>                      Use motion parameters as confound regressors (0|1)
@@ -29,6 +29,7 @@ e.g.   $(basename $0) groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat des
 <DO_MASK>                          Enable stage1
 <DO_DUALREG>                       Enable stage2
 <DO_RANDOMISE>                     Enable stage3
+<ICOFINTEREST>                     Comma separated list of ICs of Interest (index in melodic_IC) starting with 0. Enter \"all\" for all ICs.
 <input1> <input2> ...              List all subjects' preprocessed, standard-space 4D datasets
 <design.mat> <design.con>          can be replaced with just
 -1                                 for group-mean (one-group t-test) modelling.
@@ -75,6 +76,7 @@ USE_MOVPARS_HPF=$1 ; shift
 DO_MASK=$1 ; shift
 DO_DUALREG=$1 ; shift
 DO_RANDOMISE=$1 ; shift
+ICOFINTEREST="$1" ; ICOFINTEREST="$(echo "$ICOFINTEREST" | sed 's|,| |g')" ; shift # (HKL)
 
 while [ _$1 != _ ] ; do
   INPUTS="$INPUTS `${FSLDIR}/bin/remove_ext $1`"
@@ -92,6 +94,7 @@ echo "`basename $0` : USE_MOVPARS_HPF: $USE_MOVPARS_HPF"
 echo "`basename $0` : DO_MASK:         $DO_MASK"
 echo "`basename $0` : DO_DUALREG:      $DO_DUALREG"
 echo "`basename $0` : DO_RANDOMISE:    $DO_RANDOMISE"
+echo "`basename $0` : ICOFINTEREST:    $ICOFINTEREST"
 echo "---------------------------"
 
 mkdir -p $OUTPUT
@@ -121,17 +124,24 @@ for i in $INPUTS ; do
   j=`echo "$j 1 + p" | dc -`
 done
 ID_drA=`$FSLDIR/bin/fsl_sub -T 10 -N drA -l $LOGDIR -t ${LOGDIR}/drA`
+# this masking is sometimes too conservative...(HKL)
+#cat <<EOF > ${LOGDIR}/drB
+##!/bin/sh
+#\$FSLDIR/bin/fslmerge -t ${OUTPUT}/maskALL \`\$FSLDIR/bin/imglob ${OUTPUT}/mask_*\`
+#\$FSLDIR/bin/fslmaths $OUTPUT/maskALL -Tmin $OUTPUT/mask
+#\$FSLDIR/bin/imrm $OUTPUT/mask_*
+#EOF
+# this gives a more liberal mask (HKL)
 cat <<EOF > ${LOGDIR}/drB
 #!/bin/sh
 \$FSLDIR/bin/fslmerge -t ${OUTPUT}/maskALL \`\$FSLDIR/bin/imglob ${OUTPUT}/mask_*\`
-\$FSLDIR/bin/fslmaths $OUTPUT/maskALL -Tmin $OUTPUT/mask
+\$FSLDIR/bin/fslmaths $OUTPUT/maskALL -Tmean -thr 0.95 -bin $OUTPUT/mask
 \$FSLDIR/bin/imrm $OUTPUT/mask_*
 EOF
 chmod a+x ${LOGDIR}/drB
 #ID_drB=`$FSLDIR/bin/fsl_sub -j $ID_drA -T 5 -N drB -l $LOGDIR ${LOGDIR}/drB`
 JID=`$FSLDIR/bin/fsl_sub -j $ID_drA -T 5 -N drB -l $LOGDIR ${LOGDIR}/drB`
 fi
-
 
 ########################################################################
 ########################################################################
@@ -223,7 +233,19 @@ Nics=`$FSLDIR/bin/fslnvols $ICA_MAPS`
 rm -f $OUTPUT/stats/$dname/randomise.cmd # added by HKL
 while [ $j -lt $Nics ] ; do
   jj=`$FSLDIR/bin/zeropad $j 4`
-
+  # only process ICs of Interest (HKL)
+  skipit=1
+  for nIC in $ICOFINTEREST ; do
+    if [ "$nIC" = "all" ] ; then skipit=0 ; fi
+    nIC=`$FSLDIR/bin/zeropad $nIC 4`
+    if [ "$jj" = "$nIC" ] ; then skipit=0 ; fi
+  done
+  if [ $skipit -eq 1 ] ; then 
+    echo  "`basename $0` : Skipping randomise call on IC-index '$jj' in '$ICA_MAPS' as requested."
+    j=`echo "$j 1 + p" | dc -`
+    continue
+  fi
+  
   RAND=""
   if [ $NPERM -eq 1 ] ; then
     RAND="$FSLDIR/bin/${RANDCMD} -i $OUTPUT/dr_stage2_ic$jj -o $OUTPUT/stats/$dname/dr_stage3_ic$jj -m $OUTPUT/mask $DESIGN -n 1 -V -R -x" # HKL added -x switch
@@ -241,4 +263,3 @@ done
 #ID_drD=`$FSLDIR/bin/fsl_sub -T 60 -N drD -l $LOGDIR -t ${LOGDIR}/drD` # HKL removed  switch "-j $ID_drC"
 JID=`$FSLDIR/bin/fsl_sub -j $JID -T 60 -N drD -l $LOGDIR -t ${LOGDIR}/drD` # HKL removed  switch "-j $ID_drC"
 fi
-
