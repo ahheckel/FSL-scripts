@@ -27,10 +27,8 @@ echo ""
 #cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
 cp -iv fsl/fsl5/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection, should also work for FSL < v.5
 cp -iv fsl/templates/MNI152*.nii.gz $FSLDIR/data/standard/
-cp -iv fsl/templates/avg152T1_white_bin.nii.gz $FSLDIR/data/standard/
-cp -iv fsl/templates/avg152T1_csf_bin.nii.gz $FSLDIR/data/standard/
-cp -iv fsl/templates/rsn10*.nii.gz $FSLDIR/data/standard/
-cp -iv fsl/templates/rsn8*.nii.gz $FSLDIR/data/standard/
+cp -iv fsl/templates/avg152T1*.nii.gz $FSLDIR/data/standard/
+cp -iv fsl/templates/rsn*.nii.gz $FSLDIR/data/standard/
 
 if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
   cp -iv fsl/fsl4/tbss_x/tbss_x $FSLDIR/bin/tbss_x

@@ -125,19 +125,19 @@ for i in $INPUTS ; do
 done
 ID_drA=`$FSLDIR/bin/fsl_sub -T 10 -N drA -l $LOGDIR -t ${LOGDIR}/drA`
 # this masking is sometimes too conservative...(HKL)
-#cat <<EOF > ${LOGDIR}/drB
-##!/bin/sh
-#\$FSLDIR/bin/fslmerge -t ${OUTPUT}/maskALL \`\$FSLDIR/bin/imglob ${OUTPUT}/mask_*\`
-#\$FSLDIR/bin/fslmaths $OUTPUT/maskALL -Tmin $OUTPUT/mask
-#\$FSLDIR/bin/imrm $OUTPUT/mask_*
-#EOF
-# this gives a more liberal mask (HKL)
 cat <<EOF > ${LOGDIR}/drB
 #!/bin/sh
 \$FSLDIR/bin/fslmerge -t ${OUTPUT}/maskALL \`\$FSLDIR/bin/imglob ${OUTPUT}/mask_*\`
-\$FSLDIR/bin/fslmaths $OUTPUT/maskALL -Tmean -thr 0.95 -bin $OUTPUT/mask
+\$FSLDIR/bin/fslmaths $OUTPUT/maskALL -Tmin $OUTPUT/mask
 \$FSLDIR/bin/imrm $OUTPUT/mask_*
 EOF
+## this gives a more liberal mask (HKL)
+#cat <<EOF > ${LOGDIR}/drB
+##!/bin/sh
+#\$FSLDIR/bin/fslmerge -t ${OUTPUT}/maskALL \`\$FSLDIR/bin/imglob ${OUTPUT}/mask_*\`
+#\$FSLDIR/bin/fslmaths $OUTPUT/maskALL -Tmean -thr 0.95 -bin $OUTPUT/mask
+#\$FSLDIR/bin/imrm $OUTPUT/mask_*
+#EOF
 chmod a+x ${LOGDIR}/drB
 #ID_drB=`$FSLDIR/bin/fsl_sub -j $ID_drA -T 5 -N drB -l $LOGDIR ${LOGDIR}/drB`
 JID=`$FSLDIR/bin/fsl_sub -j $ID_drA -T 5 -N drB -l $LOGDIR ${LOGDIR}/drB`

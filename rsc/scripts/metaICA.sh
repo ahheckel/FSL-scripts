@@ -14,9 +14,9 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <\"input-file(s)\"|inputfiles.txt> <TR(sec)> <output-dir> <N_subjectorders> [melodic options]"
-    echo "Examples: `basename $0` \"file01.nii.gz file02.nii.gz ...\" 3.330 ./mICA 25 \"--nobet -d 20\""
-    echo "          `basename $0` inputfiles.txt 3.330 ./mICA 25 \"--nobet -d 20\""
+    echo "Usage: `basename $0` <\"input-file(s)\"|inputfiles.txt> <TR(sec)> <output-dir> <N_subjectorders> [melodic-options_subj-level] [melodic-options_meta-level]"
+    echo "Examples: `basename $0` \"file01.nii.gz file02.nii.gz ...\" 3.330 ./mICA.gica 50 \"-d 20\" \"--nobet -d 20 --bgimage=\$FSLDIR/data/standard/MNI152_T1_2mm\""
+    echo "          `basename $0` inputfiles.txt 3.330 ./mICA.gica 25 \"-d 20\" \"--nobet -d 20 --bgimage=\$FSLDIR/data/standard/MNI152_T1_2mm\""
     echo ""
     exit 1
 }
@@ -132,12 +132,13 @@ function exec_melodic()
   fi
 }
 
-[ "$4" = "" ] && Usage
+[ "$6" = "" ] && Usage
 inputs="$1"
 TR=$2
 outdir="$3"
 Nsubjorders="$4"
-_opts="$5"
+_opts0="$5"
+_opts1="$6"
 
 # create job ID file
 touch ./jid.list
@@ -175,8 +176,8 @@ done
 if [ $err -eq 1 ] ; then echo "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
 
 # create command options
-opts="-v --tr=${TR} --report --mmthresh=0.5 -a concat $_opts"
-optsMETA="-v --tr=${TR} --report --mmthresh=0.5 -a concat --vn $_opts --Oall"
+optsSUBJ="-v --tr=${TR} --report --mmthresh=0.5 -a concat $_opts0"
+optsMETA="-v --tr=${TR} --report --mmthresh=0.5 -a concat --vn $_opts1 --Oall"
 
 # create output directory
 mkdir -p $outdir
@@ -196,7 +197,7 @@ for file in $inputs ; do
 done
 if [ $err -eq 1 ] ; then echo "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
 # execute
-exec_melodic ${input2melodic}$(zeropad 0 4) $outdir ${subdir} "$opts" 1
+exec_melodic ${input2melodic}$(zeropad 0 4) $outdir ${subdir} "$optsSUBJ" 1
 
 # create remaining permutations
 for i in `seq 1 $[$Nsubjorders - 1]` ; do
@@ -205,7 +206,7 @@ for i in `seq 1 $[$Nsubjorders - 1]` ; do
   echo "`basename $0`: outdir: $outdir/${subdir}"
   echo "`basename $0`: inputfile: ${input2melodic}$(zeropad $i 4)"
   sort -R  ${input2melodic}$(zeropad 0 4) > ${input2melodic}$(zeropad $i 4)
-  exec_melodic ${input2melodic}$(zeropad $i 4) $outdir $subdir "$opts" 1
+  exec_melodic ${input2melodic}$(zeropad $i 4) $outdir $subdir "$optsSUBJ" 1
 done
 
 # wait till finished
