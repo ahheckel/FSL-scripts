@@ -1,3 +1,9 @@
+% Written by Andreas Heckel
+% University of Heidelberg
+% heckelandreas@googlemail.com
+% https://github.com/ahheckel
+% 02/20/2014
+
 RSN_idx=1:14;
 CSF_idx=15;
 GM_idx=16;
