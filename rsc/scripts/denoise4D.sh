@@ -16,6 +16,9 @@ Usage() {
     echo "Usage:    `basename $0` [-m] <input4D> <\"mask1 mask2 ...\" |none> <movpar|none> <movpar_calcs 0:none|1:orig|2:^2|3:abs|4:diff+|5:diff-|6:diff+^2|7:diff-^2> <hpf-cutoff(s)|Inf> <TR(s)> <output> <subj_idx> <sess_idx>"
     echo "Options:  -m   just create confound matrix, don't denoise"
     echo ""
+    echo "Note:      diff+ : backward difference"
+    echo "           diff- : forward difference"
+    echo ""
     echo "Example:  `basename $0` [-m] data4D \"EF_CSF,EF_WM,EF_WB\" prefiltered_func_data_mcf.par \"1,2,4,6\" 100 3.330 data4D_denoised"
     echo ""
     exit 1
