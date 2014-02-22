@@ -14,7 +14,7 @@ dual_regression v0.5 (beta)
 ***NOTE*** ORDER OF COMMAND-LINE ARGUMENTS IS DIFFERENT FROM PREVIOUS VERSION
 
 Usage: $(basename $0) <group_IC_maps> <des_norm> <design.mat> <design.con> <design.grp> <randomise||randomise_parallel> <n_perm> <output_directory> <USE_MOVPARS> <USE_MOVPARS_TR> <USE_MOVPARS_HPF> <DO_MASK> <DO_DUALREG> <DO_RANDOMISE> <ICOFINTEREST|all> <input1> <input2> <input3> .........
-e.g.   $(basename $0) groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat design.con design.grp randomise_parallel 500 outdir 0 3.330 100 1 1 0 0,1,13,17,19 \`cat groupICA.gica/.filelist\`
+e.g.   $(basename $0) groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat design.con design.grp randomise_parallel 500 outdir 1,2,4,6 3.330 100 1 1 0 0,1,13,17,19 \`cat groupICA.gica/.filelist\`
 
 <group_IC_maps_4D>                 4D image containing spatial IC maps (melodic_IC) from the whole-group ICA analysis
 <des_norm>                         0 or 1 (1 is recommended). Whether to variance-normalise the timecourses used as the stage-2 regressors
@@ -24,7 +24,7 @@ e.g.   $(basename $0) groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat des
 <randomise||randomise_parallel>    use either randomise or randomise_parallel (the latter will not work in FSLv5)
 <n_perm>                           Number of permutations for randomise; set to 1 for just raw tstat output, set to 0 to not run randomise at all.
 <output_directory>                 This directory will be created to hold all output and logfiles
-<USE_MOVPARS>                      Use motion parameters as confound regressors (0|1)
+<USE_MOVPARS>                      Use motion parameters as confound regressors (0:none, 1:c, 2:c^2, 3:abs(c), 4:[0;diff(c)], 5:[diff(c);0], 6:[0;diff(c)]^2, 7:[diff(c);0]^2)
 <USE_MOVPARS_TR>                   TR for high pass filtering of motion parameters
 <USE_MOVPARS_HPF>                  High pass filter cutoff (s), \"Inf\" to switch off
 <DO_MASK>                          Enable stage1
@@ -39,6 +39,13 @@ If you need to add other randomise option then just edit the line after "EDIT HE
 
 EOF
     exit 1
+}
+
+function rem_blanks()
+{
+  local array="$1"
+  local i=""
+  for i in $array ; do echo -n $i ; done
 }
 
 ############################################################################
@@ -77,12 +84,25 @@ USE_MOVPARS_HPF=$1 ; shift
 DO_MASK=$1 ; shift
 DO_DUALREG=$1 ; shift
 DO_RANDOMISE=$1 ; shift
-ICOFINTEREST="$1" ; ICOFINTEREST="$(echo "$ICOFINTEREST" | sed 's|,| |g')" ; shift # (HKL)
+ICOFINTEREST="$1" ; shift # (HKL)
 
 while [ _$1 != _ ] ; do
   INPUTS="$INPUTS `${FSLDIR}/bin/remove_ext $1`"
   shift
 done
+
+# rem commas (HKL)
+USE_MOVPARS="$(echo "$USE_MOVPARS" | sed 's|,| |g')"
+ICOFINTEREST="$(echo "$ICOFINTEREST" | sed 's|,| |g')" 
+
+# rem blanks (HKL)
+movpars_tag=$(rem_blanks "$USE_MOVPARS")
+
+# create working dir. (HKL)
+tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+
+# define exit trap (HKL)
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 echo "`basename $0` : ICA_MAPS:        $ICA_MAPS"
 echo "`basename $0` : DES_NORM:        $DES_NORM"
@@ -102,10 +122,6 @@ mkdir -p $OUTPUT
 LOGDIR=${OUTPUT}/scripts+logs
 mkdir -p $LOGDIR
 echo $ORIG_COMMAND > $LOGDIR/command
-#if [ "$DESIGN" != -1 ] ; then
-  #/bin/cp $dm $OUTPUT/design.mat
-  #/bin/cp $dc $OUTPUT/design.con
-#fi
 JID=1 # dummy jobID (HKL)
 
 
@@ -132,15 +148,7 @@ cat <<EOF > ${LOGDIR}/drB
 \$FSLDIR/bin/fslmaths $OUTPUT/maskALL -Tmin $OUTPUT/mask
 \$FSLDIR/bin/imrm $OUTPUT/mask_*
 EOF
-## this gives a more liberal mask (HKL)
-#cat <<EOF > ${LOGDIR}/drB
-##!/bin/sh
-#\$FSLDIR/bin/fslmerge -t ${OUTPUT}/maskALL \`\$FSLDIR/bin/imglob ${OUTPUT}/mask_*\`
-#\$FSLDIR/bin/fslmaths $OUTPUT/maskALL -Tmean -thr 0.95 -bin $OUTPUT/mask
-#\$FSLDIR/bin/imrm $OUTPUT/mask_*
-#EOF
 chmod a+x ${LOGDIR}/drB
-#ID_drB=`$FSLDIR/bin/fsl_sub -j $ID_drA -T 5 -N drB -l $LOGDIR ${LOGDIR}/drB`
 JID=`$FSLDIR/bin/fsl_sub -j $ID_drA -T 5 -N drB -l $LOGDIR ${LOGDIR}/drB`
 fi
 
@@ -153,7 +161,7 @@ if [ $DO_DUALREG -eq 1 ] ; then
 rm -f ${LOGDIR}/drC # delete cmd-file to avoid accumulation on re-run (HKL)
 
 # find motion parameter files... (added by HKL)
-if [ $USE_MOVPARS -eq 1 ] ; then
+if [ x"$USE_MOVPARS" != "x0" ] ; then
   movpar=1 
   for i in $INPUTS ; do
     i=$(remove_ext $i)
@@ -162,15 +170,31 @@ if [ $USE_MOVPARS -eq 1 ] ; then
     echo "`basename $0` : detecting motion parameter file: '$movparfile'"
     if [ ! -f $movparfile ] ; then echo "`basename $0` : WARNING : motion-parameter file '$movparfile' does not exist." ; movpar=0 ; fi
   done
-  # high-pass filter motion parameter files...
+  # define motion related regressors and high-pass filter them... (HKL)
   if [ $movpar -eq 1 ] ; then
     j=0
     for i in $INPUTS ; do
       s=subject`${FSLDIR}/bin/zeropad $j 5`
       i=$(remove_ext $i)
       featdir=$(dirname $i)/$(readlink ${i}.nii.gz | cut -d / -f 2 | grep .feat$)
-      movparfile=$featdir/mc/prefiltered_func_data_mcf.par
-      $(dirname $0)/hpf_movpar.sh $movparfile $OUTPUT/movpar_${s}.hpf${USE_MOVPARS_HPF} $USE_MOVPARS_HPF $USE_MOVPARS_TR
+      movparfile=$featdir/mc/prefiltered_func_data_mcf.par      
+      
+      movpar_calc_list=""
+      for calc in $USE_MOVPARS ; do
+        if [ $calc -eq 1 ] ; then formula="output_precision(8); c" ; fi
+        if [ $calc -eq 2 ] ; then formula="output_precision(8); c.*c" ; fi
+        if [ $calc -eq 3 ] ; then formula="output_precision(8); abs(c)" ; fi
+        if [ $calc -eq 4 ] ; then formula="output_precision(8); c=diff(c); c=[0 ; c]" ; fi
+        if [ $calc -eq 5 ] ; then formula="output_precision(8); c=diff(c); c=[c ; 0]" ; fi
+        if [ $calc -eq 6 ] ; then formula="output_precision(8); c=diff(c); c=[0 ; c]; c.*c" ; fi
+        if [ $calc -eq 7 ] ; then formula="output_precision(8); c=diff(c); c=[c ; 0]; c.*c" ; fi
+        echo "`basename $0` : applying OCTAVE formula '$formula2' to motion parameter regressors in '$movparfile'..." 
+        $(dirname $0)/textcalc.sh $movparfile "$formula" $tmpdir/movpar_${s}_calc${calc}
+        movpar_calc_list=$movpar_calc_list" "$tmpdir/movpar_${s}_calc${calc}
+      done
+      paste -d " " $movpar_calc_list > $tmpdir/movpar_${s}
+      
+      $(dirname $0)/hpf_movpar.sh $tmpdir/movpar_${s} $OUTPUT/movpar${movpars_tag}_${s}.hpf${USE_MOVPARS_HPF} $USE_MOVPARS_HPF $USE_MOVPARS_TR
       j=`echo "$j 1 + p" | dc -`
       echo "---------------------------"
     done
@@ -188,7 +212,7 @@ for i in $INPUTS ; do
   s=subject`${FSLDIR}/bin/zeropad $j 5`
   if [ $movpar -eq 1 ] ; then
   echo "$FSLDIR/bin/fsl_glm -i $i -d $ICA_MAPS -o $OUTPUT/_dr_stage1_${s}.txt --demean -m $OUTPUT/mask ; \
-        paste $OUTPUT/_dr_stage1_${s}.txt $OUTPUT/movpar_${s}.hpf${USE_MOVPARS_HPF} > $OUTPUT/dr_stage1_${s}.txt ; \
+        paste $OUTPUT/_dr_stage1_${s}.txt $OUTPUT/movpar${movpars_tag}_${s}.hpf${USE_MOVPARS_HPF} > $OUTPUT/dr_stage1_${s}.txt ; \
         rm $OUTPUT/_dr_stage1_${s}.txt ; \
         $FSLDIR/bin/fsl_glm -i $i -d $OUTPUT/dr_stage1_${s}.txt -o $OUTPUT/dr_stage2_$s --out_z=$OUTPUT/dr_stage2_${s}_Z --demean -m $OUTPUT/mask $DES_NORM ; \
         $FSLDIR/bin/fslsplit $OUTPUT/dr_stage2_$s $OUTPUT/dr_stage2_${s}_ic" >> ${LOGDIR}/drC
@@ -199,7 +223,6 @@ for i in $INPUTS ; do
   fi
   j=`echo "$j 1 + p" | dc -`
 done
-#ID_drC=`$FSLDIR/bin/fsl_sub -T 30 -N drC -l $LOGDIR -t ${LOGDIR}/drC` # HKL removed  switch "-j $ID_drB"
 JID=`$FSLDIR/bin/fsl_sub -j $JID -T 30 -N drC -l $LOGDIR -t ${LOGDIR}/drC` # HKL removed  switch "-j $ID_drB"
 fi
 
@@ -261,6 +284,5 @@ while [ $j -lt $Nics ] ; do
         $FSLDIR/bin/imrm \`\$FSLDIR/bin/imglob $OUTPUT/dr_stage2_subject*_ic${jj}.*\` ; $RAND" >> ${LOGDIR}/drD
   j=`echo "$j 1 + p" | dc -`
 done
-#ID_drD=`$FSLDIR/bin/fsl_sub -T 60 -N drD -l $LOGDIR -t ${LOGDIR}/drD` # HKL removed  switch "-j $ID_drC"
 JID=`$FSLDIR/bin/fsl_sub -j $JID -T 60 -N drD -l $LOGDIR -t ${LOGDIR}/drD` # HKL removed  switch "-j $ID_drC"
 fi

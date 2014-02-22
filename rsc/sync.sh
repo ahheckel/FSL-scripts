@@ -12,7 +12,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage:    `basename $0` <zipfile> <destination-dir (default: ~/FSL-scripts)>"
+    echo "Usage:    `basename $0` <zipfile> <destination-dir(default: ~/FSL-scripts)>"
     echo "Example:  `basename $0` Downloads/FSL-scripts-from-github.zip ~/FSL-scripts"
     echo ""
     exit 1

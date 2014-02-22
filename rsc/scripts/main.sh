@@ -4054,7 +4054,7 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
         for dr_glm_name in $dr_glm_names ; do
           echo "DUALREG : copying GLM design '$dr_glm_name' to '$dr_outdir/stats'"
           mkdir -p $dr_outdir/stats ; cp -r $glmdir_dr/$dr_glm_name $dr_outdir/stats/ ; imcp $ICfile $dr_outdir/stats/
-          echo "DUALREG : calling '$RANDCMD' for folder '$dr_outdir/stats/$dr_glm_name' ($DUALREG_NPERM permutations)."
+          echo "DUALREG : calling 'randomise' for folder '$dr_outdir/stats/$dr_glm_name' ($DUALREG_NPERM permutations)."
           cmd="${scriptdir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp randomise $DUALREG_NPERM $dr_outdir 0 dummy dummy 0 0 1 $DUALREG_ICS_OF_INTEREST $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
           #$cmd ; waitIfBusy0 # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
           $cmd ; waitIfBusy # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
