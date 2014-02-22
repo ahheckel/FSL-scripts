@@ -8,11 +8,12 @@ RSN_idx=1:14;
 CSF_idx=15;
 GM_idx=16;
 WM_idx=17;
+MT_idx=18;
 mask='./mask';
-melodic_IC='./melodic_IC.nii.gz';
+melodic_IC='./melodic_IC_3mm.nii.gz';
 melodic_mix='./melodic_mix';
 movpar='./movpar';
-template='/usr/share/fsl/5.0/data/standard/rsn14_2mm.nii.gz';
+template='/usr/share/fsl/5.0/data/standard/rsn14_CSFGMWMMN_3mm.nii.gz';
 funcIN='../test';
 funcOut='../filtered_func_data_ICAdn';
 
@@ -25,11 +26,13 @@ mix=load(melodic_mix);
 mc=load(movpar);
 RR=table(:,3).^2;
 ic=table(:,2);
+icT=table(:,1);
 
 RSN=[];
 CSF=[];
 WM=[];
 noGM=[];
+MT=[];
 motion=[];
 
 for i=1:nvols
@@ -40,23 +43,30 @@ for i=1:nvols
 end
             
 for i=CSF_idx
-    idx=(ic==i);
+    idx=(icT==i);
     if max(RR(idx))>0.05
         CSF=[CSF, i];
     end
 end
     
 for i=WM_idx
-    idx=(ic==i);
+    idx=(icT==i);
     if max(RR(idx))>0.02
         WM=[WM, i];
     end
 end
 
  for i=GM_idx
-    idx=(ic==i);
+    idx=(icT==i);
     if min(RR(idx))<0.001
         noGM=[noGM, i];
+    end
+ end
+ 
+  for i=MT_idx
+    idx=(icT==i);
+    if min(RR(idx))>0.01
+        MT=[MT, i];
     end
  end
  
@@ -83,6 +93,8 @@ end
          bad=[bad,i];
      elseif sum(motion(motion==i)) > 0
          bad=[bad,i];
+     elseif sum(MT(MT==i)) > 0
+         bad=[bad,i];
      else
          good=[good,i];
      end
@@ -93,7 +105,9 @@ end
  disp('noGM:')
  disp(noGM)
  disp('WM:')
- disp(WM)
+ disp(WM) 
+ disp('MT:')
+ disp(MT)
  disp('good:')
  disp(good)
  disp('bad:')
