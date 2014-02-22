@@ -52,10 +52,10 @@ if [ ! -f $data ] ; then echo "`basename $0` : ERROR : input file '$data' not fo
 # count number of columns
 n_cols=$(awk '{print NF}' $data | sort -nu | head -n 1)
 
-# count number of data points
+# count number of data points (=rows)
 n=$(cat $data | wc -l)
 
-echo "`basename $0` : $n data points in $n_cols columns in '$data'."
+echo "`basename $0` : $n rows and $n_cols columns in '$data'."
 
 # extract data column-wise and apply formula
 echo "`basename $0` : applying formula '$formula' to each column..."
