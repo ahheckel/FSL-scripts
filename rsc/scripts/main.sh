@@ -3831,7 +3831,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
   
   # do substitutions
   if [ x"$DUALREG_USE_MOVPARS_HPF" = "x" -o x"$DUALREG_USE_MOVPARS_HPF" = "xnone" ] ; then 
-    DUALREG_USE_MOVPARS_HPF=dummy
+    DUALREG_USE_MOVPARS_HPF="Inf"
   fi
   
   # where to look for input files...
@@ -3953,18 +3953,22 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
         # executing dualreg...
         echo "DUALREG : executing dualreg script on group-level ICs in '$ICfile' - writing to folder '$dr_outdir'..."
         
-        if [ "$DUALREG_USE_MOVPARS_HPF" = "dummy" ] ; then 
-          usemov=0
-        else 
-          usemov=1
-          echo "DUALREG : Motion parameters will be used in dual-regressions (hpf-cutoff (s): ${DUALREG_USE_MOVPARS_HPF})."        
+        
+        if [ x"$DUALREG_USE_MOVPARS" != "x0" ] ; then
+          echo "DUALREG : Motion parameters will be used in dual-regressions (hpf-cutoff (s): ${DUALREG_USE_MOVPARS_HPF} --- denoise-tag: ${DUALREG_USE_MOVPARS})."        
         fi
+        #if [ "$DUALREG_USE_MOVPARS_HPF" = "dummy" ] ; then 
+          #usemov=0
+        #else 
+          #usemov=1
+          #echo "DUALREG : Motion parameters will be used in dual-regressions (hpf-cutoff (s): ${DUALREG_USE_MOVPARS_HPF})."        
+        #fi
         echo ""
         cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 0 dummy dummy 1 0 0 dummy $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
         $cmd ; waitIfBusy
         
         echo ""
-        cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $usemov $TR_bold $DUALREG_USE_MOVPARS_HPF 0 1 0 dummy $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
+        cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $DUALREG_USE_MOVPARS $TR_bold $DUALREG_USE_MOVPARS_HPF 0 1 0 dummy $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
         $cmd ; waitIfBusy
         echo ""
       done  # end IC_fname
