@@ -3863,14 +3863,6 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
                   
           if [ $(_imtest $inputfile) -eq 0 ] ; then echo "DUALREG : subj $subj , sess $sess : ERROR : standard-space registered input file '$inputfile' not found - continuing..." ; err=1 ; continue ; fi
           
-          #if [ `echo "$inputfile"|wc -w` -gt 1 ] ; then 
-            #echo "DUALREG : subj $subj , sess $sess : WARNING : more than one standard-space registered input file detected:"
-            #echo "DUALREG : subj $subj , sess $sess :           '$inputfile'"
-            #inputfile=`echo $inputfile | row2col | tail -n 1`
-            #echo "DUALREG : subj $subj , sess $sess :           taking the latest one:"
-            #echo "DUALREG : subj $subj , sess $sess :           '$inputfile'"
-          #fi 
-      
           inputfiles=$inputfiles" "$inputfile
         done # end sess
       done # end subj
@@ -3912,7 +3904,6 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
         
         # check if IC file exitst
         if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : WARNING : group-level IC volume '$ICfile' not found - continuing loop..." ; continue ; fi
-        #if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit 1 ; fi
         
         # check if size / resolution matches
         set +e
@@ -4005,7 +3996,6 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
   
     for _inputfile in $_inputfiles ; do
       for IC_fname in $DUALREG_IC_FILENAMES ; do
-  #      dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}_${DUALREG_INPUT_ICA_DIRNAME}_$(remove_ext $IC_fname)
         dr_outdir=$dregdir/${DUALREG_OUTDIR_PREFIX}__${DUALREG_INPUT_ICA_DIRNAME}__$(remove_ext $IC_fname)__$(basename $(remove_ext $_inputfile))
         ICfile=$gicadir/${DUALREG_INPUT_ICA_DIRNAME}.gica/groupmelodic.ica/${IC_fname}
         
@@ -4055,12 +4045,15 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
           #RANDCMD="randomise"
           #echo "DUALREG : using the '$RANDCMD' command."
         #fi # No longer possible in FSLv5 to submit self-submitting randomise_parallel within a script to a cluster (!)
+        
         for dr_glm_name in $dr_glm_names ; do
           echo "DUALREG : copying GLM design '$dr_glm_name' to '$dr_outdir/stats'"
           mkdir -p $dr_outdir/stats ; cp -r $glmdir_dr/$dr_glm_name $dr_outdir/stats/ ; imcp $ICfile $dr_outdir/stats/
           echo "DUALREG : calling 'randomise' for folder '$dr_outdir/stats/$dr_glm_name' ($DUALREG_NPERM permutations)."
+          if [ x"$DUALREG_USE_4DMASK" = "x" ] ; then
+            DUALREG_USE_4DMASK=0
+          fi
           cmd="${scriptdir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp randomise $DUALREG_NPERM $dr_outdir 0 dummy dummy $DUALREG_USE_4DMASK 0 0 1 $DUALREG_ICS_OF_INTEREST $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
-          #$cmd ; waitIfBusy0 # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
           $cmd ; waitIfBusy # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
         done
         echo ""
