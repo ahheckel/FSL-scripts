@@ -13,7 +13,7 @@ dual_regression v0.5 (beta)
 
 ***NOTE*** ORDER OF COMMAND-LINE ARGUMENTS IS DIFFERENT FROM PREVIOUS VERSION
 
-Usage: $(basename $0) <group_IC_maps> <des_norm> <design.mat> <design.con> <design.grp> <randomise||randomise_parallel> <n_perm> <output_directory> <USE_MOVPARS> <USE_MOVPARS_TR> <USE_MOVPARS_HPF> <DO_MASK> <DO_DUALREG> <DO_RANDOMISE> <ICOFINTEREST|all> <input1> <input2> <input3> .........
+Usage: $(basename $0) <group_IC_maps> <des_norm> <design.mat> <design.con> <design.grp> <randomise||randomise_parallel> <n_perm> <output_directory> <USE_MOVPARS> <USE_MOVPARS_TR> <USE_MOVPARS_HPF> <USE_4DMASK> <DO_MASK> <DO_DUALREG> <DO_RANDOMISE> <ICOFINTEREST|all> <input1> <input2> <input3> .........
 e.g.   $(basename $0) groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat design.con design.grp randomise_parallel 500 outdir 1,2,4,6 3.330 100 1 1 0 0,1,13,17,19 \`cat groupICA.gica/.filelist\`
 
 <group_IC_maps_4D>                 4D image containing spatial IC maps (melodic_IC) from the whole-group ICA analysis
@@ -27,6 +27,7 @@ e.g.   $(basename $0) groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat des
 <USE_MOVPARS>                      Use motion parameters as confound regressors (0:none, 1:c, 2:c^2, 3:abs(c), 4:[0;diff(c)], 5:[diff(c);0], 6:[0;diff(c)]^2, 7:[diff(c);0]^2)
 <USE_MOVPARS_TR>                   TR for high pass filtering of motion parameters
 <USE_MOVPARS_HPF>                  High pass filter cutoff (s), \"Inf\" to switch off
+<USE_4DMASK>                       Restrict statistics to mask for each IC
 <DO_MASK>                          Enable stage1
 <DO_DUALREG>                       Enable stage2
 <DO_RANDOMISE>                     Enable stage3
@@ -80,11 +81,12 @@ OUTPUT=`${FSLDIR}/bin/remove_ext $1` ; shift
 USE_MOVPARS=$1 ; shift
 USE_MOVPARS_TR=$1 ; shift
 USE_MOVPARS_HPF=$1 ; shift
+USE_4DMASK=$1 ; shift
 
 DO_MASK=$1 ; shift
 DO_DUALREG=$1 ; shift
 DO_RANDOMISE=$1 ; shift
-ICOFINTEREST="$1" ; shift # (HKL)
+ICOFINTEREST="$1" ; shift
 
 while [ _$1 != _ ] ; do
   INPUTS="$INPUTS `${FSLDIR}/bin/remove_ext $1`"
@@ -257,6 +259,7 @@ Nics=`$FSLDIR/bin/fslnvols $ICA_MAPS`
 rm -f $OUTPUT/stats/$dname/randomise.cmd # added by HKL
 while [ $j -lt $Nics ] ; do
   jj=`$FSLDIR/bin/zeropad $j 4`
+  
   # only process ICs of Interest (HKL)
   skipit=1
   for nIC in $ICOFINTEREST ; do
@@ -265,24 +268,37 @@ while [ $j -lt $Nics ] ; do
     if [ "$jj" = "$nIC" ] ; then skipit=0 ; fi
   done
   if [ $skipit -eq 1 ] ; then 
-    echo  "`basename $0` : Skipping randomise call on IC-index '$jj' in '$ICA_MAPS' as requested."
+    echo "`basename $0` : Skipping randomise call on IC-index '$jj' in '$ICA_MAPS' as requested."
     j=`echo "$j 1 + p" | dc -`
     continue
   fi
   
+  # check whether 4D mask is present (HKL)
+  mask=$OUTPUT/mask
+  if [ x"$USE_4DMASK" = "x1" ] ; then
+    if [ $(imtest ${ICA_MAPS}_masks) -eq 1 ] ; then
+      echo "`basename $0` : extracting mask from ${ICA_MAPS}_masks at pos. $j ..."
+      fslroi ${ICA_MAPS}_masks $tmpdir/mask_${jj} j 1
+      mask=$tmpdir/mask_${jj}
+    else
+      echo "`basename $0` : WARNING : 4D mask file '${ICA_MAPS}_masks' not found!"
+    fi
+  fi  
+  
+  # create cmd
   RAND=""
   if [ $NPERM -eq 1 ] ; then
-    RAND="$FSLDIR/bin/${RANDCMD} -i $OUTPUT/dr_stage2_ic$jj -o $OUTPUT/stats/$dname/dr_stage3_ic$jj -m $OUTPUT/mask $DESIGN -n 1 -V -R -x" # HKL added -x switch
+    RAND="$FSLDIR/bin/${RANDCMD} -i $OUTPUT/dr_stage2_ic$jj -o $OUTPUT/stats/$dname/dr_stage3_ic$jj -m $mask $DESIGN -n 1 -V -R -x" # HKL added -x switch
   fi
   if [ $NPERM -gt 1 ] ; then
     # EDIT HERE
-    RAND="$FSLDIR/bin/${RANDCMD} -i $OUTPUT/dr_stage2_ic$jj -o $OUTPUT/stats/$dname/dr_stage3_${dname}_ic$jj -m $OUTPUT/mask $DESIGN -n $NPERM -T -V -x $fopts"  # randomise_parallel only works if /bin/sh points to /bin/bash ! (!) ; HKL added -x switch and $fopts
+    RAND="$FSLDIR/bin/${RANDCMD} -i $OUTPUT/dr_stage2_ic$jj -o $OUTPUT/stats/$dname/dr_stage3_${dname}_ic$jj -m $mask $DESIGN -n $NPERM -T -V -x $fopts"  # randomise_parallel only works if /bin/sh points to /bin/bash ! (!) ; HKL added -x switch and $fopts
     echo $RAND >> $OUTPUT/stats/$dname/randomise.cmd # added by HKL
   fi
 
   echo "$FSLDIR/bin/fslmerge -t $OUTPUT/dr_stage2_ic$jj \`\$FSLDIR/bin/imglob $OUTPUT/dr_stage2_subject*_ic${jj}.*\` ; \
         $FSLDIR/bin/imrm \`\$FSLDIR/bin/imglob $OUTPUT/dr_stage2_subject*_ic${jj}.*\` ; $RAND" >> ${LOGDIR}/drD
   j=`echo "$j 1 + p" | dc -`
-done
+done # end while-loop
 JID=`$FSLDIR/bin/fsl_sub -j $JID -T 60 -N drD -l $LOGDIR -t ${LOGDIR}/drD` # HKL removed  switch "-j $ID_drC"
 fi

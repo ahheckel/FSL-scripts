@@ -13,7 +13,8 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: $(basename $0) <input4D> <mask|none> <threshold|none> <output4D>"
+    echo "Usage: $(basename $0) <input4D> <mask|none> <fslmaths-options|none> <output4D>"
+    echo "Example: $(basename $0) input4D mask \"-thr 0.4 -bin\" output4D"
     echo ""
     exit 1
 }
@@ -23,7 +24,7 @@ Usage() {
 # define input arguments
 input=`${FSLDIR}/bin/remove_ext ${1}`
 mask=`${FSLDIR}/bin/remove_ext ${2}`
-prop=$3
+opts="$3"
 output=`${FSLDIR}/bin/remove_ext ${4}`
 
 # create working dir.
@@ -57,11 +58,11 @@ full_list=`imglob ${tmpdir}/$(basename $input)_tmp????.*`
 for i in $full_list ; do
   echo -n "$(basename $0): normalizing ${i}... "
   maximum=$(fslstats $i -k $mask -R | cut -d " " -f 2)
-  echo "max : $maximum --- thres : $prop"
-  if [ x"$prop" = "xnone" ] ; then
+  echo "max : $maximum --- opts : $opts"
+  if [ x"$opts" = "xnone" ] ; then
     fslmaths $i -div $maximum $i
   else
-    fslmaths $i -div $maximum -thr $prop $i
+    fslmaths $i -div $maximum $opts $i
   fi
 done
 
