@@ -166,9 +166,9 @@ if [ x"$USE_MOVPARS" != "x0" ] ; then
     i=$(remove_ext $i)
     featdir=$(dirname $i)/$(readlink ${i}.nii.gz | cut -d / -f 2 | grep .feat$)
     if [ "$USE_MOVPARS_TYPE" = "rel" ] ; then
-      movparfile=$featdir/mc/prefiltered_func_data_mcf_rel
+      movparfile=$featdir/mc/prefiltered_func_data_mcf_rel.rms
     elif [ "$USE_MOVPARS_TYPE" = "abs" ] ; then
-      movparfile=$featdir/mc/prefiltered_func_data_mcf_abs
+      movparfile=$featdir/mc/prefiltered_func_data_mcf_abs.rms
     elif [ "$USE_MOVPARS_TYPE" = "par" ] ; then
       movparfile=$featdir/mc/prefiltered_func_data_mcf.par
     fi
@@ -183,9 +183,9 @@ if [ x"$USE_MOVPARS" != "x0" ] ; then
       i=$(remove_ext $i)
       featdir=$(dirname $i)/$(readlink ${i}.nii.gz | cut -d / -f 2 | grep .feat$)
       if [ "$USE_MOVPARS_TYPE" = "rel" ] ; then
-        movparfile=$featdir/mc/prefiltered_func_data_mcf_rel
+        movparfile=$featdir/mc/prefiltered_func_data_mcf_rel.rms
       elif [ "$USE_MOVPARS_TYPE" = "abs" ] ; then
-        movparfile=$featdir/mc/prefiltered_func_data_mcf_abs
+        movparfile=$featdir/mc/prefiltered_func_data_mcf_abs.rms
       elif [ "$USE_MOVPARS_TYPE" = "par" ] ; then
         movparfile=$featdir/mc/prefiltered_func_data_mcf.par
       fi
