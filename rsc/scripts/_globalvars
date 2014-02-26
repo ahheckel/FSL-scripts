@@ -321,9 +321,10 @@ DUALREG_IC_FILENAMES="melodic_IC.nii.gz"                    # 4D file with the I
 DUALREG_ICS_OF_INTEREST="0,1,12,13,14,19"                   # only run randomise on ICs of Interest (or type "all")
 DUALREG_INPUT_BOLD_FILES=""                                 # optional (if left empty, input files are derived elsewhere)
 DUALREG_USE_MOVPARS="1,2,4,6"                               # use motion paramteters: 0: none - 1: orig - 2: squared - 3: abs - 4: 1st bckwd. deriv. - 5: 1st frwd. deriv. - 6/7: derivatives squared.
+DUALREG_USE_MOVPARS_TYPE="par"                              # 6-parameters ("par"), absolute distance ("abs"), relative distance ("rel")
 DUALREG_USE_MOVPARS_HPF="dummy"                             # cutoff period (s) for high-pass filtering motion parameters ; enter "Inf" to turn off hp-filtering (dr_stage2)
 DUALREG_USE_4DMASK=1                                        # use SVC for each IC (4D-file must be named ${DUALREG_INPUT_ICA_DIRNAMES}/${DUALREG_IC_FILENAMES}_masks)
-DUALREG_OUTDIR_PREFIX="dr"                                  # output directory pre-fix (dir-name is composed as: ${DUALREG_OUTDIR_PREFIX}__${DUALREG_INPUT_ICA_DIRNAMES}__${DUALREG_IC_FILENAMES})
+DUALREG_OUTDIR_PREFIX=drMC$(echo $DUALREG_USE_MOVPARS|sed "s|,||g")${DUALREG_USE_MOVPARS_TYPE}${DUALREG_USE_MOVPARS_HPF}N${DUALREG_NPERM}M${DUALREG_USE_4DMASK} # output directory pre-fix (dir-name is composed as: ${DUALREG_OUTDIR_PREFIX}__${DUALREG_INPUT_ICA_DIRNAMES}__${DUALREG_IC_FILENAMES})
 DUALREG_NPERM=5000                                          # number of permutations
 DUALREG_DELETE_PREV_RUNS=1                                  # delete previous runs?
 

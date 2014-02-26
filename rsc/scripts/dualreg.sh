@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Original version by C. Beckmann. For more information see http://www.fmrib.ox.ac.uk/analysis/dualreg/dual_regression
 
 # Adapted by HKL (11/22/2012): address sections (mask / dualreg / randomise) separately & insert exchangeability block file into randomise call & voxel-wise stats & naming of randomise results based on 
@@ -13,7 +13,7 @@ dual_regression v0.5 (beta)
 
 ***NOTE*** ORDER OF COMMAND-LINE ARGUMENTS IS DIFFERENT FROM PREVIOUS VERSION
 
-Usage: $(basename $0) <group_IC_maps> <des_norm> <design.mat> <design.con> <design.grp> <randomise||randomise_parallel> <n_perm> <output_directory> <USE_MOVPARS> <USE_MOVPARS_TR> <USE_MOVPARS_HPF> <USE_4DMASK> <DO_MASK> <DO_DUALREG> <DO_RANDOMISE> <ICOFINTEREST|all> <input1> <input2> <input3> .........
+Usage: $(basename $0) <group_IC_maps> <des_norm> <design.mat> <design.con> <design.grp> <randomise||randomise_parallel> <n_perm> <output_directory> <USE_MOVPARS> <USE_MOVPARS_TYPE> <USE_MOVPARS_TR> <USE_MOVPARS_HPF> <USE_4DMASK> <DO_MASK> <DO_DUALREG> <DO_RANDOMISE> <ICOFINTEREST|all> <input1> <input2> <input3> .........
 e.g.   $(basename $0) groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat design.con design.grp randomise_parallel 500 outdir 1,2,4,6 3.330 100 1 1 0 0,1,13,17,19 \`cat groupICA.gica/.filelist\`
 
 <group_IC_maps_4D>                 4D image containing spatial IC maps (melodic_IC) from the whole-group ICA analysis
@@ -22,25 +22,26 @@ e.g.   $(basename $0) groupICA.gica/groupmelodic.ica/melodic_IC 1 design.mat des
 <design.con>                       Design contrasts for final cross-subject modelling with randomise
 <design.grp>                       Exchangeability block file
 <randomise||randomise_parallel>    use either randomise or randomise_parallel (the latter will not work in FSLv5)
-<n_perm>                           Number of permutations for randomise; set to 1 for just raw tstat output, set to 0 to not run randomise at all.
+<n_perm>                           Number of permutations for randomise; set to 1 for just raw tstat output, set to 0 to not run randomise at all
 <output_directory>                 This directory will be created to hold all output and logfiles
 <USE_MOVPARS>                      Use motion parameters as confound regressors (0:none, 1:c, 2:c^2, 3:abs(c), 4:[0;diff(c)], 5:[diff(c);0], 6:[0;diff(c)]^2, 7:[diff(c);0]^2)
+<USE_MOVPARS_TYPE>                 6-parameters ("par"), absolute distance ("abs"), relative distance ("rel")
 <USE_MOVPARS_TR>                   TR for high pass filtering of motion parameters
-<USE_MOVPARS_HPF>                  High pass filter cutoff (s), \"Inf\" to switch off
-<USE_4DMASK>                       Restrict statistics to mask for each IC
+<USE_MOVPARS_HPF>                  High pass filter cutoff (s), "Inf" to switch off
+<USE_4DMASK>                       Restrict statistics to 4Dmask named "<group_IC_maps_4D>_masks"
 <DO_MASK>                          Enable stage1
 <DO_DUALREG>                       Enable stage2
 <DO_RANDOMISE>                     Enable stage3
-<ICOFINTEREST>                     Comma separated list of ICs of Interest (index in melodic_IC) starting with 0. Enter \"all\" for all ICs.
+<ICOFINTEREST>                     Comma separated list of ICs of Interest (index in melodic_IC) starting with 0. Enter "all" for all ICs
 <input1> <input2> ...              List all subjects' preprocessed, standard-space 4D datasets
-<design.mat> <design.con>          can be replaced with just
--1                                 for group-mean (one-group t-test) modelling.
-
+NOTE:
+<design.mat> <design.con> < design.grp> can be replaced with just -1 for group-mean (one-group t-test) modelling.
 If you need to add other randomise option then just edit the line after "EDIT HERE" below
 
 EOF
     exit 1
 }
+
 
 function rem_blanks()
 {
@@ -56,7 +57,6 @@ function rem_blanks()
 ORIG_COMMAND=$*
 
 ICA_MAPS=`${FSLDIR}/bin/remove_ext $1` ; shift
-
 DES_NORM=--des_norm
 if [ $1 = 0 ] ; then
   DES_NORM=""
@@ -69,25 +69,21 @@ else
   dm=$1
   dc=$2
   dgrp=$3
-  DESIGN="-d $1 -t $2 -e $3"
-  RANDCMD="$4"
-  shift 4
+  DESIGN="-d $1 -t $2 -e $3"  
+  shift 3
 fi
-
+RANDCMD="$1" ; shift
 NPERM=$1 ; shift
-
 OUTPUT=`${FSLDIR}/bin/remove_ext $1` ; shift
-
 USE_MOVPARS=$1 ; shift
+USE_MOVPARS_TYPE=$1 ; shift
 USE_MOVPARS_TR=$1 ; shift
 USE_MOVPARS_HPF=$1 ; shift
 USE_4DMASK=$1 ; shift
-
 DO_MASK=$1 ; shift
 DO_DUALREG=$1 ; shift
 DO_RANDOMISE=$1 ; shift
 ICOFINTEREST="$1" ; shift
-
 while [ _$1 != _ ] ; do
   INPUTS="$INPUTS `${FSLDIR}/bin/remove_ext $1`"
   shift
@@ -106,18 +102,19 @@ tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for tempor
 # define exit trap (HKL)
 trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
-echo "`basename $0` : ICA_MAPS:        $ICA_MAPS"
-echo "`basename $0` : DES_NORM:        $DES_NORM"
-echo "`basename $0` : DESIGN:          $DESIGN"
-echo "`basename $0` : NPERM:           $NPERM"
-echo "`basename $0` : OUTPUT:          $OUTPUT"
-echo "`basename $0` : USE_MOVPARS:     $USE_MOVPARS"
-echo "`basename $0` : USE_MOVPARS_TR:  $USE_MOVPARS_TR"
-echo "`basename $0` : USE_MOVPARS_HPF: $USE_MOVPARS_HPF"
-echo "`basename $0` : DO_MASK:         $DO_MASK"
-echo "`basename $0` : DO_DUALREG:      $DO_DUALREG"
-echo "`basename $0` : DO_RANDOMISE:    $DO_RANDOMISE"
-echo "`basename $0` : ICOFINTEREST:    $ICOFINTEREST"
+echo "`basename $0` : ICA_MAPS:         $ICA_MAPS"
+echo "`basename $0` : DES_NORM:         $DES_NORM"
+echo "`basename $0` : DESIGN:           $DESIGN"
+echo "`basename $0` : NPERM:            $NPERM"
+echo "`basename $0` : OUTPUT:           $OUTPUT"
+echo "`basename $0` : USE_MOVPARS:      $USE_MOVPARS"
+echo "`basename $0` : USE_MOVPARS_TYPE: $USE_MOVPARS_TYPE"
+echo "`basename $0` : USE_MOVPARS_TR:   $USE_MOVPARS_TR"
+echo "`basename $0` : USE_MOVPARS_HPF:  $USE_MOVPARS_HPF"
+echo "`basename $0` : DO_MASK:          $DO_MASK"
+echo "`basename $0` : DO_DUALREG:       $DO_DUALREG"
+echo "`basename $0` : DO_RANDOMISE:     $DO_RANDOMISE"
+echo "`basename $0` : ICOFINTEREST:     $ICOFINTEREST"
 echo "---------------------------"
 
 mkdir -p $OUTPUT
@@ -168,7 +165,13 @@ if [ x"$USE_MOVPARS" != "x0" ] ; then
   for i in $INPUTS ; do
     i=$(remove_ext $i)
     featdir=$(dirname $i)/$(readlink ${i}.nii.gz | cut -d / -f 2 | grep .feat$)
-    movparfile=$featdir/mc/prefiltered_func_data_mcf.par
+    if [ "$USE_MOVPARS_TYPE" = "rel" ] ; then
+      movparfile=$featdir/mc/prefiltered_func_data_mcf_rel
+    elif [ "$USE_MOVPARS_TYPE" = "abs" ] ; then
+      movparfile=$featdir/mc/prefiltered_func_data_mcf_abs
+    elif [ "$USE_MOVPARS_TYPE" = "par" ] ; then
+      movparfile=$featdir/mc/prefiltered_func_data_mcf.par
+    fi
     echo "`basename $0` : detecting motion parameter file: '$movparfile'"
     if [ ! -f $movparfile ] ; then echo "`basename $0` : WARNING : motion-parameter file '$movparfile' does not exist." ; movpar=0 ; fi
   done
@@ -179,8 +182,13 @@ if [ x"$USE_MOVPARS" != "x0" ] ; then
       s=subject`${FSLDIR}/bin/zeropad $j 5`
       i=$(remove_ext $i)
       featdir=$(dirname $i)/$(readlink ${i}.nii.gz | cut -d / -f 2 | grep .feat$)
-      movparfile=$featdir/mc/prefiltered_func_data_mcf.par      
-      
+      if [ "$USE_MOVPARS_TYPE" = "rel" ] ; then
+        movparfile=$featdir/mc/prefiltered_func_data_mcf_rel
+      elif [ "$USE_MOVPARS_TYPE" = "abs" ] ; then
+        movparfile=$featdir/mc/prefiltered_func_data_mcf_abs
+      elif [ "$USE_MOVPARS_TYPE" = "par" ] ; then
+        movparfile=$featdir/mc/prefiltered_func_data_mcf.par
+      fi
       movpar_calc_list=""
       for calc in $USE_MOVPARS ; do
         if [ $calc -eq 1 ] ; then formula="output_precision(8); c" ; fi

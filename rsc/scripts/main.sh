@@ -501,7 +501,7 @@ fi
 # Updating MELODIC templates
 echo "Copying ICA templates..."
 mkdir -p $gicadir/templates.gica/groupmelodic.ica
-cp $(dirname $scriptdir)/fsl/templates/rsn*.nii.gz $gicadir/templates.gica/groupmelodic.ica/
+cp $(dirname $scriptdir)/fsl/templates/rsn* $gicadir/templates.gica/groupmelodic.ica/
 echo "...done." ; echo ""
 
 # make log directory for fsl_sub
@@ -3955,11 +3955,11 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
           #echo "DUALREG : Motion parameters will be used in dual-regressions (hpf-cutoff (s): ${DUALREG_USE_MOVPARS_HPF})."        
         #fi
         echo ""
-        cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 0 dummy dummy 0 1 0 0 dummy $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
+        cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir 0 dummy dummy dummy 0 1 0 0 dummy $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_prep.cmd
         $cmd ; waitIfBusy
         
         echo ""
-        cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $DUALREG_USE_MOVPARS $TR_bold $DUALREG_USE_MOVPARS_HPF 0 0 1 0 dummy $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
+        cmd="$scriptdir/dualreg.sh $ICfile 1 dummy.mat dummy.con dummy.grp dummy.randcmd $DUALREG_NPERM $dr_outdir $DUALREG_USE_MOVPARS $DUALREG_USE_MOVPARS_TYPE $TR_bold $DUALREG_USE_MOVPARS_HPF 0 0 1 0 dummy $(cat $dr_outdir/inputfiles)" ; echo "$cmd" >> $dr_outdir/dualreg_prep.cmd
         $cmd ; waitIfBusy
         echo ""
       done  # end IC_fname
@@ -4053,7 +4053,7 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
           if [ x"$DUALREG_USE_4DMASK" = "x" ] ; then
             DUALREG_USE_4DMASK=0
           fi
-          cmd="${scriptdir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp randomise $DUALREG_NPERM $dr_outdir 0 dummy dummy $DUALREG_USE_4DMASK 0 0 1 $DUALREG_ICS_OF_INTEREST $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
+          cmd="${scriptdir}/dualreg.sh $ICfile 1 $glmdir_dr/$dr_glm_name/design.mat $glmdir_dr/$dr_glm_name/design.con $glmdir_dr/$dr_glm_name/design.grp randomise $DUALREG_NPERM $dr_outdir 0 dummy dummy dummy $DUALREG_USE_4DMASK 0 0 1 $DUALREG_ICS_OF_INTEREST $(cat $dr_outdir/inputfiles)" ; echo "$cmd" > $dr_outdir/dualreg_rand_${dr_glm_name}.cmd
           $cmd ; waitIfBusy # CAVE: waiting here is necessary, otherwise the drD script is deleted before its execution is finished... (!)
         done
         echo ""
