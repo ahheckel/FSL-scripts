@@ -225,7 +225,7 @@ melodicICs="" ; err=0 ; rm -f ${input2melodic}
 for i in `seq 0 $[$Nsubjorders - 1]` ; do
   melodicICs=$melodicICs" "$outdir/groupmelodic$(zeropad $i 4).ica/melodic_IC.nii.gz
 done
-for file in $melodicICs ; do
+i=1 ; for file in $melodicICs ; do
   if [ $(_imtest $file) -eq 1 ] ; then echo "`basename $0`: $i adding '$file' to input filelist..." ; echo $file >> ${input2melodic} ; i=$[$i+1] ; else echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
 done
 if [ $err -eq 1 ] ; then echo "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi

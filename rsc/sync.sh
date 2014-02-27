@@ -40,7 +40,7 @@ cd "$wd"
 
 folder=${zipfile%.zip}
 
-if [ ! -d $folder ] ; then 
+if [ ! -d "$folder" ] ; then 
   echo "$(basename $0): ERROR: Folder '$folder' does not exist!"
 else
   echo "Execute:"
