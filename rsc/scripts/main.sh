@@ -3905,6 +3905,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
         
         # check if IC file exitst
         if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : WARNING : group-level IC volume '$ICfile' not found - continuing loop..." ; continue ; fi
+        if [ $(_imtest $(remove_ext $ICfile)_mask) -eq 0 -a $DUALREG_USE_4DMASK -gt 0 ] ; then echo "DUALREG : WARNING : mask '${ICfile}_mask' not found - continuing loop..." ; continue ; fi
         
         # check if size / resolution matches
         set +e
