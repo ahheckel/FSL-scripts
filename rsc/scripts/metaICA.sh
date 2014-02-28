@@ -234,7 +234,7 @@ fslmerge -t $outdir/melodic_ICMETA $(cat ${input2melodic})
 # execute
 exec_melodic $outdir/melodic_ICMETA $outdir $subdir "$optsMETA"
 # create symlink for compatibility
-ln -sfv $outdir/$subdir $outdir/groupmelodic.ica
+ln -sfv $subdir $outdir/groupmelodic.ica
 
 # wait till finished
 waitIfBusyIDs ./jid.list
