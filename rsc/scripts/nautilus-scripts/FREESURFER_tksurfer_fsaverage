@@ -71,13 +71,17 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   rh="$(echo $(basename $i) | grep "\.rh\." | wc -l )"
   if [ $lh -eq 0 ] ; then lh="$(echo $(basename $i) | grep "^lh\." | wc -l )" ; fi
   if [ $rh -eq 0 ] ; then rh="$(echo $(basename $i) | grep "^rh\." | wc -l )" ; fi
+  if [ $lh -eq 0 ] ; then lh="$(echo $(basename $i) | grep "\.lh$" | wc -l )" ; fi # new
+  if [ $rh -eq 0 ] ; then rh="$(echo $(basename $i) | grep "\.rh$" | wc -l )" ; fi # new
   _dir="$i"
   while [ $lh -eq 0 -a $rh -eq 0 ] ; do
     _dir=$(dirname $_dir) ; if [ "$_dir" = "$(dirname $_dir)" ] ; then break ; fi
     _dirname=$(basename $_dir)
     _hemi="$(basename $_dirname)"
     lh=$(echo $_hemi | grep "^lh\."  | wc -l)
-    rh=$(echo $_hemi | grep "^rh\."  | wc -l)
+    rh=$(echo $_hemi | grep "^rh\."  | wc -l)    
+    if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "\.lh$"  | wc -l) ; fi # new
+    if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "\.rh$"  | wc -l) ; fi # new
     if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "\.lh\." | wc -l) ; fi
     if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "\.rh\." | wc -l) ; fi
     if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "\-lh\-" | wc -l) ; fi

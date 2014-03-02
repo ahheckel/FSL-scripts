@@ -3943,7 +3943,7 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
               echo $inputfiles | row2col > $dr_outdir/inputfiles
               
               ## creating link to logdir
-              #ln -sfn ../$(basename $grpdir)/$(basename $dregdir)/$DUALREG_INPUT_ICA_DIRNAME/scripts+logs $logdir/dualreg_${DUALREG_INPUT_ICA_DIRNAME}_scripts+logs # create link to dualreg-logfiles in log-directory
+              ln -sfvn $(path_abs2rel $logdir/ $dr_outdir/)/scripts+logs $logdir/$(basename $dr_outdir)__scripts+logs
               
               # check if we have acquisition parameters
               defineBOLDparams $subjdir/config_acqparams_bold # assuming that TR is the same for all datasets
