@@ -3937,13 +3937,13 @@ if [ $DUALREG_STG1 -eq 1 ] ; then
               # create output dir  
               mkdir -p $dr_outdir
               
+              # creating link to logdir
+              ln -sfvn $(path_abs2rel $logdir/ $dr_outdir/)/scripts+logs $logdir/$(basename $dr_outdir)__scripts+logs
+              
               # save info-files
               echo $DUALREG_INCLUDED_SUBJECTS | row2col > $dr_outdir/subjects
               echo $DUALREG_INCLUDED_SESSIONS | row2col > $dr_outdir/sessions
               echo $inputfiles | row2col > $dr_outdir/inputfiles
-              
-              ## creating link to logdir
-              ln -sfvn $(path_abs2rel $logdir/ $dr_outdir/)/scripts+logs $logdir/$(basename $dr_outdir)__scripts+logs
               
               # check if we have acquisition parameters
               defineBOLDparams $subjdir/config_acqparams_bold # assuming that TR is the same for all datasets

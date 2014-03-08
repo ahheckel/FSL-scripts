@@ -59,7 +59,7 @@ err=0
 if [ ! -d $sdir/$src ] ; then echo "`basename $0` : ERROR: '$sdir/$src' not found..." ; err=1  ; fi
 if [ ! -d $sdir/$trg ] ; then echo "`basename $0` : ERROR: '$sdir/$trg' not found..." ; err=1  ; fi
 for label in $labels ; do
-  if [ ! -f $label ] ; then "`basename $0` : ERROR: '$label' not found..." ; err=1 ; fi
+  if [ ! -f $label ] ; then echo "`basename $0` : ERROR: '$label' not found..." ; err=1 ; fi
 done
 if [ $err -eq 1 ] ; then exit 1 ; fi
 label=""

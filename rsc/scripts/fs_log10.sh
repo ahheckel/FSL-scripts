@@ -1,5 +1,5 @@
 #!/bin/bash
-# Converts FSL-style significance maps to FREESURFER-style significance maps.
+# Converts FSL-style significance maps (1-p) to FREESURFER-style significance maps (log10(p)).
 
 # Written by Andreas Heckel
 # University of Heidelberg
