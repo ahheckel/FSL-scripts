@@ -1,4 +1,5 @@
 #!/bin/bash
+# Resamples Freesurfer label files in different space.
 
 # Written by Andreas Heckel
 # University of Heidelberg

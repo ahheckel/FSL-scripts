@@ -1,10 +1,11 @@
 #!/bin/bash
+# Converts Freesurfer label files to NIFTI.
 
 # Written by Andreas Heckel
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 03/27/2013
+# 07/03/2014
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
