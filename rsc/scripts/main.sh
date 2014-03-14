@@ -419,6 +419,7 @@ echo -n "--- BPX       :    " ; [ $BPX_STG1 = 1 ] && echo -n "STG1 "  ; echo ""
 echo -n "--- RECON-ALL :    " ; [ $RECON_STG1 = 1 ] && echo -n "STG1 " ; [ $RECON_STG2 = 1 ] && echo -n "STG2 " ; [ $RECON_STG3 = 1 ] && echo -n "STG3 " ; [ $RECON_STG4 = 1 ] && echo -n "STG4 " ; [ $RECON_STG5 = 1 ] && echo -n "STG5 " ; echo ""
 echo -n "--- VBM       :    " ; [ $VBM_STG1 = 1 ] && echo -n "STG1 " ; [ $VBM_STG2 = 1 ] && echo -n "STG2 " ; [ $VBM_STG3 = 1 ] && echo -n "STG3 " ; [ $VBM_STG4 = 1 ] && echo -n "STG4 " ; [ $VBM_STG5 = 1 ] && echo -n "STG5 " ; echo ""
 echo -n "--- TRACULA   :    " ; [ $TRACULA_STG1 = 1 ] && echo -n "STG1 " ; [ $TRACULA_STG2 = 1 ] && echo -n "STG2 " ; [ $TRACULA_STG3 = 1 ] && echo -n "STG3 " ; [ $TRACULA_STG4 = 1 ] && echo -n "STG4 " ; echo ""
+echo -n "--- AUTOPTX   :    " ; [ $AUTOPTX_STG1 = 1 ] && echo -n "STG1 " ; echo ""
 echo -n "--- BOLD      :    " ; [ $BOLD_STG1 = 1 ] && echo -n "STG1 " ; [ $BOLD_STG2 = 1 ] && echo -n "STG2 " ; [ $BOLD_STG3 = 1 ] && echo -n "STG3 " ; [ $BOLD_STG4 = 1 ] && echo -n "STG4 " ; [ $BOLD_STG5 = 1 ] && echo -n "STG5 " ; echo ""
 echo -n "--- ALFF      :    " ; [ $ALFF_STG1 = 1 ] && echo -n "STG1 " ; [ $ALFF_STG2 = 1 ] && echo -n "STG2 " ; [ $ALFF_STG3 = 1 ] && echo -n "STG3 " ; echo ""
 echo "2ND LEVEL processing streams selected:"
@@ -1458,6 +1459,10 @@ if [ $FDT_STG3 -eq 1 -a $FDT_UNWARP -eq 1 ] ; then
       if [ $uw_dir = "+y" ] ; then dir=y ; fi
       
       # unwarp
+      if [ -d $fldr/uwDWI_${uw_dir}.feat/unwarp ] ; then
+        echo "FDT : subj $subj , sess $sess : delete pre-existing unwarp directory..."
+        rm -r $fldr/uwDWI_${uw_dir}.feat/unwarp
+      fi      
       echo "FDT : subj $subj , sess $sess : execute unwarp..."
       echo "$scriptdir/feat_unwarp.sh $fldr/nodif_brain.nii.gz $fmap $fmap_magn $dir $TE_diff $EES_diff $FDT_SIGNLOSS_THRES $fldr/uwDWI_${uw_dir}.feat/unwarp ; \
       $scriptdir/apply_mc+unwarp.sh $fldr/diff_merged $fldr/uw_ec_diff_merged $fldr/ec_diff_merged.ecclog $fldr/uwDWI_${uw_dir}.feat/unwarp/EF_UD_shift.nii.gz $dir trilinear" > $fldr/feat_unwarp.cmd
@@ -1472,10 +1477,29 @@ if [ $FDT_STG3 -eq 1 -a $FDT_UNWARP -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$subjdir/$subj/$sess/fdt
       
-      # link to unwarped brainmask
-      uwdir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
-      ln -sf ./uwDWI_${uwdir}.feat/unwarp/EF_UD_example_func.nii.gz $fldr/uw_nodif.nii.gz
-      ln -sf ./uwDWI_${uwdir}.feat/unwarp/EF_UD_fmap_mag_brain_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz  
+      ## link to unwarped nodif
+      #uwdir=`getUnwarpDir ${subjdir}/config_unwarp_dwi $subj $sess`
+      #ln -sf ./uwDWI_${uwdir}.feat/unwarp/EF_UD_example_func.nii.gz $fldr/uw_nodif.nii.gz
+      ##ln -sf ./uwDWI_${uwdir}.feat/unwarp/EF_UD_fmap_mag_brain_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
+      
+      echo "FDT : subj $subj , sess $sess : extract b0 reference image from unwarped DWIs..."
+      fslroi $fldr/uw_ec_diff_merged $fldr/uw_nodif $(cat $fldr/ec_ref.idx) 1 
+
+      # get bet-info for current subject
+      f=`getBetThres ${subjdir}/config_bet_lowb $subj $sess`
+      
+      # bet, if necessary
+      if [ $f = "mod" ] ; then
+        if [ ! -f $fldr/uw_nodif_brain_${f}.nii.gz  -o ! -f $fldr/uw_nodif_brain_${f}_mask.nii.gz ] ; then   
+          echo "FDT : subj $subj , sess $sess : ERROR : externally modified volume (uw_nodif_brain_${f}) & mask (uw_nodif_brain_${f}_mask) not found - exiting..." ; exit 1         
+        fi
+      else
+        echo "FDT : subj $subj , sess $sess : betting unwarped B0 image with fi=${f}..."
+        bet $fldr/uw_nodif $fldr/uw_nodif_brain_${f} -m -f $f
+      fi
+      
+      # link to brain mask
+      ln -sf uw_nodif_brain_${f}_mask.nii.gz $fldr/uw_nodif_brain_mask.nii.gz
     done
   done  
 fi
@@ -2363,6 +2387,138 @@ fi
 
 #########################
 # ----- END TRACULA -----
+#########################
+
+
+waitIfBusy
+
+
+###########################
+# ----- BEGIN AUTOPTX -----
+###########################
+
+# AUTOPTX prepare 
+if [ $AUTOPTX_STG1 -eq 1 ] ; then
+  echo "----- BEGIN AUTOPTX_STG1 -----"
+  
+  aptx_dirs=""
+  if [ $AUTOPTX_USE_NATIVE -eq 1 ] ; then aptx_dirs=$aptx_dirs" "$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_noec ; fi
+  if [ $AUTOPTX_USE_UNWARPED_BVECROT -eq 1 ] ; then aptx_dirs=$aptx_dirs" "$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_uw_bvecrot ; fi
+  if [ $AUTOPTX_USE_TOPUP_NOEC_BVECROT -eq 1 ] ; then aptx_dirs=$aptx_dirs" "$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_topup_noec_bvecrot ; fi
+  if [ $AUTOPTX_USE_TOPUP_EC_BVECROT -eq 1 ] ; then aptx_dirs=$aptx_dirs" "$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_topup_ec_bvecrot ; fi
+  if [ $AUTOPTX_USE_TOPUP_EDDY_NOROT -eq 1 ] ; then aptx_dirs=$aptx_dirs" "$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_topup_eddy_norot ; fi
+  
+  for aptx_dir in $aptx_dirs ; do
+  
+    # copy fw to destination folder
+    echo "AUTOPTX : subj $subj , sess $sess : copying autoptx framework to '${aptx_dir}'" 
+    cp -r $scriptdir/bin/autoPtx/* $aptx_dir/
+            
+    for subj in `cat subjects`; do 
+      for sess in `cat ${subj}/sessions_struc` ; do
+          
+        # create dest. folder
+        fldr=$aptx_dir/$(subjsess) ; mkdir -p $fldr
+        
+        # clean folder
+        rm -rf $fldr/*
+      
+        # display info
+        echo "AUTOPTX : subj $subj , sess $sess : preparing AUTOPTX in $fldr..."
+                    
+        # copy appropiate files
+        echo "AUTOPTX : subj $subj , sess $sess : copying to appropriate bvals/bvecs files and DWI files..."
+        if [ $AUTOPTX_USE_NATIVE -eq 1 ] ; then
+          echo "AUTOPTX : subj $subj , sess $sess : copying to native DWIs..."
+          # are bvals and bvecs already concatenated ?
+          if [ ! -f $subj/$sess/fdt/bvals_concat.txt -o ! -f $subj/$sess/fdt/bvecs_concat.txt ] ; then
+            echo "AUTOPTX : subj $subj , sess $sess : creating concatenated bvals and bvecs file..."
+            concat_bvals $srcdir/$subj/$sess/"$pttrn_bvals" $fldr/bvals
+            concat_bvecs $srcdir/$subj/$sess/"$pttrn_bvecs" $fldr/bvecs
+          else
+            cp $subjdir/$subj/$sess/fdt/bvals_concat.txt  $fldr/bvals
+            cp $subjdir/$subj/$sess/fdt/bvecs_concat.txt  $fldr/bvecs          
+          fi        
+          
+          # are DWIs already concatenated ?
+          if [ -f $subj/$sess/fdt/diff_merged.nii.gz ] ; then
+            cp $subjdir/$subj/$sess/fdt/diff_merged.nii.gz  $fldr/data.nii.gz
+          else
+            echo "AUTOPTX : subj $subj , sess $sess : no pre-existing 4D file found - merging diffusion files..."
+            diffs=`ls $srcdir/$subj/$sess/$pttrn_diffs`          
+            fsl_sub -l $logdir -N aptx_fslmerge_$(subjsess) fslmerge -t $fldr/data $diffs 
+          fi
+          cp $subjdir/$subj/$sess/fdt/nodif_brain_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
+          
+        elif [ $AUTOPTX_USE_UNWARPED_BVECROT -eq 1 ] ; then          
+          # is fdt directory present ?
+          if [ ! -d $subjdir/$subj/$sess/fdt ] ; then echo "AUTOPTX : subj $subj , sess $sess : ERROR : you must run the FDT-stream first - breaking loop..." ; break ; fi
+          
+          echo "AUTOPTX : subj $subj , sess $sess : copying to unwarped DWIs (and corrected b-vectors)..."
+          
+          cp $subjdir/$subj/$sess/fdt/bvals_concat.txt  $fldr/bvals
+          cp $subjdir/$subj/$sess/fdt/bvecs_concat.rot  $fldr/bvecs
+          cp $subjdir/$subj/$sess/fdt/uw_ec_diff_merged.nii.gz  $fldr/data.nii.gz
+          cp $subjdir/$subj/$sess/fdt/uw_nodif_brain_mask.nii.gz  $fldr/nodif_brain_mask.nii.gz         
+
+        elif [ $AUTOPTX_USE_TOPUP_NOEC_BVECROT -eq 1 ] ; then
+          # is topup directory present ?
+          if [ ! -d $subjdir/$subj/$sess/topup ] ; then echo "AUTOPTX : subj $subj , sess $sess : ERROR : you must run the TOPUP-stream first - breaking loop..." ; break ; fi
+          
+          echo "AUTOPTX : subj $subj , sess $sess : copying to TOPUP corrected DWIs (and corrected b-vectors)..."
+          cp $subjdir/$subj/$sess/topup/avg_bvals.txt $fldr/bvals
+          cp $subjdir/$subj/$sess/topup/avg_bvecs_topup.rot $fldr/bvecs
+          cp $subjdir/$subj/$sess/topup/$(subjsess)_topup_corr_merged.nii.gz $fldr/data.nii.gz
+          cp $subjdir/$subj/$sess/topup/uw_nodif_brain_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
+          
+        elif [ $AUTOPTX_USE_TOPUP_EC_BVECROT -eq 1 ] ; then
+          # is topup directory present ?
+          if [ ! -d $subjdir/$subj/$sess/topup ] ; then echo "AUTOPTX : subj $subj , sess $sess : ERROR : you must run the TOPUP-stream first - breaking loop..." ; break ; fi
+          
+          echo "AUTOPTX : subj $subj , sess $sess : copying to TOPUP corrected, eddy-corrected DWIs (and corrected b-vectors)..."
+          cp $subjdir/$subj/$sess/topup/avg_bvals.txt $fldr/bvals
+          cp $subjdir/$subj/$sess/topup/avg_bvecs_topup_ec.rot $fldr/bvecs
+          cp $subjdir/$subj/$sess/topup/$(subjsess)_topup_corr_ec_merged.nii.gz $fldr/data.nii.gz
+          cp $subjdir/$subj/$sess/topup/uw_nodif_brain_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
+         
+        elif [ $AUTOPTX_USE_TOPUP_EDDY_NOROT -eq 1 ] ; then
+          # is topup directory present ?
+          if [ ! -d $subjdir/$subj/$sess/topup ] ; then echo "AUTOPTX : subj $subj , sess $sess : ERROR : you must run the TOPUP-stream first - breaking loop..." ; break ; fi
+          
+          echo "AUTOPTX : subj $subj , sess $sess : copying to TOPUP corrected, EDDY-corrected DWIs (w/o corrected b-vectors)..."
+          cp $subjdir/$subj/$sess/topup/avg_bvals.txt $fldr/bvals
+          cp $subjdir/$subj/$sess/topup/avg_bvecs.txt $fldr/bvecs
+          cp $subjdir/$subj/$sess/topup/$(subjsess)_topup_corr_eddy_merged.nii.gz $fldr/data.nii.gz
+          cp $subjdir/$subj/$sess/topup/uw_nodif_brain_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
+        fi
+        
+        # check consistency
+        checkConsistency $fldr/data.nii.gz $fldr/bvals $fldr/bvecs
+
+      done # end sess
+    done # end subj
+  done # end aptx_dir
+
+  ## check for broken links
+  #err=0
+  #for aptx_dir in $aptx_dirs ; do
+    #for subj in `cat subjects`; do 
+      #for sess in `cat ${subj}/sessions_struc` ; do
+          
+        #fldr=$aptx_dir/$(subjsess)                
+        #if [ $($scriptdir/delbrokenlinks.sh $fldr/ 0 1 | grep -v ^delbrokenlinks.sh: | wc -l) -gt 0 ] ; then
+           #echo "AUTOPTX : subj $subj , sess $sess : ERROR : broken link(s) detected:"
+           #$scriptdir/delbrokenlinks.sh $fldr/ 0 1
+           #err=1           
+        #fi        
+      #done # end sess
+    #done # end subj
+  #done  # end aptx_dir
+  #if [ $err -eq 1 ] ; then exit 1 ; fi    
+fi
+
+#########################
+# ----- END AUTOPTX -----
 #########################
 
 

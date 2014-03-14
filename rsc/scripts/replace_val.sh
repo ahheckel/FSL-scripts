@@ -1,5 +1,5 @@
 #!/bin/bash
-# Replaces value >0 in a FSL mask.
+# Replaces value in an FSL mask.
 
 # Adapted by Andreas Heckel
 # University of Heidelberg
@@ -37,25 +37,32 @@ output=$(remove_ext $4)
 if [ $(imtest $input) -eq 0 ] ; then
   echo "$(basename $0): ERROR: '$input' does not exist or is not a volume - exiting..." ; exit 1
 fi
-#if [ "$input" = "$output" ] ; then
-  #echo "$(basename $0): ERROR: input '$input' and output '$output' are the same - exiting..." ; exit 1
-#fi
 
 # execute
 echo "$(basename $0):"
 mask=$tmpdir/mask
-cmd="fslmaths $input -thr $val0 -mul -1 -thr -${val0} -mul -1 $mask" ; echo "    $cmd" ; $cmd
-maximum=`fslstats $mask -R | cut -d " " -f 2  | cut -d . -f 1`
-if [ $maximum = "0" ] ; then
- echo "$(basename $0): WARNING: value '$val0' not found in '$input'!"
+if [ x"$val0" != "x0" ] ; then
+  cmd="fslmaths $input -thr $val0 -mul -1 -thr -${val0} -mul -1 $mask" ; echo "    $cmd" ; $cmd
+  maximum=`fslstats $mask -R | cut -d " " -f 2  | cut -d . -f 1`
+  if [ $maximum = "0" ] ; then
+   echo "$(basename $0): WARNING: value '$val0' not found in '$input'!"
+  fi
+  # remove val0 from input
+  cmd="fslmaths $input -sub $mask ${mask}_sub" ; echo "    $cmd" ; $cmd
+  # replace val0 with val1
+  cmd="fslmaths $mask -abs -bin -mul $val1 ${mask}_repl" ; echo "    $cmd" ; $cmd
+  cmd="fslmaths ${mask}_sub -add ${mask}_repl $output" ; echo "    $cmd" ; $cmd
+else
+  # invert
+  cmd="fslmaths $input -abs -binv $mask" ; echo "    $cmd" ; $cmd
+  maximum=`fslstats $mask -R | cut -d " " -f 2  | cut -d . -f 1`
+  if [ $maximum = "0" ] ; then
+   echo "$(basename $0): WARNING: value '$val0' not found in '$input'!"
+  fi
+  # replace 0 with val1
+  cmd="fslmaths $mask -mul $val1 ${mask}_repl" ; echo "    $cmd" ; $cmd
+  cmd="fslmaths $input -add ${mask}_repl $output" ; echo "    $cmd" ; $cmd
 fi
-
-# remove val0 from input
-cmd="fslmaths $input -sub $mask ${mask}_sub" ;  echo "    $cmd" ; $cmd
-
-# replace val0 with val1
-cmd="fslmaths $mask -bin -mul $val1 ${mask}_repl" ; echo "    $cmd" ; $cmd
-cmd="fslmaths ${mask}_sub -add ${mask}_repl $output" ; echo "    $cmd" ; $cmd
 
 # done
 echo "$(basename $0): done."

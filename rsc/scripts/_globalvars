@@ -15,6 +15,7 @@ logdir=$studydir/logs  # SGE logfiles
 tbssdir=$grpdir/tbss        ; glmdir_tbss=$glmdir/tbss
 vbmdir=$grpdir/vbm          ; glmdir_vbm=$glmdir/vbm
 alffdir=$grpdir/alff        ; glmdir_alff=$glmdir/alff
+aptxdir=$grpdir/aptx
 gicadir=$grpdir/melodic
 dregdir=$grpdir/dualreg     ; glmdir_dr=$glmdir/dualreg
 FSstatsdir=$grpdir/FS_stats ; glmdir_fs=$glmdir/FS_stats
@@ -77,6 +78,8 @@ TRACULA_STG1=0             # TRACULA prepare
 TRACULA_STG2=0             # TRACULA execute -prep
 TRACULA_STG3=0             # TRACULA execute -bedp
 TRACULA_STG4=0             # TRACULA execute -path
+
+AUTOPTX_STG1=0             # AUTOPTX prepare directory structure
 
 BOLD_STG1=0                # BOLD prepare FEAT configuration file for motion correction and unwarping, etc.
 BOLD_STG2=0                # BOLD execute FEAT configuration file
@@ -164,7 +167,7 @@ TOPUP_EC_COST=mutualinfo   # cost-function used by eddy-correction (default: cor
 TOPUP_USE_EDDY=0           # use EDDY (FSL 5)
 
 # FDT - unwarp
-FDT_EC_TEST=0                  # don't apply eddy-correction
+FDT_EC_TEST=0                  # don't apply eddy-correction (just copy input->output and create .ecclog file with identities)
 FDT_EC_DOF=12                  # degrees of freedom used by eddy-correction (default: 12)
 FDT_EC_COST=mutualinfo         # cost-function used by eddy-correction (default: corratio)
 FDT_UNWARP=1                   # do unwarp ?
@@ -203,6 +206,14 @@ TRACULA_USE_UNWARPED_BVECROT=0   # use unwarped and eddy-corrected merged DWI fi
 TRACULA_USE_TOPUP_NOEC_BVECROT=0 # use TOPUP corrected merged DWI files with corrected b-vectors
 TRACULA_USE_TOPUP_EC_BVECROT=0   # use TOPUP corrected & eddy-corrected merged DWI files with corrected b-vectors
 TRACULA_USE_TOPUP_EDDY_NOROT=1   # use TOPUP corrected & EDDY (FSLv5) merged DWI files w/o corrected b-vectors
+
+# AUTOPTX
+AUTOPTX_OUTDIR_PREFIX="aptx"     # prefix of output directory
+AUTOPTX_USE_NATIVE=0             # use unprocessed merged DWI files (AUTOPTX does eddy-correction and bvec. rotation)
+AUTOPTX_USE_UNWARPED_BVECROT=0   # use unwarped and eddy-corrected merged DWI files and corrected b-vectors
+AUTOPTX_USE_TOPUP_NOEC_BVECROT=0 # use TOPUP corrected merged DWI files with corrected b-vectors
+AUTOPTX_USE_TOPUP_EC_BVECROT=0   # use TOPUP corrected & eddy-corrected merged DWI files with corrected b-vectors
+AUTOPTX_USE_TOPUP_EDDY_NOROT=1   # use TOPUP corrected & EDDY (FSLv5) merged DWI files w/o corrected b-vectors
 
 # BOLD - preproc
 BOLD_FEATDIR_PREFIX="preprocBOLD"                             # prefix for .feat output directory

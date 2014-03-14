@@ -1132,9 +1132,6 @@ function prepareALFF()
   if [ $DEL -eq 0 ] ; then read -p "Press key to continue..." ; fi  
     
   echo "prepareALFF(): estimating common brain-mask..."
-  #fslmerge -t $destdir/mean_merged $list
-  #fslmaths $destdir/mean_merged -Tmean $destdir/mean_grp
-  #bet2 $destdir/mean_grp $destdir/brain_grp -f 0.3 ; fslmaths $destdir/brain_grp -bin $destdir/brain_mask
   fslmerge -t $destdir/mask_merged $list
   fslmaths $destdir/mask_merged -Tmin $destdir/brain_mask # maybe too conservative
   #fslmaths $destdir/mask_merged -Tmean -thr 0.95 -bin $destdir/brain_mask # more liberal 
