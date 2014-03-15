@@ -2401,14 +2401,14 @@ waitIfBusy
 if [ $AUTOPTX_STG1 -eq 1 ] ; then
   echo "----- BEGIN AUTOPTX_STG1 -----"
   
-  aptx_dirs=""
-  if [ $AUTOPTX_USE_NATIVE -eq 1 ] ; then aptx_dirs=$aptx_dirs" "$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_noec ; fi
-  if [ $AUTOPTX_USE_UNWARPED_BVECROT -eq 1 ] ; then aptx_dirs=$aptx_dirs" "$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_uw_bvecrot ; fi
-  if [ $AUTOPTX_USE_TOPUP_NOEC_BVECROT -eq 1 ] ; then aptx_dirs=$aptx_dirs" "$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_topup_noec_bvecrot ; fi
-  if [ $AUTOPTX_USE_TOPUP_EC_BVECROT -eq 1 ] ; then aptx_dirs=$aptx_dirs" "$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_topup_ec_bvecrot ; fi
-  if [ $AUTOPTX_USE_TOPUP_EDDY_NOROT -eq 1 ] ; then aptx_dirs=$aptx_dirs" "$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_topup_eddy_norot ; fi
+  aptx_dir=""
+  if [ $AUTOPTX_USE_NATIVE -eq 1 ] ; then aptx_dir=$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_noec ; fi
+  if [ $AUTOPTX_USE_UNWARPED_BVECROT -eq 1 ] ; then aptx_dir=$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_uw_bvecrot ; fi
+  if [ $AUTOPTX_USE_TOPUP_NOEC_BVECROT -eq 1 ] ; then aptx_dir=$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_topup_noec_bvecrot ; fi
+  if [ $AUTOPTX_USE_TOPUP_EC_BVECROT -eq 1 ] ; then aptx_dir=$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_topup_ec_bvecrot ; fi
+  if [ $AUTOPTX_USE_TOPUP_EDDY_NOROT -eq 1 ] ; then aptx_dir=$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_topup_eddy_norot ; fi
   
-  for aptx_dir in $aptx_dirs ; do
+  #for aptx_dir in $aptx_dirs ; do
     datas=""
     # copy fw to destination folder
     echo "AUTOPTX : subj $subj , sess $sess : copying autoptx framework to '${aptx_dir}'"
@@ -2456,7 +2456,6 @@ if [ $AUTOPTX_STG1 -eq 1 ] ; then
           if [ ! -d $subjdir/$subj/$sess/fdt ] ; then echo "AUTOPTX : subj $subj , sess $sess : ERROR : you must run the FDT-stream first - breaking loop..." ; break ; fi
           
           echo "AUTOPTX : subj $subj , sess $sess : copying to unwarped DWIs (and corrected b-vectors)..."
-          
           cp $subjdir/$subj/$sess/fdt/bvals_concat.txt  $fldr/bvals
           cp $subjdir/$subj/$sess/fdt/bvecs_concat.rot  $fldr/bvecs
           cp $subjdir/$subj/$sess/fdt/uw_ec_diff_merged.nii.gz  $fldr/data.nii.gz
@@ -2502,7 +2501,7 @@ if [ $AUTOPTX_STG1 -eq 1 ] ; then
       done # end sess
     done # end subj
     echo "./autoPtx_1_preproc $datas" > $aptx_dir/autoPtx_1_preproc.cmd
-  done # end aptx_dir
+  #done # end aptx_dir
 
   ## check for broken links
   #err=0
