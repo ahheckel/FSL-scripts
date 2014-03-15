@@ -2421,7 +2421,7 @@ if [ $AUTOPTX_STG1 -eq 1 ] ; then
         fldr=$aptx_dir/$(subjsess) ; mkdir -p $fldr
         
         # clean folder
-        rm -rf $fldr/*
+        rm -f $fldr/*
       
         # display info
         echo "AUTOPTX : subj $subj , sess $sess : preparing AUTOPTX in $fldr..."
