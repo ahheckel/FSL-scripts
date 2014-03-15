@@ -4172,7 +4172,7 @@ if [ $DUALREG_STG2 -eq 1 ] ; then
               if [ ! -d $dr_outdir ] ; then echo "DUALREG : WARNING : output directory '$dr_outdir' not found - continuing loop..." ; continue ; fi
               if [ ! -f $dr_outdir/inputfiles ] ; then echo "DUALREG : ERROR : inputfiles textfile not found, you must run stage1 first - exiting..." ; exit 1 ; fi
               if [ $(_imtest $ICfile) -eq 0 ] ; then echo "DUALREG : ERROR : group-level IC volume '$ICfile' not found - exiting..." ; exit 1 ; fi
-              if [ $(_imtest $(remove_ext $ICfile)_mask) -eq 0 -a $DUALREG_USE_4DMASK -gt 0 ] ; then echo "DUALREG : WARNING : mask '${ICfile}_mask' not found - continuing loop..." ; continue ; fi
+              if [ $(_imtest $(remove_ext $ICfile)_masks) -eq 0 -a $DUALREG_USE_4DMASK -gt 0 ] ; then echo "DUALREG : WARNING : mask '${ICfile}_mask' not found - continuing loop..." ; continue ; fi
 
               echo "DUALREG : using output-directory '$dr_outdir'..."
               

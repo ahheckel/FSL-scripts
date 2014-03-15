@@ -287,9 +287,9 @@ while [ $j -lt $Nics ] ; do
   if [ x"$USE_4DMASK" = "x1" ] ; then
     if [ $(imtest ${ICA_MAPS}_masks) -eq 1 ] ; then
       echo "`basename $0` : extracting mask from ${ICA_MAPS}_masks at pos. $j ..."
-      fslroi ${ICA_MAPS}_masks $tmpdir/mask_${jj} j 1
+      fslroi ${ICA_MAPS}_masks $tmpdir/mask_${jj} $j 1
       fslmaths $tmpdir/mask_${jj} -mas $OUTPUT/mask $tmpdir/mask_${jj}
-      cp $tmpdir/mask_${jj} $OUTPUT/stats/$dname/
+      imcp $tmpdir/mask_${jj} $OUTPUT/stats/$dname/
       mask=$OUTPUT/stats/$dname/mask_${jj}
     else
       echo "`basename $0` : WARNING : 4D mask file '${ICA_MAPS}_masks' not found!"
