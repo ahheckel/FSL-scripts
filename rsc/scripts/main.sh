@@ -2409,9 +2409,10 @@ if [ $AUTOPTX_STG1 -eq 1 ] ; then
   if [ $AUTOPTX_USE_TOPUP_EDDY_NOROT -eq 1 ] ; then aptx_dirs=$aptx_dirs" "$aptxdir/${AUTOPTX_OUTDIR_PREFIX}_topup_eddy_norot ; fi
   
   for aptx_dir in $aptx_dirs ; do
-  
+    datas=""
     # copy fw to destination folder
-    echo "AUTOPTX : subj $subj , sess $sess : copying autoptx framework to '${aptx_dir}'" 
+    echo "AUTOPTX : subj $subj , sess $sess : copying autoptx framework to '${aptx_dir}'"
+    mkdir -p $aptx_dir
     cp -r $scriptdir/bin/autoPtx/* $aptx_dir/
             
     for subj in `cat subjects`; do 
@@ -2492,11 +2493,15 @@ if [ $AUTOPTX_STG1 -eq 1 ] ; then
           cp $subjdir/$subj/$sess/topup/uw_nodif_brain_mask.nii.gz $fldr/nodif_brain_mask.nii.gz
         fi
         
+        # collect dwi volumes
+        datas=$datas" "$fldr/data.nii.gz
+        
         # check consistency
         checkConsistency $fldr/data.nii.gz $fldr/bvals $fldr/bvecs
 
       done # end sess
     done # end subj
+    echo "./autoPtx_1_preproc $datas" > $aptx_dir/autoPtx_1_preproc.cmd
   done # end aptx_dir
 
   ## check for broken links
