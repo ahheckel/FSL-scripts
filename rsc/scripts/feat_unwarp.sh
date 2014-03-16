@@ -17,7 +17,7 @@ trap 'echo "$0 : An ERROR has occured."' ERR
     
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <input func> <fmap> <fmap-magn brain> <uw-dir x/y/z/x-/y-/z-> <TE(s)> <ESP(ms)> <siglossthres(%)> <outdir>"
+    echo "Usage: `basename $0` <input func> <fmap> <fmap-magn brain> <uw-dir x/y/z/x-/y-/z-> <TE(ms)> <ESP(ms)> <siglossthres(%)> <outdir>"
     echo ""
     exit 1
 }

@@ -9,4 +9,4 @@
 
 flatpatch=1
 subject=mni152.fnirt
-source $(dirname $0)/FREESURFER_tksurfer_fsaverage
+source $(dirname $0)/FREESURFER_tksurfer
