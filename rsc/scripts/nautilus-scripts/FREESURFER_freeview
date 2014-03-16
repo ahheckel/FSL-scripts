@@ -145,6 +145,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
 done # end for loop
 
 # add fsaverage surface and annotation if applicable
+if [ x"$fsaverage" = "x" ] ; then fsaverage=0 ; fi
 if [ $fsaverage -eq 1 ] ; then
   # check annotation
   if [ ! -f $SUBJECTS_DIR/fsaverage/label/lh.aparc.a2009s.annot ] ; then
