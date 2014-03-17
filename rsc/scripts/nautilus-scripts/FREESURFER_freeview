@@ -26,6 +26,8 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     
   niigz=$(echo $i | grep "\.nii.gz$" | wc -l)
   nii=$(echo $i | grep "\.nii$" | wc -l)
+  hdr=$(echo $i | grep "\.hdr$" | wc -l)
+  img=$(echo $i | grep "\.img$" | wc -l)
   mgh=$(echo $i | grep "\.mgh$" | wc -l)
   mgz=$(echo $i | grep "\.mgz$" | wc -l)
   
@@ -88,7 +90,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     elif [ $rh -eq 1 ] ; then # ...of the right hemi.
       overlist_rh=$overlist_rh":overlay=$i"
     fi
-  elif [ $niigz -eq 1 -o $nii -eq 1 -o $mgh -eq 1 -o $mgz -eq 1 ] ; then # file is a volume...    
+  elif [ $niigz -eq 1 -o $nii -eq 1 -o $mgh -eq 1 -o $mgz -eq 1 -o $img -eq 1 -o $hdr -eq 1 ] ; then # file is a volume...    
     vollist_rh=$vollist_rh" -v $i"
   elif [ $annot -eq 1 ] ; then # file is an annotation...
     if [ $lh -eq 1 ] ; then # ...of the left hemi.

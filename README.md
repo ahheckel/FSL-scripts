@@ -14,6 +14,7 @@ Script-framework using FSL, Freesurfer and AFNI functionality for automatization
     - FSL's Tract-Based Spatial Statistics (TBSS)  
     - FSL's Tract-Based Spatial Statistics (crossing fibres) (TBSSX)  
     - FSL's Voxel-Based Morphometry (VBM)  
+    - FSL's AutoPtx  
     - Freesurfer cross-sectional / longitudinal streams  
     - Freesurfer's TRActs Constrained by UnderLying Anatomy (TRACULA)  
     - Freesurfer's cortical thickness analysis  
