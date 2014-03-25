@@ -5,7 +5,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 02/18/2012
+# 03/25/2013
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
@@ -27,6 +27,7 @@ TR="$4"
 subj="$5"  # optional
 sess="$6"  # optional
 
+# checks
 if [ ! -f $data ] ; then echo "`basename $0`: subj $subj , sess $sess : ERROR: '$data' not found - exiting." exit 1 ; fi
 if [ "$hpf" = "Inf" -o "$hpf" = "inf" ] ; then
   echo "`basename $0`: subj $subj , sess $sess : no filtering -> just copying '$data' to '$out' (hpf=${hpf})."
@@ -34,40 +35,31 @@ if [ "$hpf" = "Inf" -o "$hpf" = "inf" ] ; then
   exit
 fi
 
-echo "`basename $0`: subj $subj , sess $sess : high-pass filtering '$data'."
+# create working dir.
+tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
+
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 # count number of columns
 n_cols=$(awk '{print NF}' $data | sort -nu | head -n 1)
 
 # count number of data points
-n=$(cat $data | wc -l)
+n_rows=$(cat $data | wc -l)
 
-echo "`basename $0`: subj $subj , sess $sess : $n data points in $n_cols columns."
+# info
+echo "`basename $0`: subj $subj , sess $sess : high-pass filtering '$data' ($n_rows rows , $n_cols columns) --> '$out'"
 
-fil=""
-for i in `seq 1 $n_cols` ; do
-  # extract column
-  cat $data | awk -v c=${i} '{print $c}' > ${out}_$(zeropad $i 4)
-  # create pseudoimage
-  fslascii2img ${out}_$(zeropad $i 4) 1 1 1 $n 1 1 1 $TR ${out}_$(zeropad $i 4).nii.gz
-  # hpf pseudoimage
-  $(dirname $0)/feat_hpf.sh ${out}_$(zeropad $i 4).nii.gz ${out}_$(zeropad $i 4)_hpf.nii.gz $hpf $TR $subj $sess
-  # convert to ascii
-  fsl2ascii ${out}_$(zeropad $i 4)_hpf.nii.gz ${out}_$(zeropad $i 4)_hpf
-  # concatenate ascii
-  cat ${out}_$(zeropad $i 4)_hpf????? | sed '/^\s*$/d' > ${out}_$(zeropad $i 4)_hpf
-  # collect hpf'ed ascii files
-  fil=$fil" "${out}_$(zeropad $i 4)_hpf
-  # cleanup
-  rm ${out}_$(zeropad $i 4)_hpf????? ${out}_$(zeropad $i 4)
-  rm ${out}_$(zeropad $i 4).nii.gz ${out}_$(zeropad $i 4)_hpf.nii.gz 
-done
+# transpose input to please fslascii2img
+$(dirname $0)/transptxt.sh $data $tmpdir/data_transp
+# create pseudoimage
+fslascii2img $tmpdir/data_transp $n_cols 1 1 $n_rows 1 1 1 $TR $tmpdir/data.nii.gz
+# hpf pseudoimage
+$(dirname $0)/feat_hpf.sh $tmpdir/data.nii.gz $tmpdir/data_hpf.nii.gz $hpf $TR $subj $sess
+# convert to ascii
+fsl2ascii $tmpdir/data_hpf.nii.gz $tmpdir/data_hpf
+# concatenate ascii
+cat $tmpdir/data_hpf????? | sed '/^\s*$/d' > $out
 
-# create final output
-#echo $fil
-paste -d " " $fil > ${out}
-
-# cleanup
-rm $fil 
-
+# done
 echo "`basename $0`: subj $subj , sess $sess : done."
