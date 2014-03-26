@@ -196,17 +196,31 @@ for file in $inputs ; do
   if [ $(_imtest $file) -eq 1 ] ; then echo "`basename $0`: $i adding '$file' to input filelist..." ; echo $file >> ${input2melodic}$(zeropad 0 4) ; i=$[$i+1] ; else echo "`basename $0`: ERROR: '$file' does not exist !" ; err=1 ; fi
 done
 if [ $err -eq 1 ] ; then echo "`basename $0`: An ERROR has occured. Exiting..." ; exit 1 ; fi
-# execute
+# execute melodic
 exec_melodic ${input2melodic}$(zeropad 0 4) $outdir ${subdir} "$optsSUBJ" 1
 
 # create remaining permutations
-for i in `seq 1 $[$Nsubjorders - 1]` ; do
-  subdir=groupmelodic$(zeropad $i 4).ica
+orders="${input2melodic}$(zeropad 0 4)"
+i=1 ; while [ $i -lt $Nsubjorders ] ; do
+  # permute
+  sort -R ${input2melodic}$(zeropad 0 4) > ${input2melodic}$(zeropad $i 4)
+  # check if unique
+  err=0 ; for k in $orders ; do
+    if [ $(diff ${input2melodic}$(zeropad $i 4) $k | wc -l) -eq 0 ] ; then
+      rm ${input2melodic}$(zeropad $i 4)
+      err=1
+      break
+    fi
+  done ; if [ $err -eq 1 ] ; then continue ; fi
+  orders=$orders" "${input2melodic}$(zeropad $i 4)
   # display info
-  echo "`basename $0`: outdir: $outdir/${subdir}"
+  subdir=groupmelodic$(zeropad $i 4).ica
+  echo "`basename $0`: outdir:    $outdir/${subdir}"
   echo "`basename $0`: inputfile: ${input2melodic}$(zeropad $i 4)"
-  sort -R  ${input2melodic}$(zeropad 0 4) > ${input2melodic}$(zeropad $i 4)
+  # execute melodic
   exec_melodic ${input2melodic}$(zeropad $i 4) $outdir $subdir "$optsSUBJ" 1
+  # increment
+  i=$[$i+1]
 done
 
 # wait till finished

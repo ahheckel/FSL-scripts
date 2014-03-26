@@ -4,7 +4,7 @@
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 11/08/2013
+# 25/03/2014
 
 trap 'echo "$0 : An ERROR has occured."' ERR
 
@@ -20,7 +20,12 @@ Usage() {
 
 [ "$1" = "" ] && Usage
 
-zipfile="$1"
+if [ $(echo "$1" | grep \( | wc -l) -gt 0 ] ; then
+  zipfile=$(dirname "$1")/$(echo $(basename "$1") | sed "s|(.)||g")
+  mv "$1" $zipfile
+else
+  zipfile="$1"
+fi
 destdir="$2"
 
 wd=`pwd`
@@ -33,15 +38,16 @@ if [ ! -f "$zipfile" ] ; then
 fi
 
 cd $(dirname $zipfile)
-
-unzip $(basename $zipfile)
-
+  folder=${zipfile%.zip}
+  if [ -d "$folder" ] ; then
+    read -p "Press key to delete directory '`pwd`/$folder'..."
+    rm -r "$folder"
+  fi
+  unzip $(basename $zipfile)
 cd "$wd"
 
-folder=${zipfile%.zip}
-
 if [ ! -d "$folder" ] ; then 
-  echo "$(basename $0): ERROR: Folder '$folder' does not exist!"
+  echo "$(basename $0): ERROR: Folder '$folder' does not exist! Exiting..." ; exit 1
 else
   echo "Execute:"
   echo "rsync -avzb --delete --backup-dir=../backup/$(basename $destdir) $folder/ $destdir/"
