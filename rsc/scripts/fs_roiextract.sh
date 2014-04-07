@@ -14,7 +14,7 @@ set -e
 Usage() {
     echo ""
     echo "Usage:    `basename $0` <SUBJECTS_DIR> <subject> <hemi> <input> <output> <label1> <label2> ..."
-    echo "Example:  `basename $0` $SUBJECT_DIR fsaverage lh lh.concat.mgh roi-table.txt lh.S_calcarine.label lh.G_precentral"
+    echo "Example:  `basename $0` \$SUBJECT_DIR fsaverage lh lh.concat.mgh roi-table.txt lh.S_calcarine.label lh.G_precentral"
     echo ""
     exit 1
 }

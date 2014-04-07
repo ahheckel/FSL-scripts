@@ -3,5 +3,5 @@
 source $(dirname $0)/env_vars
 
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
-  xterm -geometry 240x80  -bg black -fg green -sb -sl 65536 -e "echo start... ; $scriptdir/greperror.sh $i ; echo ; read -p \"Press key...\"" 
+  xterm -geometry 240x80  -bg black -fg green -sb -sl 65536 -e /bin/bash -c "echo start... ; $scriptdir/greperror.sh $i ; echo ; read -p Press\ key..." 
 done

@@ -154,7 +154,7 @@ for counter in `seq 1 $n_lines2` ; do
   
   # shift
   _shift=$(echo $shiftvector | row2col | sed -n ${counter}p)
-  
+   
   # display info
   echo "---------------------------"
   echo "`basename $0` : fsl V.:     $fslversion"
@@ -176,17 +176,20 @@ for counter in `seq 1 $n_lines2` ; do
 
   rm -f $tmpdir/meants_??? ; outs_tmp=""
   for n in `seq 1 $n0max` ; do # for each "color"
+    meantsfiles=""
     for i in `seq 0 $[$Z-1]` ; do # for each slice
       # segment
       cmd="$(dirname $0)/seg_mask.sh $tmpdir/$(basename $mask)_slice_$(zeropad $i 4) $n $tmpdir/$(basename $mask)_slice_$(zeropad $i 4)_$(zeropad $n 3)"
       echo $cmd ; $cmd 1 > /dev/null
       
       # extract
-      cmd="fslmeants -i $tmpdir/$(basename $input)_slice_$(zeropad $i 4) -m $tmpdir/$(basename $mask)_slice_$(zeropad $i 4)_$(zeropad $n 3)"
-      echo $cmd ; $cmd >> $tmpdir/meants_$(zeropad $n 3)
+      cmd="fslmeants -i $tmpdir/$(basename $input)_slice_$(zeropad $i 4) -m $tmpdir/$(basename $mask)_slice_$(zeropad $i 4)_$(zeropad $n 3) -o $tmpdir/meants_$(zeropad $i 4)_$(zeropad $n 3)"
+      echo $cmd ; $cmd
+      meantsfiles=$meantsfiles" "$tmpdir/meants_$(zeropad $i 4)_$(zeropad $n 3)
     done
-    # remove blank lines
-    sed '/^$/d' $tmpdir/meants_$(zeropad $n 3) > $tmpdir/out_$(zeropad $n 4)
+    
+    # vert-cat meants-files
+    cat $meantsfiles > $tmpdir/out_$(zeropad $n 4)
     
     # shift slices if applicable
     if [ x"$shiftvector" != "x0" ] ; then

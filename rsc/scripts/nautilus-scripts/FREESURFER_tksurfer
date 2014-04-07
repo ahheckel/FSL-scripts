@@ -151,7 +151,7 @@ fi
 
 # execute in subshell
 if [ $sigmap -eq 1 ] ; then
-  xterm -e "\
+  xterm -e /bin/bash -c "\
   echo \"Choose (or enter) a significance threshold:\" ;\
   echo -e \" a. p=0.050\n b. p=0.025\n c. p=0.010\n d. p=0.005\n\" ;\
   read -p \> s ;\
@@ -172,5 +172,5 @@ if [ $sigmap -eq 1 ] ; then
   echo \"------------------------------\" ;\
   \$cmd ; rm /tmp/$$tmp.tcl"
 else
-  xterm -e "$cmd ; rm /tmp/$$tmp.tcl"
+  xterm -e /bin/bash -c "$cmd ; rm /tmp/$$tmp.tcl"
 fi

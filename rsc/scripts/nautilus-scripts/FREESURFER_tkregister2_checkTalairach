@@ -26,7 +26,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   #zenity --info --text="$opts"
 
   # execute
-  xterm -e "cat $i/mri/transforms/talairach_avi_QA.log | grep TalAviQA ; echo -------------------- ; tkregister2 ${opts}"
+  xterm -e /bin/bash -c "cat $i/mri/transforms/talairach_avi_QA.log | grep TalAviQA ; echo -------------------- ; tkregister2 ${opts}"
 done
 
 

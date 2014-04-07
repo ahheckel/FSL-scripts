@@ -30,7 +30,7 @@ function row2col()
 
 Usage() {
     echo ""
-    echo "Usage:  `basename $0` <input3D> <mask3D> <text-output> [option]"
+    echo "Usage:  `basename $0` <input3D> <mask3D> <text-output> [-bin]"
     echo "Example:  `basename $0` \"FA-1 FA-2 FA-3\" \"FA-mask-1 FA-mask-2 FA-mask-3\" FA_table.txt -bin"
     echo "          `basename $0` FA-list.txt FA-mask-list.txt FA_table.txt"
     echo ""
@@ -63,7 +63,7 @@ if [ $(echo "$_mask" | wc -w) -eq 1 ] ; then
     else
       echo "`basename $0`: ERROR : '$_mask' is empty - exiting." ; exit 1
     fi      
-    masks="$(cat $_mask)" # asuming ascii list with volumes
+    masks="$(cat $_mask | awk '{print $1}')" # asuming ascii list with volumes
   else
     echo "`basename $0`: ERROR : cannot read inputfile '$_mask' - exiting." ; exit 1 
   fi
@@ -152,12 +152,9 @@ for counter in `seq 1 $n_lines2` ; do
 done
 
 # horz-cat
-#echo "paste -d \" \" $outs_tmp > $out"
 cat $outs_tmp > $tmpdir/out
-#paste -d " " $outs_tmp > ${out}
 echo $header | row2col > $tmpdir/header
 paste -d " " $tmpdir/header $tmpdir/out > ${out}
-#sed -i "1i $header" ${out}
 
 # done.
 echo "`basename $0` : done."
