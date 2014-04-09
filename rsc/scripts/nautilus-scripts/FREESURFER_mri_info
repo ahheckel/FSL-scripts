@@ -1,5 +1,5 @@
 #!/bin/bash
-# freeview wrapper for Nautilus.
+# mri_info wrapper for Nautilus.
 
 # INSTALL:
 # mkdir -p ~/.gnome2/nautilus-scripts

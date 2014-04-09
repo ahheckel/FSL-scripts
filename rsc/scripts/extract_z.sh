@@ -47,8 +47,8 @@ function getMax() # finds maximum in column
 
 Usage() {
     echo ""
-    echo "Usage:  `basename $0` <input3D> <mask3D> <text-output>"
-    echo "Example:  `basename $0` \"FA-1 FA-2 FA-3\" \"FA-mask-1 FA-mask-2 FA-mask-3\" FA_vals.txt"
+    echo "Usage:  `basename $0` <input3D> <mask3D> <text-output> [-bin]"
+    echo "Example:  `basename $0` \"FA-1 FA-2 FA-3\" \"FA-mask-1 FA-mask-2 FA-mask-3\" FA_vals.txt -bin"
     echo "          `basename $0` FA-list.txt FA-mask-list.txt FA_vals.txt"
     echo ""
     exit 1
@@ -60,10 +60,11 @@ Usage() {
 _input="$1"
 _mask="$2"
 out="$3"
+opts="$4"
 
 # extract shift-vector if present
 shiftvector=$(awk '{print $2}' "$_mask")
-if [ x"$shiftvector" = "x" ] ; then shiftvector=0 ; echo "`basename $0`: NOTE: No shift column detected in '$_mask'." ; fi
+if [ x"$shiftvector" = "x" ] ; then shiftvector=0 ; echo "`basename $0`: NOTE: No z-shift column detected in '$_mask'." ; fi
 addhigh=$(echo $shiftvector | row2col | getMin | grep - || true) ; if [ x"$addhigh" = "x" ] ; then addhigh=0 ; fi ; addhigh=${addhigh#-}
 addlow=$(echo $shiftvector | row2col | getMax | grep  -v - || true) ; if [ x"$addlow" = "x" ] ; then addlow=0 ; fi ; addlow=${addlow#-}
 
@@ -140,6 +141,11 @@ n_mask=0 ; mask_tmp="" ; header=""
 for counter in `seq 1 $n_lines2` ; do
   mask="$(cat $tmpdir/masks.txt | sed -n ${counter}p)"
   input="$(cat $tmpdir/inputs.txt | sed -n ${counter}p)"
+  
+  if [ x"$opts" = "x-bin" ] ; then
+    fslmaths $mask -bin $tmpdir/$(basename $mask)
+    mask=$tmpdir/$(basename $mask)
+  fi
   
   # rem extension
   mask=$(remove_ext $mask)

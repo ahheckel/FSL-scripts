@@ -52,7 +52,7 @@ if [ "$out_ext" = "xfm" ] ; then regout="--xfmout $outmat" ; fi
 if [ "$out_ext" = "mat" ] ; then regout="--fslregout $outmat" ; fi
 if [ "$out_ext" = "lta" ] ; then regout="--ltaout $outmat" ; fi
 
-if [ "$in_ext" != "dat" -a  "$out_ext" != "dat" ] ; then delme="--reg $tmpdir/deleteme.reg.dat" ; else delme="" ; fi
+if [ "$in_ext" != "dat" -a "$out_ext" != "dat" ] ; then delme="--reg $tmpdir/deleteme.reg.dat" ; else delme="" ; fi
 
 cmd="tkregister2 --noedit --mov $mov --targ $targ $regin $regout $delme"
 echo $cmd ; $cmd

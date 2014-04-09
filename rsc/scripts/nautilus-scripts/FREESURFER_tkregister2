@@ -22,9 +22,9 @@ cmd2="tkregister2 --mov $two --targ $one --reg $dummy --regheader --fslregout $(
 xterm -e /bin/bash -c "\
 echo Choose\ moveable: ;\
 echo ;\
-echo -e \ a.\ $(basename $one)\n ;\
+echo -e \ a.\ $(basename $one) ;\
 echo ;\
-echo -e \ b.\ $(basename $two)\n ;\
+echo -e \ b.\ $(basename $two) ;\
 echo ;\
 read -p \> s ;\
 echo \"------------------------------\" ;\
