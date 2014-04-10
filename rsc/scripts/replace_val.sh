@@ -1,5 +1,5 @@
 #!/bin/bash
-# Replaces value in an FSL mask.
+# Replaces whole-numbered value (incl. zero) in an FSL mask.
 
 # Adapted by Andreas Heckel
 # University of Heidelberg
