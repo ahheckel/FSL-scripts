@@ -13,7 +13,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <volume> <exclude-mask|none> <out-mask> [<lower percentile(def:65)>] [<higher percentile(def:75)>]"
+    echo "Usage: `basename $0` <volume> <exclude-mask|none> <out-mask> [<lower thresh>][p] [<higher thresh>][p]"
     echo ""
     exit 1
 }
@@ -23,8 +23,10 @@ Usage() {
 t2="$(remove_ext $1)"
 mask="$(remove_ext $2)"
 out="$3"
-if [ x"$4" = "x" ] ; then lowperc=65 ; else lowperc=$4 ; fi
-if [ x"$5" = "x" ] ; then highperc=75 ; else highperc=$5 ; fi
+if [ x"$4" = "x" ] ; then lowthres="65p" ; else lowthres="$4" ; fi
+if [ x"$5" = "x" ] ; then highthres="75p" ; else highthres="$5" ; fi
+if [ $(echo $lowthres | grep p | wc -l) -eq 1 ] ; then perc_l=1 ; else perc_l=0 ; fi
+if [ $(echo $highthres | grep p | wc -l) -eq 1 ] ; then perc_h=1 ; else perc_h=0 ; fi
 
 # create working dir.
 tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
@@ -68,12 +70,24 @@ for i in `seq 0 $[$Z-1]` ; do
   _m=$tmpdir/t2_bet_nonerve_slice_$(zeropad $i 4)
   _t2=$tmpdir/t2_slice_$(zeropad $i 4)
 
+  # percentile threshold ?
+  if [ $perc_h -eq 1 ] ; then
+    thres_h=$(fslstats $_t2 -k $_m -p $highthres)
+  else
+    thres_h=$highthres
+  fi
+  if [ $perc_l -eq 1 ] ; then
+    thres_l=$(fslstats $_t2 -k $_m -p $lowthres)
+  else
+    thres_l=$lowthres
+  fi
+  
   # remove vasculature from bet-mask
-  cmd="fslmaths $_t2 -mas $_m -thr $(fslstats $_t2 -k $_m -p $highperc) -bin ${_m}_1"
+  cmd="fslmaths $_t2 -mas $_m -thr $thres_h -bin ${_m}_1"
   echo "    $cmd" ; $cmd
 
   # additionally remove fat/bone
-  cmd="fslmaths $_t2 -mas $_m -thr $(fslstats $_t2 -k $_m -p $lowperc) -bin ${_m}_0"
+  cmd="fslmaths $_t2 -mas $_m -thr $thres_l -bin ${_m}_0"
   echo "    $cmd" ; $cmd
   
   cmd="fslmaths ${_m}_0 -sub ${_m}_1 -thr 0 -bin ${_m}_done"
