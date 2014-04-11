@@ -25,8 +25,8 @@ mask="$(remove_ext $2)"
 out="$3"
 if [ x"$4" = "x" ] ; then lowthres="65p" ; else lowthres="$4" ; fi
 if [ x"$5" = "x" ] ; then highthres="75p" ; else highthres="$5" ; fi
-if [ $(echo $lowthres | grep p | wc -l) -eq 1 ] ; then perc_l=1 ; else perc_l=0 ; fi
-if [ $(echo $highthres | grep p | wc -l) -eq 1 ] ; then perc_h=1 ; else perc_h=0 ; fi
+if [ $(echo $lowthres | grep p | wc -l) -eq 1 ] ; then perc_l=1 ; lowthres=$(echo $lowthres | cut -d p -f 1) ; else perc_l=0 ; fi
+if [ $(echo $highthres | grep p | wc -l) -eq 1 ] ; then perc_h=1 ; highthres=$(echo $highthres | cut -d p -f 1) ; else perc_h=0 ; fi
 
 # create working dir.
 tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
