@@ -1,5 +1,5 @@
 #!/bin/bash
-# Creates union of provided index numbers.
+# Creates binarized union of provided pen-values.
 
 # Adapted by Andreas Heckel
 # University of Heidelberg
