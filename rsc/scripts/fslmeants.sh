@@ -14,7 +14,7 @@ set -e
 Usage() {
     echo ""
     echo "Usage:  `basename $0` <input> <mask> <x,y,z,t min> <x,y,z,t size> <fslmeants_opts>"
-    echo "Example:  `basename $0`in mask 0,0,3,0 1,1,1,1 --showall -o out"
+    echo "Example:  `basename $0` input mask 0,0,3,0 1,1,1,1 --showall -o output"
     echo ""
     exit 1
 }
