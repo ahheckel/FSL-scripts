@@ -16,7 +16,7 @@ Usage() {
     echo ""
     echo "Usage:   `basename $0` [option] <dim> <input4D> <size|vector> <output4D>"
     echo ""
-    echo "Options: -m    merge extraction to 4D"
+    echo "Options: -m    merge extraction"
     echo ""
     echo "Example: `basename $0` t in 128 out"
     echo "         `basename $0` t in [128] out"

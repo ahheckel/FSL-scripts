@@ -14,7 +14,8 @@ set -e
 Usage() {
     echo ""
     echo "Usage:  `basename $0` <input> <mask> <x,y,z,t min> <x,y,z,t size> <fslmeants_opts>"
-    echo "Example:  `basename $0` input mask 0,0,3,0 1,1,1,1 --showall -o output"
+    echo "Example:  `basename $0` input mask 0,0,3,0 -1,-1,1,-1 --showall -o output"
+    echo "          `basename $0` input mask 0,0,3,5 -1,-1,9,1 --label -o output"
     echo ""
     exit 1
 }
@@ -50,10 +51,16 @@ trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 cmd="fslroi $input $tmpdir/roi_in $x $xs $y $ys $z $zs $t $ts"
 echo "    $cmd" ; $cmd
 cmd="fslroi $mask  $tmpdir/roi_mask $x $xs $y $ys $z $zs $t $ts"
-
-# fslmeants
 echo "    $cmd" ; $cmd
-cmd="fslmeants -i $tmpdir/roi_in -m $tmpdir/roi_mask $opts"
+
+# run fslmeants
+# If use --label switch, ommit the -m switch, otw. will give incorrect results (bug in fslmeants ?)
+if [ $(echo $opts | grep "\-\-label" | wc -l) -gt 0 ] ; then
+  opts=$(echo $opts | sed "s|--label|--label=$tmpdir/roi_mask|g")
+  cmd="fslmeants -i $tmpdir/roi_in $opts"
+else
+  cmd="fslmeants -i $tmpdir/roi_in -m $tmpdir/roi_mask $opts"
+fi
 echo "    $cmd" ; $cmd
 
 # done
