@@ -36,7 +36,7 @@ trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 echo "`basename $0`:"
 
-# dilate nerve mask
+# dilate exclusion mask
 if [ "$mask" != "none" ] ; then
   cmd="fslmaths $mask -bin -kernel 2D -dilF $tmpdir/mask_bin_dilF"
   echo "    $cmd" ; $cmd
@@ -50,7 +50,7 @@ echo "    $cmd" ; $cmd
 cmd="fslmaths $tmpdir/t2_bet_mask -kernel 2D -ero -ero $tmpdir/t2_bet_mask"
 echo "    $cmd" ; $cmd
 
-# remove nerve
+# remove exclusion
 if [ "$mask" != "none" ] ; then
   cmd="fslmaths $tmpdir/t2_bet_mask -sub $tmpdir/mask_bin_dilF -thr 0 -bin $tmpdir/t2_bet_nonerve"
   echo "    $cmd" ; $cmd

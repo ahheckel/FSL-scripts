@@ -54,7 +54,7 @@ cmd="fslroi $mask  $tmpdir/roi_mask $x $xs $y $ys $z $zs $t $ts"
 echo "    $cmd" ; $cmd
 
 # run fslmeants
-# If use --label switch, ommit the -m switch, otw. will give incorrect results (bug in fslmeants ?)
+# If use --label switch, ommit the -m switch, otw. will give incorrect results (bug in fslmeants in FSL v.5.0.5 ?)
 if [ $(echo $opts | grep "\-\-label" | wc -l) -gt 0 ] ; then
   opts=$(echo $opts | sed "s|--label|--label=$tmpdir/roi_mask|g")
   cmd="fslmeants -i $tmpdir/roi_in $opts"
