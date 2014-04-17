@@ -20,6 +20,7 @@ Usage() {
 
 [ "$3" = "" ] && Usage
 
+# parse inputs
 t2="$(remove_ext $1)"
 mask="$(remove_ext $2)"
 out="$3"
@@ -82,19 +83,20 @@ for i in `seq 0 $[$Z-1]` ; do
     thres_l=$lowthres
   fi
   
-  # remove vasculature from bet-mask
+  # apply upper threshold
   cmd="fslmaths $_t2 -mas $_m -thr $thres_h -bin ${_m}_1"
   echo "    $cmd" ; $cmd
 
-  # additionally remove fat/bone
+  # apply lower threshold
   cmd="fslmaths $_t2 -mas $_m -thr $thres_l -bin ${_m}_0"
-  echo "    $cmd" ; $cmd
-  
+  echo "    $cmd" ; $cmd  
   cmd="fslmaths ${_m}_0 -sub ${_m}_1 -thr 0 -bin ${_m}_done"
   echo "    $cmd" ; $cmd
   
   _ms=$_ms" "${_m}_done
 done
+
+# merge thresholded slices
 fslmerge -z $tmpdir/t2_bet_done $_ms
 
 # copy to output

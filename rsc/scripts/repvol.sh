@@ -1,5 +1,5 @@
 #!/bin/bash
-# Duplicates input volume n times.
+# Duplicates input volume n times along given dimension.
 
 # Written by Andreas Heckel
 # University of Heidelberg
@@ -13,7 +13,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: $(basename $0) <input4D> <n|volume> <output4D>"
+    echo "Usage: $(basename $0) <dim:-x|-y|-z|-t> <input4D> <n|volume> <output4D>"
     echo ""
     exit 1
 }
@@ -21,9 +21,10 @@ Usage() {
 [ "$3" = "" ] && Usage
 
 # define input arguments
-input=`${FSLDIR}/bin/remove_ext ${1}`
-n=`${FSLDIR}/bin/remove_ext ${2}`
-output=`${FSLDIR}/bin/remove_ext ${3}`
+dim="$1"
+input=`${FSLDIR}/bin/remove_ext ${2}`
+n=`${FSLDIR}/bin/remove_ext ${3}`
+output=`${FSLDIR}/bin/remove_ext ${4}`
 
 # create working dir.
 tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
@@ -41,7 +42,7 @@ if [ $(imtest $n) -eq 1 ] ; then
 fi
 
 # duplicate
-echo "`basename $0`: duplicating '$input' $n times."
+echo "`basename $0`: duplicating '$input' $n times along dimension '$(echo $dim| cut -c 2-)'."
 files=""
 for i in `seq 1 $n` ; do
   imcp $input $tmpdir/$i
@@ -49,7 +50,7 @@ for i in `seq 1 $n` ; do
 done
 
 # merge
-fslmerge -t $output $files
+fslmerge $dim $output $files
 
 # clean up
 imrm $files
