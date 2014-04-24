@@ -29,7 +29,7 @@ max_idx=0;
 for i=1:rows
   foundmax=find(X(i,:)==maxrow(i),1);
   if (maxrow(i)==0)
-      foundmax=-1;
+      foundmax=NaN;
   end
   max_idx(i)=foundmax;
 end

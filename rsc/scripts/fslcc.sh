@@ -33,6 +33,9 @@ wd=`pwd`
 # OCTAVE installed ?
 if [ x$(which octave) = "x" ] ; then echo "`basename $0` : ERROR : OCTAVE does not seem to be installed on your system ! Exiting..." ; exit 1 ; fi
 
+# check
+if [ ! -d "$outdir" ] ; then echo "`basename $0` : ERROR : Output directory '$outdir' does not exist ! Exiting..." ; exit 1 ; fi
+
 # create working dir.
 tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
 
