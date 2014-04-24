@@ -29,6 +29,8 @@ cp -iv fsl/fsl5/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit an
 cp -iv fsl/templates/MNI152*.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/templates/avg152T1*.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/templates/rsn*.nii.gz $FSLDIR/data/standard/
+cp -iv fsl/templates/rsn*.nii.gz $FSLDIR/data/standard/
+cp -iv fsl/templates/rsn_labels* $FSLDIR/data/standard/
 
 if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
   cp -iv fsl/fsl4/tbss_x/tbss_x $FSLDIR/bin/tbss_x

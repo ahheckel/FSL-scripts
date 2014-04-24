@@ -16,7 +16,7 @@ Usage() {
     echo "Example: `basename $0` -vbm ./stats \"*_corrp_*\" 0.95"
     echo "         `basename $0` -ica ./stats \"*_tfce_corrp_*\" -0.95"
     echo "         `basename $0` -na ./stats \"*_corrp_*\" -1"
-    echo "         NOTE: sort[0|1]    sort according to p-val (0) or cluster-size (1)."
+    echo "         NOTE: sort[0|1]    sort according to p-val (0=default) or cluster-size (1)."
     echo "               thres=0.95   reports only clusters with p > 0.95."
     echo "               thres=-1     reports only the most significant/largest cluster."
     echo "               thres=-0.95  reports only the most significant/largest cluster with p > 0.95."
