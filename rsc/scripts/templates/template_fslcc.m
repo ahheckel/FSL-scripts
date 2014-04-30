@@ -34,11 +34,22 @@ for i=1:rows
   max_idx(i)=foundmax;
 end
 
-fid2=fopen('loop.txt', 'wt');
-%disp(sprintf(['%s ' s2 '%s %s %s'], 'IC', 1:cols, 'r', 'r^2', 'ICmax'));
-fprintf(fid2, ['%s ' s2 '%s %s %s\n'], 'IC', 1:cols, 'r', 'r^2', 'ICmax');
-for i=1:rows    
-  %disp(sprintf(['%s ' s '%.2f %.2f %i' ], d{1}{i}, X(i,:), maxrow(i), maxrow(i)^2, max_idx(i)))
-  fprintf(fid2, ['%s ' s '%.2f %.2f %i\n' ], d{1}{i}, X(i,:), maxrow(i), maxrow(i)^2, max_idx(i));
+maxcol=max(X);
+maxcol_idx=0;
+for i=1:cols
+  foundmax=find(X(:,i)==maxcol(i),1);
+  if (maxcol(i)==0)
+      foundmax=NaN;
+  end
+  maxcol_idx(i)=foundmax;
 end
+
+fid2=fopen('loop.txt', 'wt');
+fprintf(fid2, ['%s %s ' s2 '%s %s %s\n'], '_', 'IC', 1:cols, 'r', 'r^2', 'ICmax');
+for i=1:rows    
+  fprintf(fid2, ['%i %s ' s '%.2f %.2f %i\n' ], i, d{1}{i}, X(i,:), maxrow(i), maxrow(i)^2, max_idx(i));
+end
+fprintf(fid2, ['%s %s ' s '\n' ],  '_', 'r', maxcol);
+fprintf(fid2, ['%s %s ' s '\n' ],  '_', 'r^2', maxcol.*maxcol);
+fprintf(fid2, ['%s %s ' s2 '\n' ], '_', 'ICmax', maxcol_idx);
 fclose(fid2);    

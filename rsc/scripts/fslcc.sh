@@ -55,14 +55,12 @@ echo "    $cmd" ; $cmd | tee $fslcc_out
 # substitute Matlab routine
 cp $(dirname $0)/templates/template_fslcc.m $tmpdir/fslcc.m
 cp $labels $tmpdir/
-imcp $input $tmpdir/
-imcp $template $tmpdir/
 out=fslcc__$(basename $input)__$(basename $template).txt
 sed -i "s|c=load('/tmp/fslcc_out'.*|c=load('$fslcc_out');|g" $tmpdir/fslcc.m
 sed -i "s|fid1=fopen('/tmp/rsn_labels'.*|fid1=fopen('$tmpdir/$(basename $labels)');|g" $tmpdir/fslcc.m
 sed -i "s|fid2=fopen('loop.txt'.*)|fid2=fopen('$out', 'wt');|g" $tmpdir/fslcc.m
-sed -i "s|cols=.*|cols=$(fslnvols $(basename $input));|g" $tmpdir/fslcc.m
-sed -i "s|rows=.*|rows=$(fslnvols $(basename $template));|g" $tmpdir/fslcc.m
+sed -i "s|cols=.*|cols=$(fslnvols $input);|g" $tmpdir/fslcc.m
+sed -i "s|rows=.*|rows=$(fslnvols $template);|g" $tmpdir/fslcc.m
 
 # execute Octave/Malab
 cd $tmpdir
