@@ -1,0 +1,16 @@
+anterior_Salience
+Auditory
+Basal_Ganglia
+dDMN
+high_Visual
+Language
+LECN
+post_Salience
+Precuneus
+prim_Visual
+RECN
+Sensorimotor
+vDMN
+Visuospatial
+CSF
+WM

@@ -1,0 +1,10 @@
+MedVisArea
+OccipitPole
+auditive
+sensomotoric
+DMN
+executive
+rightAttent
+leftAttent
+CSF
+WM
