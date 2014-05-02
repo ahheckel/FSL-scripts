@@ -105,4 +105,5 @@ if [ -f $FREESURFER_HOME/bin/fsl_sub_seychelles ] ; then # for TRACULA
     ln -vsi $FSLDIR/bin/fsl_sub $FREESURFER_HOME/bin/fsl_sub_seychelles
   fi
 fi
-
+mkdir -p $FREESURFER_HOME/qdec/stats_table # for qdec to work
+chmod 777 $FREESURFER_HOME/qdec/stats_table
