@@ -1,5 +1,5 @@
 #!/bin/bash
-# Reformats fslcc output to display a matrix.
+# Gives average Pearsons's r across component maps.
 
 # Written by Andreas Heckel
 # University of Heidelberg
@@ -17,7 +17,6 @@ Usage() {
     echo ""
     exit 1
 }
-
 
 [ "$2" = "" ] && Usage
 

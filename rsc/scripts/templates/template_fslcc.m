@@ -45,11 +45,24 @@ for i=1:cols
 end
 
 fid2=fopen('loop.txt', 'wt');
+
+%display ICs sorted by r
+[IC_r, IC_r_idx]=sort(maxcol);
+IC_r2=IC_r.*IC_r;
+maxcol_idx_s=maxcol_idx(IC_r_idx);
+fprintf(fid2, ['%s %s %s %s\n'], 'IC', 'T', 'r', 'r^2');
+for i=1:cols
+   fprintf(fid2, ['%i %i %.2f %.2f \n'], IC_r_idx(i) , maxcol_idx_s(i), IC_r(i), IC_r2(i));
+end
+fprintf(fid2, ['\n']);
+
+# display matrix
 fprintf(fid2, ['%s %s ' s2 '%s %s %s\n'], '_', 'IC', 1:cols, 'r', 'r^2', 'ICmax');
 for i=1:rows    
   fprintf(fid2, ['%i %s ' s '%.2f %.2f %i\n' ], i, d{1}{i}, X(i,:), maxrow(i), maxrow(i)^2, max_idx(i));
 end
-fprintf(fid2, ['%s %s ' s '\n' ],  '_', 'r', maxcol);
-fprintf(fid2, ['%s %s ' s '\n' ],  '_', 'r^2', maxcol.*maxcol);
-fprintf(fid2, ['%s %s ' s2 '\n' ], '_', 'ICmax', maxcol_idx);
-fclose(fid2);    
+fprintf(fid2, ['%s %s ' s '%s %s %s \n' ],  '_', 'r', maxcol, '_','_','_');
+fprintf(fid2, ['%s %s ' s '%s %s %s \n' ],  '_', 'r^2', maxcol.*maxcol, '_','_','_');
+fprintf(fid2, ['%s %s ' s2 '%s %s %s \n' ], '_', 'ICmax', maxcol_idx, '_','_','_');
+
+fclose(fid2);

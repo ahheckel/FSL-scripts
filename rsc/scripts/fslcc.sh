@@ -18,7 +18,6 @@ Usage() {
     exit 1
 }
 
-
 [ "$4" = "" ] && Usage
 
 # define inputs
