@@ -81,6 +81,7 @@ for i in $FILE_PATHS ; do
   label=$(echo $i | grep "\.label$" | wc -l)  
   patch=$(echo $i | grep "\.patch\." | wc -l)  
   annot=$(echo $i | grep "\.annot$" | wc -l)
+  sphere=$(echo $i | grep "\.sphere$" | wc -l)
   
   sig=$(echo $(basename $i) | grep "sig\.mgh$" | wc -l)
   if [ $sig -eq 0 ] ; then
@@ -156,6 +157,12 @@ for i in $FILE_PATHS ; do
     patchSel="-patch $i"
   fi
   
+  if [ $sphere -eq 1 ] ; then # file is a sphere...
+    surftype=sphere
+  else 
+    surftype=inflated
+  fi
+  
   lastfile=$i
 
   # recursively searching for sessions/subjects directory (assuming 'sessions' and 'subjects' as names)
@@ -200,11 +207,11 @@ for i in $FILE_PATHS ; do
   # define commando
   if [ $lh -eq 1 ] ; then
     if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/${subject}/surf/lh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
-    cmd="tksurfer ${subject} lh inflated $flatpatchBrain $patchSel -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $(basename $(dirname $lastfile))/$(basename $lastfile) -tcl ${tmpfile}.tcl"
+    cmd="tksurfer ${subject} lh $surftype $flatpatchBrain $patchSel -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $(basename $(dirname $lastfile))/$(basename $lastfile) -tcl ${tmpfile}.tcl"
     #zenity --info --text="$cmd"
   elif [ $rh -eq 1 ] ; then
     if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/${subject}/surf/rh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
-    cmd="tksurfer ${subject} rh inflated $flatpatchBrain $patchSel -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $(basename $(dirname $lastfile))/$(basename $lastfile) -tcl ${tmpfile}.tcl"
+    cmd="tksurfer ${subject} rh $surftype $flatpatchBrain $patchSel -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $(basename $(dirname $lastfile))/$(basename $lastfile) -tcl ${tmpfile}.tcl"
   fi
 
   # execute in subshell
@@ -237,7 +244,15 @@ for i in $FILE_PATHS ; do
     echo \"------------------------------\" ;\
     \$cmd" &
   else
-    xterm -e /bin/bash -c "$cmd" &
+    xterm -e /bin/bash -c "\
+    echo \"file         = $(basename $i)\" ;\
+    echo \"SUBJECTS_DIR = $SUBJECTS_DIR\" ;\
+    echo \"subject      = $subject\" ;\
+    echo \"session      = $session\" ;\
+    echo \"left-hemi    = $lh\" ;\
+    echo \"right-hemi   = $rh\" ;\
+    echo \"------------------------------\" ;\
+    $cmd" &
   fi
 done # end for loop
 
