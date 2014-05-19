@@ -210,8 +210,14 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     echo \$cmd ;\
     echo \"------------------------------\" ;\
     echo \"------------------------------\" ;\
-    \$cmd"
+    \$cmd" &
   else
-    xterm -e /bin/bash -c "$cmd"
+    xterm -e /bin/bash -c "$cmd" &
   fi
 done # end for loop
+
+# info
+xterm -e /bin/bash -c "read -p $(basename $0):\ When\ finished,\ press\ \<RETURN\>."
+
+# kill bg jobs
+kill $(jobs -p)
