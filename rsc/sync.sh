@@ -1,5 +1,7 @@
 #!/bin/bash
 
+# Synchronizes installation (default ~/FSL-scripts) with git-hub download.
+
 # Written by Andreas Heckel
 # University of Heidelberg
 # heckelandreas@googlemail.com
@@ -22,7 +24,7 @@ Usage() {
 
 if [ $(echo "$1" | grep \( | wc -l) -gt 0 ] ; then
   zipfile=$(dirname "$1")/$(echo $(basename "$1") | sed "s|(.)||g")
-  mv "$1" $zipfile
+  mv -i "$1" $zipfile
 else
   zipfile="$1"
 fi
@@ -38,12 +40,14 @@ if [ ! -f "$zipfile" ] ; then
 fi
 
 cd $(dirname $zipfile)
+
   folder=${zipfile%.zip}
   if [ -d "$folder" ] ; then
     read -p "Press key to delete directory '`pwd`/$folder'..."
     rm -r "$folder"
   fi
   unzip $(basename $zipfile)
+  
 cd "$wd"
 
 if [ ! -d "$folder" ] ; then 

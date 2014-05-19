@@ -47,7 +47,7 @@ function getMax() # finds maximum in column
 
 Usage() {
     echo ""
-    echo "Usage:  `basename $0` [--vxcount|--extract] <input3D> <mask3D> <text-output> [<\"-bin\"|none>] [<\"fslmeants-opts\"|none>] [<vertcat penvalue[0|1],subjects[0|1]>]"
+    echo "Usage:  `basename $0` [--vxcount|--extract] <input3D> <mask3D> <text-output> [<\"-bin\"|none>](def:none) [<\"fslmeants-opts\"|none>](def:none) [<vertcat penvalue[0|1],subjects[0|1]>](def:0,0)"
     echo "Example:  `basename $0` --extract \"FA-1 FA-2 FA-3\" \"FA-mask-1 FA-mask-2 FA-mask-3\" FA_vals.txt \"-bin\" \"--showall\" 0,1"
     echo "          `basename $0` --vxcount FA-list.txt FA-mask-list.txt FA_vals.txt"
     echo ""
