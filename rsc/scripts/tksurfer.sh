@@ -42,9 +42,17 @@ trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 if [ x"$flatpatch" = "x" ] ; then flatpatch=0 ; fi
 
+counter=0
 for i in $FILE_PATHS ; do
 
-  tmpfile=$tmpdir/$(basename $0)_$(basename $i)
+  if [ $(echo $i | grep ^/ | wc -l) -eq 0 ] ; then
+    i=`pwd`/$i
+    i=$(echo $i | sed "s|/\./|/|g" | sed "s|/\+|/|g") # remove '/./'and duplicate '/'
+  fi
+
+  #tmpfile=$tmpdir/$(basename $0)_$(basename $i)
+  counter=$[$counter+1]
+  tmpfile=$tmpdir/$$_$(basename $0)_${counter}
 
   # add tcl-scripting commands
   echo "set gaLinkedVars(redrawlockflag) 1" > ${tmpfile}.tcl
@@ -62,6 +70,7 @@ for i in $FILE_PATHS ; do
   labels_lh=""    ; labels_rh=""
   lastfile=""
   sigmap=0
+  session=""
   subject=$_subject
 
   niigz=$(echo $i | grep "\.nii.gz$" | wc -l)
@@ -158,6 +167,7 @@ for i in $FILE_PATHS ; do
       _pardirname=$(basename $(dirname $_dir))    
       if [ "$_pardirname" = "sessions" ] ; then 
         subject=$_dirname
+        session=$_dirname
         SUBJECTS_DIR=$(dirname $(dirname $_dir))/subjects
         if [ ! -d $SUBJECTS_DIR/$subject ] ; then
           subject=$(echo $subject | cut -d _ -f 1)
@@ -190,11 +200,11 @@ for i in $FILE_PATHS ; do
   # define commando
   if [ $lh -eq 1 ] ; then
     if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/${subject}/surf/lh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
-    cmd="tksurfer ${subject} lh inflated $flatpatchBrain $patchSel -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl ${tmpfile}.tcl"
+    cmd="tksurfer ${subject} lh inflated $flatpatchBrain $patchSel -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $(basename $(dirname $lastfile))/$(basename $lastfile) -tcl ${tmpfile}.tcl"
     #zenity --info --text="$cmd"
   elif [ $rh -eq 1 ] ; then
     if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/${subject}/surf/rh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
-    cmd="tksurfer ${subject} rh inflated $flatpatchBrain $patchSel -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl ${tmpfile}.tcl"
+    cmd="tksurfer ${subject} rh inflated $flatpatchBrain $patchSel -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $(basename $(dirname $lastfile))/$(basename $lastfile) -tcl ${tmpfile}.tcl"
   fi
 
   # execute in subshell
@@ -203,6 +213,7 @@ for i in $FILE_PATHS ; do
     echo \"file         = $(basename $i)\" ;\
     echo \"SUBJECTS_DIR = $SUBJECTS_DIR\" ;\
     echo \"subject      = $subject\" ;\
+    echo \"session      = $session\" ;\
     echo \"left-hemi    = $lh\" ;\
     echo \"right-hemi   = $rh\" ;\
     echo \"------------------------------\" ;\
@@ -224,8 +235,14 @@ for i in $FILE_PATHS ; do
     echo \$cmd ;\
     echo \"------------------------------\" ;\
     echo \"------------------------------\" ;\
-    \$cmd ; rm /tmp/$$tmp.tcl"
+    \$cmd" &
   else
-    xterm -e /bin/bash -c "$cmd ; rm /tmp/$$tmp.tcl"
+    xterm -e /bin/bash -c "$cmd" &
   fi
 done # end for loop
+
+# info
+read -p $(basename $0):\ When\ finished,\ press\ \<RETURN\>.
+
+# kill bg jobs
+kill $(jobs -p)

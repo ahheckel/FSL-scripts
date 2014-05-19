@@ -1,5 +1,5 @@
 #!/bin/bash
-# Wrapper for slicesdir to supply a output directory name other than 'slicesdir'.
+# Wrapper for slicesdir to supply an output directory name other than 'slicesdir'.
 
 # Written by Andreas Heckel
 # University of Heidelberg
@@ -35,8 +35,8 @@ inputs="$@"
 # run slicesdir
 slicesdir $opts $inputs >/dev/null
 if [ -d $outdir ] ; then
-  read -p "Press key to delete '$outdir' directory..."
-  rm -r $outdir/*
+  read -p "WARNING: Directory '$outdir' already exists! Press key to delete it..."
+  rm $outdir/*
   rmdir $outdir
 fi
 
