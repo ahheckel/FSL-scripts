@@ -12,8 +12,7 @@
 # https://github.com/ahheckel
 # 03/16/2014
 
-if [ x"$flatpatch" = "x" ] ; then flatpatch=0 ; fi
-
+# source environment
 source $(dirname $0)/env_vars
 
 # create unique dir. for temporary files
@@ -22,6 +21,10 @@ tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX)
 # define exit trap
 trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
+# flatpatch ?
+if [ x"$flatpatch" = "x" ] ; then flatpatch=0 ; fi
+
+# begin loop...
 counter=0
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
 
@@ -70,7 +73,6 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     mri_info $i > $tmpfile  
     type=$(cat $tmpfile | grep type: | head -n1 | cut -d : -f 2)  
     isscalar=$(cat $tmpfile | grep dimensions | cut -d : -f 2- | grep "x 1 x 1" | wc -l)
-    rm $tmpfile
   else
     type=XXX
     isscalar=0
@@ -217,7 +219,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     echo \$cmd ;\
     echo \"------------------------------\" ;\
     echo \"------------------------------\" ;\
-    \$cmd"
+    \$cmd" &
   else
     xterm -e /bin/bash -c "\
     echo \"file         = $(basename $i)\" ;\
@@ -227,12 +229,12 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     echo \"left-hemi    = $lh\" ;\
     echo \"right-hemi   = $rh\" ;\
     echo \"------------------------------\" ;\
-    $cmd"
+    $cmd" &
   fi
-done # end for loop
+done # ...end loop
 
-## info
-#xterm -e /bin/bash -c "read -p $(basename $0):\ When\ finished,\ press\ \<RETURN\>."
+# info
+xterm -e /bin/bash -c "read -p $(basename $0):\ When\ finished,\ press\ \<RETURN\>."
 
-## kill bg jobs
-#kill $(jobs -p)
+# kill bg jobs
+kill $(jobs -p)

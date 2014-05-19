@@ -68,7 +68,6 @@ for i in $FILE_PATHS ; do
   overlist_lh=""  ; overlist_rh=""
   annotlist_lh="" ; annotlist_rh=""
   labels_lh=""    ; labels_rh=""
-  lastfile=""
   sigmap=0
   session=""
   subject=$_subject
@@ -96,7 +95,6 @@ for i in $FILE_PATHS ; do
     mri_info $i > $tmpfile
     type=$(cat $tmpfile | grep type: | head -n1 | cut -d : -f 2)  
     isscalar=$(cat $tmpfile | grep dimensions | cut -d : -f 2- | grep "x 1 x 1" | wc -l)
-    rm $tmpfile
   else
     type=XXX
     isscalar=0
@@ -163,8 +161,6 @@ for i in $FILE_PATHS ; do
     surftype=inflated
   fi
   
-  lastfile=$i
-
   # recursively searching for sessions/subjects directory (assuming 'sessions' and 'subjects' as names)
   if [ x"$subject" = "x" ] ; then  
     _dir="$i"
@@ -195,7 +191,7 @@ for i in $FILE_PATHS ; do
     labelsunder=""
   else
     labelsunder="-labels-under"
-    if [ ! -f $(dirname $(dirname $lastfile))/label/lh.aparc.a2009s.annot ] ; then
+    if [ ! -f $(dirname $(dirname $i))/label/lh.aparc.a2009s.annot ] ; then
       annotstr=aparc.a2005s.annot
     else
       annotstr=aparc.a2009s.annot
@@ -207,11 +203,11 @@ for i in $FILE_PATHS ; do
   # define commando
   if [ $lh -eq 1 ] ; then
     if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/${subject}/surf/lh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
-    cmd="tksurfer ${subject} lh $surftype $flatpatchBrain $patchSel -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $(basename $(dirname $lastfile))/$(basename $lastfile) -tcl ${tmpfile}.tcl"
+    cmd="tksurfer ${subject} lh $surftype $flatpatchBrain $patchSel -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $(basename $(dirname $(dirname $(dirname $i))))/$(basename $(dirname $(dirname $i)))/$(basename $(dirname $i))/$(basename $i) -tcl ${tmpfile}.tcl"
     #zenity --info --text="$cmd"
   elif [ $rh -eq 1 ] ; then
     if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/${subject}/surf/rh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
-    cmd="tksurfer ${subject} rh $surftype $flatpatchBrain $patchSel -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $(basename $(dirname $lastfile))/$(basename $lastfile) -tcl ${tmpfile}.tcl"
+    cmd="tksurfer ${subject} rh $surftype $flatpatchBrain $patchSel -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $(basename $(dirname $(dirname $(dirname $i))))/$(basename $(dirname $(dirname $i)))/$(basename $(dirname $i))/$(basename $i) -tcl ${tmpfile}.tcl"
   fi
 
   # execute in subshell
