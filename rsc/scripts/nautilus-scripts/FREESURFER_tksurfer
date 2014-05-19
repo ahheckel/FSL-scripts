@@ -22,30 +22,29 @@ tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX)
 # define exit trap
 trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
-counter=0
-for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
-
-  counter=$[$counter+1]
-  tmpfile=$tmpdir/$$_$(basename $0)_${counter}
+# define tmpfile
+tmpfile=$tmpdir/$$_$(basename $0)
   
-  # add tcl-scripting commands
-  echo "set gaLinkedVars(redrawlockflag) 1" > ${tmpfile}.tcl
-  echo "SendLinkedVarGroup redrawlock" >> ${tmpfile}.tcl
-  echo "set gaLinkedVars(ignorezeroesinhistogramflag) 1" >> ${tmpfile}.tcl
-  echo "SendLinkedVarGroup overlay" >> ${tmpfile}.tcl
-  if [ $flatpatch -eq 1 ] ; then
-    echo "scale_brain 0.75" >> ${tmpfile}.tcl
-  fi
+# add tcl-scripting commands
+echo "set gaLinkedVars(redrawlockflag) 1" > ${tmpfile}.tcl
+echo "SendLinkedVarGroup redrawlock" >> ${tmpfile}.tcl
+echo "set gaLinkedVars(ignorezeroesinhistogramflag) 1" >> ${tmpfile}.tcl
+echo "SendLinkedVarGroup overlay" >> ${tmpfile}.tcl
+if [ $flatpatch -eq 1 ] ; then
+  echo "scale_brain 0.75" >> ${tmpfile}.tcl
+fi
 
-  # parse arguments
-  vollist_lh=""   ; vollist_rh=""
-  surflist_lh=""  ; surflist_rh=""
-  overlist_lh=""  ; overlist_rh=""
-  annotlist_lh="" ; annotlist_rh=""
-  labels_lh=""    ; labels_rh=""
-  lastfile=""
-  sigmap=0
-  session=""
+# parse arguments
+vollist_lh=""   ; vollist_rh=""
+surflist_lh=""  ; surflist_rh=""
+overlist_lh=""  ; overlist_rh=""
+annotlist_lh="" ; annotlist_rh=""
+labels_lh=""    ; labels_rh=""
+lastfile=""
+sigmap=0
+session=""
+
+for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   
   niigz=$(echo $i | grep "\.nii.gz$" | wc -l)
   nii=$(echo $i | grep "\.nii$" | wc -l)
@@ -130,94 +129,88 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   if [ $patch -eq 1 ] ; then # file is a patch...
     patchSel="-patch $i"
   fi
-  
-  lastfile=$i
-
-  # recursively searching for sessions/subjects directory (assuming 'sessions' and 'subjects' as names)
-  if [ x"$subject" = "x" ] ; then  
-    _dir="$i"
-    while [ x"$subject" = "x" ] ; do
-      _dir=$(dirname $_dir) ; if [ "$_dir" = "$(dirname $_dir)" ] ; then break ; fi
-      _dirname=$(basename $_dir)
-      _pardirname=$(basename $(dirname $_dir))    
-      if [ "$_pardirname" = "sessions" ] ; then 
-        subject=$_dirname
-        session=$_dirname
-        SUBJECTS_DIR=$(dirname $(dirname $_dir))/subjects
-        if [ ! -d $SUBJECTS_DIR/$subject ] ; then
-          subject=$(echo $subject | cut -d _ -f 1)
-          #zenity --info --text=$subject
-          #zenity --info --text=$SUBJECTS_DIR
-        fi
-      elif [ "$_pardirname" = "subjects" ] ; then
-        subject=$_dirname
-        SUBJECTS_DIR=$(dirname $_dir)    
-      fi
-      #zenity --info --text="$_dir"
-    done  
-    if [ x"$subject" = "x" ] ; then zenity --info --text='Variable \$subject is empty - exiting.' ; exit 1 ; fi
-  fi
-
-  # define annotations (only if no labels selected)
-  if [ $(cat ${tmpfile}.tcl | grep labl_load | wc -l) -gt 0 ] ; then
-    labelsunder=""
-  else
-    labelsunder="-labels-under"
-    if [ ! -f $(dirname $(dirname $lastfile))/label/lh.aparc.a2009s.annot ] ; then
-      annotstr=aparc.a2005s.annot
-    else
-      annotstr=aparc.a2009s.annot
-    fi
-    annot_lh="-annotation $SUBJECTS_DIR/${subject}/label/lh.${annotstr} $labelsunder"
-    annot_rh="-annotation $SUBJECTS_DIR/${subject}/label/rh.${annotstr} $labelsunder"
-  fi
-
-  # define commando
-  if [ $lh -eq 1 ] ; then
-    if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/${subject}/surf/lh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
-    cmd="tksurfer ${subject} lh inflated $flatpatchBrain $patchSel -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl ${tmpfile}.tcl"
-    #zenity --info --text="$cmd"
-  elif [ $rh -eq 1 ] ; then
-    if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/${subject}/surf/rh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
-    cmd="tksurfer ${subject} rh inflated $flatpatchBrain $patchSel -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl ${tmpfile}.tcl"
-  fi
-
-  # execute in subshell
-  if [ $sigmap -eq 1 ] ; then
-    xterm -e /bin/bash -c "\
-    echo \"file         = $(basename $i)\" ;\
-    echo \"SUBJECTS_DIR = $SUBJECTS_DIR\" ;\
-    echo \"subject      = $subject\" ;\
-    echo \"session      = $session\" ;\
-    echo \"left-hemi    = $lh\" ;\
-    echo \"right-hemi   = $rh\" ;\
-    echo \"------------------------------\" ;\
-    echo \"Choose (or enter) a significance threshold:\" ;\
-    echo -e \" a. p=0.050\n b. p=0.025\n c. p=0.010\n d. p=0.005\n\" ;\
-    read -p \> s ;\
-    echo \"------------------------------\" ;\
-    if   [ \$s = a ] ; then logP1=1.3010 ; logP2=2  ;\
-    elif [ \$s = b ] ; then logP1=1.6021 ; logP2=3  ;\
-    elif [ \$s = c ] ; then logP1=2.0000 ; logP2=3  ;\
-    elif [ \$s = d ] ; then logP1=2.3010 ; logP2=3  ;\
-    else logP1=\$(echo \"l(\$s)/l(10)*-1\"|bc -l) ; logP2=\$(echo \"\$logP1+1\"|bc -l) ;\
-    fi ;\
-    echo \"p_min = \$logP1\" ;\
-    echo \"p_max = \$logP2\" ;\
-    echo \"------------------------------\" ;\
-    echo \"------------------------------\" ;\
-    cmd=\$(echo \"$cmd\" | sed \"s|P_VAL_MIN|\$logP1|g\" | sed \"s|P_VAL_MAX|\$logP2|g\") ;\
-    echo \$cmd ;\
-    echo \"------------------------------\" ;\
-    echo \"------------------------------\" ;\
-    \$cmd" &
-  else
-    xterm -e /bin/bash -c "$cmd" &
-  fi
 done # end for loop
+  
+lastfile=$i
 
-# info
-xterm -e /bin/bash -c "read -p $(basename $0):\ When\ finished,\ press\ \<RETURN\>."
+# recursively searching for sessions/subjects directory (assuming 'sessions' and 'subjects' as names)
+if [ x"$subject" = "x" ] ; then  
+  _dir="$i"
+  while [ x"$subject" = "x" ] ; do
+    _dir=$(dirname $_dir) ; if [ "$_dir" = "$(dirname $_dir)" ] ; then break ; fi
+    _dirname=$(basename $_dir)
+    _pardirname=$(basename $(dirname $_dir))    
+    if [ "$_pardirname" = "sessions" ] ; then 
+      subject=$_dirname
+      session=$_dirname
+      SUBJECTS_DIR=$(dirname $(dirname $_dir))/subjects
+      if [ ! -d $SUBJECTS_DIR/$subject ] ; then
+        subject=$(echo $subject | cut -d _ -f 1)
+        #zenity --info --text=$subject
+        #zenity --info --text=$SUBJECTS_DIR
+      fi
+    elif [ "$_pardirname" = "subjects" ] ; then
+      subject=$_dirname
+      SUBJECTS_DIR=$(dirname $_dir)    
+    fi
+    #zenity --info --text="$_dir"
+  done  
+  if [ x"$subject" = "x" ] ; then zenity --info --text='Variable \$subject is empty - exiting.' ; exit 1 ; fi
+fi
 
-# kill bg jobs
-kill $(jobs -p)
+# define annotations (only if no labels selected)
+if [ $(cat ${tmpfile}.tcl | grep labl_load | wc -l) -gt 0 ] ; then
+  labelsunder=""
+else
+  labelsunder="-labels-under"
+  if [ ! -f $(dirname $(dirname $lastfile))/label/lh.aparc.a2009s.annot ] ; then
+    annotstr=aparc.a2005s.annot
+  else
+    annotstr=aparc.a2009s.annot
+  fi
+  annot_lh="-annotation $SUBJECTS_DIR/${subject}/label/lh.${annotstr} $labelsunder"
+  annot_rh="-annotation $SUBJECTS_DIR/${subject}/label/rh.${annotstr} $labelsunder"
+fi
+
+# define commando
+if [ $lh -eq 1 ] ; then
+  if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/${subject}/surf/lh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
+  cmd="tksurfer ${subject} lh inflated $flatpatchBrain $patchSel -gray $annot_lh $overlist_lh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl ${tmpfile}.tcl"
+  #zenity --info --text="$cmd"
+elif [ $rh -eq 1 ] ; then
+  if [ $flatpatch -eq 1 ] ; then flatpatchBrain="-patch $SUBJECTS_DIR/${subject}/surf/rh.cortex.patch.flat" ; else flatpatchBrain="" ; fi
+  cmd="tksurfer ${subject} rh inflated $flatpatchBrain $patchSel -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl ${tmpfile}.tcl"
+fi
+
+# execute in subshell
+if [ $sigmap -eq 1 ] ; then
+  xterm -e /bin/bash -c "\
+  echo \"file         = $(basename $i)\" ;\
+  echo \"SUBJECTS_DIR = $SUBJECTS_DIR\" ;\
+  echo \"subject      = $subject\" ;\
+  echo \"session      = $session\" ;\
+  echo \"left-hemi    = $lh\" ;\
+  echo \"right-hemi   = $rh\" ;\
+  echo \"------------------------------\" ;\
+  echo \"Choose (or enter) a significance threshold:\" ;\
+  echo -e \" a. p=0.050\n b. p=0.025\n c. p=0.010\n d. p=0.005\n\" ;\
+  read -p \> s ;\
+  echo \"------------------------------\" ;\
+  if   [ \$s = a ] ; then logP1=1.3010 ; logP2=2  ;\
+  elif [ \$s = b ] ; then logP1=1.6021 ; logP2=3  ;\
+  elif [ \$s = c ] ; then logP1=2.0000 ; logP2=3  ;\
+  elif [ \$s = d ] ; then logP1=2.3010 ; logP2=3  ;\
+  else logP1=\$(echo \"l(\$s)/l(10)*-1\"|bc -l) ; logP2=\$(echo \"\$logP1+1\"|bc -l) ;\
+  fi ;\
+  echo \"p_min = \$logP1\" ;\
+  echo \"p_max = \$logP2\" ;\
+  echo \"------------------------------\" ;\
+  echo \"------------------------------\" ;\
+  cmd=\$(echo \"$cmd\" | sed \"s|P_VAL_MIN|\$logP1|g\" | sed \"s|P_VAL_MAX|\$logP2|g\") ;\
+  echo \$cmd ;\
+  echo \"------------------------------\" ;\
+  echo \"------------------------------\" ;\
+  \$cmd"
+else
+  xterm -e /bin/bash -c "$cmd"
+fi
