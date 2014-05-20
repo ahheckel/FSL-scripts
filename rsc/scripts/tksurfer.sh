@@ -95,6 +95,7 @@ for i in $FILE_PATHS ; do
     mri_info $i > $tmpfile
     type=$(cat $tmpfile | grep type: | head -n1 | cut -d : -f 2)  
     isscalar=$(cat $tmpfile | grep dimensions | cut -d : -f 2- | grep "x 1 x 1" | wc -l)
+    rm $tmpfile
   else
     type=XXX
     isscalar=0
