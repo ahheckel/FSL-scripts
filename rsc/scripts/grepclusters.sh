@@ -112,7 +112,7 @@ for f in $files ; do # for each collected file execute 'cluster'
         JHU2=$(atlasquery  -a "JHU White-Matter Tractography Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)        
         printf '\t JHU1: %s\n' "$JHU1" | tee -a $logfile
         printf '\t JHU2: %s\n' "$JHU2" | tee -a $logfile
-        printf '%s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ]\t %s\t %s \n'           $f $stat $type1 $type2 $max $tval $size $x $y $z "$JHU1" "$JHU2" >> ${logfile}.xls
+        printf '%s\t %s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ]\t %s\t %s \n'           $f $stat $type1 $type2 $max $tval $size $x $y $z "$JHU1" "$JHU2" >> ${logfile}.xls
       elif [ $anal = "-vbm" -o $anal = "-alff" ] ; then
         HAV1=$(atlasquery  -a "Harvard-Oxford Cortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
         HAV2=$(atlasquery  -a "Harvard-Oxford Subcortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
@@ -120,7 +120,7 @@ for f in $files ; do # for each collected file execute 'cluster'
         printf '\t TAL:  %s \n' "$TAL" | tee -a $logfile
         printf '\t HAV1: %s \n' "$HAV1" | tee -a $logfile
         printf '\t HAV2: %s \n' "$HAV2" | tee -a $logfile
-        printf '%s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ]\t %s\t %s\t %s \n'      $f $stat $type1 $type2 $max $tval $size $x $y $z "$HAV1" "$HAV2" "$TAL" >> ${logfile}.xls
+        printf '%s\t %s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ]\t %s\t %s\t %s \n'      $f $f $stat $type1 $type2 $max $tval $size $x $y $z "$HAV1" "$HAV2" "$TAL" >> ${logfile}.xls
       elif [ $anal = "-ica" ] ; then
         ic=$(echo $(basename $f) | grep -o 'ic[[:digit:]]*' | head -n1)
         HAV1=$(atlasquery  -a "Harvard-Oxford Cortical Structural Atlas" -c ${x},${y},${z} | cut -d ">" -f 4)
@@ -129,7 +129,7 @@ for f in $files ; do # for each collected file execute 'cluster'
         printf '\t TAL:  %s \n' "$TAL" | tee -a $logfile
         printf '\t HAV1: %s \n' "$HAV1" | tee -a $logfile
         printf '\t HAV2: %s \n' "$HAV2" | tee -a $logfile
-        printf '%s\t %s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ]\t %s\t %s\t %s \n' $f $ic $stat $type1 $type2 $max $tval $size $x $y $z "$HAV1" "$HAV2" "$TAL" >> ${logfile}.xls
+        printf '%s\t %s\t %s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ]\t %s\t %s\t %s \n' $f $f $ic $stat $type1 $type2 $max $tval $size $x $y $z "$HAV1" "$HAV2" "$TAL" >> ${logfile}.xls
       else
         if [ $(echo $f | grep /netmat | wc -l) -eq 1 ] ; then
           type=$(echo netmat${f#*/netmat} | cut -d / -f 1)
@@ -139,7 +139,7 @@ for f in $files ; do # for each collected file execute 'cluster'
           netmat="X"
           tthres="X"
         fi
-        printf '%s\t %s\t %s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ] \n'           $f $netmat $tthres $stat $type1 $type2 $max $tval $size $x $y $z >> ${logfile}.xls
+        printf '%s\t %s\t %s\t %s\t %s\t %s\t %s\t %5.3f\t t/f=%4.2f\t %5i\t [ %5.1f %5.1f %5.1f ] \n'           $f $f $netmat $tthres $stat $type1 $type2 $max $tval $size $x $y $z >> ${logfile}.xls
       fi
             
       if [ $reportfirst -eq 1 ] ; then break ; fi
