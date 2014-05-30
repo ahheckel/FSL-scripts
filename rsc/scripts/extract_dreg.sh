@@ -32,20 +32,22 @@ function row2col()
 
 Usage() {
     echo ""
-    echo "Usage:  `basename $0` <input-SPM> <effect-maps> <text-output>"
-    echo "Example:  `basename $0` \"SPM-1 SPM-2 SPM-3\" \"effect1 effect2 effect3\" out_table.txt"
-    echo "          `basename $0` SPM.txt Effect.txt out_table.txt"
+    echo "Usage:  `basename $0` <input-SPM> <effect-maps> <text-output> <p-val> [<\"fslmeants-opts\"|none>](def:none)"
+    echo "Example:  `basename $0` \"SPM-1,SPM-2,SPM-3\" \"effect1 effect2 effect3\" Out_table.txt 0.975 \"--eig\""
+    echo "          `basename $0` SPM.txt Effect.txt Out_table.txt 0.975"
+    echo "          `basename $0` SPM.txt Dummy.txt Out_table.txt 0.975"
     echo ""
     exit 1
 }
 
 
 # assign input arguments
-[ "$3" = "" ] && Usage
+[ "$4" = "" ] && Usage
 _spm="$1" ; _spm="$(echo "$_spm" | sed 's|,| |g')"
 _effect="$2" ; _effect="$(echo "$_effect" | sed 's|,| |g')"
 out="$3"
-if [ x"$4" = "x" ] ; then pthres=0.975 ; else pthres=$4 ; fi
+pthres=$4
+opts="$5"
 
 # text-file as input ?
 if [ $(testascii $_spm) -eq 1 ] ; then
@@ -105,15 +107,21 @@ for spm_counter in `seq 1 $n_lines1` ; do
   n_ic=$(echo ${spm##*ic} | cut -d _ -f 1 | bc)
   
   # display info
-  echo "`basename $0` : subj-dir:   $(dirname $(dirname $(dirname $spm)))"
+  dregdir=$(dirname $(dirname $(dirname $spm)))
+  echo "`basename $0` : dreg-dir:   $dregdir"
   echo "`basename $0` : n_clusters  $n_cl"
   echo "`basename $0` : n_ic:       $n_ic"
   echo "`basename $0` : p-thres:    $pthres"
   
-  # search for (effect-)files
-  imglob $(dirname $(dirname $(dirname $spm)))/dr_stage2_subject[0-9][0-9][0-9][0-9][0-9].nii.gz | row2col | sort > $tmpdir/effects.txt
+  # search for (effect-)files (presuming dreg-directory structure)
+  imglob $dregdir/dr_stage2_subject[0-9][0-9][0-9][0-9][0-9].nii.gz | row2col | sort > $tmpdir/effects.txt
   n_lines2=$(cat $tmpdir/effects.txt | wc -l)
-  
+
+  # check
+  if [ $n_lines2 -eq 0 ] ; then
+    echo "`basename $0` : ERROR: '$dregdir/dr_stage2_subject\*.nii.gz' files found ... exiting." exit 1 
+  fi  
+
   # display info
   echo "`basename $0` : n_effects:  $n_lines2"
   echo "---------------------------"
@@ -121,14 +129,16 @@ for spm_counter in `seq 1 $n_lines1` ; do
   for eff_counter in `seq 1 $n_lines2` ; do
     effect="$(cat $tmpdir/effects.txt | sed -n ${eff_counter}p)" ; effect=$(remove_ext $effect)
     cmd="$(dirname $0)/split4D.sh t $effect [$n_ic] $tmpdir/ic"
-    echo "    $cmd" ; $cmd
+    #echo "    $cmd"
+    $cmd
   
-    cmd="fslmeants -i $tmpdir/ic_$(zeropad $n_ic 4) --label=$tmpdir/spm_${spm_counter} -o $tmpdir/spm_${spm_counter}_eff_${eff_counter}"
-    echo "    $cmd" ; $cmd
+    cmd="fslmeants -i $tmpdir/ic_$(zeropad $n_ic 4) $opts --label=$tmpdir/spm_${spm_counter} -o $tmpdir/spm_${spm_counter}_eff_${eff_counter}"
+    echo "    $cmd"
+    $cmd
     out_tmp=$out_tmp" "$tmpdir/spm_${spm_counter}_eff_${eff_counter}
   done
   for i in `seq 1 $n_cl` ; do
-    header=$header" "$(basename $spm)__cluster${i}
+    header=$header" "${spm}__cluster${i}
   done
   echo $header > $tmpdir/header
   cat $tmpdir/header $out_tmp > $tmpdir/$(basename $out)_${spm_counter} # concat effects/subjects

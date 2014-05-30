@@ -278,6 +278,7 @@ while [ $j -lt $Nics ] ; do
   done
   if [ $skipit -eq 1 ] ; then 
     echo "`basename $0` : Skipping randomise call on IC-index '$jj' in '$ICA_MAPS' as requested."
+    #imrm `imglob $OUTPUT/dr_stage2_subject*_ic${jj}.*`
     j=`echo "$j 1 + p" | dc -`
     continue
   fi
