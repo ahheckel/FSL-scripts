@@ -27,7 +27,7 @@ if [ x"$FSLDIR" = "x" ] ; then
   elif [ -f ~/.gnome2/nautilus-scripts/env_vars ] ; then
     source ~/.gnome2/nautilus-scripts/env_vars
   else
-    echo "$(basename $0) : ERROR: environment file '~/.gnome2/nautilus-scripts/MRI/env_vars' not found! Exiting." ; exit 1 
+    echo "$(basename $0) : ERROR: environment file env_vars not found! Exiting." ; exit 1 
   fi
 fi
 
