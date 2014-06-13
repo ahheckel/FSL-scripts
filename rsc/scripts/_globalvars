@@ -300,9 +300,10 @@ VBM_USE_FS_LONGT=0                                # use FREESURFER'S longitudina
 VBM_PTTRN_BRAIN="*_FS_brain.nii.gz"               # search pattern for brain-extracted structurals
 VBM_PTTRN_STRUC="*_FS_struc.nii.gz"               # search pattern for original structurals (w/o skull-strip)
 VBM_SMOOTHING_KRNL="2 3 4"                        # cycle through some smoothing kernels
-VBM_Z_TRANSFORM=0                                 # z-transform grey matter 4D
+VBM_Z_TRANSFORM=0                                 # z-transform grey matter 4D (for randomise: design's name must be headed by 'zVI_' to work)
 VBM_RANDOMISE_OPTS="-T -V -x -n 5000"      	      # randomise options (e.g.: "-T -V -x -n 5000")
 VBM_DELETE_PREV_RUNS=1                            # delete previously created 2ndLevel VBM directories and files; if set, no questions will be asked
+# Note: 'vbm_template_list' in $glmdir_vbm lists subjects for template creation (using all subjects if file is absent).
 
 # MELODIC GUI
 MELODIC_INCLUDED_SUBJECTS=$SECONDLEV_SUBJECTS                  # subjects to be included in the ICA analysis
