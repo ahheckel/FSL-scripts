@@ -793,7 +793,7 @@ function ztransf4D()
     echo "ztransf4D(): using '$mask' as mask..."
     fslmaths $file -sub $dst/mean_${basenm} -div $dst/std_${basenm} -mas $mask $dst/ztransf_${basenm}
   else
-    echo "ztransf4D(): WARNING: '$mask' not found - don't using any mask..."
+    echo "ztransf4D(): WARNING: '$mask' not found - not using any mask..."
     fslmaths $file -sub $dst/mean_${basenm} -div $dst/std_${basenm} $dst/ztransf_${basenm}
   fi
 }
