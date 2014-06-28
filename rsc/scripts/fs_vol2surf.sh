@@ -12,7 +12,7 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage:    `basename $0` <input4D> <output4D> <SUBJECTS_DIR> [<target-subject>] [<input2target.dat|T1-reference>]"
+    echo "Usage:    `basename $0` <input4D> <output4D> <SUBJECTS_DIR> <target-subject> <input2target.dat|T1-reference>"
     echo "Example:  `basename $0` log_tfce_corrp_tstat1.nii.gz sig.mgh /usr/local/freesurfer/subjects fsaverage mni152-vol_2_fsaverage-surf.register.dat"
     echo "          `basename $0` log_tfce_corrp_tstat1.nii.gz sig.mgh /usr/local/freesurfer/subjects fsaverage MNI152_T1_1mm.nii.gz"
     echo ""
