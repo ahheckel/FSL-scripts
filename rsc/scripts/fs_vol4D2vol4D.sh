@@ -1,4 +1,6 @@
 #!/bin/bash
+# Registers 4D bold to another space. Freesurfer recons of that space and register.dat must be available.
+# Per volume operations to prevent memory overload.
 
 # Written by Andreas Heckel
 # University of Heidelberg
@@ -13,7 +15,7 @@ set -e
 Usage() {
     echo ""
     echo "Usage:    `basename $0` <input4D> <output4D> <SUBJECTS_DIR> <source-subject> <register.dat> <target-subject>"
-    echo "Example:  `basename $0` fsmc.nii fsmc_fsaverage.nii /usr/local/freesurfer/subjects DIf1a ../register.dat fsaverage"
+    echo "Example:  `basename $0` fsmc.nii fsmc_fsaverage.nii.gz /usr/local/freesurfer/subjects DIf1a ../register.dat fsaverage"
     echo ""
     exit 1
 }
@@ -58,20 +60,20 @@ for i in $(seq 0 $[$nvol-1]) ; do
   # vol2surf
   for hemi in lh rh ; do
     echo "$(basename $0): "
-    cmd="mri_vol2surf --mov $mov --out ${surfval}.${hemi}.mgz --hemi $hemi --trgsubject $trgsubject --reg $registerdat --srcsubject $srcsubject"
+    cmd="mri_vol2surf --mov $mov --out ${surfval}.${hemi}.mgh --hemi $hemi --trgsubject $trgsubject --reg $registerdat --srcsubject $srcsubject"
     echo "    $cmd" ; $cmd  
   done
   
   # surf2vol
   for hemi in lh rh ; do
     echo "$(basename $0): "
-    cmd="mri_surf2vol --surfval ${surfval}.${hemi}.mgz --hemi $hemi --projfrac 0.5 --fillribbon --fill-projfrac 0 1 0.1 --o ${outnii}.${hemi}.nii.gz --identity $trgsubject --template $SUBJECTS_DIR/$trgsubject/mri/T1.mgz"
+    cmd="mri_surf2vol --surfval ${surfval}.${hemi}.mgh --hemi $hemi --projfrac 0.5 --fillribbon --fill-projfrac 0 1 0.1 --o ${outnii}.${hemi}.nii.gz --identity $trgsubject --template $SUBJECTS_DIR/$trgsubject/mri/T1.mgz"
     echo "    $cmd" ; $cmd
   done
 
   # merge hemispheres
   echo "$(basename $0): "
-  cmd="fslmerge -x $outnii ${outnii}.lh ${outnii}.rh"
+  cmd="fslmaths ${outnii}.lh -add ${outnii}.rh $outnii"
   echo "    $cmd" ; $cmd
   
   # gather nifti volumes
@@ -79,7 +81,7 @@ for i in $(seq 0 $[$nvol-1]) ; do
   
   # cleanup
   imrm ${outnii}.lh ${outnii}.rh $mov
-  rm ${surfval}.lh.mgz ${surfval}.rh.mgz
+  rm ${surfval}.lh.mgh ${surfval}.rh.mgh
 
 done # end loop
 
