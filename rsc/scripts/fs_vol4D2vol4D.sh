@@ -14,9 +14,10 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage:    `basename $0` <input4D> <output4D> <SUBJECTS_DIR> <source-subject> <register.dat> <target-subject>"
-    echo "Example:  `basename $0` fsmc.nii fsmc_fsaverage.nii.gz /usr/local/freesurfer/subjects DIf1a ../register.dat fsaverage"
+    echo "Usage:    `basename $0` <input4D> <output4D> <SUBJECTS_DIR> <source-subject> <register.dat> <target-subject> [<out-resolution in mm>]"
+    echo "Example:  `basename $0` fsmc.nii fsmc_fsaverage.nii.gz /usr/local/freesurfer/subjects DIf1a ../register.dat fsaverage 3"
     echo ""
+    echo "NOTE: <out-resolution> only necessary when output-resolution is to be different from resolution of target-subject."
     exit 1
 }
 
@@ -29,6 +30,7 @@ SUBJECTS_DIR="$3"
 srcsubject="$4"
 registerdat="$5"
 trgsubject="$6"
+resolution="$7"
 
 # checks
 if [ ! -f $registerdat ] ; then echo "`basename $0` : '$registerdat' not found - exiting..." ; exit 1 ; fi
@@ -76,6 +78,13 @@ for i in $(seq 0 $[$nvol-1]) ; do
   cmd="fslmaths ${outnii}.lh -add ${outnii}.rh $outnii"
   echo "    $cmd" ; $cmd
   
+  # resample
+  if [ "x$resolution" != "x" ] ; then
+    echo "$(basename $0): resampling to $resolution mm..."
+    cmd="$(dirname $0)/resample.sh $outnii $resolution $outnii"
+    echo "    $cmd" ; $cmd
+  fi
+
   # gather nifti volumes
   outs=$outs" "$outnii
   
@@ -86,7 +95,7 @@ for i in $(seq 0 $[$nvol-1]) ; do
 done # end loop
 
 # merge to 4D nifti
-echo "$(basename $0): "
+echo "$(basename $0): merging..."
 cmd="fslmerge -t $output $outs"
 echo "    $cmd" ; $cmd
 
