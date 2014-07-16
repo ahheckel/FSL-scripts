@@ -14,10 +14,11 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage:    `basename $0` <input4D> <output4D> <SUBJECTS_DIR> <source-subject> <register.dat> <target-subject> [<out-resolution in mm>]"
-    echo "Example:  `basename $0` fsmc.nii fsmc_fsaverage.nii.gz /usr/local/freesurfer/subjects DIf1a ../register.dat fsaverage 3"
+    echo "Usage:    `basename $0` <input4D> <output4D> <SUBJECTS_DIR> <source-subject> <register.dat> <target-subject> <out-resolution in mm|\"idem\"> [<mri_surf2vol options ...>]"
+    echo "Example:  `basename $0` fsmc.nii fsmc_fsaverage.nii.gz /usr/local/freesurfer/subjects DIf1a ../register.dat fsaverage idem --projfrac 0.5 --fillribbon --fill-projfrac 0 1 0.1"
     echo ""
-    echo "NOTE: <out-resolution> only necessary when output-resolution is to be different from resolution of target-subject."
+    echo "NOTE: <out-resolution> when output-resolution is to be different from resolution of target-subject (otherwise enter \"idem\")."
+    echo ""
     exit 1
 }
 
@@ -31,6 +32,8 @@ srcsubject="$4"
 registerdat="$5"
 trgsubject="$6"
 resolution="$7"
+shift 7
+opts1="$@"
 
 # checks
 if [ ! -f $registerdat ] ; then echo "`basename $0` : '$registerdat' not found - exiting..." ; exit 1 ; fi
@@ -69,7 +72,7 @@ for i in $(seq 0 $[$nvol-1]) ; do
   # surf2vol
   for hemi in lh rh ; do
     echo "$(basename $0): "
-    cmd="mri_surf2vol --surfval ${surfval}.${hemi}.mgh --hemi $hemi --projfrac 0.5 --fillribbon --fill-projfrac 0 1 0.1 --o ${outnii}.${hemi}.nii.gz --identity $trgsubject --template $SUBJECTS_DIR/$trgsubject/mri/T1.mgz"
+    cmd="mri_surf2vol --surfval ${surfval}.${hemi}.mgh --hemi $hemi $opts1 --o ${outnii}.${hemi}.nii.gz --identity $trgsubject --template $SUBJECTS_DIR/$trgsubject/mri/T1.mgz"
     echo "    $cmd" ; $cmd
   done
 
@@ -79,7 +82,7 @@ for i in $(seq 0 $[$nvol-1]) ; do
   echo "    $cmd" ; $cmd
   
   # resample
-  if [ "x$resolution" != "x" ] ; then
+  if [ "x$resolution" != "xidem" ] ; then
     echo "$(basename $0): resampling to $resolution mm..."
     cmd="$(dirname $0)/resample.sh $outnii $resolution $outnii"
     echo "    $cmd" ; $cmd
