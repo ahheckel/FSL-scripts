@@ -17,7 +17,7 @@ Usage() {
     echo "Usage:    `basename $0` <input4D> <output4D> <SUBJECTS_DIR> <source-subject> <register.dat> <target-subject> <out-resolution in mm|\"idem\"> [<mri_surf2vol options ...>]"
     echo "Example:  `basename $0` fsmc.nii fsmc_fsaverage.nii.gz /usr/local/freesurfer/subjects DIf1a ../register.dat fsaverage idem --projfrac 0.5 --fillribbon --fill-projfrac 0 1 0.1"
     echo ""
-    echo "NOTE: <out-resolution> when output-resolution is to be different from resolution of target-subject (otherwise enter \"idem\")."
+    echo "NOTE: Provide <out-resolution> when output-resolution differs from resolution of target-subject (otherwise enter \"idem\")."
     echo ""
     exit 1
 }

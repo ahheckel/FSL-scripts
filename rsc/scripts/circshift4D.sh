@@ -1,5 +1,5 @@
 #!/bin/bash
-# Shifts input by n voxels along any dimension.
+# Shifts input volume by n voxels along any dimension.
 
 # Written by Andreas Heckel
 # University of Heidelberg
