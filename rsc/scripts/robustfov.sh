@@ -1,5 +1,5 @@
 #!/bin/bash
-# Robustfov wrapper (requires FSL 5).
+# Robustfov wrapper (requires FSL 5). Also applies fov to input using fslroi.
 
 # Written by Andreas Heckel
 # University of Heidelberg

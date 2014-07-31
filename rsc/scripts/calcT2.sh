@@ -33,7 +33,7 @@ trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 # check
 if [ $(fslnvols $input) -ne 2 ] ; then
-  echo "`basename $0` : ERROR: '$input' needs to contain two echoes - exiting..." ; exit 1
+  echo "`basename $0` : ERROR: '$input' needs to contain two volumes (echoes) - exiting..." ; exit 1
 fi
 
 # execute
