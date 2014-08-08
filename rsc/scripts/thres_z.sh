@@ -1,4 +1,5 @@
 #!/bin/bash
+# Displays only voxel-intensities ranging between lower_thesh and upper_thresh and optionally binarizes the result.
 
 # Written by Andreas Heckel
 # University of Heidelberg
@@ -13,7 +14,8 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <volume> <exclude-mask|none> <out-mask> [<lower thresh>][p] [<higher thresh>][p]"
+    echo "Usage: `basename $0` <volume> <exclude-mask|none> <out-mask> [<-bin|none>] [<lower thresh>][p] [<higher thresh>][p]"
+    echo "Note:  [p] refers to percentile threshold."
     echo ""
     exit 1
 }
@@ -24,8 +26,9 @@ Usage() {
 t2="$(remove_ext $1)"
 mask="$(remove_ext $2)"
 out="$3"
-if [ x"$4" = "x" ] ; then lowthres="65p" ; else lowthres="$4" ; fi
-if [ x"$5" = "x" ] ; then highthres="75p" ; else highthres="$5" ; fi
+bin="$4" ; if [ x$bin = "xnone" ] ; then bin="" ; fi
+if [ x"$5" = "x" ] ; then lowthres="65p" ; else lowthres="$5" ; fi
+if [ x"$6" = "x" ] ; then highthres="75p" ; else highthres="$6" ; fi
 if [ $(echo $lowthres | grep p | wc -l) -eq 1 ] ; then perc_l=1 ; lowthres=$(echo $lowthres | cut -d p -f 1) ; else perc_l=0 ; fi
 if [ $(echo $highthres | grep p | wc -l) -eq 1 ] ; then perc_h=1 ; highthres=$(echo $highthres | cut -d p -f 1) ; else perc_h=0 ; fi
 
@@ -37,9 +40,31 @@ trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 echo "`basename $0`:"
 
+# no z-slicing and betting needed if...
+if [ "$mask" = "none" -a $perc_h -eq 0 -a $perc_l -eq 0  ] ; then
+  thres_h=$highthres
+  thres_l=$lowthres
+  
+  # apply upper threshold
+  cmd="fslmaths $t2 -thr $thres_h $bin ${_m}_1"
+  echo "    $cmd" ; $cmd
+
+  # apply lower threshold
+  cmd="fslmaths $t2 -thr $thres_l $bin ${_m}_0"
+  echo "    $cmd" ; $cmd
+  
+  # combine both thresholds
+  cmd="fslmaths ${_m}_0 -sub ${_m}_1 -thr 0 $bin $out"
+  echo "    $cmd" ; $cmd
+      
+  # done
+  echo "`basename $0`: done."
+  exit
+fi
+
 # dilate exclusion mask
 if [ "$mask" != "none" ] ; then
-  cmd="fslmaths $mask -bin -kernel 2D -dilF $tmpdir/mask_bin_dilF"
+  cmd="fslmaths $mask $bin -kernel 2D -dilF $tmpdir/mask_bin_dilF"
   echo "    $cmd" ; $cmd
 fi
 
@@ -53,7 +78,7 @@ echo "    $cmd" ; $cmd
 
 # remove exclusion
 if [ "$mask" != "none" ] ; then
-  cmd="fslmaths $tmpdir/t2_bet_mask -sub $tmpdir/mask_bin_dilF -thr 0 -bin $tmpdir/t2_bet_nonerve"
+  cmd="fslmaths $tmpdir/t2_bet_mask -sub $tmpdir/mask_bin_dilF -thr 0 $bin $tmpdir/t2_bet_nonerve"
   echo "    $cmd" ; $cmd
 else
   cmd="imcp $tmpdir/t2_bet_mask $tmpdir/t2_bet_nonerve"
@@ -84,13 +109,15 @@ for i in `seq 0 $[$Z-1]` ; do
   fi
   
   # apply upper threshold
-  cmd="fslmaths $_t2 -mas $_m -thr $thres_h -bin ${_m}_1"
+  cmd="fslmaths $_t2 -mas $_m -thr $thres_h $bin ${_m}_1"
   echo "    $cmd" ; $cmd
 
   # apply lower threshold
-  cmd="fslmaths $_t2 -mas $_m -thr $thres_l -bin ${_m}_0"
-  echo "    $cmd" ; $cmd  
-  cmd="fslmaths ${_m}_0 -sub ${_m}_1 -thr 0 -bin ${_m}_done"
+  cmd="fslmaths $_t2 -mas $_m -thr $thres_l $bin ${_m}_0"
+  echo "    $cmd" ; $cmd
+  
+  # combine both thresholds
+  cmd="fslmaths ${_m}_0 -sub ${_m}_1 -thr 0 $bin ${_m}_done"
   echo "    $cmd" ; $cmd
   
   _ms=$_ms" "${_m}_done
