@@ -64,12 +64,12 @@ fi
 
 # dilate exclusion mask
 if [ "$mask" != "none" ] ; then
-  cmd="fslmaths $mask $bin -kernel 2D -dilF $tmpdir/mask_bin_dilF"
+  cmd="fslmaths $mask -bin -kernel 2D -dilF -dilF -dilF $tmpdir/mask_bin_dilF"
   echo "    $cmd" ; $cmd
 fi
 
 # bet image
-cmd="bet $t2 $tmpdir/t2_bet -f 0.1 -m"
+cmd="bet $t2 $tmpdir/t2_bet -f 0 -m"
 echo "    $cmd" ; $cmd
 
 # erode
