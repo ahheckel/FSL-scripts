@@ -1,5 +1,5 @@
 #!/bin/bash
-# Computes T2 relaxation from 4D double-echo.
+# Computes T2 relaxation time from 4D double-echo.
 
 # Written by Andreas Heckel
 # University of Heidelberg
