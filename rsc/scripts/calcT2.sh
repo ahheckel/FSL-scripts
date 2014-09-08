@@ -43,7 +43,7 @@ cmd="fslroi $input $tmpdir/1 1 1"
 echo "    $cmd"  ; $cmd
 cmd="fslmaths $tmpdir/0 -div $tmpdir/1 $tmpdir/div" 
 echo "    $cmd"  ; $cmd
-cmd="fslmaths $tmpdir/div -log -recip -mul $dTE $output" 
+cmd="fslmaths $tmpdir/div -log -recip -mul $dTE ${output}_T2" 
 echo "    $cmd"  ; $cmd
 
 # done
