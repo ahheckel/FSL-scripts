@@ -63,7 +63,7 @@ if [ $n_echo -gt 2 ] ; then
   #echo "    $cmd"  ; $cmd
 elif [ $n_echo -eq 2 ] ; then
   dTE="$(echo "$TE" | sed 's| |-|g')"
-  dTE=$(echo $dTE | bc -l)
+  dTE=$(echo "($dTE) * -1"| bc -l)
   # execute
   echo "`basename $0` : calculating T2 (dTE=${dTE}ms, $n_echo echoes)..."
   cmd="fslroi $input $tmpdir/0 0 1"
