@@ -9,7 +9,7 @@ trap 'echo "$0 : An ERROR has occured."' ERR
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <ALFF-out> <bold4D-in> <mask> <TR(s)> <freq-band:LP,HP>"
+    echo "Usage: `basename $0` <ALFF-out> <bold4D-in> <mask> <TR(s)> <freq-band:LP,HP(Hz)>"
     echo "Example: `basename $0` outdir/ALFF.nii.gz bold/resting.nii.gz bold/mask.nii.gz 3.33 0.01,0.1"
     echo "         NOTE: Input should be motion-corrected (perhaps also unwarped + slicetiming corrected) with drifts removed and Grand-Mean scaled."
     exit 1

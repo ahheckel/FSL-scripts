@@ -1,11 +1,11 @@
 #!/bin/bash
-# Reformats fslmeants output for within subjects ROI analysis (1 col. per condition / 1 col. per subject).
+# Reformats fslmeants output for within subjects ROI analysis (1 col. per condition / 1 col. per subject) for ANOVA.
 
 # Written by Andreas Heckel
 # University of Heidelberg
 # heckelandreas@googlemail.com
 # https://github.com/ahheckel
-# 03/09/2013
+# 09/21/2014
 
 trap 'echo "$0 : An ERROR has occured." ; exit 1' ERR
 
