@@ -47,7 +47,7 @@ function getMax() # finds maximum in column
 
 Usage() {
     echo ""
-    echo "Usage:  `basename $0` [--vxcount|--extract] <input3D> <mask3D> <text-output> [<\"-bin\"|none>](def:none) [<\"fslmeants-opts\"|none>](def:none) [<vertcat penvalue[0|1],subjects[0|1]>](def:0,0)"
+    echo "Usage:  `basename $0` [--vxcount|--extract|--std] <input3D> <mask3D> <text-output> [<\"-bin\"|none>](def:none) [<\"fslmeants-opts\"|none>](def:none) [<vertcat penvalue[0|1],subjects[0|1]>](def:0,0)"
     echo "Example:  `basename $0` --extract \"FA-1 FA-2 FA-3\" \"FA-mask-1 FA-mask-2 FA-mask-3\" FA_vals.txt \"-bin\" \"--showall\" 0,1"
     echo "          `basename $0` --vxcount FA-list.txt FA-mask-list.txt FA_vals.txt"
     echo ""
@@ -55,9 +55,10 @@ Usage() {
 }
 
 # parse options
-dovx=1 ; doex=1
-if [ "$1" = "--vxcount" ] ; then dovx=1 ; doex=0 ; shift ; fi
-if [ "$1" = "--extract" ] ; then dovx=0 ; doex=1 ; shift ; fi
+dovx=1 ; doex=1 ; dostd=1
+if [ "$1" = "--vxcount" ] ; then dovx=1 ; doex=0 ; dostd=0 ; shift ; fi
+if [ "$1" = "--extract" ] ; then dovx=0 ; doex=1 ; dostd=0 ; shift ; fi
+if [ "$1" = "--std" ] ;     then dovx=0 ; doex=0 ; dostd=1 ; shift ; fi
 
 # assign input arguments
 [ "$3" = "" ] && Usage
@@ -153,7 +154,7 @@ if [ $n_lines1 -ne $n_lines3 -a x"$shiftvector" != "x0" ] ; then
 fi
 
 # looping...
-n_mask=0 ; mask_tmp="" ; header="" ; vxmask_tmp=""
+n_mask=0 ; mask_tmp="" ; header="" ; vxmask_tmp="" ; stdmask_tmp=""
 for counter in `seq 1 $n_lines2` ; do
   mask="$(cat $tmpdir/masks.txt | sed -n ${counter}p)"
   input="$(cat $tmpdir/inputs.txt | sed -n ${counter}p)"
@@ -197,6 +198,7 @@ for counter in `seq 1 $n_lines2` ; do
   echo "`basename $0` : vert-cat subj:  $vertcat1"
   echo "`basename $0` : do-extract:     $doex"
   echo "`basename $0` : do-vxcount:     $dovx"
+  echo "`basename $0` : do-std:         $dostd"
   echo "`basename $0` : txt-out:        $out"
   echo "---------------------------"
 
@@ -207,9 +209,9 @@ for counter in `seq 1 $n_lines2` ; do
   $(dirname $0)/split4D.sh z $mask [0:1:end] $tmpdir/$(basename $mask)
 
   # looping...
-  rm -f $tmpdir/meants_??? ; outs_tmp="" ; vxouts_tmp=""
+  rm -f $tmpdir/meants_??? ; outs_tmp="" ; vxouts_tmp="" ; stdouts_tmp=""
   for n in `seq 1 $n0max` ; do # for each "color"
-    meantsfiles="" ; vxfiles=""
+    meantsfiles="" ; vxfiles="" ; stdfiles=""
     for i in `seq 0 $[$Z-1]` ; do # for each slice
       # segment
       cmd="$(dirname $0)/seg_mask.sh $tmpdir/$(basename $mask)_slice_$(zeropad $i 4) $n $tmpdir/$(basename $mask)_slice_$(zeropad $i 4)_$(zeropad $n 3)"
@@ -237,14 +239,22 @@ for counter in `seq 1 $n_lines2` ; do
         echo $cmd ; $cmd  | cut -d " " -f 1 > $tmpdir/vx_$(zeropad $i 4)_$(zeropad $n 3)
       fi
       
+      # get std
+      if [ $dostd -eq 1 ] ; then 
+        cmd="fslstats $tmpdir/$(basename $input)_slice_$(zeropad $i 4)  -k $tmpdir/$(basename $mask)_slice_$(zeropad $i 4)_$(zeropad $n 3) -s"
+        echo $cmd ; $cmd  > $tmpdir/std_$(zeropad $i 4)_$(zeropad $n 3)
+      fi
+      
       # collect per-slice outputs
       if [ $doex -eq 1 ] ; then meantsfiles=$meantsfiles" "$tmpdir/meants_$(zeropad $i 4)_$(zeropad $n 3) ; fi
       if [ $dovx -eq 1 ] ; then vxfiles=$vxfiles" "$tmpdir/vx_$(zeropad $i 4)_$(zeropad $n 3) ; fi
+      if [ $dostd -eq 1 ] ; then stdfiles=$stdfiles" "$tmpdir/std_$(zeropad $i 4)_$(zeropad $n 3) ; fi
     done
     
     # vert-cat per-slice outputs
     if [ $doex -eq 1 ] ; then cat $meantsfiles > $tmpdir/out_$(zeropad $n 4) ; fi
     if [ $dovx -eq 1 ] ; then cat $vxfiles > $tmpdir/vxout_$(zeropad $n 4) ; fi
+    if [ $dostd -eq 1 ] ; then cat $stdfiles > $tmpdir/stdout_$(zeropad $n 4) ; fi
     
     # shift slices if applicable
     if [ x"$shiftvector" != "x0" ] ; then
@@ -255,7 +265,7 @@ for counter in `seq 1 $n_lines2` ; do
         cat $tmpdir/__out_$(zeropad $n 4) >> $tmpdir/out_$(zeropad $n 4)
         for sl in `seq 1 $[$addlow-$_shift]` ; do echo 0 ; done >> $tmpdir/out_$(zeropad $n 4)
         rm $tmpdir/__out_$(zeropad $n 4)
-        #cat  $tmpdir/vxout_$(zeropad $n 4)
+        #cat  $tmpdir/out_$(zeropad $n 4)
       fi      
       # shift voxel count/volume
       if [ $dovx -eq 1 ] ; then 
@@ -266,16 +276,27 @@ for counter in `seq 1 $n_lines2` ; do
         rm $tmpdir/__vxout_$(zeropad $n 4)
         #cat  $tmpdir/vxout_$(zeropad $n 4)
       fi
+      # shift std
+      if [ $dostd -eq 1 ] ; then 
+        mv $tmpdir/stdout_$(zeropad $n 4) $tmpdir/__stdout_$(zeropad $n 4)
+        for sl in `seq 1 $[$addhigh+$_shift]` ; do echo 0 ; done > $tmpdir/stdout_$(zeropad $n 4)
+        cat $tmpdir/__stdout_$(zeropad $n 4) >> $tmpdir/stdout_$(zeropad $n 4)
+        for sl in `seq 1 $[$addlow-$_shift]` ; do echo 0 ; done >> $tmpdir/stdout_$(zeropad $n 4)
+        rm $tmpdir/__stdout_$(zeropad $n 4)
+        #cat  $tmpdir/stdout_$(zeropad $n 4)
+      fi
     fi
     
     # do heading
     header=$(basename $out)__$(basename $input)__$(basename $mask)_$(zeropad $n 3)
     if [ $doex -eq 1 ] ; then sed -i "1i $header" $tmpdir/out_$(zeropad $n 4) ; fi
     if [ $dovx -eq 1 ] ; then sed -i "1i $header" $tmpdir/vxout_$(zeropad $n 4) ; fi
+    if [ $dostd -eq 1 ] ; then sed -i "1i $header" $tmpdir/stdout_$(zeropad $n 4) ; fi
 
     # collect n outputs (n=number of pen-values)
     if [ $doex -eq 1 ] ; then outs_tmp=$outs_tmp" "$tmpdir/out_$(zeropad $n 4) ; fi
     if [ $dovx -eq 1 ] ; then vxouts_tmp=$vxouts_tmp" "$tmpdir/vxout_$(zeropad $n 4) ; fi
+    if [ $dostd -eq 1 ] ; then stdouts_tmp=$stdouts_tmp" "$tmpdir/stdout_$(zeropad $n 4) ; fi
     
     echo ""
   done
@@ -284,14 +305,17 @@ for counter in `seq 1 $n_lines2` ; do
   if [ $vertcat0 -eq 1 ] ; then
     if [ $doex -eq 1 ] ; then cat $outs_tmp > $tmpdir/$(basename $out)_$(zeropad $n_mask 3) ; fi
     if [ $dovx -eq 1 ] ; then cat $vxouts_tmp > $tmpdir/vx_$(basename $out)_$(zeropad $n_mask 3) ; fi
+    if [ $dostd -eq 1 ] ; then cat $stdouts_tmp > $tmpdir/std_$(basename $out)_$(zeropad $n_mask 3) ; fi
   else
     if [ $doex -eq 1 ] ; then paste -d " " $outs_tmp > $tmpdir/$(basename $out)_$(zeropad $n_mask 3) ; fi
     if [ $dovx -eq 1 ] ; then paste -d " " $vxouts_tmp > $tmpdir/vx_$(basename $out)_$(zeropad $n_mask 3) ; fi
+    if [ $dostd -eq 1 ] ; then paste -d " " $stdouts_tmp > $tmpdir/std_$(basename $out)_$(zeropad $n_mask 3) ; fi
   fi
-  
+
   # collect subjects
   if [ $doex -eq 1 ] ; then mask_tmp=$mask_tmp" "$tmpdir/$(basename $out)_$(zeropad $n_mask 3) ; fi
   if [ $dovx -eq 1 ] ; then vxmask_tmp=$vxmask_tmp" "$tmpdir/vx_$(basename $out)_$(zeropad $n_mask 3) ; fi
+  if [ $dostd -eq 1 ] ; then stdmask_tmp=$stdmask_tmp" "$tmpdir/std_$(basename $out)_$(zeropad $n_mask 3) ; fi
   
   # increment
   n_mask=$[$n_mask+1]
@@ -300,21 +324,29 @@ done
 # horz-cat or vert-cat subjects ?
 if [ $vertcat1 -eq 1 ] ; then
   if [ $doex -eq 1 ] ; then 
-    echo "cat $mask_tmp > $out"
-    cat  $mask_tmp > $out
+    echo "cat $mask_tmp > $(dirname $out)/meants_$(basename $out)" # info
+    cat  $mask_tmp > $(dirname $out)/meants_$(basename $out)
   fi
   if [ $dovx -eq 1 ] ; then 
-    echo "cat $vxmask_tmp > $(dirname $out)/vxcount_$(basename $out)"
+    echo "cat $vxmask_tmp > $(dirname $out)/vxcount_$(basename $out)" # info
     cat  $vxmask_tmp > $(dirname $out)/vxcount_$(basename $out)
+  fi
+  if [ $dostd -eq 1 ] ; then 
+    echo "$stdmask_tmp > $(dirname $out)/stdout_$(basename $out)" # info
+    cat  $stdmask_tmp > $(dirname $out)/stdout_$(basename $out)
   fi
 else
   if [ $doex -eq 1 ] ; then 
-    echo "paste -d \" \" $mask_tmp > $out"
-    paste -d " " $mask_tmp > $out
+    echo "paste -d \" \" $mask_tmp > $(dirname $out)/meants_$(basename $out)" # info
+    paste -d " " $mask_tmp > $(dirname $out)/meants_$(basename $out)
   fi
   if [ $dovx -eq 1 ] ; then 
-    echo "paste -d \" \" $vxmask_tmp > $(dirname $out)/vxcount_$(basename $out)"
+    echo "paste -d \" \" $vxmask_tmp > $(dirname $out)/vxcount_$(basename $out)" # info
     paste -d " " $vxmask_tmp > $(dirname $out)/vxcount_$(basename $out)
+  fi
+  if [ $dostd -eq 1 ] ; then 
+    echo "paste -d \" \" $stdmask_tmp > $(dirname $out)/std_$(basename $out)" # info
+    paste -d " " $stdmask_tmp > $(dirname $out)/stdout_$(basename $out)
   fi
 fi
 

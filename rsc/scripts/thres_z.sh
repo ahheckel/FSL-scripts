@@ -69,7 +69,8 @@ if [ "$mask" != "none" ] ; then
 fi
 
 # bet image
-cmd="bet $t2 $tmpdir/t2_bet -f 0 -m"
+cmd="fslmaths $t2 -bin $tmpdir/t2_bet_mask"
+#cmd="bet $t2 $tmpdir/t2_bet -f 0 -m"
 echo "    $cmd" ; $cmd
 
 # erode

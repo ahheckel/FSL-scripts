@@ -1,5 +1,5 @@
 #!/bin/bash
-# Fslview wrapper for Nautilus. Also converts and displays Freesurfer volumes.
+# Fslview wrapper for Nautilus. Also converts and displays Freesurfer volumes. No blanks allowed.
 
 # INSTALL:
 # mkdir -p ~/.gnome2/nautilus-scripts

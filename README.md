@@ -1,6 +1,7 @@
 ## FSL-scripts
 
 Script-framework using FSL, Freesurfer and AFNI functionality for automatization and high-throughput processing of MRI data in clustered environments.
+This work was supported by the PostDoc Programme of the Medical Faculty (University of Heidelberg).
 
 ### Features
 * Fully automated cascades up to 2nd-level GLM stats for cross-sectional and longitudinal designs  
@@ -50,6 +51,7 @@ FSL/Freesurfer installations differ from what is expected by this framework.
 * Copy and edit config* files in ./subj (if preprocessing settings  
   and/or acquisition parameters vary across subjects/sessions).  
 * Run ```./run_script.sh [bg]``` to start processing.  
+
 
 Example directory structure:  
 

@@ -30,7 +30,7 @@ function row2col()
 
 Usage() {
     echo ""
-    echo "Usage:  `basename $0` [--vxcount|--extract] <input3D> <mask3D> <text-output> [-bin]"
+    echo "Usage:  `basename $0` [--vxcount|--extract|--std] <input3D> <mask3D> <text-output> [-bin]"
     echo "Example:  `basename $0` --extract \"FA-1 FA-2 FA-3\" \"FA-mask-1 FA-mask-2 FA-mask-3\" FA_table.txt -bin"
     echo "          `basename $0` --vxcount FA-list.txt FA-mask-list.txt FA_table.txt"
     echo ""
@@ -38,9 +38,10 @@ Usage() {
 }
 
 # parse options
-dovx=1 ; doex=1
-if [ "$1" = "--vxcount" ] ; then dovx=1 ; doex=0 ; shift ; fi
-if [ "$1" = "--extract" ] ; then dovx=0 ; doex=1 ; shift ; fi
+dovx=1 ; doex=1 ; dostd=1
+if [ "$1" = "--vxcount" ] ; then dovx=1 ; doex=0 ; dostd=0 ; shift ; fi
+if [ "$1" = "--extract" ] ; then dovx=0 ; doex=1 ; dostd=0 ; shift ; fi
+if [ "$1" = "--std" ] ; then dovx=0 ; doex=0 ; dostd=1 ; shift ; fi
 
 # assign input arguments
 [ "$3" = "" ] && Usage
@@ -107,14 +108,14 @@ trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 # checks
 echo  $masks  | row2col > $tmpdir/masks.txt
 echo  $inputs | row2col > $tmpdir/inputs.txt
-n_lines1=$(cat $tmpdir/masks.txt | wc -l)
-n_lines2=$(cat $tmpdir/inputs.txt | wc -l)
+n_lines1=$(cat $tmpdir/masks.txt | grep -v ^# | awk '{print $1}' | wc -l)
+n_lines2=$(cat $tmpdir/inputs.txt| grep -v ^# | wc -l)
 if [ $n_lines1 -ne $n_lines2 ] ; then
   echo "`basename $0`: ERROR : Number of inputs ('$n_lines2') and number of masks ($n_lines1) do not match. Exiting" ; exit 1
 fi
 
 # looping...
-outs_tmp="" ; header="" ; vxouts_tmp=""
+outs_tmp="" ; header="" ; vxouts_tmp="" ; stdouts_tmp=""
 for counter in `seq 1 $n_lines2` ; do
   mask="$(cat $tmpdir/masks.txt | sed -n ${counter}p)"
   input="$(cat $tmpdir/inputs.txt | sed -n ${counter}p)"
@@ -146,6 +147,7 @@ for counter in `seq 1 $n_lines2` ; do
   echo "`basename $0` : markers:    1 - ${n0max}"
   echo "`basename $0` : do-extract: $doex"
   echo "`basename $0` : do-vxcount: $dovx"
+  echo "`basename $0` : do-std:     $dostd"
   echo "`basename $0` : txt-out:    $out"
   echo "---------------------------"
 
@@ -171,6 +173,19 @@ for counter in `seq 1 $n_lines2` ; do
     echo $vxcount > $tmpdir/vxout_$(basename $input)_$(basename $mask)
     vxouts_tmp=$vxouts_tmp" "$tmpdir/vxout_$(basename $input)_$(basename $mask)
   fi
+  
+  # collect std
+  if [ $dostd -eq 1 ] ; then
+    std=""
+    for n in `seq 1 $n0max` ; do # for each "color"
+      cmd="$(dirname $0)/seg_mask.sh $mask $n $tmpdir/$(basename $mask)_$(zeropad $n 3)"
+      $cmd 1 > /dev/null
+      cmd="fslstats $input -k $tmpdir/$(basename $mask)_$(zeropad $n 3) -s"
+      echo $cmd ; std=$std"  "`$cmd`
+    done
+    echo $std > $tmpdir/stdout_$(basename $input)_$(basename $mask)
+    stdouts_tmp=$stdouts_tmp" "$tmpdir/stdout_$(basename $input)_$(basename $mask)
+  fi
 done
 
 # horz-cat...
@@ -178,14 +193,20 @@ echo $header | row2col > $tmpdir/header
 # ...extraction
 if [ $doex -eq 1 ] ; then
   cat $outs_tmp > $tmpdir/out
-  echo "paste -d \" \" $tmpdir/header $tmpdir/out > ${out}"
-  paste -d " " $tmpdir/header $tmpdir/out > ${out}
+  echo "paste -d \" \" $tmpdir/header $tmpdir/out > $(dirname $out)/meants_$(basename $out)" # info
+  paste -d " " $tmpdir/header $tmpdir/out > $(dirname $out)/meants_$(basename $out)
 fi
 # ...voxelcount
 if [ $dovx -eq 1 ] ; then
   cat $vxouts_tmp > $tmpdir/vxout
-  echo "paste -d \" \" $tmpdir/header $tmpdir/vxout > $(dirname $out)/vxcount_$(basename $out)"
+  echo "paste -d \" \" $tmpdir/header $tmpdir/vxout > $(dirname $out)/vxcount_$(basename $out)" # info
   paste -d " " $tmpdir/header $tmpdir/vxout > $(dirname $out)/vxcount_$(basename $out)
+fi
+# ...std
+if [ $dostd -eq 1 ] ; then
+  cat $stdouts_tmp > $tmpdir/stdout
+  echo "paste -d \" \" $tmpdir/header $tmpdir/stdout > $(dirname $out)/stdout_$(basename $out)" # info
+  paste -d " " $tmpdir/header $tmpdir/stdout > $(dirname $out)/stdout_$(basename $out)
 fi
   
 # done.
