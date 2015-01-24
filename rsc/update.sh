@@ -24,7 +24,8 @@ echo ""
 read -p "press Key to continue..."
 echo ""
 
-#cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all
+#cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all # commented because the fsl_sub_mgh is linked to fsl_sub (see below), i.e. native trac-all can be used.
+#chmod +x $FREESURFER_HOME/bin/trac-all
 cp -iv fsl/fsl5/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection, should also work for FSL < v.5
 chmod +x $FSLDIR/bin/fsl_sub
 cp -iv fsl/templates/MNI152*.nii.gz $FSLDIR/data/standard/
@@ -70,23 +71,6 @@ for bit in 32 64 ; do
     chmod +x scripts/bin/fslmaths5
   fi
 done
-
-#if [ $1 -eq 32 ] ; then
-  #if [ $v5 -eq 0 ] ; then # dont overwrite for fsl ver. 5
-    #cp -iv fsl/fsl4/topup/topup_32 $FSLDIR/bin/topup 
-    #cp -iv fsl/fsl4/topup/applytopup_32 $FSLDIR/bin/applytopup
-    #cp -iv fsl/fsl4/tbss_x/swap_voxelwise_32 $FSLDIR/bin/swap_voxelwise
-    #cp -iv fsl/fsl4/tbss_x/swap_subjectwise_32 $FSLDIR/bin/swap_subjectwise
-  #fi  
-  #cp -iv afni/3dDespike_32 $FSLDIR/bin/3dDespike 
-  #cp -iv afni/3dTcat_32 $FSLDIR/bin/3dTcat
-  #cp -iv afni/3dTstat_32 $FSLDIR/bin/3dTstat
-  #cp -iv afni/3dcalc_32 $FSLDIR/bin/3dcalc
-  #cp -iv afni/3dDetrend_32 $FSLDIR/bin/3dDetrend
-  #cp -iv scripts/bin/sort8_32 scripts/bin/sort8
-  #cp -iv scripts/bin/fslmaths_32 scripts/bin/fslmaths5
-#fi
-#chmod +x $FREESURFER_HOME/bin/trac-all
 
 if [ ! -d $FREESURFER_HOME/subjects/fsaverage/tmp ] ; then
   mkdir $FREESURFER_HOME/subjects/fsaverage/tmp
