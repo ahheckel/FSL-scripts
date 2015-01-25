@@ -1,7 +1,7 @@
 #!/bin/sh
 
-# Copyright (C) 2007-2014 University of Oxford
-# Authors: Dave Flitney, Stephen Smith, Matthew Webster and Duncan Mortimer
+# Copyright (C) 2007-2013 University of Oxford
+# Authors: Dave Flitney, Stephen Smith and Matthew Webster
 
 #   Part of FSL - FMRIB's Software Library
 #   http://www.fmrib.ox.ac.uk/fsl
@@ -64,7 +64,6 @@
 #   Innovation Limited ("Isis"), the technology transfer company of the
 #   University, to negotiate a licence. Contact details are:
 #   innovation@isis.ox.ac.uk quoting reference DE/9564.
-export LC_ALL=C
 
 ###########################################################################
 # Edit this file in order to setup FSL to use your local compute
@@ -84,12 +83,6 @@ METHOD=SGE
 unset module
 if [ "x$SGE_ROOT" = "x" ] ; then
 	METHOD=NONE
-else
-	QCONF=`which qconf`
-	if [ "x$QCONF" = "x" ]; then
-		METHOD=NONE
-		echo "Warning: SGE_ROOT environment variable is set but Grid Engine software not found, will run locally" >&2
-	fi
 fi
 
 # stop submitted scripts from submitting jobs themselves
@@ -98,9 +91,6 @@ if [ "X$FSLSUBALREADYRUN" = "Xtrue" ] ; then
     echo "Warning: job on queue attempted to submit parallel jobs - running jobs serially instead" >&2
 fi
 
-if [ "X$METHOD" = "XNONE" ]; then
-	QCONF=echo
-fi
 FSLSUBALREADYRUN=true
 export FSLSUBALREADYRUN
 
@@ -226,7 +216,7 @@ omp_pe='openmp'
 queue=long.q
 queueCmd=" -q long.q "
 mailto=`whoami`@fmrib.ox.ac.uk
-MailOpts="a"
+MailOpts="n"
 
 
 ###########################################################################
@@ -277,7 +267,7 @@ while [ $1 != -- ] ; do
     -q)
       queue=$2
       queueCmd=" -q $queue " 
-      $QCONF -sq $queue >/dev/null 2>&1
+      qconf -sq $queue 2>&1 >/dev/null
       if [ $? -eq 1 ]; then
 	  echo "Invalid queue specified!"
 	  exit 127
@@ -311,19 +301,8 @@ while [ $1 != -- ] ; do
       shift;;
     -t)
       taskfile=$2
-      if [ -f "$taskfile" ] ; then
-	      tasks=`wc -l $taskfile | awk '{print $1}'`
-	      if [ $tasks -ne 0 ]; then
-    	  	sge_tasks="-t 1-$tasks"
-    	  else
-    	    echo "Task file ${taskfile} is empty"
-    	    echo "Should be a text file listing all the commands to run!"
-    	    exit -1
-    	  fi
-      else
-          echo "Task file (${taskfile}) does not exist"
-          exit -1
-      fi
+      tasks=`wc -l $taskfile | awk '{print $1}'`
+      sge_tasks="-t 1-$tasks"
       shift;;
     -N)
       JobName=$2;
@@ -334,15 +313,7 @@ while [ $1 != -- ] ; do
     -l)
       LogOpts="-o $2 -e $2";
       LogDir="${2}/";
-      if [ ! -e ${2} ]; then 
-	  mkdir -p $2
-      else
-	  echo ${2} | grep '/dev/null' >/dev/null 2>&1
-	  if [ $? -eq 1 ] && [ -f ${2} ]; then
-	      echo "Log destination is a file (should be a folder)"
-	      exit -1
-	  fi
-      fi
+      mkdir -p $2;
       shift;;
     -F)
       scriptmode=1;
@@ -364,19 +335,6 @@ shift
 # Don't change the following (but keep scrolling down!)
 ###########################################################################
 
-if [ -z "$taskfile" ] && [ -z "$1" ]; then
-	echo "Either supply a command to run or a parallel task file"
-	exit -1
-fi
-
-if [ -z "$taskfile" ] && [ ! -x "$1" ]; then
-	which $1 >/dev/null 2>&1
-	if [ $? -ne 0 ]; then
-		echo "The command you have requested cannot be found or is not executable"
-		exit -1
-	fi
-fi
-
 if [ "x$JobName" = x ] ; then 
     if [ "x$taskfile" != x ] ; then
 	JobName=`basename $taskfile`
@@ -385,9 +343,15 @@ if [ "x$JobName" = x ] ; then
     fi
 fi
 
+if [ "x$tasks" != x ] && [ ! -f "$taskfile" ] ; then
+    echo $taskfile: invalid input!
+    echo Should be a text file listing all the commands to run!
+    exit -1
+fi
+
 if [ "x$tasks" != "x" ] && [ "x$@" != "x" ] ; then
-    echo "Spurious input after parsing command line: \"$@\"!"
-    echo "You appear to have specified both a task file and a command to run"
+    echo $@
+    echo Spurious input after parsing command line!
     exit -1
 fi
 
@@ -417,7 +381,7 @@ case $METHOD in
 	if [ "x$peName" != x ]; then
             # Is this a configured PE?
 
-	    $QCONF -sp $peName >/dev/null 2>&1
+	    qconf -sp $peName 2>&1 >/dev/null
 
 	    if [ $? -eq 1 ]; then
 		echo $@
@@ -427,13 +391,13 @@ case $METHOD in
 
             # Get a list of queues configured for this PE and confirm that the queue
             # we have submitted to has that PE set up.
-	    qstat -g c -pe $peName >/dev/null 2>&1
+	    qstat -g c -pe $peName 2>&1 >/dev/null
 	    if [ $? -eq 1 ]; then
 		echo "No parallel environments configured!"
 		exit -1
 	    fi
 
-	    qstat -g c -pe $peName | sed '1,2d' | awk '{ print $1 }' | grep ^$queue >/dev/null 2>&1
+	    qstat -g c -pe $peName | sed '1,2d' | awk '{ print $1 }' | grep ^$queue 2>&1 >/dev/null
 
 	    if [ $? -eq 1 ]; then
 		echo $@
