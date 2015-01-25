@@ -26,7 +26,7 @@ echo ""
 
 #cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all # commented because the fsl_sub_mgh/fsl_sub_seychelles is linked to fsl_sub (see below), i.e. native trac-all can be used.
 #chmod +x $FREESURFER_HOME/bin/trac-all
-cp -iv fsl/fsl5/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection, should also work for FSL < v.5
+cp -iv fsl/fsl5/fsl_sub_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection, should also work for FSL < v.5
 chmod +x $FSLDIR/bin/fsl_sub
 cp -iv fsl/templates/MNI152*.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/templates/avg152T1*.nii.gz $FSLDIR/data/standard/

@@ -17,7 +17,7 @@ clear
 
 # check for differences...
 if [ $v5 -eq 1 ] ; then
-  cmd="diff $fwdir/fsl/fsl5/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
+  cmd="diff $fwdir/fsl/fsl5/fsl_sub_patched $FSLDIR/bin/fsl_sub" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
 fi
 
 if [ $v5 -eq 0 ] ; then
