@@ -15,7 +15,7 @@ echo "FSLDIR:                   '$FSLDIR'"
 echo "FREESURFER_HOME:          '$FREESURFER_HOME'"
 # display FSL version
 fslversion=$(cat $FSLDIR/etc/fslversion)
-echo "FSL version:              '${fslversion}'." ; # sleep 1
+echo "FSL version:              '${fslversion}'."
 v5=$(cat $FSLDIR/etc/fslversion | grep ^5 | wc -l)
 # display FREESURFER version
 echo "FREESURFER build-stamp:   '`cat $FREESURFER_HOME/build-stamp.txt`'."
@@ -24,7 +24,7 @@ echo ""
 read -p "press Key to continue..."
 echo ""
 
-#cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all # commented because the fsl_sub_mgh is linked to fsl_sub (see below), i.e. native trac-all can be used.
+#cp -iv fs/trac-all $FREESURFER_HOME/bin/trac-all # commented because the fsl_sub_mgh/fsl_sub_seychelles is linked to fsl_sub (see below), i.e. native trac-all can be used.
 #chmod +x $FREESURFER_HOME/bin/trac-all
 cp -iv fsl/fsl5/fsl_sub_v5_patched $FSLDIR/bin/fsl_sub # contains a RAM limit and JOB-ID redirection, should also work for FSL < v.5
 chmod +x $FSLDIR/bin/fsl_sub
