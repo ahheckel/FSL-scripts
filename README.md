@@ -24,8 +24,9 @@ This work was supported by the PostDoc Programme of the Medical Faculty (Univers
 * Nautilus scripts for easy viewing  
 
 ### Requirements
-* Linux (CentOS5 or compatible and Bash > 3.2.25)  
-* FSL > 4.9.1 / 5.0  
+* Linux 
+* Bash >=4
+* FSL > 4.9.1 
 * Freesurfer > 5.1.0 
 * SunGridEngine > 6.1u6  
 * Octave > 3.0.5  
