@@ -35,7 +35,7 @@ else
   if [ $( echo $version | cut -d . -f1) -ge 6 -o $( echo $version | cut -d . -f1) -ge 5 -a $( echo $version | cut -d . -f2) -ge 1 -o  $( echo $version | cut -d . -f1) -eq 5 -a $( echo $version | cut -d . -f2) -eq 0 -a $( echo $version | cut -d . -f3) -ge 7 ] ; then
       fslmaths ${data} -Tmean ${out}_tmpmean
       cmdaddmean="-add ${out}_tmpmean" # need to add back mean in fsl >= 5.0.7
-      echo "`basename $0`: subj $subj , sess $sess : highpass temporal filtering of ${data}: FSL >= 5.0.7 detected, need to add back mean."
+      echo "`basename $0`: subj $subj , sess $sess : highpass temporal filtering of ${data}: FSL >= 5.0.7 detected -> need to add back mean."
   fi
   hp_sigma_sec=$(echo "scale=9; $hpf / 2.0" | bc -l)
   hp_sigma_vol=$(echo "scale=9; $hp_sigma_sec / $TR" | bc -l)
