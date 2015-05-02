@@ -12,7 +12,7 @@ Usage() {
 
 subdir="$1"
 cd $(dirname $0)
-installdirs="$HOME/.gnome2/nautilus-scripts/$subdir $HOME/.local/share/nautilus/scripts/$subdir" # for old and newer (ubuntu >14.04, gnome3) nautilus versions
+installdirs="$HOME/.gnome2/nautilus-scripts/$subdir $HOME/.local/share/nautilus/scripts/$subdir" # for old and newer (ubuntu >=14.04, gnome3) nautilus versions
 for installdir in $installdirs ; do
   mkdir -p $installdir
   echo $installdir
