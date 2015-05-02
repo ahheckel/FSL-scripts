@@ -3294,8 +3294,8 @@ if [ $ALFF_STG1 -eq 1 ] ; then
 
         echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $mcdir $alff_uw_shiftmap $_uwdir trilinear ;\
         tmpdir=\$(mktemp -d -t \$(basename \$0)_XXXXXXXXXX) ; \
-        3dDespike -prefix \$tmpdir/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
-        3dTcat -rlt+ -prefix \$tmpdir/__tmp.nii.gz \$tmpdir/_tmp.nii.gz ; \
+        $scriptdir/bin/3dDespike -prefix \$tmpdir/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
+        $scriptdir/bin/3dTcat -rlt+ -prefix \$tmpdir/__tmp.nii.gz \$tmpdir/_tmp.nii.gz ; \
         rm -f $fldr/filtered_func_data.nii.gz \$tmpdir/_tmp.nii.gz ; \
         mv \$tmpdir/__tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
         rmdir \$tmpdir" > $cmd
@@ -3306,7 +3306,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       
         echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $mcdir $alff_uw_shiftmap $_uwdir trilinear ;\
         tmpdir=\$(mktemp -d -t \$(basename \$0)_XXXXXXXXXX) ; \
-        3dDespike -prefix \$tmpdir/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
+        $scriptdir/bin/3dDespike -prefix \$tmpdir/_tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
         $scriptdir/feat_hpf.sh \$tmpdir/_tmp.nii.gz \$tmpdir/__tmp.nii.gz $ALFF_HPF_CUTOFF $TR_bold $subj $sess ; \
         rm -f $fldr/filtered_func_data.nii.gz \$tmpdir/_tmp.nii.gz ; \
         mv \$tmpdir/__tmp.nii.gz $fldr/filtered_func_data.nii.gz ; \
@@ -3315,7 +3315,7 @@ if [ $ALFF_STG1 -eq 1 ] ; then
       fi
       
       ## with afni despike/detrend        
-      #3dTstat -mean -prefix $fldr/_m.nii.gz $fldr/_tmp.nii.gz ; 3dDetrend -polort 2 -prefix $fldr/_dm.nii.gz $fldr/_tmp.nii.gz ; 3dcalc -a $fldr/_m.nii.gz  -b $fldr/_dm.nii.gz  -expr 'a+b' -prefix $fldr/__tmp.nii.gz ; rm -f $fldr/_m.nii.gz $fldr/_dm.nii.gz ;
+      #$scriptdir/bin/3dTstat -mean -prefix $fldr/_m.nii.gz $fldr/_tmp.nii.gz ; $scriptdir/bin/3dDetrend -polort 2 -prefix $fldr/_dm.nii.gz $fldr/_tmp.nii.gz ; $scriptdir/bin/3dcalc -a $fldr/_m.nii.gz  -b $fldr/_dm.nii.gz  -expr 'a+b' -prefix $fldr/__tmp.nii.gz ; rm -f $fldr/_m.nii.gz $fldr/_dm.nii.gz ;
           
       ## with slicetiming correction      
       #echo "$scriptdir/apply_mc+unwarp.sh $fldr/bold.nii $fldr/filtered_func_data.nii.gz $mcdir $alff_uw_shiftmap $_uwdir trilinear ;\

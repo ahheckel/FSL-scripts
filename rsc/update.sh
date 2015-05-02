@@ -53,16 +53,16 @@ for bit in 32 64 ; do
       cp -iv fsl/fsl4/tbss_x/swap_subjectwise_${bit} $FSLDIR/bin/swap_subjectwise      
       chmod +x $FSLDIR/bin/swap_subjectwise
     fi  
-    cp -iv afni/3dDespike_${bit} $FSLDIR/bin/3dDespike
-    chmod +x $FSLDIR/bin/3dDespike
-    cp -iv afni/3dTcat_${bit} $FSLDIR/bin/3dTcat
-    chmod +x $FSLDIR/bin/3dTcat
-    cp -iv afni/3dTstat_${bit} $FSLDIR/bin/3dTstat
-    chmod +x $FSLDIR/bin/3dTstat
-    cp -iv afni/3dcalc_${bit} $FSLDIR/bin/3dcalc
-    chmod +x $FSLDIR/bin/3dcalc
-    cp -iv afni/3dDetrend_${bit} $FSLDIR/bin/3dDetrend
-    chmod +x $FSLDIR/bin/3dDetrend
+    cp -iv afni/3dDespike_${bit} scripts/bin/3dDespike
+    chmod +x scripts/bin/3dDespike
+    cp -iv afni/3dTcat_${bit} scripts/bin/3dTcat
+    chmod +x scripts/bin/3dTcat
+    cp -iv afni/3dTstat_${bit} scripts/bin/3dTstat
+    chmod +x scripts/bin/3dTstat
+    cp -iv afni/3dcalc_${bit} scripts/bin/3dcalc
+    chmod +x scripts/bin/3dcalc
+    cp -iv afni/3dDetrend_${bit} scripts/bin/3dDetrend
+    chmod +x scripts/bin/3dDetrend
     cp -iv scripts/bin/sort8_${bit} scripts/bin/sort8
     chmod +x scripts/bin/sort8
     cp -iv scripts/bin/fslmaths5_${bit} scripts/bin/fslmaths5
