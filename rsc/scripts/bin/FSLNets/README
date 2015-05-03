@@ -1,0 +1,12 @@
+
+%%%  FSLNets v0.6.2
+%%%  FMRIB Analysis Group
+%%%  Copyright (C) 2012-2014 University of Oxford
+%%%  Licence is same as FSL licence
+%%%  See documentation at  http://fsl.fmrib.ox.ac.uk/fsl/fslwiki/FSLNets
+
+%%%%%%%%%% list of backwards incompatibilities from v0.4 to v0.5
+nets_pics renamed to nets_nodepics
+nets_consistency renamed to nets_groupmean
+nets_makemats and nets_r2z/nets_r2z_icov have all been merged to form a new function nets_netmats
+
