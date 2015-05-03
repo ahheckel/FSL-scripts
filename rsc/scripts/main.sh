@@ -4265,7 +4265,7 @@ if [ $FSLNETS_STG1 -eq 1 ] ; then
     
     for design in $(cat $glmdir_fslnets/designs) ; do
       echo "FSLNETS: executing FSLNETS..."
-      echo "$scriptdir/start_FSLNets.sh $tmpltdir/template_nets_examples.m $dregdir/$dr $groupIC $FSLNETS_GOODCOMPONENTS $FSLNETS_T_THRESHOLDS $glmdir_fslnets/$design $FSLNETS_NPERM $fldr/$design $scriptdir/bin/FSLNets" > $fldr/$design/fslnets.cmd  
+      echo "$scriptdir/start_FSLNets.sh $tmpltdir/template_nets_examples.m $dregdir/$dr $FSLNETS_TR $groupIC $FSLNETS_GOODCOMPONENTS $FSLNETS_T_THRESHOLDS $glmdir_fslnets/$design $FSLNETS_NPERM $fldr/$design $scriptdir/bin/FSLNets" > $fldr/$design/fslnets.cmd  
       cat $fldr/$design/fslnets.cmd ; source $fldr/$design/fslnets.cmd 
       echo ""
       echo ""

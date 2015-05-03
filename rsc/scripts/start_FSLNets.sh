@@ -21,23 +21,24 @@ trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 Usage() {
     echo ""
-    echo "Usage:   `basename $0` <template_nets_examples.m> <dreg_stage1_path> <groupIC> <good_comp> <design_path> <t-thresh> <nperm> <out-dir> <[install-path]>"
-    echo "Example: `basename $0` ./template_nets_examples.m ./dreg ./melodic/melodicIC.nii.gz \"[1 2 3 4 5 6 7 8 9 10]\" \"0:2:8\" ./glm/design 5000 ./grp/FSLNETS/dreg /FSL-scripts/rsc/scripts/FSLNets"
+    echo "Usage:   `basename $0` <template_nets_examples.m> <dreg_stage1_path> <TR(s)> <groupIC> <good_comp> <design_path> <t-thresh> <nperm> <out-dir> <[install-path]>"
+    echo "Example: `basename $0` ./template_nets_examples.m ./dreg 3 ./melodic/melodicIC.nii.gz \"[1 2 3 4 5 6 7 8 9 10]\" \"0:2:8\" ./glm/design 5000 ./grp/FSLNETS/dreg /FSL-scripts/rsc/scripts/FSLNets"
     echo ""
     exit 1
 }
 
-[ "$8" = "" ] && Usage
+[ "$9" = "" ] && Usage
 
 template="$1"
 dreg_path="$2"
-group_maps="$3"
-good_comp="$4"
-t_thresh="$5"
-design_path="$6"
-nperm=$7
-outdir="$8"
-install_path="$9"
+TR=$3
+group_maps="$4"
+good_comp="$5"
+t_thresh="$6"
+design_path="$7"
+nperm=$8
+outdir="$9"
+install_path="${10}"
 
 if [ x"$install_path" = x ] ; then install_path="/FSL-scripts/rsc/scripts/FSLNets" ; fi
 l1prec_path="$install_path/L1precision"
@@ -57,6 +58,7 @@ echo "`basename $0` : PWLING   loc.:        $causal_path"
 echo "`basename $0` : template loc.:        $template"
 echo "---------------------------------"
 echo "`basename $0` : dr_stage1:            $dreg_path"
+echo "`basename $0` : TR:                   $TR"
 echo "`basename $0` : ICMaps:               $group_maps"
 echo "`basename $0` : good components:      $good_comp"
 echo "`basename $0` : design_mat:           $design_mat"
@@ -79,8 +81,9 @@ sed -i "s|addpath L1PREC.*|addpath $l1prec_path|g"     $tmpdir/nets_examples.m$$
 sed -i "s|addpath PAIRCAUSAL.*|addpath $causal_path|g" $tmpdir/nets_examples.m$$
 
 sed -i "s|group_maps=.*|group_maps='$(remove_ext $group_maps)'|g" $tmpdir/nets_examples.m$$
-sed -i "s|ts.DD=.*|ts.DD=${good_comp}|g"              $tmpdir/nets_examples.m$$  
-sed -i "s|ts_dir='.*|ts_dir='${dreg_path}'|g"         $tmpdir/nets_examples.m$$  
+sed -i "s|ts.DD=.*|ts.DD=${good_comp}|g"                  $tmpdir/nets_examples.m$$  
+sed -i "s|ts_dir='.*|ts_dir='${dreg_path}'|g"             $tmpdir/nets_examples.m$$  
+sed -i "s|ts=nets_load.*|ts=nets_load(ts_dir,$TR,1)|g" $tmpdir/nets_examples.m$$  
 
 sed -i "s|outputdir=.*|outputdir='${outdir}'|g"       $tmpdir/nets_examples.m$$
 
@@ -101,7 +104,7 @@ set -e
 
 # check if size / resolution matches to have a background image for slices_summary
 set +e
-MNItemplates="${FSLDIR}/data/standard/MNI152_T1_4mm_brain ${FSLDIR}/data/standard/MNI152_T1_2mm_brain"
+MNItemplates="${FSLDIR}/data/standard/MNI152_T1_4mm_brain ${FSLDIR}/data/standard/MNI152_T1_3mm_brain ${FSLDIR}/data/standard/MNI152_T1_2mm_brain ${FSLDIR}/data/standard/MNI152_T1_1mm_brain"
 bg=""
 for MNI in $MNItemplates ; do
   fslmeants -i $group_maps -m $MNI &>/dev/null
@@ -110,15 +113,19 @@ for MNI in $MNItemplates ; do
     continue
   else
     if [ $(echo $MNI | grep _4mm_ | wc -l) -eq 1 ] ; then bg=$FSLDIR/data/standard/MNI152_T1_4mm ; fi
+    if [ $(echo $MNI | grep _3mm_ | wc -l) -eq 1 ] ; then bg=$FSLDIR/data/standard/MNI152_T1_3mm ; fi
     if [ $(echo $MNI | grep _2mm_ | wc -l) -eq 1 ] ; then bg=$FSLDIR/data/standard/MNI152_T1_2mm ; fi
+    if [ $(echo $MNI | grep _1mm_ | wc -l) -eq 1 ] ; then bg=$FSLDIR/data/standard/MNI152_T1_1mm ; fi
     break
   fi
 done # end MNI
 set -e  
 
 # execute slices_summary (needed for nets_examples.m to work)
+max=$(fslstats $group_maps -R | cut -d " " -f 2)
+thres=$(echo "$max / 10.0" | bc -l)
 echo "$(basename $0) : executing slices_summary..."
-cmd="slices_summary $(remove_ext $group_maps) 4 $bg $(remove_ext $group_maps).sum"
+cmd="slices_summary $(remove_ext $group_maps) $thres $bg $(remove_ext $group_maps).sum"
 echo "    $cmd" ; $cmd
 n=$(ls $(remove_ext $group_maps).sum/*.png | wc -l) ; n=$[$n-1]
 cmd="slices_summary $(remove_ext $group_maps).sum $outdir/grot.png $(seq 0 $n)"

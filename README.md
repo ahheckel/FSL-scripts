@@ -8,14 +8,14 @@ This work was supported by the PostDoc Programme of the Medical Faculty (Univers
 * Functional analyses  
     - FSL's Independent Component Analysis (Melodic-ICA)  
     - FSL's Dual Regression  
-    - FSL's Network analysis (FSLNets v0.3)  
+    - FSL's Network analysis (FSLNets v0.6.2)  
     - Amplitute of Low Frequency Fluctuations (ALFF)  
     - fractional Amplitute of Low Frequency Fluctuations (fALFF)  
 * Structural analyses  
     - FSL's Tract-Based Spatial Statistics (TBSS)  
     - FSL's Tract-Based Spatial Statistics (crossing fibres) (TBSSX)  
     - FSL's Voxel-Based Morphometry (VBM)  
-    - FSL's AutoPtx (v0.0.1)
+    - FSL's AutoPtx (v0.1.1)
     - Freesurfer cross-sectional / longitudinal streams  
     - Freesurfer's TRActs Constrained by UnderLying Anatomy (TRACULA)  
     - Freesurfer's cortical thickness analysis  
