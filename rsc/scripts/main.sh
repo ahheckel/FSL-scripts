@@ -6,6 +6,8 @@
 # https://github.com/ahheckel
 # 12/01/2012
 
+export LC_ALL=C # set locale to C (ensures proper sorting)
+
 echo "---------------------------"
 
 # start in background mode ?
