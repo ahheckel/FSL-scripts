@@ -16,7 +16,7 @@
 source $(dirname $0)/env_vars
 
 # create unique dir. for temporary files
-tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX)
+export tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX)
 
 # define exit trap
 trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
@@ -112,6 +112,30 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "^rh\-" | wc -l ) ; fi
     #zenity --info --text="$_dir"
   done
+  # open shell to enter hemisphere manually if necessary
+  if [ $lh -eq 0 -a $rh -eq 0 ] ; then
+  xterm -e /bin/bash -c "\
+    echo \"file         = $(basename $i)\" ;\
+    echo \"SUBJECTS_DIR = $SUBJECTS_DIR\" ;\
+    echo \"subject      = $subject\" ;\
+    echo \"session      = $session\" ;\
+    echo \"left-hemi    = $lh\" ;\
+    echo \"right-hemi   = $rh\" ;\
+    echo \"------------------------------\" ;\
+    echo \"Choose hemisphere:\" ;\
+    echo -e \" a. left\n b. right\n \n\" ;\
+    read -p \> s ;\
+    echo \"------------------------------\" ;\
+    if    [ \$s = a ] ; then touch \$tmpdir/lh ;\
+    elif  [ \$s = b ] ; then touch \$tmpdir/rh ;\
+    fi ;\    
+    "
+    if [ -f $tmpdir/lh ] ; then 
+      lh=1 ; rh=0
+    elif  [ -f $tmpdir/rh ] ; then 
+      lh=0 ; rh=1
+    fi
+fi
   
   # check
   #zenity --info --text="$rh $lh"
@@ -210,7 +234,8 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     echo -e \" a. p=0.050\n b. p=0.025\n c. p=0.010\n d. p=0.005\n\" ;\
     read -p \> s ;\
     echo \"------------------------------\" ;\
-    if   [ \$s = a ] ; then logP1=1.3010 ; logP2=2  ;\
+    if  [ \$s = "" ] ; then logP1=1.3010 ; logP2=2  ;\
+    elif [ \$s = a ] ; then logP1=1.3010 ; logP2=2  ;\
     elif [ \$s = b ] ; then logP1=1.6021 ; logP2=3  ;\
     elif [ \$s = c ] ; then logP1=2.0000 ; logP2=3  ;\
     elif [ \$s = d ] ; then logP1=2.3010 ; logP2=3  ;\
