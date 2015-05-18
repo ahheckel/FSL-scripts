@@ -249,7 +249,7 @@ fi
     echo \$cmd ;\
     echo \"------------------------------\" ;\
     echo \"------------------------------\" ;\
-    \$cmd" &
+    \$cmd" #&
   else
     xterm -e /bin/bash -c "\
     echo \"file         = $(basename $i)\" ;\
@@ -259,12 +259,10 @@ fi
     echo \"left-hemi    = $lh\" ;\
     echo \"right-hemi   = $rh\" ;\
     echo \"------------------------------\" ;\
-    $cmd" &
+    $cmd" #&
   fi
 done # ...end loop
 
-# info
-xterm -e /bin/bash -c "read -p $(basename $0):\ When\ finished,\ press\ \<RETURN\>."
-
-# kill bg jobs
-kill $(jobs -p)
+## kill ungraceful exits
+#xterm -e /bin/bash -c "read -p $(basename $0):\ When\ finished,\ press\ \<RETURN\>."
+#kill $(jobs -p)
