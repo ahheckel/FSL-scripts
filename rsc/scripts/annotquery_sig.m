@@ -6,10 +6,10 @@ function f = annotquery_sig(sigfile, annotfile, tval, out)
 % https://github.com/ahheckel
 % 05/20/2015
 
-%  sigfile='/home/andi/projects/biller/sig.mgh';
-%  annotfile='/usr/local/freesurfer/subjects/fsaverage/label/lh.aparc.a2009s.annot';
-%  out='a.txt';
-%  tval=-1.5 ;
+ sigfile='/home/andi/projects/biller/sig.mgh';
+ annotfile='/usr/local/freesurfer/subjects/fsaverage/label/lh.aparc.a2009s.annot';
+ out='a.txt';
+ tval=-1.5 ;
 
 % 
 % if(nargin ~= 4)
@@ -61,13 +61,13 @@ annots=annots(idx);
 
 % output
 fprintf(fid,'input\t anat\t n_input/n_anat*100\t n_anat/n_input*100\t t-value\n');
-disp(sprintf('input\t anat\t n_input/n_anat*100\t n_anat/n_input*100\t t-value'));
 for i=1:j
     fprintf(fid,'%s: %s: %5.1f %5.1f %6.2f\n', lfiles{i}, annots{i}, props(i)*100, propinvs(i)*100, tval);
-    disp(sprintf('%s: %s: %5.1f %5.1f %6.2f', lfiles{i}, annots{i}, props(i)*100, propinvs(i)*100, tval));
 end
 fprintf(fid,'%s: undefined: %5.1f\n', sigfile, 100-sum(props)*100);
-disp(sprintf('%s: undefined: %5.1f', sigfile, 100-sum(props)*100));
+
+% display output
+system(sprintf('cat %s', out));
 
 % close output file
 fclose(fid);
