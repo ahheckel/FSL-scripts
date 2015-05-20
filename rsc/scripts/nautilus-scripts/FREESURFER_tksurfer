@@ -123,11 +123,11 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     echo \"right-hemi   = $rh\" ;\
     echo \"------------------------------\" ;\
     echo \"Choose hemisphere:\" ;\
-    echo -e \" a. left\n b. right\n \n\" ;\
+    echo -e \" l. left\n r. right\n \n\" ;\
     read -p \> s ;\
     echo \"------------------------------\" ;\
-    if    [ \$s = a ] ; then touch \$tmpdir/lh ;\
-    elif  [ \$s = b ] ; then touch \$tmpdir/rh ;\
+    if    [ \$s = l ] ; then touch \$tmpdir/lh ;\
+    elif  [ \$s = r ] ; then touch \$tmpdir/rh ;\
     fi ;\    
     "
     if [ -f $tmpdir/lh ] ; then 
