@@ -25,7 +25,7 @@ Usage() {
 tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
 
 # define exit trap
-trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+#trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 # define vars
 out="$1" ; shift
@@ -44,6 +44,7 @@ wd=`pwd`
 # copy files to tmpdir
 cp $(which annotquery_label.m) $tmpdir
 cp $(which annotquery_sig.m) $tmpdir
+cp $(dirname $0)/read_label_new.m $tmpdir
 cp $annot $tmpdir
 
 # adapt .m file
