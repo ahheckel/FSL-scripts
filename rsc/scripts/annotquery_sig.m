@@ -11,10 +11,9 @@ function f = annotquery_sig(sigfiles, annotfile, tval, out)
 % out=OUT;
 % tval=TVAL;
 
-
-%  sigfiles={'/home/andi/projects/biller/sig.mgh','/home/andi/projects/biller/sig.mgh'};
+%  sigfiles={'/home/andi/projects/biller/testsig.mgh','/home/andi/projects/biller/testsig.mgh'};
 %  annotfile='/usr/local/freesurfer/subjects/fsaverage/label/lh.aparc.a2009s.annot';
-%  out='a.txt';
+%  out='test.txt';
 %  tval=-1.5 ;
 
  
