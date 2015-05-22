@@ -6,9 +6,9 @@ function f = annotquery_label(labelfiles, annotfile, out)
 % https://github.com/ahheckel
 % 05/18/2015
 
-%   labelfiles={'/home/andi/projects/biller/cr.label', '/home/andi/projects/biller/cr2.label'}
-%   annotfile='/usr/local/freesurfer/subjects/fsaverage/label/lh.aparc.a2009s.annot';
-%   out='a.txt';
+% labelfiles=LABELS;
+% annotfile=ANNOT;
+% out=OUT;
 
 % 
 % if(nargin ~= 3)
