@@ -33,7 +33,7 @@ for k=1:length(labelfiles)
     labelfile=labelfiles{k};
     
     % read label
-    v_l=read_label_new(labelfile); % Freesurfer's read_label.m was adapted to accept the filepath as argument
+    v_l=read_label_new(labelfile); % Freesurfer's read_label.m was adapted by HKL to accept filepath as argument
 
     % 0-based -> 1-based indices
     v_l=v_l(:,1)+1;

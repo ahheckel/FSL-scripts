@@ -1,5 +1,5 @@
 function [l] = read_label(lname)
-% l = read_label(lname) % function was adapted to accept the filepath as argument (HKL)
+% l = read_label(lname) % function was adapted to accept filepath as argument (HKL)
 %
 % reads the label file 'lname' from the subject 'sname' 
 % in the subject's label directory into the vector l
