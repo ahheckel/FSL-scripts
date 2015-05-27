@@ -25,7 +25,7 @@ Usage() {
 tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
 
 # define exit trap
-#trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 # define vars
 out="$1" ; shift
@@ -44,22 +44,19 @@ wd=`pwd`
 # copy files to tmpdir
 cp $(which annotquery_label.m) $tmpdir
 cp $(which annotquery_sig.m) $tmpdir
-cp $(dirname $0)/read_label_new.m $tmpdir
 cp $annot $tmpdir
 
-# adapt .m file
-if [ $tval = "0" ] ; then
-  sed -i "s|% labelfiles=LABELS|labelfiles=$labels|g" $tmpdir/annotquery_label.m
-  sed -i "s|% annotfile=ANNOT|annotfile=\'$(basename $annot)\'|g" $tmpdir/annotquery_label.m
-  sed -i "s|% out=OUT|out=\'$(basename $out)\'|g" $tmpdir/annotquery_label.m
-  echo "exit" >> $tmpdir/annotquery_label.m
-else
-  sed -i "s|% sigfiles=SIGFILES|sigfiles=$labels|g" $tmpdir/annotquery_sig.m
-  sed -i "s|% annotfile=ANNOT|annotfile=\'$(basename $annot)\'|g" $tmpdir/annotquery_sig.m
-  sed -i "s|% out=OUT|out=\'$(basename $out)\'|g" $tmpdir/annotquery_sig.m
-  sed -i "s|% tval=TVAL|tval=$tval|g" $tmpdir/annotquery_sig.m
-  echo "exit" >> $tmpdir/annotquery_sig.m
-fi
+# adapt .m files
+sed -i "s|% labelfiles=LABELS|labelfiles=$labels|g" $tmpdir/annotquery_label.m
+sed -i "s|% annotfile=ANNOT|annotfile=\'$(basename $annot)\'|g" $tmpdir/annotquery_label.m
+sed -i "s|% out=OUT|out=\'$(basename $out)\'|g" $tmpdir/annotquery_label.m
+sed -i "s|% EXIT|exit|g" $tmpdir/annotquery_label.m
+# --------------
+sed -i "s|% sigfiles=SIGFILES|sigfiles=$labels|g" $tmpdir/annotquery_sig.m
+sed -i "s|% annotfile=ANNOT|annotfile=\'$(basename $annot)\'|g" $tmpdir/annotquery_sig.m
+sed -i "s|% out=OUT|out=\'$(basename $out)\'|g" $tmpdir/annotquery_sig.m
+sed -i "s|% tval=TVAL|tval=$tval|g" $tmpdir/annotquery_sig.m
+sed -i "s|% EXIT|exit|g" $tmpdir/annotquery_sig.m
 
 # execute
 cd $tmpdir

@@ -33,7 +33,7 @@ for k=1:length(labelfiles)
     labelfile=labelfiles{k};
     
     % read label
-    v_l=read_label_new(labelfile); % Freesurfer's read_label.m was adapted by HKL to accept filepath as argument
+    v_l=readlabel(labelfile); % Freesurfer's read_label.m was adapted by HKL to accept filepath as argument
 
     % 0-based -> 1-based indices
     v_l=v_l(:,1)+1;
@@ -75,3 +75,33 @@ system(sprintf('cat %s', out));
 
 % close output file
 fclose(fid);
+
+% EXIT;
+end
+
+function l = readlabel(lname)
+
+l = [] ;
+fname = sprintf('%s', lname) ;
+
+fid = fopen(fname, 'r') ;
+if(fid == -1)
+  fprintf('ERROR: could not open %s\n',fname);
+  return;
+end
+
+fgets(fid) ;
+
+if(fid == -1)
+  fprintf('ERROR: could not open %s\n',fname);
+  return;
+end
+
+line = fgets(fid) ;
+nv = sscanf(line, '%d') ;
+l = fscanf(fid, '%d %f %f %f %f\n') ;
+l = reshape(l, 5, nv) ;
+l = l' ;
+
+fclose(fid) ;
+end

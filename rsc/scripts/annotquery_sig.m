@@ -42,7 +42,7 @@ for k=1:length(sigfiles)
   v_l=load_mgh(sigfile);
 
   % create index vector
-  if sign(tval)>0
+  if sign(tval)>=0
       idx_l=v_l>=tval;
   elseif sign(tval)<0
       idx_l=v_l<=tval;
@@ -83,3 +83,6 @@ system(sprintf('cat %s', out));
 
 % close output file
 fclose(fid);
+
+% EXIT;
+end
