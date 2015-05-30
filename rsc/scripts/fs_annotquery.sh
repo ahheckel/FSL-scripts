@@ -12,9 +12,9 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage: `basename $0` <output> <tval|0(0 for label files)> <annotation> <input1 input2...>"
-    echo "Example: `basename $0` out.txt 1.5  /usr/local/freesurfer/subjects/fsaverage/label/lh.aparc.a2009s.annot sig.mgh"
-    echo "         `basename $0` out.txt 0  /usr/local/freesurfer/subjects/fsaverage/label/lh.aparc.a2009s.annot *.label"
+    echo "Usage: `basename $0` <output> <tval|na(na for label files)> <annotation> <input1 input2...>"
+    echo "Example: `basename $0` out.txt 1.5  /usr/local/freesurfer/subjects/fsaverage/label/lh.aparc.a2009s.annot sig.mgh (mgh files must be non-concatenated)"
+    echo "         `basename $0` out.txt na  /usr/local/freesurfer/subjects/fsaverage/label/lh.aparc.a2009s.annot *.label"
     echo ""
     exit 1
 }
@@ -38,10 +38,10 @@ while [ _$1 != _ ] ; do
   shift
 done
 labels="{$labels}"
-labels=$(echo $labels | sed "s|{,'|{'|g")
+labels=$(echo $labels | sed "s|{,'|{'|g") # create matlab cell array
 wd=`pwd`
 
-# copy files to tmpdir
+# copy other files to tmpdir
 cp $(which annotquery_label.m) $tmpdir
 cp $(which annotquery_sig.m) $tmpdir
 cp $annot $tmpdir
@@ -60,7 +60,7 @@ sed -i "s|% EXIT|exit|g" $tmpdir/annotquery_sig.m
 
 # execute
 cd $tmpdir
-if [ $tval = "0" ] ; then
+if [ $tval = "na" ] ; then
   xterm -e "matlab -nodesktop -nosplash -r annotquery_label"
 else
   xterm -e "matlab -nodesktop -nosplash -r annotquery_sig"

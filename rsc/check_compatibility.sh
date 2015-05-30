@@ -39,7 +39,7 @@ cmd="diff $fwdir/fsl/orig/tbss_x $FSLDIR/bin/tbss_x" ; $cmd ; echo "`basename $0
 
 cmd="diff $fwdir/fsl/orig/dual_regression $FSLDIR/bin/dual_regression" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
 
-cmd="diff $fwdir/fs/read_label_orig.m $FREESURFER_HOME/matlab/read_label.m" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
+#cmd="diff $fwdir/fs/read_label_orig.m $FREESURFER_HOME/matlab/read_label.m" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
 
 #cmd="diff $fwdir/fs/trac-all $FREESURFER_HOME/bin/trac-all" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
 
