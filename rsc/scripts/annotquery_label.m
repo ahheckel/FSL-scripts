@@ -6,6 +6,7 @@ function f = annotquery_label(labelfiles, annotfile, out)
 % https://github.com/ahheckel
 % 05/18/2015
 
+%% commented variables below are replaced by shell-script
 % labelfiles=LABELS;
 % annotfile=ANNOT;
 % out=OUT;

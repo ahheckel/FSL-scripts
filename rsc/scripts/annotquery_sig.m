@@ -6,6 +6,7 @@ function f = annotquery_sig(sigfiles, annotfile, tval, out)
 % https://github.com/ahheckel
 % 05/20/2015
 
+%% commented variables below are replaced by shell-script
 % sigfiles=SIGFILES;
 % annotfile=ANNOT;
 % out=OUT;
