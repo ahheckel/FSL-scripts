@@ -24,6 +24,16 @@ trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 # flatpatch ?
 if [ x"$flatpatch" = "x" ] ; then flatpatch=0 ; fi
 
+# parse arguments
+vollist_lh=""   ; vollist_rh=""
+surflist_lh=""  ; surflist_rh=""
+overlist_lh=""  ; overlist_rh=""
+annotlist_lh="" ; annotlist_rh=""
+labels_lh=""    ; labels_rh=""
+lastfile=""
+sigmap=0
+session=""
+
 # begin loop...
 counter=0
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
@@ -39,16 +49,6 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   if [ $flatpatch -eq 1 ] ; then
     echo "scale_brain 0.75" >> ${tmpfile}.tcl
   fi
-
-  # parse arguments
-  vollist_lh=""   ; vollist_rh=""
-  surflist_lh=""  ; surflist_rh=""
-  overlist_lh=""  ; overlist_rh=""
-  annotlist_lh="" ; annotlist_rh=""
-  labels_lh=""    ; labels_rh=""
-  lastfile=""
-  sigmap=0
-  session=""
   
   niigz=$(echo $i | grep "\.nii.gz$" | wc -l)
   nii=$(echo $i | grep "\.nii$" | wc -l)
@@ -135,7 +135,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     elif  [ -f $tmpdir/rh ] ; then 
       lh=0 ; rh=1
     fi
-fi
+  fi
   
   # check
   #zenity --info --text="$rh $lh"
@@ -220,49 +220,50 @@ fi
     cmd="tksurfer ${subject} rh $surftype $flatpatchBrain $patchSel -gray $annot_rh $overlist_rh -colscalebarflag 1 -colscaletext 1 -title $lastfile -tcl ${tmpfile}.tcl"
   fi
 
-  # execute in subshell
-  if [ $sigmap -eq 1 ] ; then
-    xterm -e /bin/bash -c "\
-    echo \"file         = $(basename $i)\" ;\
-    echo \"SUBJECTS_DIR = $SUBJECTS_DIR\" ;\
-    echo \"subject      = $subject\" ;\
-    echo \"session      = $session\" ;\
-    echo \"left-hemi    = $lh\" ;\
-    echo \"right-hemi   = $rh\" ;\
-    echo \"------------------------------\" ;\
-    echo \"Choose (or enter) a significance threshold:\" ;\
-    echo -e \" a. p=0.050\n b. p=0.025\n c. p=0.010\n d. p=0.005\n\" ;\
-    read -p \> s ;\
-    echo \"------------------------------\" ;\
-    if  [ \$s = "" ] ; then logP1=1.3010 ; logP2=2  ;\
-    elif [ \$s = a ] ; then logP1=1.3010 ; logP2=2  ;\
-    elif [ \$s = b ] ; then logP1=1.6021 ; logP2=3  ;\
-    elif [ \$s = c ] ; then logP1=2.0000 ; logP2=3  ;\
-    elif [ \$s = d ] ; then logP1=2.3010 ; logP2=3  ;\
-    else logP1=\$(echo \"l(\$s)/l(10)*-1\"|bc -l) ; logP2=\$(echo \"\$logP1+1\"|bc -l) ;\
-    fi ;\
-    echo \"p_min = \$logP1\" ;\
-    echo \"p_max = \$logP2\" ;\
-    echo \"------------------------------\" ;\
-    echo \"------------------------------\" ;\
-    cmd=\$(echo \"$cmd\" | sed \"s|P_VAL_MIN|\$logP1|g\" | sed \"s|P_VAL_MAX|\$logP2|g\") ;\
-    echo \$cmd ;\
-    echo \"------------------------------\" ;\
-    echo \"------------------------------\" ;\
-    \$cmd" #&
-  else
-    xterm -e /bin/bash -c "\
-    echo \"file         = $(basename $i)\" ;\
-    echo \"SUBJECTS_DIR = $SUBJECTS_DIR\" ;\
-    echo \"subject      = $subject\" ;\
-    echo \"session      = $session\" ;\
-    echo \"left-hemi    = $lh\" ;\
-    echo \"right-hemi   = $rh\" ;\
-    echo \"------------------------------\" ;\
-    $cmd" #&
-  fi
 done # ...end loop
 
-## kill ungraceful exits
+# execute in subshell
+if [ $sigmap -eq 1 ] ; then
+  xterm -e /bin/bash -c "\
+  echo \"file         = $(basename $i)\" ;\
+  echo \"SUBJECTS_DIR = $SUBJECTS_DIR\" ;\
+  echo \"subject      = $subject\" ;\
+  echo \"session      = $session\" ;\
+  echo \"left-hemi    = $lh\" ;\
+  echo \"right-hemi   = $rh\" ;\
+  echo \"------------------------------\" ;\
+  echo \"Choose (or enter) a significance threshold:\" ;\
+  echo -e \" a. p=0.050\n b. p=0.025\n c. p=0.010\n d. p=0.005\n\" ;\
+  read -p \> s ;\
+  echo \"------------------------------\" ;\
+  if  [ \$s = "" ] ; then logP1=1.3010 ; logP2=2  ;\
+  elif [ \$s = a ] ; then logP1=1.3010 ; logP2=2  ;\
+  elif [ \$s = b ] ; then logP1=1.6021 ; logP2=3  ;\
+  elif [ \$s = c ] ; then logP1=2.0000 ; logP2=3  ;\
+  elif [ \$s = d ] ; then logP1=2.3010 ; logP2=3  ;\
+  else logP1=\$(echo \"l(\$s)/l(10)*-1\"|bc -l) ; logP2=\$(echo \"\$logP1+1\"|bc -l) ;\
+  fi ;\
+  echo \"p_min = \$logP1\" ;\
+  echo \"p_max = \$logP2\" ;\
+  echo \"------------------------------\" ;\
+  echo \"------------------------------\" ;\
+  cmd=\$(echo \"$cmd\" | sed \"s|P_VAL_MIN|\$logP1|g\" | sed \"s|P_VAL_MAX|\$logP2|g\") ;\
+  echo \$cmd ;\
+  echo \"------------------------------\" ;\
+  echo \"------------------------------\" ;\
+  \$cmd" #&
+else
+  xterm -e /bin/bash -c "\
+  echo \"file         = $(basename $i)\" ;\
+  echo \"SUBJECTS_DIR = $SUBJECTS_DIR\" ;\
+  echo \"subject      = $subject\" ;\
+  echo \"session      = $session\" ;\
+  echo \"left-hemi    = $lh\" ;\
+  echo \"right-hemi   = $rh\" ;\
+  echo \"------------------------------\" ;\
+  $cmd" #&
+fi
+
+# kill ungraceful exits
 #xterm -e /bin/bash -c "read -p $(basename $0):\ When\ finished,\ press\ \<RETURN\>."
 #kill $(jobs -p)

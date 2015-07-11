@@ -12,17 +12,29 @@
 # https://github.com/ahheckel
 # 01/12/2013
 
+# source environment
 source $(dirname $0)/env_vars
 
-tmpfile=/tmp/$(basename $0)_$$
+# create unique dir. for temporary files
+export tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX)
 
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+
+# parse arguments
 vollist_lh=""   ; vollist_rh=""
 surflist_lh=""  ; surflist_rh=""
 overlist_lh=""  ; overlist_rh=""
 annotlist_lh="" ; annotlist_rh=""
 labels_lh=""    ; labels_rh=""
 lastfile=""
+
+# begin loop...
+counter=0
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
+
+  counter=$[$counter+1]
+  tmpfile=$tmpdir/$$_$(basename $0)_${counter}
     
   niigz=$(echo $i | grep "\.nii.gz$" | wc -l)
   nii=$(echo $i | grep "\.nii$" | wc -l)
@@ -57,8 +69,14 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   rh="$(echo $(basename $i) | grep "\.rh\." | wc -l )"
   if [ $lh -eq 0 ] ; then lh="$(echo $(basename $i) | grep "^lh\." | wc -l )" ; fi
   if [ $rh -eq 0 ] ; then rh="$(echo $(basename $i) | grep "^rh\." | wc -l )" ; fi
+  if [ $lh -eq 0 ] ; then lh="$(echo $(basename $i) | grep "\.lh$" | wc -l )" ; fi
+  if [ $rh -eq 0 ] ; then rh="$(echo $(basename $i) | grep "\.rh$" | wc -l )" ; fi
+  if [ $lh -eq 0 ] ; then lh="$(echo $(basename $i) | grep "\-lh\." | wc -l )" ; fi
+  if [ $rh -eq 0 ] ; then rh="$(echo $(basename $i) | grep "\-rh\." | wc -l )" ; fi
   if [ $lh -eq 0 ] ; then lh="$(echo $(basename $i) | grep "^lh[A-Z]" | wc -l )" ; fi
   if [ $rh -eq 0 ] ; then rh="$(echo $(basename $i) | grep "^rh[A-Z]" | wc -l )" ; fi
+  if [ $lh -eq 0 ] ; then lh="$(echo $(basename $i) | grep "^lh\-" | wc -l )" ; fi
+  if [ $rh -eq 0 ] ; then rh="$(echo $(basename $i) | grep "^rh\-" | wc -l )" ; fi
   _dir="$i"
   while [ $lh -eq 0 -a $rh -eq 0 ] ; do
     _dir=$(dirname $_dir) ; if [ "$_dir" = "$(dirname $_dir)" ] ; then break ; fi
@@ -66,14 +84,44 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     _hemi="$(basename $_dirname)"
     lh=$(echo $_hemi | grep "^lh\."  | wc -l)
     rh=$(echo $_hemi | grep "^rh\."  | wc -l)
+    if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "\.lh$"  | wc -l) ; fi
+    if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "\.rh$"  | wc -l) ; fi
     if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "\.lh\." | wc -l) ; fi
     if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "\.rh\." | wc -l) ; fi
     if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "\-lh\-" | wc -l) ; fi
     if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "\-rh\-" | wc -l) ; fi
     if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "^lh[A-Z]" | wc -l ) ; fi
     if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "^rh[A-Z]" | wc -l ) ; fi
+    if [ $lh -eq 0 ] ; then lh=$(echo $_hemi | grep "^lh\-" | wc -l ) ; fi
+    if [ $rh -eq 0 ] ; then rh=$(echo $_hemi | grep "^rh\-" | wc -l ) ; fi
     #zenity --info --text="$_dir"
-  done
+  done  
+  # open shell to enter hemisphere manually if necessary (and input is not a volume)
+  if [ $lh -eq 0 -a $rh -eq 0 ] ; then
+    if [ $niigz -eq 0 -a $nii -eq 0 -a $mgh -eq 0 -a $mgz -eq 0 -a $img -eq 0 -a $hdr -eq 0 ] ; then
+      xterm -e /bin/bash -c "\
+      echo \"file         = $(basename $i)\" ;\
+      echo \"SUBJECTS_DIR = $SUBJECTS_DIR\" ;\
+      echo \"subject      = $subject\" ;\
+      echo \"session      = $session\" ;\
+      echo \"left-hemi    = $lh\" ;\
+      echo \"right-hemi   = $rh\" ;\
+      echo \"------------------------------\" ;\
+      echo \"Choose hemisphere:\" ;\
+      echo -e \" l. left\n r. right\n \n\" ;\
+      read -p \> s ;\
+      echo \"------------------------------\" ;\
+      if    [ \$s = l ] ; then touch \$tmpdir/lh ;\
+      elif  [ \$s = r ] ; then touch \$tmpdir/rh ;\
+      fi ;\    
+      "
+      if [ -f $tmpdir/lh ] ; then 
+        lh=1 ; rh=0
+      elif  [ -f $tmpdir/rh ] ; then 
+        lh=0 ; rh=1
+      fi
+    fi
+  fi
   
   # check
   #zenity --info --text="$rh $lh"
@@ -118,7 +166,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
         surflist_rh=$surflist_rh" -f $i"
       fi
     fi    
-  fi  
+  fi
   # add surface to selected label if necessary (asssumes that label is in label-directory of the freesurfer directory tree)
   if [ $label -eq 1 ] ; then
     # check annotation
@@ -144,7 +192,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     fi
   fi
   
-done # end for loop
+done # end for-loop
 
 # add fsaverage surface and annotation if applicable
 if [ x"$fsaverage" = "x" ] ; then fsaverage=0 ; fi
@@ -167,9 +215,8 @@ fi
 # remove spaces before ':' in freeview arguments
 opts=$(echo "${vollist_lh} ${vollist_rh} ${surflist_lh}${annotlist_lh}${overlist_lh}${labels_lh} ${surflist_rh}${annotlist_rh}${overlist_rh}${labels_rh}" | sed "s| :|:|g") 
 
-## check
+# check
 #zenity --info --text="$opts"
 
 # execute
 freeview ${opts}
-

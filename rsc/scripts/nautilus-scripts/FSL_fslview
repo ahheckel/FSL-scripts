@@ -30,7 +30,7 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   if [ "$ext" = "mgz" -o "$ext" = "mgh" ] ; then
     #zenity --info --text="   mri_convert $i $wdir/$bn0.nii.gz $FSLDIR"
     mri_convert $i $wdir/${bn0}.nii.gz
-    ln -s $wdir/${bn0}.nii.gz $(dirname $i)/${bn}_$$.nii.gz
+    ln -s $wdir/${bn0}.nii.gz $(dirname $i)/${bn}_$$.nii.gz # create symlink in parent folder (so that "open" in fslview shows parent folder instead of temporary folder)
     files=$files" "$(dirname $i)/${bn}_$$.nii.gz
     links2del=$links2del" "$(dirname $i)/${bn}_$$.nii.gz
     n=$[$n+1]
