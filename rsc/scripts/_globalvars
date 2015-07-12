@@ -21,7 +21,7 @@ dregdir=$grpdir/dualreg     ; glmdir_dr=$glmdir/dualreg
 FSstatsdir=$grpdir/FS_stats ; glmdir_fs=$glmdir/FS_stats
 fslnetsdir=$grpdir/fslnets  ; glmdir_fslnets=$glmdir/fslnets
 
-FS_subjdir=$subjdir/FS/subjects  # FREESURFER subject's directory
+FS_subjdir=$subjdir/FS/subjects # FREESURFER subject's directory
 FS_sessdir=$subjdir/FS/sessions
 export SUBJECTS_DIR=$FS_subjdir
 
