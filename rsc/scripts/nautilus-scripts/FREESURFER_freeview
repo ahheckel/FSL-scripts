@@ -28,6 +28,7 @@ overlist_lh=""  ; overlist_rh=""
 annotlist_lh="" ; annotlist_rh=""
 labels_lh=""    ; labels_rh=""
 lastfile=""
+session=""
 
 # begin loop...
 counter=0
@@ -61,6 +62,33 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   else
     type=XXX
     isscalar=0
+  fi
+  
+  # recursively searching for sessions/subjects directory (assuming 'sessions' and 'subjects' as names) if input is not a volume
+  if [ x"$subject" = "x" ] ; then
+    if [ $niigz -eq 0 -a $nii -eq 0 -a $mgh -eq 0 -a $mgz -eq 0 -a $img -eq 0 -a $hdr -eq 0 ] ; then  
+      _dir="$i"
+      while [ x"$subject" = "x" ] ; do
+        _dir=$(dirname $_dir) ; if [ "$_dir" = "$(dirname $_dir)" ] ; then break ; fi
+        _dirname=$(basename $_dir)
+        _pardirname=$(basename $(dirname $_dir))    
+        if [ "$_pardirname" = "sessions" ] ; then 
+          subject=$_dirname
+          session=$_dirname
+          SUBJECTS_DIR=$(dirname $(dirname $_dir))/subjects
+          if [ ! -d $SUBJECTS_DIR/$subject ] ; then
+            subject=$(echo $subject | cut -d _ -f 1)
+            #zenity --info --text=$subject
+            #zenity --info --text=$SUBJECTS_DIR
+          fi
+        elif [ "$_pardirname" = "subjects" ] ; then
+          subject=$_dirname
+          SUBJECTS_DIR=$(dirname $_dir)    
+        fi
+        #zenity --info --text="$_dir"
+      done  
+      if [ x"$subject" = "x" ] ; then zenity --info --text='Variable \$subject is empty - exiting.' ; exit 1 ; fi
+    fi
   fi
   
   # left or right hemisphere ?

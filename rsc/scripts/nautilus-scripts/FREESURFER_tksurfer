@@ -79,6 +79,31 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
     isscalar=0
   fi
   
+  # recursively searching for sessions/subjects directory (assuming 'sessions' and 'subjects' as names)
+  if [ x"$subject" = "x" ] ; then  
+    _dir="$i"
+    while [ x"$subject" = "x" ] ; do
+      _dir=$(dirname $_dir) ; if [ "$_dir" = "$(dirname $_dir)" ] ; then break ; fi
+      _dirname=$(basename $_dir)
+      _pardirname=$(basename $(dirname $_dir))    
+      if [ "$_pardirname" = "sessions" ] ; then 
+        subject=$_dirname
+        session=$_dirname
+        SUBJECTS_DIR=$(dirname $(dirname $_dir))/subjects
+        if [ ! -d $SUBJECTS_DIR/$subject ] ; then
+          subject=$(echo $subject | cut -d _ -f 1)
+          #zenity --info --text=$subject
+          #zenity --info --text=$SUBJECTS_DIR
+        fi
+      elif [ "$_pardirname" = "subjects" ] ; then
+        subject=$_dirname
+        SUBJECTS_DIR=$(dirname $_dir)    
+      fi
+      #zenity --info --text="$_dir"
+    done  
+    if [ x"$subject" = "x" ] ; then zenity --info --text='Variable \$subject is empty - exiting.' ; exit 1 ; fi
+  fi
+  
   # left or right hemisphere ?
   lh=0 ; rh=0
   lh="$(echo $(basename $i) | grep "\.lh\." | wc -l )"
@@ -170,31 +195,6 @@ for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   fi
   
   lastfile=$i
-
-  # recursively searching for sessions/subjects directory (assuming 'sessions' and 'subjects' as names)
-  if [ x"$subject" = "x" ] ; then  
-    _dir="$i"
-    while [ x"$subject" = "x" ] ; do
-      _dir=$(dirname $_dir) ; if [ "$_dir" = "$(dirname $_dir)" ] ; then break ; fi
-      _dirname=$(basename $_dir)
-      _pardirname=$(basename $(dirname $_dir))    
-      if [ "$_pardirname" = "sessions" ] ; then 
-        subject=$_dirname
-        session=$_dirname
-        SUBJECTS_DIR=$(dirname $(dirname $_dir))/subjects
-        if [ ! -d $SUBJECTS_DIR/$subject ] ; then
-          subject=$(echo $subject | cut -d _ -f 1)
-          #zenity --info --text=$subject
-          #zenity --info --text=$SUBJECTS_DIR
-        fi
-      elif [ "$_pardirname" = "subjects" ] ; then
-        subject=$_dirname
-        SUBJECTS_DIR=$(dirname $_dir)    
-      fi
-      #zenity --info --text="$_dir"
-    done  
-    if [ x"$subject" = "x" ] ; then zenity --info --text='Variable \$subject is empty - exiting.' ; exit 1 ; fi
-  fi
 
   # define annotations (only if no labels selected)
   if [ $(cat ${tmpfile}.tcl | grep labl_load | wc -l) -gt 0 ] ; then

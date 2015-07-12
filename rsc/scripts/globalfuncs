@@ -50,8 +50,8 @@ function path_abs2rel()
   # both $1 and $2 are absolute paths (need to end with '/')
   # returns $2 relative to $1
 
-  local source="$1"
-  local target="$2"
+  local source="${1}/"
+  local target="${2}/"
   
   ## remove /./
   #source=$(echo $source | sed "s|/\./|/|g" | sed "s|//|/|g" | sed "s|//|/|g")
@@ -63,12 +63,15 @@ function path_abs2rel()
 
   local common_part="$source"
   local back=
-  while [ "${target#$common_part}" = "${target}" ]; do
-    common_part=$(dirname $common_part)
-    back="../${back}"
-  done
-
-  echo ${back}${target#$common_part/}
+  if [ "${target#$source}" != "${target}" ] ; then
+    echo ${target#$source}
+  else    
+    while [ "${target#$common_part}" = "${target}" ]; do
+      common_part="$(dirname $common_part)/"
+      back="../${back}"
+    done
+    echo ${back}${target#$common_part}
+  fi
 }
 
 function time_elapsed()
