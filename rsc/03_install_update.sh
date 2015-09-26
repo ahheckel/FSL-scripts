@@ -20,7 +20,7 @@ echo "FSL version:              '${fslversion}'."
 echo "FREESURFER build-stamp:   '`cat $FREESURFER_HOME/build-stamp.txt`'."
 # wait to check
 echo ""
-read -p "press key to continue..."
+read -p "Press key to continue..."
 echo ""
 
 # copy patched fsl_sub
@@ -67,12 +67,12 @@ for bit in 32 64 ; do
     chmod +x scripts/bin/3dcalc
     cp -iv afni/3dDetrend_${bit} scripts/bin/3dDetrend
     chmod +x scripts/bin/3dDetrend
+    # fslmaths5 (for filling in holes in binary masks; -fillh switch)
+    cp -iv fsl/fsl5/fslmaths5_${bit} scripts/bin/fslmaths5
+    chmod +x scripts/bin/fslmaths5
     # sort v.8 (supports natural version sorting; -v switch)
     cp -iv scripts/bin/sort8_${bit} scripts/bin/sort8
     chmod +x scripts/bin/sort8
-    # fslmaths5 (for filling in holes in binary masks; -fillh switch)
-    cp -iv scripts/bin/fslmaths5_${bit} scripts/bin/fslmaths5
-    chmod +x scripts/bin/fslmaths5
   fi
 done
 
