@@ -1,5 +1,4 @@
 #!/bin/bash
-
 # Synchronizes installation (default ~/FSL-scripts) with zipped download from git-hub.
 
 # Written by Andreas Heckel

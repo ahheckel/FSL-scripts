@@ -1,4 +1,7 @@
 #!/bin/bash
+
+trap 'echo "$0 : An ERROR has occured."' ERR
+
 set -e
 
 Usage() {
@@ -15,7 +18,6 @@ cd $(dirname $0)
 installdirs="$HOME/.gnome2/nautilus-scripts/$subdir $HOME/.local/share/nautilus/scripts/$subdir" # for old and newer (ubuntu >=14.04, gnome3) nautilus versions
 for installdir in $installdirs ; do
   mkdir -p $installdir
-  echo $installdir
   cp -sf `pwd`/scripts/nautilus-scripts/* $installdir ; rm $installdir/env_vars
   cp `pwd`/scripts/nautilus-scripts/env_vars $installdir
   sed -i "s|PATH=.*|PATH=${PATH}|g" $installdir/env_vars
@@ -25,7 +27,6 @@ for installdir in $installdirs ; do
   echo "$(basename $0): scripts installed in '$installdir' - done."
 done
 
-echo "$(basename $0): env_vars created in installation directory:"
-echo "---------------------------"
+echo "$(basename $0): file 'env_vars' created in installation directory with following content:"
 cat $installdir/env_vars
 echo "---------------------------"
