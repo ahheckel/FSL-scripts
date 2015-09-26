@@ -2,6 +2,12 @@
 # Installs required files.
 # CAVE: for AFNI tools: may need to install or link /usr/lib[64]/libXp.so.6
 
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 03/01/2013
+
 cd $(dirname $0)
 if [ $# -lt 1 ] ; then echo "Usage: update [32|64]" ; exit 1 ; fi
 if [ x$FSLDIR = "x" ] ; then echo "FSLDIR variable is not defined ! Exiting." ; exit 1 ; fi

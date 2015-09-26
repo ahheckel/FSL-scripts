@@ -1,5 +1,11 @@
 #!/bin/bash
 
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 03/01/2013
+
 trap 'echo "$0 : An ERROR has occured."' ERR
 
 set -e
