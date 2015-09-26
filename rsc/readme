@@ -3,18 +3,22 @@ Modifications of original FSL / Freesurfer files.
 All modifications are indicated in the respective files (HKL).
 
 
+fsl/fsl4/featlib_v4.tcl
+-----------------------
+Cross-modal affine registrations use mutualinfo (rather than corratio) as cost-function. 
+Unwarping: +/- y unwarp example files are created.
+Only for use with FSL 4.9.1.
+
 
 fsl/fsl5/fsl_sub_v5_patched
 ---------------------------
 RAM limit added & JOB-IDs are written to file for better job control.
 
 
-fsl/fsl4/featlib_v4.tcl
------------------------
-Cross-modal affine registrations use mutualinfo (rather than corratio) as cost-function. 
-Unwarping: +/- y unwarp example files are created.
-Only for use with FSL 4.9.1.
-  
+fsl/fsl5/fslmaths5
+---------------------
+Allows for filling holes in binary Freesurfer masks (32/64bit).  
+
 
 fsl/FSLNets/nets_glm.m
 fsl/FSLNets/nets_load.m
@@ -52,11 +56,6 @@ and b0->T1 is done via Freesurfer's bbregister.
 scripts/bin/sort8
 -----------------
 Allows for natural sort of (version) numbers within text (32/64bit).
-
-
-scripts/bin/fslmaths5
----------------------
-Allows for filling holes in binary Freesurfer masks (32/64bit).
 
 -----
 Notes.
