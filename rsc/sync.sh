@@ -29,25 +29,27 @@ else
   zipfile="$1"
 fi
 destdir="$2"
-
-wd=`pwd`
-
 if [ x"$destdir" = "x" ] ; then destdir="~/FSL-scripts" ; fi
+wd=`pwd`
 
 if [ ! -f "$zipfile" ] ; then 
   echo "$(basename $0): ERROR: File '$zipfile' does not exist! Exiting..."
   exit 1
 fi
 
-cd $(dirname $zipfile)
+# create working dir.
+tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for temporary files
 
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+
+cd $(dirname $zipfile)
   folder=${zipfile%.zip}
   if [ -d "$folder" ] ; then
     read -p "Press key to delete directory '`pwd`/$folder'..."
     rm -r "$folder"
   fi
-  unzip $(basename $zipfile)
-  
+  unzip $(basename $zipfile)  
 cd "$wd"
 
 if [ ! -d "$folder" ] ; then 
