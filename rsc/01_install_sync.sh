@@ -40,7 +40,7 @@ trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 # download github zipball
 if [ "$zipfile" = "-1" ] ; then
-  zipfile="FSL-scripts.zip"
+  zipfile="FSL-scripts-github.zip"
   wget -O $zipfile https://github.com/ahheckel/FSL-scripts/zipball/master  
 fi
 
