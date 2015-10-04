@@ -12,7 +12,9 @@ set -e
 
 Usage() {
     echo ""
-    echo "Usage:  `basename $0` <subdir>"
+    echo "Usage:    `basename $0` <subdir>"
+    echo "Example:  `basename $0` MRI"
+    echo "          `basename $0` ."
     echo ""
     exit 1
 }
@@ -24,7 +26,8 @@ cd $(dirname $0)
 installdirs="$HOME/.gnome2/nautilus-scripts/$subdir $HOME/.local/share/nautilus/scripts/$subdir" # for old and newer (ubuntu >=14.04, gnome3) nautilus versions
 for installdir in $installdirs ; do
   mkdir -p $installdir
-  cp -sf `pwd`/scripts/nautilus-scripts/* $installdir ; rm $installdir/env_vars
+  #cp -sf `pwd`/scripts/nautilus-scripts/* $installdir ; rm $installdir/env_vars # symlinks may not be recognized by some nautilus versions
+  cp -f `pwd`/scripts/nautilus-scripts/* $installdir ; rm $installdir/env_vars ; chmod u+x $installdir/*
   cp `pwd`/scripts/nautilus-scripts/env_vars $installdir
   sed -i "s|PATH=.*|PATH=${PATH}|g" $installdir/env_vars
   sed -i "s|FSL_DIR=.*|FSL_DIR=${FSLDIR}|g" $installdir/env_vars
@@ -34,5 +37,6 @@ for installdir in $installdirs ; do
 done
 
 echo "$(basename $0): file 'env_vars' created in installation directory with following content:"
+echo "--------------------------------"
 cat $installdir/env_vars
-echo "---------------------------"
+echo "--------------------------------"
