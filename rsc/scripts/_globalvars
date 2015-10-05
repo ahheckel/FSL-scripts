@@ -188,6 +188,7 @@ BPX_USE_TOPUP_EC_BVECROT=0
 BPX_USE_TOPUP_EDDY_NOROT=0
 
 # RECON-ALL
+RECON_FSLROBFOV=1          # apply FSL's robustfov on T1 input in STG1 (FSLv5 required)
 RECON_USE_CUDA=0           # use CUDA for recon-all, if available
 RECON_OPTIONS=""           # "-use-mritotal" (may improve Talairach registration) ; -qcache for Qdec ; NOTE: "-nuintensitycor-3T -schwartzya3t-atlas" only for FREESURFER >= v.5.2
 

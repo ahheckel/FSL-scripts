@@ -1747,7 +1747,7 @@ if [ $RECON_STG1 -eq 1 ] ; then
       $scriptdir/fslreorient2std.sh $file $fldr/tmp_t1
       
       # remove neck
-      if [ $VBM_FSLV5 -eq 1 ] ; then
+      if [ $RECON_FSLROBFOV -eq 1 ] ; then
         echo "RECON : subj $subj , sess $sess : applying FSL's robustfov (v5)..."
         cmd="fslroi $fldr/tmp_t1 $fldr/tmp_t1 $(robustfov -i $fldr/tmp_t1 | grep -v Final)"
         echo "    $cmd" ; $cmd
