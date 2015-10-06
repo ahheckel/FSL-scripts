@@ -14,25 +14,25 @@
 
 source $(dirname $0)/env_vars
 
-if [ -d /tmp ] ; then
-  wdir=/tmp/.fslviewscript$$
-else
-  wdir=`pwd`/.fslviewscript$$
-fi
-mkdir -p $wdir
+# create unique dir. for temporary files
+export tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX)
 
 # define exit trap
-trap "echo -e \"\ncleanup: erasing '$wdir'\" ; rm -f $wdir/* ; rmdir $wdir ; exit" EXIT
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 n=0 ; files="" ; links2del=""
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
   bn=$(basename $i) ; ext=`echo ${bn##*.}` ;  bn0=${bn%.*}
   if [ "$ext" = "mgz" -o "$ext" = "mgh" ] ; then
-    #zenity --info --text="   mri_convert $i $wdir/$bn0.nii.gz $FSLDIR"
-    mri_convert $i $wdir/${bn0}.nii.gz
-    ln -s $wdir/${bn0}.nii.gz $(dirname $i)/${bn}_$$.nii.gz # create symlink in parent folder (so that "open" in fslview shows parent folder instead of temporary folder)
-    files=$files" "$(dirname $i)/${bn}_$$.nii.gz
-    links2del=$links2del" "$(dirname $i)/${bn}_$$.nii.gz
+    #zenity --info --text="   mri_convert $i $tmpdir/$bn0.nii.gz $FSLDIR"
+    mri_convert $i $tmpdir/${bn0}.nii.gz
+    ln -s $tmpdir/${bn0}.nii.gz $(dirname $i)/${bn}_$$.nii.gz # create symlink in parent folder (so that "open" in fslview shows parent folder instead of temporary folder)
+    if [ -f $(dirname $i)/${bn}_$$.nii.gz ] ; then
+      files=$files" "$(dirname $i)/${bn}_$$.nii.gz
+      links2del=$links2del" "$(dirname $i)/${bn}_$$.nii.gz
+    else # symlink could not be created for some reason (e.g., no write access)
+      files=$files" "$tmpdir/${bn0}.nii.gz
+    fi
     n=$[$n+1]
   else
     files=$files" "$i
