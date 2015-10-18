@@ -1830,8 +1830,11 @@ if [ $RECON_STG4 -eq 1 ] ; then
     for sess in `cat ${subj}/sessions_struc` ; do
       fldr=$FS_subjdir/$(subjsess)
       
+      # additional options
+      opts="$RECON_OPTIONS"
+      
       # generate command line
-      cmd="recon-all -long $(subjsess) $subj -all -no-isrunning -noappend"
+      cmd="recon-all -long $(subjsess) $subj -all -no-isrunning -noappend $opts"
       
       # executing...
       echo "RECON : subj $subj , sess $sess : executing recon-all - longitudinal stream..."
