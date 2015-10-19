@@ -10,9 +10,11 @@ export LC_ALL=C # set locale to C (ensures proper sorting)
 
 echo "---------------------------"
 
+# is another instance running ?
+if [ -d $(dirname $0)/.lockdir121978 ] ; then echo "$0 : --> another instance is already running - exiting." ; exit 1 ; fi
+
 # start in background mode ?
 if [ x"$1" = "xbg" ] ; then
-  if [ -d $(dirname $0)/.lockdir121978 ] ; then echo "$0 : --> another instance is already running - exiting." ; exit 1 ; fi
   trap 'echo -e "\n********************\nTo cancel background job type \n kill $(cat ./log | grep Job | cut -d : -f 2)\n\nTo view logfile type \n tail -f log\n"********************' EXIT
   cd $(dirname $0)
   nohup ./run_script.sh &> log &
