@@ -1778,12 +1778,12 @@ if [ $RECON_STG2 -eq 1 ] ; then
       if [ $RECON_USE_CUDA = 1 ] ; then exitflag=0 ; else exitflag=X ; fi
       
       # additional options
-      opts="$RECON_OPTIONS"
+      opts="$RECON_OPTIONS_CROSS"
       
       echo '#!/bin/bash' > $fldr/recon-all_cuda.sh
       echo 'cudadetect &>/dev/null' >>  $fldr/recon-all_cuda.sh
-      echo "if [ \$? = $exitflag ] ; then recon-all -all -subjid $(subjsess) -use-gpu -no-isrunning -noappend -clean-tal -tal-check -cw256 $opts" >> $fldr/recon-all_cuda.sh # you may want to remove clean-tal flag (!)
-      echo "else  recon-all -all -subjid $(subjsess) -no-isrunning -noappend -clean-tal -tal-check -cw256 $opts ; fi" >> $fldr/recon-all_cuda.sh
+      echo "if [ \$? = $exitflag ] ; then recon-all -all -subjid $(subjsess) -use-gpu $opts" >> $fldr/recon-all_cuda.sh # you may want to remove clean-tal flag (!)
+      echo "else  recon-all -all -subjid $(subjsess) $opts ; fi" >> $fldr/recon-all_cuda.sh
       chmod +x $fldr/recon-all_cuda.sh
       
       # execute...
@@ -1812,11 +1812,11 @@ if [ $RECON_STG3 -eq 1 ] ; then
     done
     
     # additional options
-    opts="$RECON_OPTIONS"
+    opts="$RECON_OPTIONS_BASE"
     
     # executing...
     echo "RECON : subj $subj , sess $sess : executing recon-all - unbiased template generation..."
-    cmd="$cmd -all -no-isrunning -noappend -clean-tal -tal-check $opts"
+    cmd="$cmd -all $opts"
     echo $cmd | tee $fldr/recon-all_base.cmd
     $scriptdir/fsl_sub_NOPOSIXLY.sh -l $logdir -N recon-all_base_${subj} -t $fldr/recon-all_base.cmd
   done
@@ -1833,10 +1833,10 @@ if [ $RECON_STG4 -eq 1 ] ; then
       fldr=$FS_subjdir/$(subjsess)
       
       # additional options
-      opts="$RECON_OPTIONS"
+      opts="$RECON_OPTIONS_LONG"
       
       # generate command line
-      cmd="recon-all -long $(subjsess) $subj -all -no-isrunning -noappend $opts"
+      cmd="recon-all -long $(subjsess) $subj -all $opts"
       
       # executing...
       echo "RECON : subj $subj , sess $sess : executing recon-all - longitudinal stream..."
