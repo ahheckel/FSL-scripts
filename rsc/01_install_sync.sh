@@ -38,6 +38,12 @@ tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX) # create unique dir. for tempor
 # define exit trap
 trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
+# check
+if [ $(dirname $0 | grep ^\\. | wc -l) -eq 1 ] ; then
+  echo "$(basename $0): ERROR: Please call with absolute filepath. Note that this script should not be executed within the directory-tree of the framework. Exiting..."
+  exit 1
+fi
+
 # download github zipball
 if [ "$zipfile" = "-1" ] ; then
   zipfile="FSL-scripts-github.zip"
@@ -52,7 +58,8 @@ fi
 
 # unzip
 cd $(dirname $zipfile)
-  folder=${zipfile%.zip}
+  #folder=${zipfile%.zip}
+  folder=$(unzip -l $zipfile | awk '{print $4}' | cut -d / -f 1 | sort -u | grep heck)
   if [ -d "$folder" ] ; then
     read -p "$(basename $0): Press key to delete directory '`pwd`/$folder'..."
     rm -r "$folder"
@@ -65,5 +72,5 @@ if [ ! -d "$folder" ] ; then
   echo "$(basename $0): ERROR: Folder '$folder' does not exist! Exiting..." ; exit 1
 else
   echo "$(basename $0): Execute:"
-  echo "rsync -avzb --delete --backup-dir=../backup/$(basename $destdir) $folder/ $destdir/"
+  echo "rsync -avzb --delete --backup-dir=backup/$(basename $destdir) $folder/ $destdir/"
 fi

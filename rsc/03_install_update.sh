@@ -37,7 +37,6 @@ chmod +x $FSLDIR/bin/fsl_sub
 cp -iv fsl/templates/MNI152*.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/templates/avg152T1*.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/templates/rsn*.nii.gz $FSLDIR/data/standard/
-cp -iv fsl/templates/rsn*.nii.gz $FSLDIR/data/standard/
 cp -iv fsl/templates/rsn_labels* $FSLDIR/data/standard/
 
 # for FSL 4.9.1 only
