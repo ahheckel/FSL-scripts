@@ -43,8 +43,5 @@ cmd="diff $fwdir/fsl/orig/dual_regression $FSLDIR/bin/dual_regression" ; $cmd ; 
 
 #cmd="diff $fwdir/fs/trac-all $FREESURFER_HOME/bin/trac-all" ; $cmd ;  echo "`basename $0` : ************************** $cmd **************************" ; read -p "Press Key..."
 
-# are all required progs / files installed ?
-$(dirname $0)/scripts/_check_progs.sh
-
 # done
 echo "`basename $0` : done."

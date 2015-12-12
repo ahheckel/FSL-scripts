@@ -100,3 +100,10 @@ if [ -f $FREESURFER_HOME/bin/fsl_sub_seychelles ] ; then # for TRACULA
 fi
 mkdir -p $FREESURFER_HOME/qdec/stats_table # for qdec to work
 chmod 777 $FREESURFER_HOME/qdec/stats_table
+
+# are all required progs / files installed ?
+$(dirname $0)/scripts/_check_progs.sh
+
+# done
+echo "`basename $0` : done."
+
