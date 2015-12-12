@@ -1,5 +1,5 @@
 #!/bin/bash
-# The FEAT way of smoothing. Also performs grand mean scaling.
+# The FEAT way of smoothing. Also performs grand mean scaling and high-pass filtering.
 
 # Based on FSL's featlib.tcl (v. 4.1.9). 
 # Adapted by Andreas Heckel
