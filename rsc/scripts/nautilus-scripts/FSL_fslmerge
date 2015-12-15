@@ -1,7 +1,5 @@
 #!/bin/bash
 
-export LC_ALL=C # set locale to C (ensures proper sorting)
-
 source $(dirname $0)/env_vars
 
 ## create unique dir. for temporary files
@@ -21,9 +19,11 @@ cmd1="mkdir -p $(dirname $out)"
 cmd2="fslmerge -t $out $files"
 
 # execute
-xterm -e /bin/bash -c "for i in $files ; do echo \$i ; done ; \
-echo  \"\"; \
+xterm -e /bin/bash -c "n=0 ; for i in $files ; do echo \$i ; n=\$[\$n+1] ; done ; echo n=\$n ; \
+echo ; \
 echo $cmd1 ; \
 $cmd1 ; \
 echo $cmd2 ; \
-$cmd2"
+$cmd2 ; \
+echo ; \
+read -p Press\ key..."
