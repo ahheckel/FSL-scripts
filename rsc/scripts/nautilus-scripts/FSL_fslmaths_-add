@@ -10,16 +10,19 @@ export tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX)
 trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 
 # define vars
-opts=$(zenity --entry --text="Enter fslmaths option:" --entry-text="")
+out=$(zenity --entry --text="Enter output filename:" --entry-text="added-up")
 if [ $? -eq 1 ] ; then exit 1 ; fi
-_opts="$(echo "$opts" | sed 's| ||g')"
-#_opts="$(echo "$opts" | sed 's|-||g')"
 
 # save command to list
-for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
-  out="$(dirname $i)/$(basename $(remove_ext $i))_fslmaths${_opts}"
-  echo "fslmaths $i $opts $out" >> $tmpdir/cmd
+n=0 ; for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
+  if [ $n -eq 0 ] ; then
+    cmd="$i"
+  else
+    cmd="$cmd -add $i"
+  fi
+  n=$[$n+1]
 done
+echo "fslmaths $cmd $out" >> $tmpdir/cmd
 
 # execute
 xterm -e /bin/bash -c "\
