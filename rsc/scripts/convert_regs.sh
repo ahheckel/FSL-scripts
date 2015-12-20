@@ -41,18 +41,22 @@ trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
 cp $inmat $tmpdir/inmat.${in_ext}
 _inmat=$tmpdir/inmat.${in_ext}
 
-if [ "$in_ext" = "dat" ] ; then regin="--reg $_inmat" ; fi
+regswitch=0
+if [ "$in_ext" = "dat" ] ; then regin="--reg $_inmat" ; regswitch=1 ; fi
+if [ "$in_ext" = "reg" ] ; then regin="--reg $_inmat" ; regswitch=1 ; fi
 if [ "$in_ext" = "xfm" ] ; then regin="--xfm $_inmat" ; fi
 if [ "$in_ext" = "mat" ] ; then regin="--fsl $_inmat" ; fi
 if [ "$in_ext" = "lta" ] ; then regin="--lta $_inmat" ; fi
 if [ "$in_ext" = "txt" ] ; then regin="--vox2vox $_inmat" ; fi
 
-if [ "$out_ext" = "dat" ] ; then regout="--reg $outmat" ; fi
+if [ "$out_ext" = "dat" ] ; then regout="--reg $outmat" ; regswitch=1 ;  fi
+if [ "$out_ext" = "reg" ] ; then regout="--reg $outmat" ; regswitch=1 ;  fi
 if [ "$out_ext" = "xfm" ] ; then regout="--xfmout $outmat" ; fi
 if [ "$out_ext" = "mat" ] ; then regout="--fslregout $outmat" ; fi
 if [ "$out_ext" = "lta" ] ; then regout="--ltaout $outmat" ; fi
 
-if [ "$in_ext" != "dat" -a "$out_ext" != "dat" ] ; then delme="--reg $tmpdir/deleteme.reg.dat" ; else delme="" ; fi
+#if [ "$in_ext" != "dat" -a "$out_ext" != "dat" ] ; then delme="--reg $tmpdir/deleteme.reg.dat" ; else delme="" ; fi
+if [ $regswitch -eq 0 ] ; then delme="--reg $tmpdir/deleteme.reg.dat" ; else delme="" ; fi
 
 cmd="tkregister2 --noedit --mov $mov --targ $targ $regin $regout $delme"
 echo $cmd ; $cmd

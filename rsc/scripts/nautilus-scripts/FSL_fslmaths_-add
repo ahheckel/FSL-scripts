@@ -24,8 +24,14 @@ n=0 ; for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
 done
 echo "fslmaths $cmd $out" >> $tmpdir/cmd
 
+# make parent directory of output file
+cmd1="mkdir -p $(dirname $out)"
+
 # execute
 xterm -e /bin/bash -c "\
+echo ; \
+echo $cmd1 ; \
+$cmd1 ; \
 cat $tmpdir/cmd ; \
 . $tmpdir/cmd ; \
 echo ; \

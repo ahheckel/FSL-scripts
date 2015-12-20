@@ -17,7 +17,7 @@ _opts="$(echo "$opts" | sed 's| ||g')"
 
 # save command to list
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
-  out="$(dirname $i)/$(basename $(remove_ext $i))_fslmaths${_opts}"
+  out="$(dirname $i)/$(basename $(remove_ext $i))_${_opts}"
   echo "fslmaths $i $opts $out" >> $tmpdir/cmd
 done
 

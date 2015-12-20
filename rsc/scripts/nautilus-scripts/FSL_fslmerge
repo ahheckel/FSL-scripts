@@ -3,12 +3,6 @@
 # source environment
 source $(dirname $0)/env_vars
 
-## create unique dir. for temporary files
-#export tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX)
-
-## define exit trap
-#trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
-
 # define vars
 files=""
 for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
@@ -18,7 +12,7 @@ out=$(zenity --entry --text="Enter output filename:" --entry-text="merged")
 if [ $? -eq 1 ] ; then exit 1 ; fi
 
 # define commands
-cmd1="mkdir -p $(dirname $out)"
+cmd1="mkdir -p $(dirname $out)" # make parent directory of output file
 cmd2="fslmerge -t $out $files"
 
 # execute
