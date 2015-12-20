@@ -1,0 +1,35 @@
+#!/bin/bash
+# freeview wrapper for Nautilus.
+
+# INSTALL:
+# mkdir -p ~/.gnome2/nautilus-scripts
+# cp "script.sh" ~/.gnome2/nautilus-scripts/
+# chmod +x ~/.gnome2/nautilus-scripts/"script.sh"
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 03/31/2013
+
+source $(dirname $0)/env_vars
+
+for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
+  if [ -f $i/label/lh.aparc.a2009s.annot ] ; then
+    annot="aparc.a2009s.annot"
+  else
+    annot="aparc.a2005s.annot"
+  fi
+  opts="-v $i/mri/T1.mgz -v $i/mri/brainmask.mgz $i/mri/wm.mgz:colormap=heat:opacity=0.4 \
+  -f $i/surf/lh.inflated:visible=0 $i/surf/rh.inflated:visible=0 \
+  $i/surf/lh.white:edgecolor=blue $i/surf/rh.white:edgecolor=blue \
+  $i/surf/lh.pial:annot=$i/label/lh.${annot}:edgecolor=red $i/surf/rh.pial:annot=$i/label/rh.${annot}:edgecolor=red"
+
+  # check
+  #zenity --info --text="$opts"
+
+  # execute
+  freeview ${opts} &
+done
+
+

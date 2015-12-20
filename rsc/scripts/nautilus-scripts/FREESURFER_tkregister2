@@ -1,0 +1,36 @@
+#!/bin/bash
+# tkregister2 wrapper for Nautilus.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 04/08/2014
+
+source $(dirname $0)/env_vars
+
+f="$NAUTILUS_SCRIPT_SELECTED_FILE_PATHS"
+one=$(echo $f | cut -d " " -f1)
+two=$(echo $f | cut -d " " -f2)
+dummy=/tmp/$$dummy.reg 
+
+cmd1="tkregister2 --mov $one --targ $two --reg $dummy --regheader --fslregout $(basename $(remove_ext $one))_to_$(basename $(remove_ext $two)).mat"
+cmd2="tkregister2 --mov $two --targ $one --reg $dummy --regheader --fslregout $(basename $(remove_ext $two))_to_$(basename $(remove_ext $one)).mat"
+
+#zenity --info --text="$cmd1"
+
+xterm -e /bin/bash -c "\
+echo Choose\ moveable: ;\
+echo ;\
+echo -e \ a.\ $(basename $one) ;\
+echo ;\
+echo -e \ b.\ $(basename $two) ;\
+echo ;\
+read -p \> s ;\
+echo \"------------------------------\" ;\
+if   [ \$s = a ] ; then cmd=\"$cmd1\" ;\
+elif [ \$s = b ] ; then cmd=\"$cmd2\" ;\
+fi ;\
+\$cmd ;\
+rm -f $dummy ;\
+read -p Press\ key..."

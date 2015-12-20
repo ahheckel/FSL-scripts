@@ -1,0 +1,38 @@
+#!/bin/bash
+
+# source environment
+source $(dirname $0)/env_vars
+
+# create unique dir. for temporary files
+export tmpdir=$(mktemp -d -t $(basename $0)_XXXXXXXXXX)
+
+# define exit trap
+trap "rm -f $tmpdir/* ; rmdir $tmpdir ; exit" EXIT
+
+# define vars
+out=$(zenity --entry --text="Enter output filename:" --entry-text="added-up")
+if [ $? -eq 1 ] ; then exit 1 ; fi
+
+# save command to list
+n=0 ; for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
+  if [ $n -eq 0 ] ; then
+    cmd="$i"
+  else
+    cmd="$cmd -add $i"
+  fi
+  n=$[$n+1]
+done
+echo "fslmaths $cmd $out" >> $tmpdir/cmd
+
+# make parent directory of output file
+cmd1="mkdir -p $(dirname $out)"
+
+# execute
+xterm -e /bin/bash -c "\
+echo ; \
+echo $cmd1 ; \
+$cmd1 ; \
+cat $tmpdir/cmd ; \
+. $tmpdir/cmd ; \
+echo ; \
+read -p Press\ key..."

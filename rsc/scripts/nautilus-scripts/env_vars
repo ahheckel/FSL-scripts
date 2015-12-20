@@ -1,0 +1,7 @@
+export LC_ALL=C # set locale to C (ensures proper sorting)
+PATH=XXX
+FSL_DIR=XXX
+source ${FSL_DIR}/etc/fslconf/fsl.sh
+FREESURFER_HOME=XXX
+source $FREESURFER_HOME/SetUpFreeSurfer.sh
+scriptdir=XXX

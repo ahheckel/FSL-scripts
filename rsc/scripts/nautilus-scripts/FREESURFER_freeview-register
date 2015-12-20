@@ -1,0 +1,33 @@
+#!/bin/bash
+# freeview wrapper for registrations for Nautilus.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 04/08/2014
+
+source $(dirname $0)/env_vars
+
+f="$NAUTILUS_SCRIPT_SELECTED_FILE_PATHS"
+one=$(echo $f | cut -d " " -f1)
+two=$(echo $f | cut -d " " -f2)
+
+cmd1="freeview -v $two -v $one:colormap=heat "
+cmd2="freeview -v $one -v $two:colormap=heat "
+
+#zenity --info --text="$cmd1"
+
+xterm -e /bin/bash -c "\
+echo Choose\ moveable: ;\
+echo ;\
+echo -e \ a.\ $(basename $one) ;\
+echo ;\
+echo -e \ b.\ $(basename $two) ;\
+echo ;\
+read -p \> s ;\
+echo \"------------------------------\" ;\
+if   [ \$s = a ] ; then cmd=\"$cmd1\" ;\
+elif [ \$s = b ] ; then cmd=\"$cmd2\" ;\
+fi ;\
+\$cmd"

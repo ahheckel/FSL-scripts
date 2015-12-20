@@ -1,0 +1,70 @@
+#!/bin/bash
+# Fslview wrapper for Nautilus. For checking feat-directories.
+
+# INSTALL:
+# mkdir -p ~/.gnome2/nautilus-scripts
+# cp "script.sh" ~/.gnome2/nautilus-scripts/
+# chmod +x ~/.gnome2/nautilus-scripts/"script.sh"
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 04/02/2013
+
+source $(dirname $0)/env_vars
+
+for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do # for each feat-dir
+  
+  # define vars
+  exf="$i/example_func.nii.gz"
+  highres="$i/reg/highres.nii.gz"
+  exf2std="$i/reg/example_func2standard.nii.gz"
+  standard="$i/reg/standard.nii.gz"
+  exf2highres="$i/reg/example_func2highres.nii.gz"
+  highres2std="$i/reg/highres2standard.nii.gz"
+  EF_D="$i/unwarp/EF_D_example_func.nii.gz"
+  EF_UD="$i/unwarp/EF_UD_example_func.nii.gz"
+  EF_mag="$i/unwarp/EF_UD_fmap_mag_brain.nii.gz"
+  EF_D_v5="$i/reg/unwarp/EF_D_example_func.nii.gz"
+  #EF_UD_v5="$i/reg/unwarp/EF_UD_example_func.nii.gz"
+  EF_UD_v5="$i/reg/unwarp/example_func_undistorted.nii.gz"
+  EF_mag_v5="$i/reg/unwarp/EF_UD_fmap_mag_brain.nii.gz"
+  
+  highresbbr="$i/reg_longt/highres.nii.gz"
+  exf2highresbbr="$i/reg_longt/example_func2highres_bbr.nii.gz"
+  CSF="$i/noise/EF_CSF.nii.gz"
+  WM="$i/noise/EF_WM.nii.gz"
+  WB="$i/noise/EF_WB.nii.gz"
+  
+  if [ -d $i/reg ] ; then # check registrations
+    if [ -f $exf2highres ] ; then
+      fslview $exf2highres $highres &
+    fi
+    if [ -f $exf2highresbbr ] ; then
+      fslview $exf2highresbbr $highres &
+    fi
+    if [ -f $exf2std -o -f $highres2std ] ; then
+      fslview $exf2std $highres2std $standard &
+    fi
+    if [ -f $CSF -a -f $WB -a -f $exf ] ; then
+      cp $exf /tmp/example_func_$$.nii.gz
+      fslview /tmp/example_func_$$ $WB -t 0 $CSF -l "Blue" -t 0.5 $WM -l "Yellow" -t 0.5 &
+    fi
+  fi
+  if [ -d $i/unwarp ] ; then # check unwarping
+    if [ -f $EF_UD ] ; then 
+      fslview $EF_D $EF_UD $EF_mag &
+    fi
+  fi
+  if [ -d $i/reg/unwarp ] ; then # check unwarping (FSLv5)
+    if [ -f $EF_UD_v5 ] ; then
+      fslview $EF_D_v5 $EF_UD_v5 $EF_mag_v5 &
+    fi
+  fi  
+
+done
+
+# cleanup
+sleep 10
+rm -f /tmp/example_func_$$.nii.gz

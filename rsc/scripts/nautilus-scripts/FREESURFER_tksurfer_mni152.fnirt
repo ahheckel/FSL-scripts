@@ -1,0 +1,12 @@
+#!/bin/bash
+# tksurfer wrapper for Nautilus.
+
+# Written by Andreas Heckel
+# University of Heidelberg
+# heckelandreas@googlemail.com
+# https://github.com/ahheckel
+# 02/26/2013
+
+flatpatch=0
+subject=mni152.fnirt
+source $(dirname $0)/FREESURFER_tksurfer
