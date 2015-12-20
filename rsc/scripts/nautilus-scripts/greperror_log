@@ -1,8 +1,0 @@
-#!/bin/bash
-
-source $(dirname $0)/env_vars
-
-for i in $NAUTILUS_SCRIPT_SELECTED_FILE_PATHS ; do
-  cmd="$scriptdir/greperror.sh $i"
-  xterm -geometry 240x80 -bg black -fg green -sb -sl 65536 -e /bin/bash -c "echo executing $cmd ... ; $cmd ; echo ; read -p Press\ key..." 
-done
