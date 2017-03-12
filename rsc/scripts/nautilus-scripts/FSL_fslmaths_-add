@@ -29,7 +29,6 @@ cmd1="mkdir -p $(dirname $out)"
 
 # execute
 xterm -e /bin/bash -c "\
-echo ; \
 echo $cmd1 ; \
 $cmd1 ; \
 cat $tmpdir/cmd ; \
